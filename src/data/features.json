@@ -1,0 +1,225 @@
+{
+  "features": [
+    {
+      "id": "position-deletes",
+      "name": "Position Deletes",
+      "category": "row-level-operations",
+      "introducedIn": "v2",
+      "description": "Delete rows by tracking their file and position offsets, enabling efficient row-level deletes without rewriting entire data files"
+    },
+    {
+      "id": "equality-deletes",
+      "name": "Equality Deletes",
+      "category": "row-level-operations",
+      "introducedIn": "v2",
+      "description": "Delete rows matching equality predicates without rewriting data files, using delete files that specify column values to match"
+    },
+    {
+      "id": "merge-on-read",
+      "name": "Merge-on-Read",
+      "category": "row-level-operations",
+      "introducedIn": "v2",
+      "description": "Write strategy that records changes as delete files merged at read time, offering faster writes at the cost of slower reads"
+    },
+    {
+      "id": "copy-on-write",
+      "name": "Copy-on-Write",
+      "category": "row-level-operations",
+      "introducedIn": "v2",
+      "description": "Write strategy that rewrites affected data files on each update or delete, providing fast reads but slower writes"
+    },
+    {
+      "id": "schema-evolution",
+      "name": "Schema Evolution",
+      "category": "schema-management",
+      "introducedIn": "v2",
+      "description": "Add, drop, rename, reorder columns or change column types without rewriting existing data files"
+    },
+    {
+      "id": "column-default-values",
+      "name": "Column Default Values",
+      "category": "schema-management",
+      "introducedIn": "v3",
+      "description": "Define default values for columns that apply when new data is written without specifying a value for that column"
+    },
+    {
+      "id": "nanosecond-timestamps",
+      "name": "Nanosecond Timestamps",
+      "category": "schema-management",
+      "introducedIn": "v3",
+      "description": "Support for nanosecond-precision timestamp and timestamptz types, enabling higher precision time tracking"
+    },
+    {
+      "id": "hidden-partitioning",
+      "name": "Hidden Partitioning",
+      "category": "partitioning",
+      "introducedIn": "v2",
+      "description": "Partition data using transforms (year, month, day, hour, bucket, truncate) without exposing partition columns to users"
+    },
+    {
+      "id": "partition-evolution",
+      "name": "Partition Evolution",
+      "category": "partitioning",
+      "introducedIn": "v2",
+      "description": "Change the partitioning scheme of a table without rewriting existing data, allowing new data to use the updated scheme"
+    },
+    {
+      "id": "multi-arg-transforms",
+      "name": "Multi-Argument Transforms",
+      "category": "partitioning",
+      "introducedIn": "v3",
+      "description": "Partition transforms that accept multiple arguments, enabling more flexible partitioning strategies"
+    },
+    {
+      "id": "time-travel",
+      "name": "Time Travel / Snapshots",
+      "category": "table-management",
+      "introducedIn": "v2",
+      "description": "Query historical versions of a table using snapshot IDs or timestamps to access data as it existed at a point in time"
+    },
+    {
+      "id": "table-maintenance",
+      "name": "Table Maintenance",
+      "category": "table-management",
+      "introducedIn": "v2",
+      "description": "Operations to optimize table storage including compaction, snapshot expiry, orphan file removal, and rewriting manifests"
+    },
+    {
+      "id": "branching-tagging",
+      "name": "Branching & Tagging",
+      "category": "table-management",
+      "introducedIn": "v2",
+      "description": "Create named branches and tags on table snapshots for isolation, testing, and reproducible queries"
+    },
+    {
+      "id": "read-support",
+      "name": "Read Support",
+      "category": "read-write",
+      "introducedIn": "v2",
+      "description": "Ability to read data from Iceberg tables including scan planning, predicate pushdown, and column projection"
+    },
+    {
+      "id": "write-insert",
+      "name": "Write (INSERT)",
+      "category": "read-write",
+      "introducedIn": "v2",
+      "description": "Ability to insert new data into Iceberg tables using INSERT INTO or append operations"
+    },
+    {
+      "id": "write-merge-update-delete",
+      "name": "Write (MERGE/UPDATE/DELETE)",
+      "category": "read-write",
+      "introducedIn": "v2",
+      "description": "Ability to perform row-level mutations including MERGE INTO, UPDATE, and DELETE operations"
+    },
+    {
+      "id": "catalog-integration",
+      "name": "Catalog Integration",
+      "category": "read-write",
+      "introducedIn": "v2",
+      "description": "Integration with one or more Iceberg catalog implementations for table metadata management"
+    },
+    {
+      "id": "hive-metastore",
+      "name": "Hive Metastore",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "Apache Hive Metastore catalog implementation for managing Iceberg table metadata using the Hive Thrift protocol"
+    },
+    {
+      "id": "aws-glue-catalog",
+      "name": "AWS Glue Catalog",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "AWS Glue Data Catalog as an Iceberg catalog, providing serverless metadata management integrated with AWS analytics services"
+    },
+    {
+      "id": "rest-catalog",
+      "name": "REST Catalog",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "Vendor-neutral REST API-based catalog specification for managing Iceberg table metadata over HTTP"
+    },
+    {
+      "id": "nessie",
+      "name": "Nessie",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "Project Nessie catalog providing Git-like versioning, branching, and tagging for Iceberg table metadata"
+    },
+    {
+      "id": "polaris",
+      "name": "Polaris",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "Apache Polaris (incubating) open-source catalog service implementing the Iceberg REST Catalog API with fine-grained access control"
+    },
+    {
+      "id": "unity-catalog",
+      "name": "Unity Catalog",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "Databricks Unity Catalog providing unified governance for data and AI assets, with Iceberg REST Catalog API support"
+    },
+    {
+      "id": "hadoop-catalog",
+      "name": "Hadoop Catalog",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "File-system based catalog that stores Iceberg metadata directly on HDFS or compatible storage without an external service"
+    },
+    {
+      "id": "jdbc-catalog",
+      "name": "JDBC Catalog",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "JDBC-based catalog that stores Iceberg table metadata in a relational database such as PostgreSQL or MySQL"
+    },
+    {
+      "id": "variant-type",
+      "name": "Variant Type",
+      "category": "v3-data-types",
+      "introducedIn": "v3",
+      "description": "Semi-structured data type that stores JSON-like data in a compact binary format with efficient field access without parsing"
+    },
+    {
+      "id": "shredded-variant",
+      "name": "Shredded Variant",
+      "category": "v3-data-types",
+      "introducedIn": "v3",
+      "description": "Optimization for Variant type that shreds frequently accessed fields into separate columns for faster queries while keeping the full variant"
+    },
+    {
+      "id": "geometry-type",
+      "name": "Geometry / Geo Types",
+      "category": "v3-data-types",
+      "introducedIn": "v3",
+      "description": "Geospatial data types for storing points, lines, polygons and other geometry objects natively in Iceberg tables"
+    },
+    {
+      "id": "vector-type",
+      "name": "Vector / Embedding Type",
+      "category": "v3-data-types",
+      "introducedIn": "v3",
+      "description": "Fixed-length float array type for storing ML embeddings and vectors, enabling similarity search and AI workloads on Iceberg tables"
+    },
+    {
+      "id": "cdc-support",
+      "name": "Change Data Capture (CDC)",
+      "category": "v3-advanced",
+      "introducedIn": "v3",
+      "description": "Native support for capturing and replaying row-level changes (inserts, updates, deletes) as a stream from Iceberg tables"
+    },
+    {
+      "id": "lineage",
+      "name": "Lineage Tracking",
+      "category": "v3-advanced",
+      "introducedIn": "v3",
+      "description": "Metadata-level tracking of data provenance and transformations, enabling end-to-end data lineage across Iceberg tables"
+    }
+  ],
+  "versions": [
+    "v2",
+    "v3"
+  ]
+}

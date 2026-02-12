@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  /* Ensure the matrix scrolls horizontally on small screens */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Sticky header stays visible while scrolling */
+  .matrix-wrapper thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: white;
+  }
+
+  /* First column sticky */
+  .matrix-wrapper thead th:first-child {
+    z-index: 30;
+    left: 0;
+  }
+
+  /* Category group rows */
+  .matrix-wrapper .category-row td {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+  }
+
+  /* Subtle row hover */
+  .matrix-wrapper tbody tr:hover td {
+    background-color: rgba(59, 130, 246, 0.03);
+  }
+  .matrix-wrapper tbody tr:hover td:first-child {
+    background-color: rgb(249, 250, 251);
+  }
+
+  /* Smooth transitions for filter chips */
+  .filter-chip {
+    @apply px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all duration-150 border;
+  }
+
+  /* Collapsible intro animation */
+  .collapsible-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+  }
+}
