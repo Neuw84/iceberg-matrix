@@ -66,6 +66,18 @@ Contributions are welcome! Please open a pull request against `main`.
 
 If a platform's support level changes (e.g. a feature goes from `"partial"` to `"full"`), update both the vendor-specific JSON and `compatibility-data.json`. Include a link to the announcement or docs in the `"notes"` field.
 
+```
+"aws-athena:read-support:v2": {
+  "level": "full",
+  "notes": "Full read support via Athena engine v3",
+  "caveats": [],
+  "links": [
+    { "label": "Athena Iceberg docs", "url": "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg.html" }
+  ]
+}
+```
+
+
 ### Pull Request Guidelines
 
 - Fork the repo and create a feature branch (`git checkout -b add-my-engine`).
