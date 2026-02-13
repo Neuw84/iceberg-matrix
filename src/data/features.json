@@ -31,16 +31,23 @@
     {
       "id": "schema-evolution",
       "name": "Schema Evolution",
-      "category": "schema-management",
+      "category": "table-management",
       "introducedIn": "v2",
       "description": "Add, drop, rename, reorder columns or change column types without rewriting existing data files"
     },
     {
       "id": "column-default-values",
       "name": "Column Default Values",
-      "category": "schema-management",
+      "category": "table-management",
       "introducedIn": "v3",
       "description": "Define default values for columns that apply when new data is written without specifying a value for that column"
+    },
+    {
+      "id": "table-creation",
+      "name": "Table Creation",
+      "category": "table-management",
+      "introducedIn": "v2",
+      "description": "Ability to create new Iceberg tables using CREATE TABLE statements or equivalent API calls, including defining schema, partitioning, and table properties"
     },
     {
       "id": "hidden-partitioning",
