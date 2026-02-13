@@ -42,7 +42,7 @@ src/
 public/logos/         # SVG logos for platforms and engines
 ```
 
-The runtime data source is `src/data/compatibility-data.json`. Vendor-specific files (`aws.json`, `gcp.json`, etc.) exist for organizational clarity and must be kept in sync with the aggregated file.
+Data is split into per-vendor files under `src/data/platforms/` (aws.json, gcp.json, azure.json, databricks.json, snowflake.json, oss.json) and merged at import time by `src/data/load-data.ts`. Feature definitions live in `src/data/features.json`.
 
 ## Contributing
 
@@ -50,11 +50,10 @@ Contributions are welcome! Please open a pull request against `main`.
 
 ### Adding a New Engine or Platform
 
-1. Add the platform object to the relevant `src/data/{vendor}.json` file under `"platforms"`.
+1. Add the platform object to the relevant `src/data/platforms/{vendor}.json` file under `"platforms"`.
 2. Add support entries for **every feature × version** combination in the same file under `"support"`. Use `"unknown"` for features the platform hasn't announced yet — don't omit entries.
-3. Add the same platform and support entries to `src/data/compatibility-data.json`.
-4. Drop an SVG logo into `public/logos/` and wire it up in the `PLATFORM_LOGOS` map in `CompatibilityMatrix.tsx` and `FilterPanel.tsx`.
-5. Run `npm test && npm run build` to verify nothing breaks.
+3. Drop an SVG logo into `public/logos/` and wire it up in the `PLATFORM_LOGOS` map in `CompatibilityMatrix.tsx` and `FilterPanel.tsx`.
+4. Run `npm test && npm run build` to verify nothing breaks.
 
 ### Adding a New Feature
 
