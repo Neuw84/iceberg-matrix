@@ -146,7 +146,7 @@ export function CompatibilityMatrix({
       </div>
       <div className="overflow-x-auto matrix-wrapper">
         <table
-          className="border-collapse text-sm"
+          className="border-separate border-spacing-0 text-sm"
           style={{ minWidth: 110 + colCount * 88, width: '100%' }}
           role="grid"
           aria-label="Iceberg compatibility matrix"
