@@ -147,7 +147,7 @@ export function CompatibilityMatrix({
       <div className="overflow-x-auto matrix-wrapper">
         <table
           className="border-collapse text-sm"
-          style={{ minWidth: 140 + colCount * 88, width: '100%' }}
+          style={{ minWidth: 110 + colCount * 88, width: '100%' }}
           role="grid"
           aria-label="Iceberg compatibility matrix"
         >
@@ -157,7 +157,7 @@ export function CompatibilityMatrix({
               <th
                 className="sticky left-0 bg-white z-30 border-b border-gray-200"
                 rowSpan={2}
-                style={{ width: 140, minWidth: 140 }}
+                style={{ width: 110, minWidth: 110 }}
               />
               {platformGroups.map((pg) => (
                 <th
@@ -211,7 +211,7 @@ export function CompatibilityMatrix({
                   >
                     <td
                       className={`sticky left-0 z-10 px-3 py-1.5 text-[10px] font-bold text-gray-600 uppercase tracking-wider border-l-4 ${CATEGORY_COLORS[group.category]}`}
-                      style={{ minWidth: 140 }}
+                      style={{ minWidth: 110 }}
                     >
                       <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                         <svg
