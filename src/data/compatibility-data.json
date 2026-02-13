@@ -41,6 +41,14 @@
       "docUrl": "https://docs.aws.amazon.com/managed-flink/"
     },
     {
+      "id": "aws-redshift",
+      "name": "Amazon Redshift",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/redshift/"
+    },
+    {
       "id": "google-bigquery",
       "name": "Google BigQuery",
       "vendor": "Google",
@@ -143,14 +151,6 @@
       "category": "open-source",
       "group": "3rd Party",
       "docUrl": "https://py.iceberg.apache.org/"
-    },
-    {
-      "id": "aws-redshift",
-      "name": "Amazon Redshift",
-      "vendor": "AWS",
-      "category": "cloud",
-      "group": "AWS",
-      "docUrl": "https://docs.aws.amazon.com/redshift/"
     }
   ],
   "features": [
