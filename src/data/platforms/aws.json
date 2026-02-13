@@ -894,7 +894,7 @@
       "caveats": []
     },
     "aws-firehose:merge-on-read:v2": {
-      "level": "none",
+      "level": "full",
       "notes": "Firehose does not support merge-on-read",
       "caveats": []
     },
