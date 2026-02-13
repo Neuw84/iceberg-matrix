@@ -76,6 +76,7 @@ Each entry has:
 - `level`: `"full"` | `"partial"` | `"none"` | `"unknown"`
 - `notes`: Human-readable explanation
 - `caveats`: Array of strings with limitations
+- `links`: official references if available
 
 Platforms are grouped by: AWS, GCP, Azure, Databricks, Snowflake, 3rd Party.
 
