@@ -1266,9 +1266,11 @@
       ]
     },
     "aws-managed-flink:table-maintenance:v2": {
-      "level": "none",
-      "notes": "Flink does not provide built-in table maintenance procedures; use Spark or external tools",
-      "caveats": []
+      "level": "partial",
+      "notes": "Available on Flink 1.20.3+"
+      "caveats": [
+        "Not yet at Spark level"
+      ]
     },
     "aws-managed-flink:table-maintenance:v3": {
       "level": "unknown",
