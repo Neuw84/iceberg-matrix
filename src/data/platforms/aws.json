@@ -1267,7 +1267,7 @@
     },
     "aws-managed-flink:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Available on Flink 1.20.3+"
+      "notes": "Available on Flink 1.20.3+",
       "caveats": [
         "Not yet at Spark level"
       ]
