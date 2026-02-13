@@ -57,6 +57,7 @@ const PLATFORM_LOGOS: Record<string, string> = {
   clickhouse: "/logos/clickhouse.svg",
   "spark": "/logos/spark.svg",
   "flink": "/logos/flink.svg",
+  pyiceberg: "/logos/pyiceberg.svg",
   daft: "/logos/daft.svg",
   "kafka-connect": "/logos/kafka-connect.svg",
 };
