@@ -1,13 +1,11 @@
 import { useState } from "react";
-import type { CompatibilityData, FilterState } from "./types";
-import rawData from "./data/compatibility-data.json";
+import type { FilterState } from "./types";
+import { data } from "./data/load-data";
 import { FilterPanel } from "./components/FilterPanel";
 import { VersionTabs } from "./components/VersionTabs";
 import { CompatibilityMatrix } from "./components/CompatibilityMatrix";
 import { ComparisonSummary } from "./components/ComparisonSummary";
 import { applyFilters } from "./utils/filters";
-
-const data = rawData as CompatibilityData;
 
 const initialFilters: FilterState = {
   selectedVersions: ["v2"],
