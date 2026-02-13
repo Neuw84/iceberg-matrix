@@ -147,7 +147,7 @@ export function CompatibilityMatrix({
       <div className="overflow-x-auto matrix-wrapper">
         <table
           className="border-collapse text-sm"
-          style={{ minWidth: 180 + colCount * 88, width: '100%' }}
+          style={{ minWidth: 140 + colCount * 88, width: '100%' }}
           role="grid"
           aria-label="Iceberg compatibility matrix"
         >
@@ -157,7 +157,7 @@ export function CompatibilityMatrix({
               <th
                 className="sticky left-0 bg-white z-30 border-b border-gray-200"
                 rowSpan={2}
-                style={{ width: 180, minWidth: 180 }}
+                style={{ width: 140, minWidth: 140 }}
               />
               {platformGroups.map((pg) => (
                 <th
