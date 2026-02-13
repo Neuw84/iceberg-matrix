@@ -1821,7 +1821,9 @@
     "aws-athena:table-creation:v2": {
       "level": "full",
       "notes": "Athena supports CREATE TABLE for Iceberg tables via CTAS and standard DDL",
-      "caveats": []
+      "caveats": [       
+        "The set of table properties that you can declared is limited."
+      ]
     },
     "aws-athena:table-creation:v3": {
       "level": "unknown",
