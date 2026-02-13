@@ -197,6 +197,13 @@
       "description": "Fixed-length float array type for storing ML embeddings and vectors, enabling similarity search and AI workloads on Iceberg tables"
     },
     {
+      "id": "nanosecond-timestamps",
+      "name": "Nanosecond Timestamps",
+      "category": "v3-data-types",
+      "introducedIn": "v3",
+      "description": "Support for nanosecond-precision timestamp and timestamptz types, enabling higher precision time tracking"
+    },
+    {
       "id": "cdc-support",
       "name": "Change Data Capture (CDC)",
       "category": "v3-advanced",
