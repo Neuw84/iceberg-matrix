@@ -210,10 +210,10 @@ export function CompatibilityMatrix({
                     onClick={() => toggleCategory(group.category)}
                   >
                     <td
-                      colSpan={colCount + 1}
-                      className={`sticky left-0 px-3 py-1.5 text-[10px] font-bold text-gray-600 uppercase tracking-wider border-l-4 ${CATEGORY_COLORS[group.category]}`}
+                      className={`sticky left-0 z-10 px-3 py-1.5 text-[10px] font-bold text-gray-600 uppercase tracking-wider border-l-4 ${CATEGORY_COLORS[group.category]}`}
+                      style={{ minWidth: 140 }}
                     >
-                      <span className="inline-flex items-center gap-1.5">
+                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                         <svg
                           className={`w-3 h-3 transition-transform duration-200 ${isCollapsed ? "" : "rotate-90"}`}
                           fill="none"
@@ -229,6 +229,10 @@ export function CompatibilityMatrix({
                         </span>
                       </span>
                     </td>
+                    <td
+                      colSpan={colCount}
+                      className={`border-l-0 ${CATEGORY_COLORS[group.category]}`}
+                    />
                   </tr>
                   {!isCollapsed &&
                     group.features.map((feature) => (
