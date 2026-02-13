@@ -1028,8 +1028,8 @@
       "caveats": []
     },
     "aws-firehose:write-merge-update-delete:v2": {
-      "level": "none",
-      "notes": "Firehose only supports append/insert operations",
+      "level": "Full",
+      "notes": "Firehose needs to use Json Paths to do this",
       "caveats": []
     },
     "aws-firehose:write-merge-update-delete:v3": {
