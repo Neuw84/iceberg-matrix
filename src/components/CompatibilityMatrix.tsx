@@ -37,14 +37,14 @@ const CATEGORY_ORDER: FeatureCategory[] = [
 ];
 
 const CATEGORY_COLORS: Record<FeatureCategory, string> = {
-  "row-level-operations": "border-l-orange-400 bg-orange-50/50",
-  "schema-management": "border-l-blue-400 bg-blue-50/50",
-  partitioning: "border-l-violet-400 bg-violet-50/50",
-  "table-management": "border-l-emerald-400 bg-emerald-50/50",
-  "read-write": "border-l-cyan-400 bg-cyan-50/50",
-  "catalog-support": "border-l-amber-400 bg-amber-50/50",
-  "v3-data-types": "border-l-pink-400 bg-pink-50/50",
-  "v3-advanced": "border-l-rose-400 bg-rose-50/50",
+  "row-level-operations": "border-l-orange-400 bg-orange-50",
+  "schema-management": "border-l-blue-400 bg-blue-50",
+  partitioning: "border-l-violet-400 bg-violet-50",
+  "table-management": "border-l-emerald-400 bg-emerald-50",
+  "read-write": "border-l-cyan-400 bg-cyan-50",
+  "catalog-support": "border-l-amber-400 bg-amber-50",
+  "v3-data-types": "border-l-pink-400 bg-pink-50",
+  "v3-advanced": "border-l-rose-400 bg-rose-50",
 };
 
 /** Map platform IDs to logo filenames in /logos/ — only correct matches */
@@ -210,7 +210,7 @@ export function CompatibilityMatrix({
                     onClick={() => toggleCategory(group.category)}
                   >
                     <td
-                      className={`sticky left-0 z-10 px-3 py-1.5 text-[10px] font-bold text-gray-600 uppercase tracking-wider border-l-4 ${CATEGORY_COLORS[group.category]}`}
+                      className={`sticky left-0 z-20 px-3 py-1.5 text-[10px] font-bold text-gray-600 uppercase tracking-wider border-l-4 ${CATEGORY_COLORS[group.category]}`}
                       style={{ minWidth: 110 }}
                     >
                       <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
