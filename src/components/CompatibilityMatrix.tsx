@@ -146,7 +146,7 @@ export function CompatibilityMatrix({
       </div>
       <div className="overflow-x-auto matrix-wrapper">
         <table
-          className="w-full border-collapse text-sm"
+          className="w-full border-collapse text-sm table-fixed"
           role="grid"
           aria-label="Iceberg compatibility matrix"
         >
@@ -156,7 +156,7 @@ export function CompatibilityMatrix({
               <th
                 className="sticky left-0 bg-white z-30 border-b border-gray-200"
                 rowSpan={2}
-                style={{ minWidth: 180 }}
+                style={{ width: 180 }}
               />
               {platformGroups.map((pg) => (
                 <th
@@ -176,7 +176,6 @@ export function CompatibilityMatrix({
                     key={`${p.id}:${v}`}
                     className="px-1 py-1.5 text-center border-x border-gray-100 bg-gray-50/80"
                     scope="col"
-                    style={{ minWidth: 88 }}
                   >
                     <div className="flex flex-col items-center gap-0.5">
                       {PLATFORM_LOGOS[p.id] && (
