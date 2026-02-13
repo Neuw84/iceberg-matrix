@@ -43,13 +43,6 @@
       "description": "Define default values for columns that apply when new data is written without specifying a value for that column"
     },
     {
-      "id": "nanosecond-timestamps",
-      "name": "Nanosecond Timestamps",
-      "category": "schema-management",
-      "introducedIn": "v3",
-      "description": "Support for nanosecond-precision timestamp and timestamptz types, enabling higher precision time tracking"
-    },
-    {
       "id": "hidden-partitioning",
       "name": "Hidden Partitioning",
       "category": "partitioning",
