@@ -884,7 +884,7 @@
       "caveats": []
     },
     "aws-firehose:equality-deletes:v2": {
-      "level": "none",
+      "level": "full",
       "notes": "Firehose does not support delete operations",
       "caveats": []
     },
