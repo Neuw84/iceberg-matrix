@@ -93,6 +93,7 @@ Each entry has:
 - `level` — `"full"` | `"partial"` | `"none"` | `"unknown"`
 - `notes` — human-readable explanation
 - `caveats` — array of strings with limitations
+- `links` - Array of public links with docs
 
 ## License
 
