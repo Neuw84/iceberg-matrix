@@ -1823,6 +1823,12 @@
       "notes": "Athena supports CREATE TABLE for Iceberg tables via CTAS and standard DDL",
       "caveats": [       
         "The set of table properties that you can declared is limited."
+      ],
+      "links": [
+        {
+          "label": "Athena Iceberg table creation docs",
+          "url": "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg-creating-tables.html"
+        }
       ]
     },
     "aws-athena:table-creation:v3": {
