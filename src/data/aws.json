@@ -79,9 +79,12 @@
       ]
     },
     "aws-athena:copy-on-write:v2": {
-      "level": "full",
-      "notes": "Copy-on-write supported via Athena engine v3",
-      "caveats": []
+      "level": "partial",
+      "notes": "Copy-on-write is the default write mode, but any MERGE or DELETE operation uses merge-on-read regardless of table properties",
+      "caveats": [
+        "MERGE and DELETE always use merge-on-read",
+        "Table write.delete.mode and write.update.mode properties are ignored for these operations"
+      ]
     },
     "aws-athena:copy-on-write:v3": {
       "level": "unknown",
@@ -176,10 +179,17 @@
     },
     "aws-athena:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Supports OPTIMIZE for compaction and VACUUM for snapshot expiry; no rewrite_manifests",
+      "notes": "Supports OPTIMIZE (REWRITE DATA compaction with BIN_PACK), VACUUM (snapshot expiry and orphan file removal), Iceberg table statistics for cost-based optimization, and Parquet column indexing; no rewrite_manifests procedure",
       "caveats": [
         "No rewrite_manifests procedure",
-        "Limited to OPTIMIZE and VACUUM commands"
+        "OPTIMIZE limited to BIN_PACK strategy",
+        "VACUUM combines snapshot expiry and orphan file removal"
+      ],
+      "links": [
+        {
+          "label": "Athena Iceberg table optimization docs",
+          "url": "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg-data-optimization.html"
+        }
       ]
     },
     "aws-athena:table-maintenance:v3": {
@@ -866,7 +876,7 @@
       "caveats": []
     },
     "aws-firehose:equality-deletes:v2": {
-      "level": "none",
+      "level": "full",
       "notes": "Firehose does not support delete operations",
       "caveats": []
     },
