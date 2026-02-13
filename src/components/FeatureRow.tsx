@@ -18,7 +18,7 @@ export function FeatureRow({
 }: FeatureRowProps) {
   return (
     <tr className="border-b border-gray-100 hover:bg-blue-50/30 transition-colors">
-      <td className="sticky left-0 bg-white px-2 py-1.5 text-xs text-gray-800 font-medium z-10 border-r border-gray-100" style={{ width: 110, minWidth: 110 }}>
+      <td className="sticky left-0 bg-white px-2 py-1.5 text-xs text-gray-800 font-medium z-20 border-r border-gray-100" style={{ width: 110, minWidth: 110 }}>
         {feature.name}
       </td>
       {platforms.map((platform) =>
