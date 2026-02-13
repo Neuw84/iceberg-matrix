@@ -28,8 +28,8 @@
     left: 0;
   }
 
-  /* Category group rows */
-  .matrix-wrapper .category-row td {
+  /* Category group rows — only pin the label cell */
+  .matrix-wrapper .category-row td:first-child {
     position: sticky;
     left: 0;
     z-index: 5;
