@@ -16,7 +16,6 @@ import { FeatureRow } from "./FeatureRow";
 
 const CATEGORY_LABELS: Record<FeatureCategory, string> = {
   "row-level-operations": "Row-Level Operations",
-  "schema-management": "Schema Management",
   partitioning: "Partitioning",
   "table-management": "Table Management",
   "read-write": "Read / Write",
@@ -27,7 +26,6 @@ const CATEGORY_LABELS: Record<FeatureCategory, string> = {
 
 const CATEGORY_ORDER: FeatureCategory[] = [
   "row-level-operations",
-  "schema-management",
   "partitioning",
   "table-management",
   "read-write",
@@ -38,7 +36,6 @@ const CATEGORY_ORDER: FeatureCategory[] = [
 
 const CATEGORY_COLORS: Record<FeatureCategory, string> = {
   "row-level-operations": "border-l-orange-400 bg-orange-50",
-  "schema-management": "border-l-blue-400 bg-blue-50",
   partitioning: "border-l-violet-400 bg-violet-50",
   "table-management": "border-l-emerald-400 bg-emerald-50",
   "read-write": "border-l-cyan-400 bg-cyan-50",
@@ -53,6 +50,7 @@ const PLATFORM_LOGOS: Record<string, string> = {
   "aws-glue": "/logos/aws-glue.svg",
   "aws-emr": "/logos/spark.svg",
   "aws-managed-flink": "/logos/flink.svg",
+  "aws-redshift": "/logos/aws-redshift.svg",
   databricks: "/logos/databricks.svg",
   snowflake: "/logos/snowflake.svg",
   duckdb: "/logos/duckdb.svg",
