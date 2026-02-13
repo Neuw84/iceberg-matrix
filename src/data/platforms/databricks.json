@@ -1,0 +1,342 @@
+{
+  "platforms": [
+    {
+      "id": "databricks",
+      "name": "Databricks",
+      "vendor": "Databricks",
+      "category": "cloud",
+      "group": "Databricks",
+      "docUrl": "https://docs.databricks.com/"
+    }
+  ],
+  "support": {
+    "databricks:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Delta Lake UniForm Iceberg compatibility layer",
+      "caveats": []
+    },
+    "databricks:position-deletes:v3": {
+      "level": "full",
+      "notes": "Supported with Iceberg V3 managed tables",
+      "caveats": []
+    },
+    "databricks:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Delta Lake UniForm Iceberg compatibility layer",
+      "caveats": []
+    },
+    "databricks:equality-deletes:v3": {
+      "level": "full",
+      "notes": "Supported with Iceberg V3 managed tables",
+      "caveats": []
+    },
+    "databricks:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Databricks uses deletion vectors which function similarly to merge-on-read",
+      "caveats": []
+    },
+    "databricks:merge-on-read:v3": {
+      "level": "full",
+      "notes": "Supported with Iceberg V3 deletion vectors",
+      "caveats": []
+    },
+    "databricks:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported",
+      "caveats": []
+    },
+    "databricks:copy-on-write:v3": {
+      "level": "full",
+      "notes": "Copy-on-write supported",
+      "caveats": []
+    },
+    "databricks:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution supported",
+      "caveats": []
+    },
+    "databricks:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Full schema evolution supported",
+      "caveats": []
+    },
+    "databricks:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "databricks:column-default-values:v3": {
+      "level": "full",
+      "notes": "Supported with Iceberg V3 on Databricks",
+      "caveats": []
+    },
+    "databricks:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "databricks:nanosecond-timestamps:v3": {
+      "level": "full",
+      "notes": "Supported with Iceberg V3 on Databricks",
+      "caveats": []
+    },
+    "databricks:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Hidden partitioning supported",
+      "caveats": []
+    },
+    "databricks:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Hidden partitioning supported",
+      "caveats": []
+    },
+    "databricks:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Partition evolution supported",
+      "caveats": []
+    },
+    "databricks:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Partition evolution supported",
+      "caveats": []
+    },
+    "databricks:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "databricks:multi-arg-transforms:v3": {
+      "level": "full",
+      "notes": "Supported with Iceberg V3 on Databricks",
+      "caveats": []
+    },
+    "databricks:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel supported via Delta Lake and Iceberg interop",
+      "caveats": []
+    },
+    "databricks:time-travel:v3": {
+      "level": "full",
+      "notes": "Time travel supported",
+      "caveats": []
+    },
+    "databricks:table-maintenance:v2": {
+      "level": "full",
+      "notes": "Predictive optimization provides automatic compaction, vacuum, and optimization",
+      "caveats": []
+    },
+    "databricks:table-maintenance:v3": {
+      "level": "full",
+      "notes": "Predictive optimization provides automatic compaction, vacuum, and optimization",
+      "caveats": []
+    },
+    "databricks:branching-tagging:v2": {
+      "level": "partial",
+      "notes": "Databricks supports shallow clones for isolation but not native Iceberg branching and tagging API",
+      "caveats": [
+        "Uses Delta Lake shallow clones rather than native Iceberg branches/tags"
+      ]
+    },
+    "databricks:branching-tagging:v3": {
+      "level": "partial",
+      "notes": "Databricks supports shallow clones for isolation but not native Iceberg branching and tagging API",
+      "caveats": [
+        "Uses Delta Lake shallow clones rather than native Iceberg branches/tags"
+      ]
+    },
+    "databricks:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support for Iceberg tables via UniForm and foreign tables",
+      "caveats": []
+    },
+    "databricks:read-support:v3": {
+      "level": "full",
+      "notes": "Full read support for Iceberg V3 tables",
+      "caveats": []
+    },
+    "databricks:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported for Iceberg managed tables",
+      "caveats": []
+    },
+    "databricks:write-insert:v3": {
+      "level": "full",
+      "notes": "INSERT INTO supported for Iceberg V3 managed tables",
+      "caveats": []
+    },
+    "databricks:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported for Iceberg managed tables",
+      "caveats": []
+    },
+    "databricks:write-merge-update-delete:v3": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported for Iceberg V3 managed tables",
+      "caveats": []
+    },
+    "databricks:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Unity Catalog provides native Iceberg REST Catalog API support",
+      "caveats": []
+    },
+    "databricks:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Unity Catalog provides native Iceberg REST Catalog API support",
+      "caveats": []
+    },
+    "databricks:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Can read from external Hive Metastore via Lakehouse Federation",
+      "caveats": []
+    },
+    "databricks:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Can read from external Hive Metastore via Lakehouse Federation",
+      "caveats": []
+    },
+    "databricks:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Can read from AWS Glue Catalog via Lakehouse Federation",
+      "caveats": []
+    },
+    "databricks:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "Can read from AWS Glue Catalog via Lakehouse Federation",
+      "caveats": []
+    },
+    "databricks:rest-catalog:v2": {
+      "level": "full",
+      "notes": "Unity Catalog implements the Iceberg REST Catalog API",
+      "caveats": []
+    },
+    "databricks:rest-catalog:v3": {
+      "level": "full",
+      "notes": "Unity Catalog implements the Iceberg REST Catalog API",
+      "caveats": []
+    },
+    "databricks:nessie:v2": {
+      "level": "none",
+      "notes": "Databricks does not natively support Nessie catalog",
+      "caveats": []
+    },
+    "databricks:nessie:v3": {
+      "level": "none",
+      "notes": "Databricks does not natively support Nessie catalog",
+      "caveats": []
+    },
+    "databricks:polaris:v2": {
+      "level": "partial",
+      "notes": "Can connect to Polaris via REST Catalog API",
+      "caveats": [
+        "Requires external Polaris endpoint configuration"
+      ]
+    },
+    "databricks:polaris:v3": {
+      "level": "partial",
+      "notes": "Can connect to Polaris via REST Catalog API",
+      "caveats": [
+        "Requires external Polaris endpoint configuration"
+      ]
+    },
+    "databricks:unity-catalog:v2": {
+      "level": "full",
+      "notes": "Native Unity Catalog with Iceberg REST Catalog API support",
+      "caveats": []
+    },
+    "databricks:unity-catalog:v3": {
+      "level": "full",
+      "notes": "Native Unity Catalog with Iceberg REST Catalog API support for V3",
+      "caveats": []
+    },
+    "databricks:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Databricks does not support Hadoop catalog for Iceberg",
+      "caveats": []
+    },
+    "databricks:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Databricks does not support Hadoop catalog for Iceberg",
+      "caveats": []
+    },
+    "databricks:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "Databricks does not support JDBC catalog for Iceberg",
+      "caveats": []
+    },
+    "databricks:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Databricks does not support JDBC catalog for Iceberg",
+      "caveats": []
+    },
+    "databricks:table-creation:v2": {
+      "level": "full",
+      "notes": "Databricks supports creating Iceberg tables via SQL DDL and UniForm",
+      "caveats": []
+    },
+    "databricks:table-creation:v3": {
+      "level": "full",
+      "notes": "Table creation supported with Iceberg V3 managed tables",
+      "caveats": []
+    },
+    "databricks:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "databricks:variant-type:v3": {
+      "level": "full",
+      "notes": "Databricks supports Variant type natively",
+      "caveats": []
+    },
+    "databricks:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "databricks:shredded-variant:v3": {
+      "level": "partial",
+      "notes": "Shredded variant support is being added to Databricks",
+      "caveats": []
+    },
+    "databricks:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "databricks:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Databricks V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "databricks:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "databricks:vector-type:v3": {
+      "level": "unknown",
+      "notes": "Databricks V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "databricks:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "databricks:cdc-support:v3": {
+      "level": "full",
+      "notes": "Databricks supports CDC via Delta Live Tables and structured streaming",
+      "caveats": []
+    },
+    "databricks:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "databricks:lineage:v3": {
+      "level": "full",
+      "notes": "Databricks Unity Catalog provides lineage tracking for Iceberg tables",
+      "caveats": []
+    }
+  }
+}

@@ -1,0 +1,384 @@
+{
+  "platforms": [
+    {
+      "id": "snowflake",
+      "name": "Snowflake",
+      "vendor": "Snowflake",
+      "category": "cloud",
+      "group": "Snowflake",
+      "docUrl": "https://docs.snowflake.com/"
+    }
+  ],
+  "support": {
+    "snowflake:position-deletes:v2": {
+      "level": "none",
+      "notes": "Snowflake uses copy-on-write exclusively; does not support position deletes",
+      "caveats": []
+    },
+    "snowflake:position-deletes:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Snowflake uses copy-on-write exclusively; does not support equality deletes",
+      "caveats": []
+    },
+    "snowflake:equality-deletes:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:merge-on-read:v2": {
+      "level": "none",
+      "notes": "Snowflake uses copy-on-write exclusively; merge-on-read is not supported",
+      "caveats": []
+    },
+    "snowflake:merge-on-read:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Snowflake uses copy-on-write as its exclusive write strategy for Iceberg tables",
+      "caveats": []
+    },
+    "snowflake:copy-on-write:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Schema evolution supported for Snowflake-managed Iceberg tables",
+      "caveats": []
+    },
+    "snowflake:schema-evolution:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "snowflake:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "snowflake:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "Snowflake supports partitioning via clustering keys but does not expose all Iceberg partition transforms",
+      "caveats": [
+        "Uses Snowflake clustering rather than native Iceberg partition transforms"
+      ]
+    },
+    "snowflake:hidden-partitioning:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:partition-evolution:v2": {
+      "level": "partial",
+      "notes": "Limited partition evolution; Snowflake manages clustering internally",
+      "caveats": [
+        "Partition evolution is managed through Snowflake clustering, not native Iceberg partition evolution"
+      ]
+    },
+    "snowflake:partition-evolution:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "snowflake:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel supported for Snowflake-managed Iceberg tables",
+      "caveats": []
+    },
+    "snowflake:time-travel:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:table-maintenance:v2": {
+      "level": "full",
+      "notes": "Snowflake automatically handles compaction and optimization for managed Iceberg tables",
+      "caveats": []
+    },
+    "snowflake:table-maintenance:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Snowflake does not support Iceberg branching and tagging",
+      "caveats": []
+    },
+    "snowflake:branching-tagging:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support for Iceberg tables",
+      "caveats": []
+    },
+    "snowflake:read-support:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported for Snowflake-managed Iceberg tables",
+      "caveats": []
+    },
+    "snowflake:write-insert:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported for Snowflake-managed Iceberg tables using copy-on-write",
+      "caveats": []
+    },
+    "snowflake:write-merge-update-delete:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Snowflake supports its own catalog, Snowflake Open Catalog (Polaris), and external catalogs",
+      "caveats": []
+    },
+    "snowflake:catalog-integration:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:hive-metastore:v2": {
+      "level": "none",
+      "notes": "Snowflake does not support Hive Metastore for Iceberg",
+      "caveats": []
+    },
+    "snowflake:hive-metastore:v3": {
+      "level": "none",
+      "notes": "Snowflake does not support Hive Metastore for Iceberg",
+      "caveats": []
+    },
+    "snowflake:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Snowflake can read Iceberg tables registered in AWS Glue Catalog as external tables",
+      "caveats": []
+    },
+    "snowflake:aws-glue-catalog:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:rest-catalog:v2": {
+      "level": "full",
+      "notes": "Snowflake supports REST Catalog for external Iceberg table access",
+      "caveats": []
+    },
+    "snowflake:rest-catalog:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:nessie:v2": {
+      "level": "none",
+      "notes": "Snowflake does not support Nessie catalog",
+      "caveats": []
+    },
+    "snowflake:nessie:v3": {
+      "level": "none",
+      "notes": "Snowflake does not support Nessie catalog",
+      "caveats": []
+    },
+    "snowflake:polaris:v2": {
+      "level": "full",
+      "notes": "Snowflake Open Catalog is built on Polaris; native integration",
+      "caveats": []
+    },
+    "snowflake:polaris:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Snowflake can access Unity Catalog Iceberg tables via REST Catalog API",
+      "caveats": [
+        "Read-only access to Unity Catalog managed tables"
+      ]
+    },
+    "snowflake:unity-catalog:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Snowflake does not support Hadoop catalog",
+      "caveats": []
+    },
+    "snowflake:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Snowflake does not support Hadoop catalog",
+      "caveats": []
+    },
+    "snowflake:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "Snowflake does not support JDBC catalog",
+      "caveats": []
+    },
+    "snowflake:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Snowflake does not support JDBC catalog",
+      "caveats": []
+    },
+    "snowflake:table-creation:v2": {
+      "level": "full",
+      "notes": "Snowflake supports creating Iceberg tables as managed or external tables",
+      "caveats": []
+    },
+    "snowflake:table-creation:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ]
+    },
+    "snowflake:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "snowflake:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Snowflake V3 variant type support is not yet documented",
+      "caveats": []
+    },
+    "snowflake:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "snowflake:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Snowflake V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "snowflake:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "snowflake:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Snowflake V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "snowflake:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "snowflake:vector-type:v3": {
+      "level": "unknown",
+      "notes": "Snowflake V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "snowflake:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "snowflake:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "Snowflake V3 cdc support support is not yet documented",
+      "caveats": []
+    },
+    "snowflake:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "snowflake:lineage:v3": {
+      "level": "unknown",
+      "notes": "Snowflake V3 lineage support is not yet documented",
+      "caveats": []
+    }
+  }
+}

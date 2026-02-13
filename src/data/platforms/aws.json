@@ -1,0 +1,2183 @@
+{
+  "platforms": [
+    {
+      "id": "aws-athena",
+      "name": "AWS Athena",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/athena/"
+    },
+    {
+      "id": "aws-glue",
+      "name": "AWS Glue",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/glue/"
+    },
+    {
+      "id": "aws-emr",
+      "name": "AWS EMR",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/emr/"
+    },
+    {
+      "id": "aws-firehose",
+      "name": "Amazon Data Firehose",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/firehose/"
+    },
+    {
+      "id": "aws-managed-flink",
+      "name": "Amazon Managed Flink",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/managed-flink/"
+    },
+    {
+      "id": "aws-redshift",
+      "name": "Amazon Redshift",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/redshift/"
+    }
+  ],
+  "support": {
+    "aws-athena:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Athena engine v3",
+      "caveats": []
+    },
+    "aws-athena:position-deletes:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Athena engine v3",
+      "caveats": []
+    },
+    "aws-athena:equality-deletes:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Supports merge-on-read for both position and equality deletes",
+      "caveats": []
+    },
+    "aws-athena:merge-on-read:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:copy-on-write:v2": {
+      "level": "partial",
+      "notes": "Copy-on-write is the default write mode, but any MERGE or DELETE operation uses merge-on-read regardless of table properties",
+      "caveats": [
+        "MERGE and DELETE always use merge-on-read",
+        "Table write.delete.mode and write.update.mode properties are ignored for these operations"
+      ]
+    },
+    "aws-athena:copy-on-write:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Add, drop, and rename columns supported",
+      "caveats": []
+    },
+    "aws-athena:schema-evolution:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Supports identity, bucket, truncate, year, month, day, hour transforms",
+      "caveats": []
+    },
+    "aws-athena:hidden-partitioning:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Partition evolution supported",
+      "caveats": []
+    },
+    "aws-athena:partition-evolution:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:time-travel:v2": {
+      "level": "full",
+      "notes": "Query by snapshot ID or timestamp",
+      "caveats": []
+    },
+    "aws-athena:time-travel:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "Supports OPTIMIZE (REWRITE DATA compaction with BIN_PACK), VACUUM (snapshot expiry and orphan file removal), Iceberg table statistics for cost-based optimization, and Parquet column indexing; no rewrite_manifests procedure",
+      "caveats": [
+        "No rewrite_manifests procedure",
+        "OPTIMIZE limited to BIN_PACK strategy",
+        "VACUUM combines snapshot expiry and orphan file removal"
+      ],
+      "links": [
+        {
+          "label": "Athena Iceberg table optimization docs",
+          "url": "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg-data-optimization.html"
+        }
+      ]
+    },
+    "aws-athena:table-maintenance:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Athena does not support branching and tagging",
+      "caveats": []
+    },
+    "aws-athena:branching-tagging:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via Athena engine v3",
+      "caveats": []
+    },
+    "aws-athena:read-support:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO and CTAS supported",
+      "caveats": []
+    },
+    "aws-athena:write-insert:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported via Athena engine v3",
+      "caveats": []
+    },
+    "aws-athena:write-merge-update-delete:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Integrated with AWS Glue Data Catalog",
+      "caveats": []
+    },
+    "aws-athena:catalog-integration:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:hive-metastore:v2": {
+      "level": "none",
+      "notes": "Athena uses AWS Glue Catalog exclusively",
+      "caveats": []
+    },
+    "aws-athena:hive-metastore:v3": {
+      "level": "none",
+      "notes": "Athena uses AWS Glue Catalog exclusively",
+      "caveats": []
+    },
+    "aws-athena:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Native integration with AWS Glue Data Catalog",
+      "caveats": []
+    },
+    "aws-athena:aws-glue-catalog:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-athena:rest-catalog:v2": {
+      "level": "none",
+      "notes": "Athena does not support REST Catalog directly",
+      "caveats": []
+    },
+    "aws-athena:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support REST Catalog directly",
+      "caveats": []
+    },
+    "aws-athena:nessie:v2": {
+      "level": "none",
+      "notes": "Athena does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-athena:nessie:v3": {
+      "level": "none",
+      "notes": "Athena does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-athena:polaris:v2": {
+      "level": "none",
+      "notes": "Athena does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-athena:polaris:v3": {
+      "level": "none",
+      "notes": "Athena does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-athena:unity-catalog:v2": {
+      "level": "none",
+      "notes": "Athena does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-athena:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-athena:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Athena does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-athena:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-athena:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "Athena does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-athena:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-glue:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported in AWS Glue 4.0+ with Spark-based Iceberg connector",
+      "caveats": []
+    },
+    "aws-glue:position-deletes:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Glue with Iceberg V3",
+      "caveats": []
+    },
+    "aws-glue:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported in AWS Glue with Spark-based Iceberg connector",
+      "caveats": []
+    },
+    "aws-glue:equality-deletes:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Glue with Iceberg V3",
+      "caveats": []
+    },
+    "aws-glue:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Merge-on-read supported via Spark on Glue",
+      "caveats": []
+    },
+    "aws-glue:merge-on-read:v3": {
+      "level": "full",
+      "notes": "Merge-on-read supported via Spark on Glue with V3",
+      "caveats": []
+    },
+    "aws-glue:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported via Spark on Glue",
+      "caveats": []
+    },
+    "aws-glue:copy-on-write:v3": {
+      "level": "full",
+      "notes": "Copy-on-write supported via Spark on Glue",
+      "caveats": []
+    },
+    "aws-glue:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution via Spark on Glue",
+      "caveats": []
+    },
+    "aws-glue:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Full schema evolution supported",
+      "caveats": []
+    },
+    "aws-glue:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:column-default-values:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Glue with Iceberg V3",
+      "caveats": []
+    },
+    "aws-glue:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:nanosecond-timestamps:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Glue with Iceberg V3",
+      "caveats": []
+    },
+    "aws-glue:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Full hidden partitioning via Spark on Glue",
+      "caveats": []
+    },
+    "aws-glue:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Full hidden partitioning supported",
+      "caveats": []
+    },
+    "aws-glue:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Partition evolution supported via Spark",
+      "caveats": []
+    },
+    "aws-glue:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Partition evolution supported",
+      "caveats": []
+    },
+    "aws-glue:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:multi-arg-transforms:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Glue with Iceberg V3",
+      "caveats": []
+    },
+    "aws-glue:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel via Spark on Glue",
+      "caveats": []
+    },
+    "aws-glue:time-travel:v3": {
+      "level": "full",
+      "notes": "Time travel supported",
+      "caveats": []
+    },
+    "aws-glue:table-maintenance:v2": {
+      "level": "full",
+      "notes": "AWS Glue Data Catalog provides automatic compaction, snapshot expiry, and orphan file removal",
+      "caveats": []
+    },
+    "aws-glue:table-maintenance:v3": {
+      "level": "full",
+      "notes": "AWS Glue Data Catalog provides automatic optimization for V3 tables",
+      "caveats": []
+    },
+    "aws-glue:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on Glue",
+      "caveats": []
+    },
+    "aws-glue:branching-tagging:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Glue",
+      "caveats": []
+    },
+    "aws-glue:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via Spark on Glue",
+      "caveats": []
+    },
+    "aws-glue:read-support:v3": {
+      "level": "full",
+      "notes": "Full read support",
+      "caveats": []
+    },
+    "aws-glue:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported via Spark on Glue",
+      "caveats": []
+    },
+    "aws-glue:write-insert:v3": {
+      "level": "full",
+      "notes": "INSERT INTO supported",
+      "caveats": []
+    },
+    "aws-glue:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported via Spark on Glue",
+      "caveats": []
+    },
+    "aws-glue:write-merge-update-delete:v3": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported",
+      "caveats": []
+    },
+    "aws-glue:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Native AWS Glue Data Catalog integration with Iceberg REST API",
+      "caveats": []
+    },
+    "aws-glue:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Native AWS Glue Data Catalog integration with Iceberg REST API",
+      "caveats": []
+    },
+    "aws-glue:hive-metastore:v2": {
+      "level": "partial",
+      "notes": "Can connect to external Hive Metastore via Spark on Glue, but not the default catalog",
+      "caveats": [
+        "Requires custom Spark configuration"
+      ]
+    },
+    "aws-glue:hive-metastore:v3": {
+      "level": "partial",
+      "notes": "Can connect to external Hive Metastore via Spark on Glue, but not the default catalog",
+      "caveats": [
+        "Requires custom Spark configuration"
+      ]
+    },
+    "aws-glue:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Native default catalog for AWS Glue",
+      "caveats": []
+    },
+    "aws-glue:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "Native default catalog for AWS Glue with V3 support",
+      "caveats": []
+    },
+    "aws-glue:rest-catalog:v2": {
+      "level": "full",
+      "notes": "AWS Glue Data Catalog supports the Iceberg REST Catalog API",
+      "caveats": []
+    },
+    "aws-glue:rest-catalog:v3": {
+      "level": "full",
+      "notes": "AWS Glue Data Catalog supports the Iceberg REST Catalog API",
+      "caveats": []
+    },
+    "aws-glue:nessie:v2": {
+      "level": "partial",
+      "notes": "Can connect to Nessie via custom Spark configuration on Glue",
+      "caveats": [
+        "Requires custom Spark configuration and Nessie endpoint"
+      ]
+    },
+    "aws-glue:nessie:v3": {
+      "level": "partial",
+      "notes": "Can connect to Nessie via custom Spark configuration on Glue",
+      "caveats": [
+        "Requires custom Spark configuration and Nessie endpoint"
+      ]
+    },
+    "aws-glue:polaris:v2": {
+      "level": "partial",
+      "notes": "Can connect to Polaris via REST Catalog configuration on Glue",
+      "caveats": [
+        "Requires custom Spark configuration"
+      ]
+    },
+    "aws-glue:polaris:v3": {
+      "level": "partial",
+      "notes": "Can connect to Polaris via REST Catalog configuration on Glue",
+      "caveats": [
+        "Requires custom Spark configuration"
+      ]
+    },
+    "aws-glue:unity-catalog:v2": {
+      "level": "none",
+      "notes": "AWS Glue does not natively support Unity Catalog",
+      "caveats": []
+    },
+    "aws-glue:unity-catalog:v3": {
+      "level": "none",
+      "notes": "AWS Glue does not natively support Unity Catalog",
+      "caveats": []
+    },
+    "aws-glue:hadoop-catalog:v2": {
+      "level": "partial",
+      "notes": "Can use Hadoop catalog via custom Spark configuration on Glue",
+      "caveats": [
+        "Requires custom Spark configuration"
+      ]
+    },
+    "aws-glue:hadoop-catalog:v3": {
+      "level": "partial",
+      "notes": "Can use Hadoop catalog via custom Spark configuration on Glue",
+      "caveats": [
+        "Requires custom Spark configuration"
+      ]
+    },
+    "aws-glue:jdbc-catalog:v2": {
+      "level": "partial",
+      "notes": "Can use JDBC catalog via custom Spark configuration on Glue",
+      "caveats": [
+        "Requires custom Spark configuration and JDBC endpoint"
+      ]
+    },
+    "aws-glue:jdbc-catalog:v3": {
+      "level": "partial",
+      "notes": "Can use JDBC catalog via custom Spark configuration on Glue",
+      "caveats": [
+        "Requires custom Spark configuration and JDBC endpoint"
+      ]
+    },
+    "aws-emr:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR 6.x+",
+      "caveats": []
+    },
+    "aws-emr:position-deletes:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR with Iceberg V3",
+      "caveats": []
+    },
+    "aws-emr:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:equality-deletes:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR with Iceberg V3",
+      "caveats": []
+    },
+    "aws-emr:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Merge-on-read supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:merge-on-read:v3": {
+      "level": "full",
+      "notes": "Merge-on-read supported via Spark on EMR with V3",
+      "caveats": []
+    },
+    "aws-emr:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:copy-on-write:v3": {
+      "level": "full",
+      "notes": "Copy-on-write supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Full schema evolution supported",
+      "caveats": []
+    },
+    "aws-emr:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:column-default-values:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR with Iceberg V3",
+      "caveats": []
+    },
+    "aws-emr:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:nanosecond-timestamps:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR with Iceberg V3",
+      "caveats": []
+    },
+    "aws-emr:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Full hidden partitioning via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Full hidden partitioning supported",
+      "caveats": []
+    },
+    "aws-emr:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Partition evolution supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Partition evolution supported",
+      "caveats": []
+    },
+    "aws-emr:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:multi-arg-transforms:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR with Iceberg V3",
+      "caveats": []
+    },
+    "aws-emr:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:time-travel:v3": {
+      "level": "full",
+      "notes": "Time travel supported",
+      "caveats": []
+    },
+    "aws-emr:table-maintenance:v2": {
+      "level": "full",
+      "notes": "Full table maintenance via Spark procedures on EMR",
+      "caveats": []
+    },
+    "aws-emr:table-maintenance:v3": {
+      "level": "full",
+      "notes": "Full table maintenance supported",
+      "caveats": []
+    },
+    "aws-emr:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:branching-tagging:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:read-support:v3": {
+      "level": "full",
+      "notes": "Full read support",
+      "caveats": []
+    },
+    "aws-emr:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:write-insert:v3": {
+      "level": "full",
+      "notes": "INSERT INTO supported",
+      "caveats": []
+    },
+    "aws-emr:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:write-merge-update-delete:v3": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported",
+      "caveats": []
+    },
+    "aws-emr:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Supports AWS Glue Catalog, Hive Metastore, and custom catalogs",
+      "caveats": []
+    },
+    "aws-emr:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Supports AWS Glue Catalog, Hive Metastore, and custom catalogs",
+      "caveats": []
+    },
+    "aws-emr:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Native Hive Metastore support on EMR",
+      "caveats": []
+    },
+    "aws-emr:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Native Hive Metastore support on EMR",
+      "caveats": []
+    },
+    "aws-emr:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Native AWS Glue Catalog integration on EMR",
+      "caveats": []
+    },
+    "aws-emr:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "Native AWS Glue Catalog integration on EMR",
+      "caveats": []
+    },
+    "aws-emr:rest-catalog:v2": {
+      "level": "full",
+      "notes": "REST Catalog supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:rest-catalog:v3": {
+      "level": "full",
+      "notes": "REST Catalog supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:nessie:v2": {
+      "level": "full",
+      "notes": "Nessie catalog supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:nessie:v3": {
+      "level": "full",
+      "notes": "Nessie catalog supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:polaris:v2": {
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog on EMR",
+      "caveats": []
+    },
+    "aws-emr:polaris:v3": {
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog on EMR",
+      "caveats": []
+    },
+    "aws-emr:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Can connect to Unity Catalog via REST Catalog API on EMR",
+      "caveats": [
+        "Requires Databricks REST Catalog endpoint configuration"
+      ]
+    },
+    "aws-emr:unity-catalog:v3": {
+      "level": "partial",
+      "notes": "Can connect to Unity Catalog via REST Catalog API on EMR",
+      "caveats": [
+        "Requires Databricks REST Catalog endpoint configuration"
+      ]
+    },
+    "aws-emr:hadoop-catalog:v2": {
+      "level": "full",
+      "notes": "Hadoop catalog supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:hadoop-catalog:v3": {
+      "level": "full",
+      "notes": "Hadoop catalog supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:jdbc-catalog:v2": {
+      "level": "full",
+      "notes": "JDBC catalog supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-emr:jdbc-catalog:v3": {
+      "level": "full",
+      "notes": "JDBC catalog supported via Spark on EMR",
+      "caveats": []
+    },
+    "aws-firehose:position-deletes:v2": {
+      "level": "none",
+      "notes": "Firehose is a delivery service; it writes to Iceberg tables but does not read or process delete files",
+      "caveats": []
+    },
+    "aws-firehose:position-deletes:v3": {
+      "level": "none",
+      "notes": "Firehose is a delivery service; it writes to Iceberg tables but does not read or process delete files",
+      "caveats": []
+    },
+    "aws-firehose:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Firehose does not support delete operations",
+      "caveats": []
+    },
+    "aws-firehose:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Firehose does not support delete operations",
+      "caveats": []
+    },
+    "aws-firehose:merge-on-read:v2": {
+      "level": "none",
+      "notes": "Firehose does not support merge-on-read",
+      "caveats": []
+    },
+    "aws-firehose:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Firehose does not support merge-on-read",
+      "caveats": []
+    },
+    "aws-firehose:copy-on-write:v2": {
+      "level": "none",
+      "notes": "Firehose appends data only; no copy-on-write support",
+      "caveats": []
+    },
+    "aws-firehose:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Firehose appends data only; no copy-on-write support",
+      "caveats": []
+    },
+    "aws-firehose:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Firehose can deliver to tables with evolved schemas but cannot perform schema changes itself",
+      "caveats": [
+        "Schema changes must be made externally"
+      ]
+    },
+    "aws-firehose:schema-evolution:v3": {
+      "level": "partial",
+      "notes": "Firehose can deliver to tables with evolved schemas but cannot perform schema changes itself",
+      "caveats": [
+        "Schema changes must be made externally"
+      ]
+    },
+    "aws-firehose:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "Firehose V3 column default support is not documented",
+      "caveats": []
+    },
+    "aws-firehose:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "Firehose V3 nanosecond timestamp support is not documented",
+      "caveats": []
+    },
+    "aws-firehose:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Firehose supports writing to hidden-partitioned Iceberg tables using dynamic partitioning",
+      "caveats": []
+    },
+    "aws-firehose:hidden-partitioning:v3": {
+      "level": "unknown",
+      "notes": "Firehose V3 hidden partitioning support is not documented",
+      "caveats": []
+    },
+    "aws-firehose:partition-evolution:v2": {
+      "level": "none",
+      "notes": "Firehose cannot modify table partitioning",
+      "caveats": []
+    },
+    "aws-firehose:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Firehose cannot modify table partitioning",
+      "caveats": []
+    },
+    "aws-firehose:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Firehose V3 multi-arg transform support is not documented",
+      "caveats": []
+    },
+    "aws-firehose:time-travel:v2": {
+      "level": "none",
+      "notes": "Firehose is a write-only delivery service; no read or query capabilities",
+      "caveats": []
+    },
+    "aws-firehose:time-travel:v3": {
+      "level": "none",
+      "notes": "Firehose is a write-only delivery service; no read or query capabilities",
+      "caveats": []
+    },
+    "aws-firehose:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Firehose does not perform table maintenance operations",
+      "caveats": []
+    },
+    "aws-firehose:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Firehose does not perform table maintenance operations",
+      "caveats": []
+    },
+    "aws-firehose:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Firehose does not support branching and tagging",
+      "caveats": []
+    },
+    "aws-firehose:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Firehose does not support branching and tagging",
+      "caveats": []
+    },
+    "aws-firehose:read-support:v2": {
+      "level": "none",
+      "notes": "Firehose is a write-only delivery service",
+      "caveats": []
+    },
+    "aws-firehose:read-support:v3": {
+      "level": "none",
+      "notes": "Firehose is a write-only delivery service",
+      "caveats": []
+    },
+    "aws-firehose:write-insert:v2": {
+      "level": "full",
+      "notes": "Firehose delivers streaming data as INSERT/append operations to Iceberg tables on S3",
+      "caveats": []
+    },
+    "aws-firehose:write-insert:v3": {
+      "level": "unknown",
+      "notes": "Firehose V3 write support is not yet documented",
+      "caveats": []
+    },
+    "aws-firehose:write-merge-update-delete:v2": {
+      "level": "none",
+      "notes": "Firehose only supports append/insert operations",
+      "caveats": []
+    },
+    "aws-firehose:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Firehose only supports append/insert operations",
+      "caveats": []
+    },
+    "aws-firehose:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Firehose integrates with AWS Glue Data Catalog for Iceberg table metadata",
+      "caveats": []
+    },
+    "aws-firehose:catalog-integration:v3": {
+      "level": "unknown",
+      "notes": "Firehose V3 catalog integration is not yet documented",
+      "caveats": []
+    },
+    "aws-firehose:hive-metastore:v2": {
+      "level": "none",
+      "notes": "Firehose uses AWS Glue Catalog exclusively for Iceberg",
+      "caveats": []
+    },
+    "aws-firehose:hive-metastore:v3": {
+      "level": "none",
+      "notes": "Firehose uses AWS Glue Catalog exclusively for Iceberg",
+      "caveats": []
+    },
+    "aws-firehose:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Firehose uses AWS Glue Data Catalog for Iceberg table delivery",
+      "caveats": []
+    },
+    "aws-firehose:aws-glue-catalog:v3": {
+      "level": "unknown",
+      "notes": "Firehose V3 Glue Catalog support is not yet documented",
+      "caveats": []
+    },
+    "aws-firehose:rest-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose does not support REST Catalog",
+      "caveats": []
+    },
+    "aws-firehose:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support REST Catalog",
+      "caveats": []
+    },
+    "aws-firehose:nessie:v2": {
+      "level": "none",
+      "notes": "Firehose does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-firehose:nessie:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-firehose:polaris:v2": {
+      "level": "none",
+      "notes": "Firehose does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-firehose:polaris:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-firehose:unity-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-firehose:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-firehose:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-firehose:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-firehose:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-firehose:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Flink Iceberg connector on Amazon Managed Flink",
+      "caveats": []
+    },
+    "aws-managed-flink:position-deletes:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Flink Iceberg connector",
+      "caveats": []
+    },
+    "aws-managed-flink:equality-deletes:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Merge-on-read supported via Flink Iceberg connector",
+      "caveats": []
+    },
+    "aws-managed-flink:merge-on-read:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported via Flink Iceberg connector",
+      "caveats": []
+    },
+    "aws-managed-flink:copy-on-write:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Flink Iceberg connector supports adding columns; rename and reorder are limited",
+      "caveats": [
+        "Column rename and reorder not fully supported"
+      ]
+    },
+    "aws-managed-flink:schema-evolution:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Flink Iceberg connector supports hidden partitioning with identity, bucket, and truncate transforms",
+      "caveats": []
+    },
+    "aws-managed-flink:hidden-partitioning:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:partition-evolution:v2": {
+      "level": "partial",
+      "notes": "Flink Iceberg connector has limited partition evolution support",
+      "caveats": [
+        "Partition evolution support is limited compared to Spark"
+      ]
+    },
+    "aws-managed-flink:partition-evolution:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:time-travel:v2": {
+      "level": "partial",
+      "notes": "Flink can read specific snapshots via configuration but lacks full SQL-level time travel syntax",
+      "caveats": [
+        "No native SQL time travel syntax; requires snapshot ID configuration"
+      ]
+    },
+    "aws-managed-flink:time-travel:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Flink does not provide built-in table maintenance procedures; use Spark or external tools",
+      "caveats": []
+    },
+    "aws-managed-flink:table-maintenance:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:branching-tagging:v2": {
+      "level": "partial",
+      "notes": "Flink can write to branches via table properties but cannot create or manage branches/tags",
+      "caveats": [
+        "Cannot create or manage branches/tags; write-to-branch only"
+      ]
+    },
+    "aws-managed-flink:branching-tagging:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support including streaming and batch reads via Flink Iceberg connector",
+      "caveats": []
+    },
+    "aws-managed-flink:read-support:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported in both batch and streaming modes via Flink Iceberg connector",
+      "caveats": []
+    },
+    "aws-managed-flink:write-insert:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "Flink Iceberg connector supports upsert mode via primary keys; native MERGE/UPDATE/DELETE SQL is limited",
+      "caveats": [
+        "No full MERGE SQL support",
+        "Upsert via primary key configuration only"
+      ]
+    },
+    "aws-managed-flink:write-merge-update-delete:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Supports AWS Glue Catalog and other Iceberg catalogs via Flink catalog configuration",
+      "caveats": []
+    },
+    "aws-managed-flink:catalog-integration:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:hive-metastore:v2": {
+      "level": "partial",
+      "notes": "Hive Metastore can be configured as a catalog backend but is not the default on Managed Flink",
+      "caveats": [
+        "Requires custom catalog configuration"
+      ]
+    },
+    "aws-managed-flink:hive-metastore:v3": {
+      "level": "partial",
+      "notes": "Hive Metastore can be configured as a catalog backend",
+      "caveats": [
+        "Requires custom catalog configuration"
+      ]
+    },
+    "aws-managed-flink:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Native integration with AWS Glue Data Catalog on Amazon Managed Flink",
+      "caveats": []
+    },
+    "aws-managed-flink:aws-glue-catalog:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:rest-catalog:v2": {
+      "level": "full",
+      "notes": "REST Catalog supported via Flink Iceberg connector configuration",
+      "caveats": []
+    },
+    "aws-managed-flink:rest-catalog:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:nessie:v2": {
+      "level": "partial",
+      "notes": "Nessie can be configured via REST Catalog or custom catalog on Flink",
+      "caveats": [
+        "Requires custom catalog configuration and Nessie endpoint"
+      ]
+    },
+    "aws-managed-flink:nessie:v3": {
+      "level": "partial",
+      "notes": "Nessie can be configured via REST Catalog or custom catalog on Flink",
+      "caveats": [
+        "Requires custom catalog configuration and Nessie endpoint"
+      ]
+    },
+    "aws-managed-flink:polaris:v2": {
+      "level": "partial",
+      "notes": "Polaris can be used via REST Catalog configuration on Flink",
+      "caveats": [
+        "Requires REST Catalog endpoint configuration"
+      ]
+    },
+    "aws-managed-flink:polaris:v3": {
+      "level": "partial",
+      "notes": "Polaris can be used via REST Catalog configuration on Flink",
+      "caveats": [
+        "Requires REST Catalog endpoint configuration"
+      ]
+    },
+    "aws-managed-flink:unity-catalog:v2": {
+      "level": "none",
+      "notes": "Amazon Managed Flink does not natively support Unity Catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Amazon Managed Flink does not natively support Unity Catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:hadoop-catalog:v2": {
+      "level": "full",
+      "notes": "Hadoop catalog supported via Flink Iceberg connector",
+      "caveats": []
+    },
+    "aws-managed-flink:hadoop-catalog:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-managed-flink:jdbc-catalog:v2": {
+      "level": "partial",
+      "notes": "JDBC catalog can be configured via Flink Iceberg connector",
+      "caveats": [
+        "Requires JDBC driver and endpoint configuration"
+      ]
+    },
+    "aws-managed-flink:jdbc-catalog:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:position-deletes:v2": {
+      "level": "full",
+      "notes": "Redshift supports reading Iceberg tables with position deletes",
+      "caveats": []
+    },
+    "aws-redshift:position-deletes:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Redshift supports reading Iceberg tables with equality deletes",
+      "caveats": []
+    },
+    "aws-redshift:equality-deletes:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Redshift supports merge-on-read for Iceberg tables",
+      "caveats": []
+    },
+    "aws-redshift:merge-on-read:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Redshift uses copy-on-write for Iceberg table writes",
+      "caveats": []
+    },
+    "aws-redshift:copy-on-write:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Redshift supports schema evolution for Iceberg tables including add, drop, and rename columns",
+      "caveats": []
+    },
+    "aws-redshift:schema-evolution:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:table-creation:v2": {
+      "level": "full",
+      "notes": "Redshift supports CREATE EXTERNAL TABLE for Iceberg tables in AWS Glue Data Catalog",
+      "caveats": []
+    },
+    "aws-redshift:table-creation:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Redshift supports hidden partitioning for Iceberg tables",
+      "caveats": []
+    },
+    "aws-redshift:hidden-partitioning:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:partition-evolution:v2": {
+      "level": "partial",
+      "notes": "Redshift can read partition-evolved tables but cannot perform partition evolution itself",
+      "caveats": [
+        "Cannot modify partitioning; read-only support"
+      ]
+    },
+    "aws-redshift:partition-evolution:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:time-travel:v2": {
+      "level": "full",
+      "notes": "Redshift supports time travel queries on Iceberg tables by timestamp",
+      "caveats": []
+    },
+    "aws-redshift:time-travel:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "Redshift supports VACUUM for Iceberg tables including compaction and snapshot expiry",
+      "caveats": [
+        "Limited to VACUUM operations"
+      ]
+    },
+    "aws-redshift:table-maintenance:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg branching and tagging",
+      "caveats": []
+    },
+    "aws-redshift:branching-tagging:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support for Iceberg V2 tables via Redshift Spectrum and native integration",
+      "caveats": []
+    },
+    "aws-redshift:read-support:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported for Iceberg tables on Redshift",
+      "caveats": []
+    },
+    "aws-redshift:write-insert:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported for Iceberg tables on Redshift",
+      "caveats": []
+    },
+    "aws-redshift:write-merge-update-delete:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Integrated with AWS Glue Data Catalog",
+      "caveats": []
+    },
+    "aws-redshift:catalog-integration:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:hive-metastore:v2": {
+      "level": "none",
+      "notes": "Redshift uses AWS Glue Catalog for Iceberg tables",
+      "caveats": []
+    },
+    "aws-redshift:hive-metastore:v3": {
+      "level": "none",
+      "notes": "Redshift uses AWS Glue Catalog for Iceberg tables",
+      "caveats": []
+    },
+    "aws-redshift:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Native integration with AWS Glue Data Catalog for Iceberg tables",
+      "caveats": []
+    },
+    "aws-redshift:aws-glue-catalog:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:rest-catalog:v2": {
+      "level": "none",
+      "notes": "Redshift does not support REST Catalog directly",
+      "caveats": []
+    },
+    "aws-redshift:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support REST Catalog directly",
+      "caveats": []
+    },
+    "aws-redshift:nessie:v2": {
+      "level": "none",
+      "notes": "Redshift does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-redshift:nessie:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-redshift:polaris:v2": {
+      "level": "none",
+      "notes": "Redshift does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-redshift:polaris:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-redshift:unity-catalog:v2": {
+      "level": "none",
+      "notes": "Redshift does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-redshift:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-redshift:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Redshift does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-redshift:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-redshift:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "Redshift does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-redshift:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-redshift:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry types are a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector type is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift:vector-type:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:cdc-support:v2": {
+      "level": "none",
+      "notes": "CDC is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-redshift:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage tracking is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift:lineage:v3": {
+      "level": "unknown",
+      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-athena:table-creation:v2": {
+      "level": "full",
+      "notes": "Athena supports CREATE TABLE for Iceberg tables via CTAS and standard DDL",
+      "caveats": []
+    },
+    "aws-athena:table-creation:v3": {
+      "level": "unknown",
+      "notes": "Athena has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Athena V3 support not yet announced"
+      ]
+    },
+    "aws-glue:table-creation:v2": {
+      "level": "full",
+      "notes": "AWS Glue supports creating Iceberg tables via Spark DDL and Glue Data Catalog API",
+      "caveats": []
+    },
+    "aws-glue:table-creation:v3": {
+      "level": "full",
+      "notes": "Table creation supported via Spark on Glue with Iceberg V3",
+      "caveats": []
+    },
+    "aws-emr:table-creation:v2": {
+      "level": "full",
+      "notes": "EMR supports creating Iceberg tables via Spark DDL",
+      "caveats": []
+    },
+    "aws-emr:table-creation:v3": {
+      "level": "full",
+      "notes": "Table creation supported via Spark on EMR with Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:table-creation:v2": {
+      "level": "partial",
+      "notes": "Firehose can auto-create Iceberg tables when delivering data, with limited schema control",
+      "caveats": [
+        "Schema inferred from incoming data",
+        "Limited control over table properties"
+      ]
+    },
+    "aws-firehose:table-creation:v3": {
+      "level": "unknown",
+      "notes": "Firehose V3 table creation support is not documented",
+      "caveats": []
+    },
+    "aws-managed-flink:table-creation:v2": {
+      "level": "full",
+      "notes": "Amazon Managed Flink supports creating Iceberg tables via Flink SQL DDL",
+      "caveats": []
+    },
+    "aws-managed-flink:table-creation:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "aws-athena:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:variant-type:v3": {
+      "level": "unknown",
+      "notes": "AWS Athena V3 variant type support is not yet documented",
+      "caveats": []
+    },
+    "aws-athena:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "AWS Athena V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "aws-athena:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "AWS Athena V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "aws-athena:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:vector-type:v3": {
+      "level": "unknown",
+      "notes": "AWS Athena V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "aws-athena:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "AWS Athena V3 cdc support support is not yet documented",
+      "caveats": []
+    },
+    "aws-athena:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:lineage:v3": {
+      "level": "unknown",
+      "notes": "AWS Athena V3 lineage support is not yet documented",
+      "caveats": []
+    },
+    "aws-glue:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:variant-type:v3": {
+      "level": "full",
+      "notes": "Variant type supported via Spark on AWS Glue with Iceberg V3",
+      "caveats": []
+    },
+    "aws-glue:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "AWS Glue V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "aws-glue:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "AWS Glue V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "aws-glue:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:vector-type:v3": {
+      "level": "unknown",
+      "notes": "AWS Glue V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "aws-glue:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:cdc-support:v3": {
+      "level": "partial",
+      "notes": "CDC support available via Spark streaming on AWS Glue",
+      "caveats": [
+        "Requires streaming configuration"
+      ]
+    },
+    "aws-glue:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:lineage:v3": {
+      "level": "unknown",
+      "notes": "AWS Glue V3 lineage support is not yet documented",
+      "caveats": []
+    },
+    "aws-emr:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:variant-type:v3": {
+      "level": "full",
+      "notes": "Variant type supported via Spark on AWS EMR with Iceberg V3",
+      "caveats": []
+    },
+    "aws-emr:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "AWS EMR V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "aws-emr:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "AWS EMR V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "aws-emr:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:vector-type:v3": {
+      "level": "unknown",
+      "notes": "AWS EMR V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "aws-emr:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:cdc-support:v3": {
+      "level": "partial",
+      "notes": "CDC support available via Spark streaming on AWS EMR",
+      "caveats": [
+        "Requires streaming configuration"
+      ]
+    },
+    "aws-emr:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:lineage:v3": {
+      "level": "unknown",
+      "notes": "AWS EMR V3 lineage support is not yet documented",
+      "caveats": []
+    },
+    "aws-firehose:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Amazon Data Firehose V3 variant type support is not yet documented",
+      "caveats": []
+    },
+    "aws-firehose:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Amazon Data Firehose V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "aws-firehose:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Amazon Data Firehose V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "aws-firehose:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:vector-type:v3": {
+      "level": "unknown",
+      "notes": "Amazon Data Firehose V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "aws-firehose:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "Amazon Data Firehose V3 cdc support support is not yet documented",
+      "caveats": []
+    },
+    "aws-firehose:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:lineage:v3": {
+      "level": "unknown",
+      "notes": "Amazon Data Firehose V3 lineage support is not yet documented",
+      "caveats": []
+    },
+    "aws-managed-flink:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink V3 variant type support is not yet documented",
+      "caveats": []
+    },
+    "aws-managed-flink:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "aws-managed-flink:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "aws-managed-flink:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:vector-type:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "aws-managed-flink:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink V3 cdc support support is not yet documented",
+      "caveats": []
+    },
+    "aws-managed-flink:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:lineage:v3": {
+      "level": "unknown",
+      "notes": "Amazon Managed Flink V3 lineage support is not yet documented",
+      "caveats": []
+    }
+  }
+}

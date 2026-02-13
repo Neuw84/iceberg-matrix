@@ -1,0 +1,720 @@
+{
+  "platforms": [
+    {
+      "id": "google-bigquery",
+      "name": "Google BigQuery",
+      "vendor": "Google",
+      "category": "cloud",
+      "group": "GCP",
+      "docUrl": "https://cloud.google.com/bigquery/docs"
+    },
+    {
+      "id": "google-dataproc",
+      "name": "Google Dataproc",
+      "vendor": "Google",
+      "category": "cloud",
+      "group": "GCP",
+      "docUrl": "https://cloud.google.com/dataproc/docs"
+    }
+  ],
+  "support": {
+    "google-bigquery:position-deletes:v2": {
+      "level": "partial",
+      "notes": "BigQuery manages Iceberg tables internally; position deletes handled transparently for BigLake Iceberg tables",
+      "caveats": [
+        "BigQuery abstracts away Iceberg internals; behavior depends on BigLake implementation"
+      ]
+    },
+    "google-bigquery:position-deletes:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:equality-deletes:v2": {
+      "level": "partial",
+      "notes": "BigQuery manages deletes internally for BigLake Iceberg tables",
+      "caveats": [
+        "BigQuery abstracts away Iceberg internals"
+      ]
+    },
+    "google-bigquery:equality-deletes:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:merge-on-read:v2": {
+      "level": "partial",
+      "notes": "BigQuery handles read strategies internally for BigLake Iceberg tables",
+      "caveats": [
+        "Strategy is managed by BigQuery, not user-configurable"
+      ]
+    },
+    "google-bigquery:merge-on-read:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:copy-on-write:v2": {
+      "level": "full",
+      "notes": "BigQuery uses copy-on-write for BigLake Iceberg table mutations",
+      "caveats": []
+    },
+    "google-bigquery:copy-on-write:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Schema evolution supported for BigLake Iceberg tables including add, drop, rename columns and type changes",
+      "caveats": []
+    },
+    "google-bigquery:schema-evolution:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "google-bigquery:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "google-bigquery:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "BigQuery supports table partitioning for BigLake Iceberg tables (in preview)",
+      "caveats": [
+        "Table partitioning for Iceberg is in preview"
+      ]
+    },
+    "google-bigquery:hidden-partitioning:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:partition-evolution:v2": {
+      "level": "none",
+      "notes": "BigQuery does not support Iceberg partition evolution for BigLake tables",
+      "caveats": []
+    },
+    "google-bigquery:partition-evolution:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "google-bigquery:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel supported for BigLake Iceberg tables in BigQuery",
+      "caveats": []
+    },
+    "google-bigquery:time-travel:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:table-maintenance:v2": {
+      "level": "full",
+      "notes": "BigQuery provides automatic storage optimization including adaptive file sizing, clustering, and garbage collection",
+      "caveats": []
+    },
+    "google-bigquery:table-maintenance:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:branching-tagging:v2": {
+      "level": "none",
+      "notes": "BigQuery does not support Iceberg branching and tagging",
+      "caveats": []
+    },
+    "google-bigquery:branching-tagging:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support for BigLake Iceberg tables with V2 snapshot export",
+      "caveats": []
+    },
+    "google-bigquery:read-support:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported for BigLake Iceberg tables",
+      "caveats": []
+    },
+    "google-bigquery:write-insert:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported for BigLake Iceberg tables; multi-statement transactions in preview",
+      "caveats": []
+    },
+    "google-bigquery:write-merge-update-delete:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:catalog-integration:v2": {
+      "level": "full",
+      "notes": "BigLake Metastore provides catalog integration for Iceberg tables",
+      "caveats": []
+    },
+    "google-bigquery:catalog-integration:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:hive-metastore:v2": {
+      "level": "partial",
+      "notes": "BigQuery can read external Iceberg tables registered in Hive Metastore via BigLake",
+      "caveats": [
+        "Read-only for external Hive Metastore tables"
+      ]
+    },
+    "google-bigquery:hive-metastore:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "BigQuery does not support AWS Glue Catalog",
+      "caveats": []
+    },
+    "google-bigquery:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support AWS Glue Catalog",
+      "caveats": []
+    },
+    "google-bigquery:rest-catalog:v2": {
+      "level": "full",
+      "notes": "BigLake Metastore supports the Iceberg REST Catalog API",
+      "caveats": []
+    },
+    "google-bigquery:rest-catalog:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "BigQuery V3 support not yet announced"
+      ]
+    },
+    "google-bigquery:nessie:v2": {
+      "level": "none",
+      "notes": "BigQuery does not support Nessie catalog",
+      "caveats": []
+    },
+    "google-bigquery:nessie:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support Nessie catalog",
+      "caveats": []
+    },
+    "google-bigquery:polaris:v2": {
+      "level": "none",
+      "notes": "BigQuery does not natively support Polaris",
+      "caveats": []
+    },
+    "google-bigquery:polaris:v3": {
+      "level": "none",
+      "notes": "BigQuery does not natively support Polaris",
+      "caveats": []
+    },
+    "google-bigquery:unity-catalog:v2": {
+      "level": "none",
+      "notes": "BigQuery does not support Unity Catalog",
+      "caveats": []
+    },
+    "google-bigquery:unity-catalog:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support Unity Catalog",
+      "caveats": []
+    },
+    "google-bigquery:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "BigQuery does not support Hadoop catalog",
+      "caveats": []
+    },
+    "google-bigquery:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support Hadoop catalog",
+      "caveats": []
+    },
+    "google-bigquery:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "BigQuery does not support JDBC catalog",
+      "caveats": []
+    },
+    "google-bigquery:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support JDBC catalog",
+      "caveats": []
+    },
+    "google-dataproc:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:position-deletes:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Dataproc with Iceberg V3",
+      "caveats": []
+    },
+    "google-dataproc:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:equality-deletes:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Dataproc with Iceberg V3",
+      "caveats": []
+    },
+    "google-dataproc:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Merge-on-read supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:merge-on-read:v3": {
+      "level": "full",
+      "notes": "Merge-on-read supported via Spark on Dataproc with V3",
+      "caveats": []
+    },
+    "google-dataproc:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:copy-on-write:v3": {
+      "level": "full",
+      "notes": "Copy-on-write supported",
+      "caveats": []
+    },
+    "google-dataproc:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Full schema evolution supported",
+      "caveats": []
+    },
+    "google-dataproc:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "google-dataproc:column-default-values:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Dataproc with Iceberg V3",
+      "caveats": []
+    },
+    "google-dataproc:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "google-dataproc:nanosecond-timestamps:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Dataproc with Iceberg V3",
+      "caveats": []
+    },
+    "google-dataproc:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Full hidden partitioning via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Full hidden partitioning supported",
+      "caveats": []
+    },
+    "google-dataproc:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Partition evolution supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Partition evolution supported",
+      "caveats": []
+    },
+    "google-dataproc:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "google-dataproc:multi-arg-transforms:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Dataproc with Iceberg V3",
+      "caveats": []
+    },
+    "google-dataproc:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:time-travel:v3": {
+      "level": "full",
+      "notes": "Time travel supported",
+      "caveats": []
+    },
+    "google-dataproc:table-maintenance:v2": {
+      "level": "full",
+      "notes": "Full table maintenance via Spark procedures on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:table-maintenance:v3": {
+      "level": "full",
+      "notes": "Full table maintenance supported",
+      "caveats": []
+    },
+    "google-dataproc:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:branching-tagging:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:read-support:v3": {
+      "level": "full",
+      "notes": "Full read support",
+      "caveats": []
+    },
+    "google-dataproc:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:write-insert:v3": {
+      "level": "full",
+      "notes": "INSERT INTO supported",
+      "caveats": []
+    },
+    "google-dataproc:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:write-merge-update-delete:v3": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported",
+      "caveats": []
+    },
+    "google-dataproc:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Supports BigLake Metastore, Hive Metastore, and custom catalogs",
+      "caveats": []
+    },
+    "google-dataproc:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Supports BigLake Metastore, Hive Metastore, and custom catalogs",
+      "caveats": []
+    },
+    "google-dataproc:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Native Hive Metastore support on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Native Hive Metastore support on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:aws-glue-catalog:v2": {
+      "level": "partial",
+      "notes": "Can connect to AWS Glue Catalog via custom Spark configuration",
+      "caveats": [
+        "Requires custom Spark configuration and cross-cloud networking"
+      ]
+    },
+    "google-dataproc:aws-glue-catalog:v3": {
+      "level": "partial",
+      "notes": "Can connect to AWS Glue Catalog via custom Spark configuration",
+      "caveats": [
+        "Requires custom Spark configuration and cross-cloud networking"
+      ]
+    },
+    "google-dataproc:rest-catalog:v2": {
+      "level": "full",
+      "notes": "REST Catalog supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:rest-catalog:v3": {
+      "level": "full",
+      "notes": "REST Catalog supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:nessie:v2": {
+      "level": "full",
+      "notes": "Nessie catalog supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:nessie:v3": {
+      "level": "full",
+      "notes": "Nessie catalog supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:polaris:v2": {
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:polaris:v3": {
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Can connect to Unity Catalog via REST Catalog API",
+      "caveats": [
+        "Requires Databricks REST Catalog endpoint configuration"
+      ]
+    },
+    "google-dataproc:unity-catalog:v3": {
+      "level": "partial",
+      "notes": "Can connect to Unity Catalog via REST Catalog API",
+      "caveats": [
+        "Requires Databricks REST Catalog endpoint configuration"
+      ]
+    },
+    "google-dataproc:hadoop-catalog:v2": {
+      "level": "full",
+      "notes": "Hadoop catalog supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:hadoop-catalog:v3": {
+      "level": "full",
+      "notes": "Hadoop catalog supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:jdbc-catalog:v2": {
+      "level": "full",
+      "notes": "JDBC catalog supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-dataproc:jdbc-catalog:v3": {
+      "level": "full",
+      "notes": "JDBC catalog supported via Spark on Dataproc",
+      "caveats": []
+    },
+    "google-bigquery:table-creation:v2": {
+      "level": "full",
+      "notes": "BigQuery supports creating BigLake Iceberg tables via SQL DDL",
+      "caveats": []
+    },
+    "google-bigquery:table-creation:v3": {
+      "level": "unknown",
+      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "caveats": [
+        "V3 support not yet announced"
+      ]
+    },
+    "google-dataproc:table-creation:v2": {
+      "level": "full",
+      "notes": "Dataproc supports creating Iceberg tables via Spark DDL",
+      "caveats": []
+    },
+    "google-dataproc:table-creation:v3": {
+      "level": "full",
+      "notes": "Table creation supported via Spark on Dataproc with Iceberg V3",
+      "caveats": []
+    },
+    "google-bigquery:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "google-bigquery:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Google BigQuery V3 variant type support is not yet documented",
+      "caveats": []
+    },
+    "google-bigquery:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "google-bigquery:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Google BigQuery V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "google-bigquery:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "google-bigquery:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Google BigQuery V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "google-bigquery:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "google-bigquery:vector-type:v3": {
+      "level": "unknown",
+      "notes": "Google BigQuery V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "google-bigquery:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "google-bigquery:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "Google BigQuery V3 cdc support support is not yet documented",
+      "caveats": []
+    },
+    "google-bigquery:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "google-bigquery:lineage:v3": {
+      "level": "unknown",
+      "notes": "Google BigQuery V3 lineage support is not yet documented",
+      "caveats": []
+    },
+    "google-dataproc:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "google-dataproc:variant-type:v3": {
+      "level": "full",
+      "notes": "Variant type supported via Spark on Dataproc with Iceberg V3",
+      "caveats": []
+    },
+    "google-dataproc:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "google-dataproc:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Google Dataproc V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "google-dataproc:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "google-dataproc:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Google Dataproc V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "google-dataproc:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "google-dataproc:vector-type:v3": {
+      "level": "unknown",
+      "notes": "Google Dataproc V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "google-dataproc:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "google-dataproc:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "Google Dataproc V3 cdc support support is not yet documented",
+      "caveats": []
+    },
+    "google-dataproc:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "google-dataproc:lineage:v3": {
+      "level": "unknown",
+      "notes": "Google Dataproc V3 lineage support is not yet documented",
+      "caveats": []
+    }
+  }
+}

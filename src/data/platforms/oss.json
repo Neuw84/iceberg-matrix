@@ -1,0 +1,2524 @@
+{
+  "platforms": [
+    {
+      "id": "duckdb",
+      "name": "DuckDB",
+      "vendor": "DuckDB Foundation",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://duckdb.org/docs/"
+    },
+    {
+      "id": "clickhouse",
+      "name": "ClickHouse",
+      "vendor": "ClickHouse Inc.",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://clickhouse.com/docs"
+    },
+    {
+      "id": "daft",
+      "name": "Daft",
+      "vendor": "Eventual",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://www.getdaft.io/"
+    },
+    {
+      "id": "spark",
+      "name": "OSS Spark",
+      "vendor": "Apache",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://spark.apache.org/docs/latest/"
+    },
+    {
+      "id": "flink",
+      "name": "OSS Flink",
+      "vendor": "Apache",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://flink.apache.org/"
+    },
+    {
+      "id": "kafka-connect",
+      "name": "Kafka Connect",
+      "vendor": "Apache",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+    },
+    {
+      "id": "pyiceberg",
+      "name": "PyIceberg",
+      "vendor": "Apache",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://py.iceberg.apache.org/"
+    }
+  ],
+  "support": {
+    "duckdb:position-deletes:v2": {
+      "level": "full",
+      "notes": "DuckDB can read Iceberg V2 tables with position deletes",
+      "caveats": []
+    },
+    "duckdb:position-deletes:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:equality-deletes:v2": {
+      "level": "none",
+      "notes": "DuckDB does not support reading tables with equality deletes",
+      "caveats": []
+    },
+    "duckdb:equality-deletes:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:merge-on-read:v2": {
+      "level": "partial",
+      "notes": "DuckDB supports merge-on-read for position deletes only; equality deletes are not supported",
+      "caveats": [
+        "No equality delete support"
+      ]
+    },
+    "duckdb:merge-on-read:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:copy-on-write:v2": {
+      "level": "full",
+      "notes": "DuckDB can read and write Iceberg tables using copy-on-write",
+      "caveats": []
+    },
+    "duckdb:copy-on-write:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:schema-evolution:v2": {
+      "level": "full",
+      "notes": "DuckDB supports reading schema-evolved Iceberg tables",
+      "caveats": []
+    },
+    "duckdb:schema-evolution:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "duckdb:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "duckdb:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "DuckDB supports reading hidden-partitioned Iceberg tables",
+      "caveats": []
+    },
+    "duckdb:hidden-partitioning:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:partition-evolution:v2": {
+      "level": "full",
+      "notes": "DuckDB supports reading partition-evolved Iceberg tables",
+      "caveats": []
+    },
+    "duckdb:partition-evolution:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "duckdb:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:time-travel:v2": {
+      "level": "full",
+      "notes": "DuckDB supports time travel queries on Iceberg tables by snapshot ID or timestamp",
+      "caveats": []
+    },
+    "duckdb:time-travel:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:table-maintenance:v2": {
+      "level": "none",
+      "notes": "DuckDB does not provide Iceberg table maintenance operations",
+      "caveats": []
+    },
+    "duckdb:table-maintenance:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:branching-tagging:v2": {
+      "level": "none",
+      "notes": "DuckDB does not support Iceberg branching and tagging",
+      "caveats": []
+    },
+    "duckdb:branching-tagging:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support for Iceberg V1 and V2 tables via the iceberg extension",
+      "caveats": []
+    },
+    "duckdb:read-support:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported since DuckDB v1.3+ iceberg extension",
+      "caveats": []
+    },
+    "duckdb:write-insert:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "UPDATE and DELETE supported since DuckDB v1.3+ iceberg extension",
+      "caveats": []
+    },
+    "duckdb:write-merge-update-delete:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:catalog-integration:v2": {
+      "level": "full",
+      "notes": "DuckDB supports attaching to Iceberg REST Catalogs",
+      "caveats": []
+    },
+    "duckdb:catalog-integration:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:hive-metastore:v2": {
+      "level": "none",
+      "notes": "DuckDB does not support Hive Metastore",
+      "caveats": []
+    },
+    "duckdb:hive-metastore:v3": {
+      "level": "none",
+      "notes": "DuckDB does not support Hive Metastore",
+      "caveats": []
+    },
+    "duckdb:aws-glue-catalog:v2": {
+      "level": "partial",
+      "notes": "DuckDB can access AWS Glue Catalog via REST Catalog API or S3 Tables integration",
+      "caveats": [
+        "Requires REST Catalog endpoint or S3 Tables configuration"
+      ]
+    },
+    "duckdb:aws-glue-catalog:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:rest-catalog:v2": {
+      "level": "full",
+      "notes": "DuckDB supports attaching to Iceberg REST Catalogs since v1.3+",
+      "caveats": []
+    },
+    "duckdb:rest-catalog:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:nessie:v2": {
+      "level": "none",
+      "notes": "DuckDB does not natively support Nessie catalog",
+      "caveats": []
+    },
+    "duckdb:nessie:v3": {
+      "level": "none",
+      "notes": "DuckDB does not natively support Nessie catalog",
+      "caveats": []
+    },
+    "duckdb:polaris:v2": {
+      "level": "partial",
+      "notes": "DuckDB can connect to Polaris via REST Catalog API",
+      "caveats": [
+        "Requires REST Catalog endpoint configuration"
+      ]
+    },
+    "duckdb:polaris:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "DuckDB can connect to Unity Catalog via REST Catalog API",
+      "caveats": [
+        "Requires REST Catalog endpoint configuration"
+      ]
+    },
+    "duckdb:unity-catalog:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "duckdb:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "DuckDB does not support Hadoop catalog",
+      "caveats": []
+    },
+    "duckdb:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "DuckDB does not support Hadoop catalog",
+      "caveats": []
+    },
+    "duckdb:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "DuckDB does not support JDBC catalog",
+      "caveats": []
+    },
+    "duckdb:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "DuckDB does not support JDBC catalog",
+      "caveats": []
+    },
+    "clickhouse:position-deletes:v2": {
+      "level": "none",
+      "notes": "ClickHouse reads Iceberg tables but does not support row-level delete files",
+      "caveats": [
+        "Read-only Iceberg integration"
+      ]
+    },
+    "clickhouse:position-deletes:v3": {
+      "level": "none",
+      "notes": "ClickHouse reads Iceberg tables but does not support row-level delete files",
+      "caveats": [
+        "Read-only Iceberg integration"
+      ]
+    },
+    "clickhouse:equality-deletes:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support equality delete files",
+      "caveats": [
+        "Read-only Iceberg integration"
+      ]
+    },
+    "clickhouse:equality-deletes:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support equality delete files",
+      "caveats": [
+        "Read-only Iceberg integration"
+      ]
+    },
+    "clickhouse:merge-on-read:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support merge-on-read for Iceberg",
+      "caveats": []
+    },
+    "clickhouse:merge-on-read:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support merge-on-read for Iceberg",
+      "caveats": []
+    },
+    "clickhouse:copy-on-write:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not write to Iceberg tables",
+      "caveats": []
+    },
+    "clickhouse:copy-on-write:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not write to Iceberg tables",
+      "caveats": []
+    },
+    "clickhouse:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "ClickHouse can read tables with evolved schemas but cannot perform schema changes",
+      "caveats": [
+        "Read-only schema support"
+      ]
+    },
+    "clickhouse:schema-evolution:v3": {
+      "level": "partial",
+      "notes": "ClickHouse can read tables with evolved schemas but cannot perform schema changes",
+      "caveats": [
+        "Read-only schema support"
+      ]
+    },
+    "clickhouse:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 support for column defaults is not documented",
+      "caveats": []
+    },
+    "clickhouse:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 nanosecond timestamp support is not documented",
+      "caveats": []
+    },
+    "clickhouse:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "ClickHouse can read hidden-partitioned Iceberg tables for partition pruning",
+      "caveats": [
+        "Read-only; cannot create or modify partitioning"
+      ]
+    },
+    "clickhouse:hidden-partitioning:v3": {
+      "level": "partial",
+      "notes": "ClickHouse can read hidden-partitioned Iceberg tables for partition pruning",
+      "caveats": [
+        "Read-only; cannot create or modify partitioning"
+      ]
+    },
+    "clickhouse:partition-evolution:v2": {
+      "level": "none",
+      "notes": "ClickHouse cannot modify Iceberg table partitioning",
+      "caveats": []
+    },
+    "clickhouse:partition-evolution:v3": {
+      "level": "none",
+      "notes": "ClickHouse cannot modify Iceberg table partitioning",
+      "caveats": []
+    },
+    "clickhouse:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 multi-arg transform support is not documented",
+      "caveats": []
+    },
+    "clickhouse:time-travel:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support Iceberg time travel queries",
+      "caveats": []
+    },
+    "clickhouse:time-travel:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support Iceberg time travel queries",
+      "caveats": []
+    },
+    "clickhouse:table-maintenance:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support Iceberg table maintenance operations",
+      "caveats": []
+    },
+    "clickhouse:table-maintenance:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support Iceberg table maintenance operations",
+      "caveats": []
+    },
+    "clickhouse:branching-tagging:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support Iceberg branching and tagging",
+      "caveats": []
+    },
+    "clickhouse:branching-tagging:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support Iceberg branching and tagging",
+      "caveats": []
+    },
+    "clickhouse:read-support:v2": {
+      "level": "full",
+      "notes": "ClickHouse can read Iceberg V2 tables via the Iceberg table engine",
+      "caveats": []
+    },
+    "clickhouse:read-support:v3": {
+      "level": "partial",
+      "notes": "ClickHouse Iceberg V3 read support is experimental",
+      "caveats": [
+        "V3 support may be incomplete"
+      ]
+    },
+    "clickhouse:write-insert:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support writing to Iceberg tables",
+      "caveats": []
+    },
+    "clickhouse:write-insert:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support writing to Iceberg tables",
+      "caveats": []
+    },
+    "clickhouse:write-merge-update-delete:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support writing to Iceberg tables",
+      "caveats": []
+    },
+    "clickhouse:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support writing to Iceberg tables",
+      "caveats": []
+    },
+    "clickhouse:catalog-integration:v2": {
+      "level": "partial",
+      "notes": "ClickHouse supports reading from S3-based Iceberg tables and REST Catalog",
+      "caveats": [
+        "Limited catalog options compared to Spark"
+      ]
+    },
+    "clickhouse:catalog-integration:v3": {
+      "level": "partial",
+      "notes": "ClickHouse supports reading from S3-based Iceberg tables and REST Catalog",
+      "caveats": [
+        "Limited catalog options compared to Spark"
+      ]
+    },
+    "clickhouse:hive-metastore:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support Hive Metastore for Iceberg",
+      "caveats": []
+    },
+    "clickhouse:hive-metastore:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support Hive Metastore for Iceberg",
+      "caveats": []
+    },
+    "clickhouse:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support AWS Glue Catalog for Iceberg",
+      "caveats": []
+    },
+    "clickhouse:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support AWS Glue Catalog for Iceberg",
+      "caveats": []
+    },
+    "clickhouse:rest-catalog:v2": {
+      "level": "full",
+      "notes": "ClickHouse supports Iceberg REST Catalog for reading tables",
+      "caveats": []
+    },
+    "clickhouse:rest-catalog:v3": {
+      "level": "partial",
+      "notes": "ClickHouse REST Catalog V3 support is experimental",
+      "caveats": [
+        "V3 support may be incomplete"
+      ]
+    },
+    "clickhouse:nessie:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support Nessie catalog",
+      "caveats": []
+    },
+    "clickhouse:nessie:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support Nessie catalog",
+      "caveats": []
+    },
+    "clickhouse:polaris:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support Polaris catalog",
+      "caveats": []
+    },
+    "clickhouse:polaris:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support Polaris catalog",
+      "caveats": []
+    },
+    "clickhouse:unity-catalog:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support Unity Catalog",
+      "caveats": []
+    },
+    "clickhouse:unity-catalog:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support Unity Catalog",
+      "caveats": []
+    },
+    "clickhouse:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support Hadoop catalog",
+      "caveats": []
+    },
+    "clickhouse:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support Hadoop catalog",
+      "caveats": []
+    },
+    "clickhouse:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support JDBC catalog",
+      "caveats": []
+    },
+    "clickhouse:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support JDBC catalog",
+      "caveats": []
+    },
+    "spark:position-deletes:v2": {
+      "level": "full",
+      "notes": "Full support as the reference Iceberg implementation",
+      "caveats": []
+    },
+    "spark:position-deletes:v3": {
+      "level": "full",
+      "notes": "Full support with Iceberg V3",
+      "caveats": []
+    },
+    "spark:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Full support as the reference Iceberg implementation",
+      "caveats": []
+    },
+    "spark:equality-deletes:v3": {
+      "level": "full",
+      "notes": "Full support with Iceberg V3",
+      "caveats": []
+    },
+    "spark:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Full merge-on-read support as the reference implementation",
+      "caveats": []
+    },
+    "spark:merge-on-read:v3": {
+      "level": "full",
+      "notes": "Full merge-on-read support with V3 deletion vectors",
+      "caveats": []
+    },
+    "spark:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Full copy-on-write support",
+      "caveats": []
+    },
+    "spark:copy-on-write:v3": {
+      "level": "full",
+      "notes": "Full copy-on-write support",
+      "caveats": []
+    },
+    "spark:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution support as the reference implementation",
+      "caveats": []
+    },
+    "spark:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Full schema evolution support",
+      "caveats": []
+    },
+    "spark:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "spark:column-default-values:v3": {
+      "level": "full",
+      "notes": "Full support for column default values in V3",
+      "caveats": []
+    },
+    "spark:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "spark:nanosecond-timestamps:v3": {
+      "level": "full",
+      "notes": "Full support for nanosecond timestamp types in V3",
+      "caveats": []
+    },
+    "spark:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Full hidden partitioning support as the reference implementation",
+      "caveats": []
+    },
+    "spark:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Full hidden partitioning support",
+      "caveats": []
+    },
+    "spark:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Full partition evolution support",
+      "caveats": []
+    },
+    "spark:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Full partition evolution support",
+      "caveats": []
+    },
+    "spark:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "spark:multi-arg-transforms:v3": {
+      "level": "full",
+      "notes": "Full support for multi-argument transforms in V3",
+      "caveats": []
+    },
+    "spark:time-travel:v2": {
+      "level": "full",
+      "notes": "Full time travel support by snapshot ID, timestamp, and branch/tag",
+      "caveats": []
+    },
+    "spark:time-travel:v3": {
+      "level": "full",
+      "notes": "Full time travel support",
+      "caveats": []
+    },
+    "spark:table-maintenance:v2": {
+      "level": "full",
+      "notes": "Full table maintenance: rewrite_data_files, rewrite_manifests, expire_snapshots, remove_orphan_files",
+      "caveats": []
+    },
+    "spark:table-maintenance:v3": {
+      "level": "full",
+      "notes": "Full table maintenance support",
+      "caveats": []
+    },
+    "spark:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Full branching and tagging support as the reference implementation",
+      "caveats": []
+    },
+    "spark:branching-tagging:v3": {
+      "level": "full",
+      "notes": "Full branching and tagging support",
+      "caveats": []
+    },
+    "spark:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support as the reference Iceberg implementation",
+      "caveats": []
+    },
+    "spark:read-support:v3": {
+      "level": "full",
+      "notes": "Full read support for V3",
+      "caveats": []
+    },
+    "spark:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO, INSERT OVERWRITE, and DataFrameWriterV2 API supported",
+      "caveats": []
+    },
+    "spark:write-insert:v3": {
+      "level": "full",
+      "notes": "Full write support for V3",
+      "caveats": []
+    },
+    "spark:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE INTO, UPDATE, DELETE fully supported",
+      "caveats": []
+    },
+    "spark:write-merge-update-delete:v3": {
+      "level": "full",
+      "notes": "Full DML support for V3",
+      "caveats": []
+    },
+    "spark:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Supports all major Iceberg catalog implementations",
+      "caveats": []
+    },
+    "spark:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Supports all major Iceberg catalog implementations",
+      "caveats": []
+    },
+    "spark:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Native Hive Metastore catalog support",
+      "caveats": []
+    },
+    "spark:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Native Hive Metastore catalog support",
+      "caveats": []
+    },
+    "spark:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supported via iceberg-aws module",
+      "caveats": []
+    },
+    "spark:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supported via iceberg-aws module",
+      "caveats": []
+    },
+    "spark:rest-catalog:v2": {
+      "level": "full",
+      "notes": "Full REST Catalog support",
+      "caveats": []
+    },
+    "spark:rest-catalog:v3": {
+      "level": "full",
+      "notes": "Full REST Catalog support",
+      "caveats": []
+    },
+    "spark:nessie:v2": {
+      "level": "full",
+      "notes": "Nessie catalog supported via iceberg-nessie module",
+      "caveats": []
+    },
+    "spark:nessie:v3": {
+      "level": "full",
+      "notes": "Nessie catalog supported via iceberg-nessie module",
+      "caveats": []
+    },
+    "spark:polaris:v2": {
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog API",
+      "caveats": []
+    },
+    "spark:polaris:v3": {
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog API",
+      "caveats": []
+    },
+    "spark:unity-catalog:v2": {
+      "level": "full",
+      "notes": "Unity Catalog supported via REST Catalog API",
+      "caveats": []
+    },
+    "spark:unity-catalog:v3": {
+      "level": "full",
+      "notes": "Unity Catalog supported via REST Catalog API",
+      "caveats": []
+    },
+    "spark:hadoop-catalog:v2": {
+      "level": "full",
+      "notes": "Native Hadoop catalog support",
+      "caveats": []
+    },
+    "spark:hadoop-catalog:v3": {
+      "level": "full",
+      "notes": "Native Hadoop catalog support",
+      "caveats": []
+    },
+    "spark:jdbc-catalog:v2": {
+      "level": "full",
+      "notes": "JDBC catalog supported via iceberg-jdbc module",
+      "caveats": []
+    },
+    "spark:jdbc-catalog:v3": {
+      "level": "full",
+      "notes": "JDBC catalog supported via iceberg-jdbc module",
+      "caveats": []
+    },
+    "flink:position-deletes:v2": {
+      "level": "full",
+      "notes": "Flink supports reading and writing position deletes",
+      "caveats": []
+    },
+    "flink:position-deletes:v3": {
+      "level": "full",
+      "notes": "Supported with Flink 2.0+ and Iceberg V3",
+      "caveats": []
+    },
+    "flink:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Flink supports equality deletes for streaming and batch",
+      "caveats": []
+    },
+    "flink:equality-deletes:v3": {
+      "level": "full",
+      "notes": "Supported with Flink 2.0+ and Iceberg V3",
+      "caveats": []
+    },
+    "flink:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Flink supports merge-on-read for streaming upserts",
+      "caveats": []
+    },
+    "flink:merge-on-read:v3": {
+      "level": "full",
+      "notes": "Merge-on-read supported with V3 deletion vectors",
+      "caveats": []
+    },
+    "flink:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported",
+      "caveats": []
+    },
+    "flink:copy-on-write:v3": {
+      "level": "full",
+      "notes": "Copy-on-write supported",
+      "caveats": []
+    },
+    "flink:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Schema evolution supported; Flink 2.0 adds automatic schema evolution from input streams",
+      "caveats": []
+    },
+    "flink:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Full schema evolution with dynamic sink in Flink 2.0",
+      "caveats": []
+    },
+    "flink:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "flink:column-default-values:v3": {
+      "level": "partial",
+      "notes": "V3 column default values support is being added to Flink Iceberg integration",
+      "caveats": [
+        "Support may vary by Flink version"
+      ]
+    },
+    "flink:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "flink:nanosecond-timestamps:v3": {
+      "level": "partial",
+      "notes": "V3 nanosecond timestamp support is being added to Flink Iceberg integration",
+      "caveats": [
+        "Support may vary by Flink version"
+      ]
+    },
+    "flink:hidden-partitioning:v2": {
+      "level": "none",
+      "notes": "Flink does not support hidden partitioning for Iceberg tables",
+      "caveats": []
+    },
+    "flink:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Flink does not support hidden partitioning for Iceberg tables",
+      "caveats": []
+    },
+    "flink:partition-evolution:v2": {
+      "level": "none",
+      "notes": "Flink does not support partition evolution for Iceberg tables",
+      "caveats": []
+    },
+    "flink:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Flink does not support partition evolution for Iceberg tables",
+      "caveats": []
+    },
+    "flink:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "flink:multi-arg-transforms:v3": {
+      "level": "partial",
+      "notes": "V3 multi-argument transform support is being added to Flink Iceberg integration",
+      "caveats": [
+        "Support may vary by Flink version"
+      ]
+    },
+    "flink:time-travel:v2": {
+      "level": "partial",
+      "notes": "Flink supports reading from specific snapshots but time travel query syntax is limited compared to Spark",
+      "caveats": [
+        "Limited time travel query syntax compared to Spark"
+      ]
+    },
+    "flink:time-travel:v3": {
+      "level": "partial",
+      "notes": "Snapshot-based reads supported; limited time travel query syntax",
+      "caveats": [
+        "Limited time travel query syntax compared to Spark"
+      ]
+    },
+    "flink:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "Flink supports some maintenance actions but not the full set available in Spark",
+      "caveats": [
+        "Limited compared to Spark maintenance procedures"
+      ]
+    },
+    "flink:table-maintenance:v3": {
+      "level": "partial",
+      "notes": "Flink supports some maintenance actions but not the full set available in Spark",
+      "caveats": [
+        "Limited compared to Spark maintenance procedures"
+      ]
+    },
+    "flink:branching-tagging:v2": {
+      "level": "partial",
+      "notes": "Flink can write to branches but has limited branch/tag management compared to Spark",
+      "caveats": [
+        "Limited branch/tag management API"
+      ]
+    },
+    "flink:branching-tagging:v3": {
+      "level": "partial",
+      "notes": "Flink can write to branches but has limited branch/tag management compared to Spark",
+      "caveats": [
+        "Limited branch/tag management API"
+      ]
+    },
+    "flink:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support for batch and streaming",
+      "caveats": []
+    },
+    "flink:read-support:v3": {
+      "level": "full",
+      "notes": "Full read support for batch and streaming with V3",
+      "caveats": []
+    },
+    "flink:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported for both batch and streaming modes",
+      "caveats": []
+    },
+    "flink:write-insert:v3": {
+      "level": "full",
+      "notes": "INSERT INTO supported with dynamic sink in Flink 2.0",
+      "caveats": []
+    },
+    "flink:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "Flink supports streaming upserts via equality deletes but does not support SQL MERGE/UPDATE/DELETE syntax",
+      "caveats": [
+        "No SQL MERGE/UPDATE/DELETE syntax; uses streaming upsert mode instead"
+      ]
+    },
+    "flink:write-merge-update-delete:v3": {
+      "level": "partial",
+      "notes": "Flink supports streaming upserts but does not support SQL MERGE/UPDATE/DELETE syntax",
+      "caveats": [
+        "No SQL MERGE/UPDATE/DELETE syntax; uses streaming upsert mode instead"
+      ]
+    },
+    "flink:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Supports Hive Metastore, REST Catalog, and custom catalogs",
+      "caveats": []
+    },
+    "flink:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Supports Hive Metastore, REST Catalog, and custom catalogs",
+      "caveats": []
+    },
+    "flink:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Native Hive Metastore catalog support in Flink",
+      "caveats": []
+    },
+    "flink:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Native Hive Metastore catalog support in Flink",
+      "caveats": []
+    },
+    "flink:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supported via Flink Iceberg connector",
+      "caveats": []
+    },
+    "flink:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supported via Flink Iceberg connector",
+      "caveats": []
+    },
+    "flink:rest-catalog:v2": {
+      "level": "full",
+      "notes": "REST Catalog supported in Flink",
+      "caveats": []
+    },
+    "flink:rest-catalog:v3": {
+      "level": "full",
+      "notes": "REST Catalog supported in Flink",
+      "caveats": []
+    },
+    "flink:nessie:v2": {
+      "level": "full",
+      "notes": "Nessie catalog supported via Flink Iceberg connector",
+      "caveats": []
+    },
+    "flink:nessie:v3": {
+      "level": "full",
+      "notes": "Nessie catalog supported via Flink Iceberg connector",
+      "caveats": []
+    },
+    "flink:polaris:v2": {
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog API in Flink",
+      "caveats": []
+    },
+    "flink:polaris:v3": {
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog API in Flink",
+      "caveats": []
+    },
+    "flink:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Can connect to Unity Catalog via REST Catalog API",
+      "caveats": [
+        "Requires REST Catalog endpoint configuration"
+      ]
+    },
+    "flink:unity-catalog:v3": {
+      "level": "partial",
+      "notes": "Can connect to Unity Catalog via REST Catalog API",
+      "caveats": [
+        "Requires REST Catalog endpoint configuration"
+      ]
+    },
+    "flink:hadoop-catalog:v2": {
+      "level": "full",
+      "notes": "Hadoop catalog supported in Flink",
+      "caveats": []
+    },
+    "flink:hadoop-catalog:v3": {
+      "level": "full",
+      "notes": "Hadoop catalog supported in Flink",
+      "caveats": []
+    },
+    "flink:jdbc-catalog:v2": {
+      "level": "full",
+      "notes": "JDBC catalog supported in Flink",
+      "caveats": []
+    },
+    "flink:jdbc-catalog:v3": {
+      "level": "full",
+      "notes": "JDBC catalog supported in Flink",
+      "caveats": []
+    },
+    "daft:position-deletes:v2": {
+      "level": "full",
+      "notes": "Daft supports reading Iceberg tables with position deletes",
+      "caveats": []
+    },
+    "daft:position-deletes:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Daft supports reading Iceberg tables with equality deletes",
+      "caveats": []
+    },
+    "daft:equality-deletes:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Daft supports merge-on-read for reading Iceberg tables",
+      "caveats": []
+    },
+    "daft:merge-on-read:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Daft supports reading copy-on-write Iceberg tables",
+      "caveats": []
+    },
+    "daft:copy-on-write:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Daft supports reading schema-evolved Iceberg tables",
+      "caveats": []
+    },
+    "daft:schema-evolution:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "daft:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "daft:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Daft supports reading hidden-partitioned Iceberg tables",
+      "caveats": []
+    },
+    "daft:hidden-partitioning:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Daft supports reading partition-evolved Iceberg tables",
+      "caveats": []
+    },
+    "daft:partition-evolution:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "daft:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:time-travel:v2": {
+      "level": "full",
+      "notes": "Daft supports time travel queries on Iceberg tables",
+      "caveats": []
+    },
+    "daft:time-travel:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Daft does not provide Iceberg table maintenance operations",
+      "caveats": []
+    },
+    "daft:table-maintenance:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Daft does not support Iceberg branching and tagging",
+      "caveats": []
+    },
+    "daft:branching-tagging:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support for Iceberg V2 tables via PyIceberg integration",
+      "caveats": []
+    },
+    "daft:read-support:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:write-insert:v2": {
+      "level": "full",
+      "notes": "Daft supports writing to Iceberg tables via PyIceberg",
+      "caveats": []
+    },
+    "daft:write-insert:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "Daft supports append and overwrite writes but does not support SQL MERGE/UPDATE/DELETE operations",
+      "caveats": [
+        "No SQL MERGE/UPDATE/DELETE; supports append and overwrite modes only"
+      ]
+    },
+    "daft:write-merge-update-delete:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Daft supports catalog integration via PyIceberg",
+      "caveats": []
+    },
+    "daft:catalog-integration:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Hive Metastore supported via PyIceberg",
+      "caveats": []
+    },
+    "daft:hive-metastore:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supported via PyIceberg",
+      "caveats": []
+    },
+    "daft:aws-glue-catalog:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:rest-catalog:v2": {
+      "level": "full",
+      "notes": "REST Catalog supported via PyIceberg",
+      "caveats": []
+    },
+    "daft:rest-catalog:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:nessie:v2": {
+      "level": "partial",
+      "notes": "Nessie catalog can be used via PyIceberg REST Catalog integration",
+      "caveats": [
+        "Requires PyIceberg Nessie configuration"
+      ]
+    },
+    "daft:nessie:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:polaris:v2": {
+      "level": "partial",
+      "notes": "Polaris can be used via PyIceberg REST Catalog integration",
+      "caveats": [
+        "Requires PyIceberg REST Catalog configuration"
+      ]
+    },
+    "daft:polaris:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Unity Catalog can be used via PyIceberg REST Catalog integration",
+      "caveats": [
+        "Requires PyIceberg REST Catalog configuration"
+      ]
+    },
+    "daft:unity-catalog:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "daft:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Daft does not support Hadoop catalog",
+      "caveats": []
+    },
+    "daft:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Daft does not support Hadoop catalog",
+      "caveats": []
+    },
+    "daft:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "Daft does not support JDBC catalog",
+      "caveats": []
+    },
+    "daft:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Daft does not support JDBC catalog",
+      "caveats": []
+    },
+    "kafka-connect:position-deletes:v2": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink is append-only; does not support row-level deletes",
+      "caveats": []
+    },
+    "kafka-connect:position-deletes:v3": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink is append-only; does not support row-level deletes",
+      "caveats": []
+    },
+    "kafka-connect:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink is append-only; does not support row-level deletes",
+      "caveats": []
+    },
+    "kafka-connect:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink is append-only; does not support row-level deletes",
+      "caveats": []
+    },
+    "kafka-connect:merge-on-read:v2": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink does not support merge-on-read",
+      "caveats": []
+    },
+    "kafka-connect:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink does not support merge-on-read",
+      "caveats": []
+    },
+    "kafka-connect:copy-on-write:v2": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink does not support copy-on-write mutations",
+      "caveats": []
+    },
+    "kafka-connect:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink does not support copy-on-write mutations",
+      "caveats": []
+    },
+    "kafka-connect:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Kafka Connect can evolve Iceberg table schemas based on incoming record schemas; limited to adding columns",
+      "caveats": [
+        "Only supports adding new columns from incoming records"
+      ]
+    },
+    "kafka-connect:schema-evolution:v3": {
+      "level": "partial",
+      "notes": "Kafka Connect can evolve Iceberg table schemas based on incoming record schemas; limited to adding columns",
+      "caveats": [
+        "Only supports adding new columns from incoming records"
+      ]
+    },
+    "kafka-connect:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "kafka-connect:column-default-values:v3": {
+      "level": "none",
+      "notes": "Kafka Connect sink does not manage column default values",
+      "caveats": []
+    },
+    "kafka-connect:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "kafka-connect:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Kafka Connect sink does not support nanosecond timestamp types",
+      "caveats": []
+    },
+    "kafka-connect:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "Kafka Connect Iceberg sink supports configuring partition transforms on the target table",
+      "caveats": [
+        "Partition transforms configured via connector properties, not all transforms supported"
+      ]
+    },
+    "kafka-connect:hidden-partitioning:v3": {
+      "level": "partial",
+      "notes": "Kafka Connect Iceberg sink supports configuring partition transforms on the target table",
+      "caveats": [
+        "Partition transforms configured via connector properties, not all transforms supported"
+      ]
+    },
+    "kafka-connect:partition-evolution:v2": {
+      "level": "none",
+      "notes": "Kafka Connect sink does not support partition evolution",
+      "caveats": []
+    },
+    "kafka-connect:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Kafka Connect sink does not support partition evolution",
+      "caveats": []
+    },
+    "kafka-connect:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "kafka-connect:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Kafka Connect sink does not support multi-argument transforms",
+      "caveats": []
+    },
+    "kafka-connect:time-travel:v2": {
+      "level": "none",
+      "notes": "Kafka Connect is a sink connector; does not support read operations or time travel",
+      "caveats": []
+    },
+    "kafka-connect:time-travel:v3": {
+      "level": "none",
+      "notes": "Kafka Connect is a sink connector; does not support read operations or time travel",
+      "caveats": []
+    },
+    "kafka-connect:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Kafka Connect sink does not provide table maintenance operations",
+      "caveats": []
+    },
+    "kafka-connect:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Kafka Connect sink does not provide table maintenance operations",
+      "caveats": []
+    },
+    "kafka-connect:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Kafka Connect sink does not support branching and tagging",
+      "caveats": []
+    },
+    "kafka-connect:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Kafka Connect sink does not support branching and tagging",
+      "caveats": []
+    },
+    "kafka-connect:read-support:v2": {
+      "level": "none",
+      "notes": "Kafka Connect is a sink connector; does not support reading Iceberg tables",
+      "caveats": []
+    },
+    "kafka-connect:read-support:v3": {
+      "level": "none",
+      "notes": "Kafka Connect is a sink connector; does not support reading Iceberg tables",
+      "caveats": []
+    },
+    "kafka-connect:write-insert:v2": {
+      "level": "full",
+      "notes": "Kafka Connect Iceberg sink appends records from Kafka topics into Iceberg tables",
+      "caveats": []
+    },
+    "kafka-connect:write-insert:v3": {
+      "level": "full",
+      "notes": "Kafka Connect Iceberg sink appends records from Kafka topics into Iceberg tables",
+      "caveats": []
+    },
+    "kafka-connect:write-merge-update-delete:v2": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink is append-only; no MERGE/UPDATE/DELETE support",
+      "caveats": []
+    },
+    "kafka-connect:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink is append-only; no MERGE/UPDATE/DELETE support",
+      "caveats": []
+    },
+    "kafka-connect:catalog-integration:v2": {
+      "level": "partial",
+      "notes": "Kafka Connect Iceberg sink supports configuring a catalog for table management",
+      "caveats": [
+        "Limited to catalogs supported by the connector implementation"
+      ]
+    },
+    "kafka-connect:catalog-integration:v3": {
+      "level": "partial",
+      "notes": "Kafka Connect Iceberg sink supports configuring a catalog for table management",
+      "caveats": [
+        "Limited to catalogs supported by the connector implementation"
+      ]
+    },
+    "kafka-connect:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Hive Metastore supported as catalog backend for Kafka Connect Iceberg sink",
+      "caveats": []
+    },
+    "kafka-connect:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Hive Metastore supported as catalog backend for Kafka Connect Iceberg sink",
+      "caveats": []
+    },
+    "kafka-connect:aws-glue-catalog:v2": {
+      "level": "partial",
+      "notes": "AWS Glue Catalog can be used via custom catalog configuration",
+      "caveats": [
+        "Requires additional connector configuration"
+      ]
+    },
+    "kafka-connect:aws-glue-catalog:v3": {
+      "level": "partial",
+      "notes": "AWS Glue Catalog can be used via custom catalog configuration",
+      "caveats": [
+        "Requires additional connector configuration"
+      ]
+    },
+    "kafka-connect:rest-catalog:v2": {
+      "level": "full",
+      "notes": "REST Catalog supported as catalog backend for Kafka Connect Iceberg sink",
+      "caveats": []
+    },
+    "kafka-connect:rest-catalog:v3": {
+      "level": "full",
+      "notes": "REST Catalog supported as catalog backend for Kafka Connect Iceberg sink",
+      "caveats": []
+    },
+    "kafka-connect:nessie:v2": {
+      "level": "partial",
+      "notes": "Nessie can be used via REST Catalog configuration",
+      "caveats": [
+        "Requires Nessie REST endpoint configuration"
+      ]
+    },
+    "kafka-connect:nessie:v3": {
+      "level": "partial",
+      "notes": "Nessie can be used via REST Catalog configuration",
+      "caveats": [
+        "Requires Nessie REST endpoint configuration"
+      ]
+    },
+    "kafka-connect:polaris:v2": {
+      "level": "partial",
+      "notes": "Polaris can be used via REST Catalog configuration",
+      "caveats": [
+        "Requires Polaris REST endpoint configuration"
+      ]
+    },
+    "kafka-connect:polaris:v3": {
+      "level": "partial",
+      "notes": "Polaris can be used via REST Catalog configuration",
+      "caveats": [
+        "Requires Polaris REST endpoint configuration"
+      ]
+    },
+    "kafka-connect:unity-catalog:v2": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink does not support Unity Catalog",
+      "caveats": []
+    },
+    "kafka-connect:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink does not support Unity Catalog",
+      "caveats": []
+    },
+    "kafka-connect:hadoop-catalog:v2": {
+      "level": "full",
+      "notes": "Hadoop catalog supported as catalog backend for Kafka Connect Iceberg sink",
+      "caveats": []
+    },
+    "kafka-connect:hadoop-catalog:v3": {
+      "level": "full",
+      "notes": "Hadoop catalog supported as catalog backend for Kafka Connect Iceberg sink",
+      "caveats": []
+    },
+    "kafka-connect:jdbc-catalog:v2": {
+      "level": "partial",
+      "notes": "JDBC catalog can be used with additional configuration",
+      "caveats": [
+        "Requires JDBC driver and endpoint configuration"
+      ]
+    },
+    "kafka-connect:jdbc-catalog:v3": {
+      "level": "partial",
+      "notes": "JDBC catalog can be used with additional configuration",
+      "caveats": [
+        "Requires JDBC driver and endpoint configuration"
+      ]
+    },
+    "pyiceberg:position-deletes:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports reading and writing position deletes",
+      "caveats": []
+    },
+    "pyiceberg:position-deletes:v3": {
+      "level": "partial",
+      "notes": "PyIceberg V3 support is in progress",
+      "caveats": [
+        "V3 support is experimental"
+      ]
+    },
+    "pyiceberg:equality-deletes:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports reading and writing equality deletes",
+      "caveats": []
+    },
+    "pyiceberg:equality-deletes:v3": {
+      "level": "partial",
+      "notes": "PyIceberg V3 support is in progress",
+      "caveats": [
+        "V3 support is experimental"
+      ]
+    },
+    "pyiceberg:merge-on-read:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports merge-on-read via position and equality deletes",
+      "caveats": []
+    },
+    "pyiceberg:merge-on-read:v3": {
+      "level": "partial",
+      "notes": "PyIceberg V3 merge-on-read support is in progress",
+      "caveats": [
+        "V3 support is experimental"
+      ]
+    },
+    "pyiceberg:copy-on-write:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports copy-on-write operations",
+      "caveats": []
+    },
+    "pyiceberg:copy-on-write:v3": {
+      "level": "partial",
+      "notes": "PyIceberg V3 copy-on-write support is in progress",
+      "caveats": [
+        "V3 support is experimental"
+      ]
+    },
+    "pyiceberg:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution support: add, drop, rename, reorder columns and change types",
+      "caveats": []
+    },
+    "pyiceberg:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Full schema evolution support in V3",
+      "caveats": []
+    },
+    "pyiceberg:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "pyiceberg:column-default-values:v3": {
+      "level": "partial",
+      "notes": "PyIceberg V3 column default values support is in progress",
+      "caveats": [
+        "V3 support is experimental"
+      ]
+    },
+    "pyiceberg:table-creation:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports creating Iceberg tables via the Python API with full schema and partition spec definition",
+      "caveats": []
+    },
+    "pyiceberg:table-creation:v3": {
+      "level": "full",
+      "notes": "PyIceberg supports creating V3 Iceberg tables",
+      "caveats": []
+    },
+    "pyiceberg:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports hidden partitioning with identity, bucket, truncate, year, month, day, hour transforms",
+      "caveats": []
+    },
+    "pyiceberg:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Hidden partitioning supported in V3",
+      "caveats": []
+    },
+    "pyiceberg:partition-evolution:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports partition evolution",
+      "caveats": []
+    },
+    "pyiceberg:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Partition evolution supported in V3",
+      "caveats": []
+    },
+    "pyiceberg:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "pyiceberg:multi-arg-transforms:v3": {
+      "level": "partial",
+      "notes": "PyIceberg V3 multi-arg transform support is in progress",
+      "caveats": [
+        "V3 support is experimental"
+      ]
+    },
+    "pyiceberg:time-travel:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports time travel queries by snapshot ID and timestamp",
+      "caveats": []
+    },
+    "pyiceberg:time-travel:v3": {
+      "level": "full",
+      "notes": "Time travel supported in V3",
+      "caveats": []
+    },
+    "pyiceberg:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "PyIceberg supports snapshot expiry and orphan file removal; compaction support is limited",
+      "caveats": [
+        "Limited compaction support"
+      ]
+    },
+    "pyiceberg:table-maintenance:v3": {
+      "level": "partial",
+      "notes": "PyIceberg V3 table maintenance support is partial",
+      "caveats": [
+        "Limited compaction support"
+      ]
+    },
+    "pyiceberg:branching-tagging:v2": {
+      "level": "partial",
+      "notes": "PyIceberg supports creating and managing branches and tags via the API",
+      "caveats": []
+    },
+    "pyiceberg:branching-tagging:v3": {
+      "level": "partial",
+      "notes": "Branching and tagging supported in V3",
+      "caveats": []
+    },
+    "pyiceberg:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via PyArrow and Pandas integration",
+      "caveats": []
+    },
+    "pyiceberg:read-support:v3": {
+      "level": "full",
+      "notes": "Full read support for V3 tables",
+      "caveats": []
+    },
+    "pyiceberg:write-insert:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports appending and overwriting data via PyArrow and Pandas",
+      "caveats": []
+    },
+    "pyiceberg:write-insert:v3": {
+      "level": "full",
+      "notes": "Write support for V3 tables",
+      "caveats": []
+    },
+    "pyiceberg:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "PyIceberg supports overwrite and delete operations but not SQL MERGE/UPDATE syntax",
+      "caveats": [
+        "No SQL MERGE/UPDATE syntax; uses programmatic API"
+      ]
+    },
+    "pyiceberg:write-merge-update-delete:v3": {
+      "level": "partial",
+      "notes": "Overwrite and delete supported; no SQL MERGE/UPDATE syntax",
+      "caveats": [
+        "No SQL MERGE/UPDATE syntax"
+      ]
+    },
+    "pyiceberg:catalog-integration:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports multiple catalog implementations",
+      "caveats": []
+    },
+    "pyiceberg:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Full catalog integration in V3",
+      "caveats": []
+    },
+    "pyiceberg:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Native Hive Metastore catalog support",
+      "caveats": []
+    },
+    "pyiceberg:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Hive Metastore supported in V3",
+      "caveats": []
+    },
+    "pyiceberg:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supported natively",
+      "caveats": []
+    },
+    "pyiceberg:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supported in V3",
+      "caveats": []
+    },
+    "pyiceberg:rest-catalog:v2": {
+      "level": "full",
+      "notes": "Full REST Catalog support",
+      "caveats": []
+    },
+    "pyiceberg:rest-catalog:v3": {
+      "level": "full",
+      "notes": "REST Catalog supported in V3",
+      "caveats": []
+    },
+    "pyiceberg:nessie:v2": {
+      "level": "full",
+      "notes": "Nessie catalog supported natively",
+      "caveats": []
+    },
+    "pyiceberg:nessie:v3": {
+      "level": "full",
+      "notes": "Nessie catalog supported in V3",
+      "caveats": []
+    },
+    "pyiceberg:polaris:v2": {
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog API",
+      "caveats": []
+    },
+    "pyiceberg:polaris:v3": {
+      "level": "full",
+      "notes": "Polaris supported in V3",
+      "caveats": []
+    },
+    "pyiceberg:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Unity Catalog can be used via REST Catalog API",
+      "caveats": [
+        "Requires REST Catalog endpoint configuration"
+      ]
+    },
+    "pyiceberg:unity-catalog:v3": {
+      "level": "partial",
+      "notes": "Unity Catalog via REST Catalog API",
+      "caveats": [
+        "Requires REST Catalog endpoint configuration"
+      ]
+    },
+    "pyiceberg:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "PyIceberg does not support Hadoop catalog",
+      "caveats": []
+    },
+    "pyiceberg:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "PyIceberg does not support Hadoop catalog",
+      "caveats": []
+    },
+    "pyiceberg:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "PyIceberg does not support JDBC catalog",
+      "caveats": []
+    },
+    "pyiceberg:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "PyIceberg does not support JDBC catalog",
+      "caveats": []
+    },
+    "pyiceberg:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature",
+      "caveats": []
+    },
+    "pyiceberg:variant-type:v3": {
+      "level": "unknown",
+      "notes": "PyIceberg V3 variant type support is not yet documented",
+      "caveats": []
+    },
+    "pyiceberg:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature",
+      "caveats": []
+    },
+    "pyiceberg:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "PyIceberg V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "pyiceberg:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry types are a V3 feature",
+      "caveats": []
+    },
+    "pyiceberg:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "PyIceberg V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "pyiceberg:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector type is a V3 feature",
+      "caveats": []
+    },
+    "pyiceberg:vector-type:v3": {
+      "level": "unknown",
+      "notes": "PyIceberg V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "pyiceberg:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "pyiceberg:nanosecond-timestamps:v3": {
+      "level": "partial",
+      "notes": "PyIceberg V3 nanosecond timestamp support is in progress",
+      "caveats": [
+        "V3 support is experimental"
+      ]
+    },
+    "pyiceberg:cdc-support:v2": {
+      "level": "none",
+      "notes": "CDC is a V3 feature",
+      "caveats": []
+    },
+    "pyiceberg:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "PyIceberg V3 CDC support is not yet documented",
+      "caveats": []
+    },
+    "pyiceberg:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage tracking is a V3 feature",
+      "caveats": []
+    },
+    "pyiceberg:lineage:v3": {
+      "level": "unknown",
+      "notes": "PyIceberg V3 lineage support is not yet documented",
+      "caveats": []
+    },
+    "duckdb:table-creation:v2": {
+      "level": "full",
+      "notes": "DuckDB supports creating Iceberg tables via SQL DDL since v1.3+",
+      "caveats": []
+    },
+    "duckdb:table-creation:v3": {
+      "level": "unknown",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
+      "caveats": [
+        "DuckDB V3 support not yet available"
+      ]
+    },
+    "clickhouse:table-creation:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support creating Iceberg tables; read-only integration",
+      "caveats": []
+    },
+    "clickhouse:table-creation:v3": {
+      "level": "none",
+      "notes": "ClickHouse does not support creating Iceberg tables",
+      "caveats": []
+    },
+    "daft:table-creation:v2": {
+      "level": "full",
+      "notes": "Daft supports creating Iceberg tables via PyIceberg integration",
+      "caveats": []
+    },
+    "daft:table-creation:v3": {
+      "level": "unknown",
+      "notes": "Daft has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ]
+    },
+    "spark:table-creation:v2": {
+      "level": "full",
+      "notes": "Full CREATE TABLE support as the reference Iceberg implementation",
+      "caveats": []
+    },
+    "spark:table-creation:v3": {
+      "level": "full",
+      "notes": "Full CREATE TABLE support for V3",
+      "caveats": []
+    },
+    "flink:table-creation:v2": {
+      "level": "full",
+      "notes": "Flink supports creating Iceberg tables via Flink SQL DDL",
+      "caveats": []
+    },
+    "flink:table-creation:v3": {
+      "level": "full",
+      "notes": "Table creation supported with Flink 2.0+ and Iceberg V3",
+      "caveats": []
+    },
+    "kafka-connect:table-creation:v2": {
+      "level": "partial",
+      "notes": "Kafka Connect Iceberg sink can auto-create tables when configured",
+      "caveats": [
+        "Auto-creation only; limited schema control"
+      ]
+    },
+    "kafka-connect:table-creation:v3": {
+      "level": "partial",
+      "notes": "Kafka Connect Iceberg sink can auto-create tables when configured",
+      "caveats": [
+        "Auto-creation only; limited schema control"
+      ]
+    },
+    "duckdb:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "duckdb:variant-type:v3": {
+      "level": "unknown",
+      "notes": "DuckDB V3 variant type support is not yet documented",
+      "caveats": []
+    },
+    "duckdb:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "duckdb:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "DuckDB V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "duckdb:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "duckdb:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "DuckDB V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "duckdb:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "duckdb:vector-type:v3": {
+      "level": "unknown",
+      "notes": "DuckDB V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "duckdb:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "duckdb:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "DuckDB V3 cdc support support is not yet documented",
+      "caveats": []
+    },
+    "duckdb:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "duckdb:lineage:v3": {
+      "level": "unknown",
+      "notes": "DuckDB V3 lineage support is not yet documented",
+      "caveats": []
+    },
+    "clickhouse:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:variant-type:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 variant type support is not yet documented",
+      "caveats": []
+    },
+    "clickhouse:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "clickhouse:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "clickhouse:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:vector-type:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "clickhouse:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 cdc support support is not yet documented",
+      "caveats": []
+    },
+    "clickhouse:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:lineage:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 lineage support is not yet documented",
+      "caveats": []
+    },
+    "daft:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "daft:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Daft V3 variant type support is not yet documented",
+      "caveats": []
+    },
+    "daft:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "daft:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Daft V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "daft:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "daft:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Daft V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "daft:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "daft:vector-type:v3": {
+      "level": "unknown",
+      "notes": "Daft V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "daft:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "daft:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "Daft V3 cdc support support is not yet documented",
+      "caveats": []
+    },
+    "daft:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "daft:lineage:v3": {
+      "level": "unknown",
+      "notes": "Daft V3 lineage support is not yet documented",
+      "caveats": []
+    },
+    "spark:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "spark:variant-type:v3": {
+      "level": "full",
+      "notes": "Full Variant type support in Spark with Iceberg V3",
+      "caveats": []
+    },
+    "spark:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "spark:shredded-variant:v3": {
+      "level": "partial",
+      "notes": "Shredded variant support is being added to Spark",
+      "caveats": [
+        "Support may vary by Spark version"
+      ]
+    },
+    "spark:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "spark:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "OSS Spark V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "spark:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "spark:vector-type:v3": {
+      "level": "unknown",
+      "notes": "OSS Spark V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "spark:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "spark:cdc-support:v3": {
+      "level": "partial",
+      "notes": "CDC support available via Spark structured streaming on Iceberg",
+      "caveats": [
+        "Requires streaming configuration"
+      ]
+    },
+    "spark:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "spark:lineage:v3": {
+      "level": "unknown",
+      "notes": "Spark Iceberg lineage tracking support is not yet documented",
+      "caveats": []
+    },
+    "flink:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "flink:variant-type:v3": {
+      "level": "unknown",
+      "notes": "OSS Flink V3 variant type support is not yet documented",
+      "caveats": []
+    },
+    "flink:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "flink:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "OSS Flink V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "flink:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "flink:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "OSS Flink V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "flink:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "flink:vector-type:v3": {
+      "level": "unknown",
+      "notes": "OSS Flink V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "flink:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "flink:cdc-support:v3": {
+      "level": "partial",
+      "notes": "Flink supports CDC ingestion into Iceberg tables via streaming",
+      "caveats": [
+        "Requires streaming upsert configuration"
+      ]
+    },
+    "flink:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "flink:lineage:v3": {
+      "level": "unknown",
+      "notes": "OSS Flink V3 lineage support is not yet documented",
+      "caveats": []
+    },
+    "kafka-connect:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "kafka-connect:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Kafka Connect V3 variant type support is not yet documented",
+      "caveats": []
+    },
+    "kafka-connect:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "kafka-connect:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Kafka Connect V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "kafka-connect:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "kafka-connect:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Kafka Connect V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "kafka-connect:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "kafka-connect:vector-type:v3": {
+      "level": "unknown",
+      "notes": "Kafka Connect V3 vector type support is not yet documented",
+      "caveats": []
+    },
+    "kafka-connect:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "kafka-connect:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "Kafka Connect V3 cdc support support is not yet documented",
+      "caveats": []
+    },
+    "kafka-connect:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "kafka-connect:lineage:v3": {
+      "level": "unknown",
+      "notes": "Kafka Connect V3 lineage support is not yet documented",
+      "caveats": []
+    }
+  }
+}
