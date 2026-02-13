@@ -21,7 +21,6 @@ export interface Feature {
 
 export type FeatureCategory =
   | "row-level-operations"
-  | "schema-management"
   | "partitioning"
   | "table-management"
   | "read-write"
