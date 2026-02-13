@@ -8,7 +8,6 @@ import type {
 
 const CATEGORY_LABELS: Record<FeatureCategory, string> = {
   "row-level-operations": "Row-Level Ops",
-  "schema-management": "Schema",
   partitioning: "Partitioning",
   "table-management": "Table Mgmt",
   "read-write": "Read / Write",
