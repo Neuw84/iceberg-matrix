@@ -1307,6 +1307,96 @@
         "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
       ],
       "links": []
+    },
+    "azure-synapse:statistics:v2": {
+      "level": "partial",
+      "notes": "Column statistics supported via Spark pools with manually installed iceberg-spark-runtime JAR. Statistics are written to manifest files via the standard Iceberg write path. Not available in serverless or dedicated SQL pools.",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; serverless SQL pool and dedicated SQL pool have no Iceberg support"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:statistics:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:bloom-filters:v2": {
+      "level": "partial",
+      "notes": "Parquet-level bloom filters can be enabled via Iceberg table properties when using Spark pools with manually installed iceberg-spark-runtime JAR. Not available in SQL pools.",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Requires setting bloom filter table properties per column",
+        "Not available in serverless or dedicated SQL pools"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:bloom-filters:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-fabric:statistics:v2": {
+      "level": "partial",
+      "notes": "When Fabric virtualizes Delta Lake tables as Iceberg via Apache XTable, column statistics are translated from Delta Lake statistics to Iceberg manifest statistics. For external Iceberg tables read via OneLake shortcuts, existing statistics are preserved.",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Statistics quality depends on the Delta-to-Iceberg virtualization fidelity"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:statistics:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:bloom-filters:v2": {
+      "level": "none",
+      "notes": "Fabric does not support Iceberg bloom filters. Delta Lake tables virtualized as Iceberg do not include bloom filter metadata in the Iceberg representation.",
+      "caveats": [
+        "Iceberg support is via metadata virtualization — Fabric natively uses Delta Lake, not Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
     }
   }
 }

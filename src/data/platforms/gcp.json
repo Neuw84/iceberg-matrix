@@ -1030,6 +1030,91 @@
       "level": "unknown",
       "notes": "Google Dataproc V3 lineage support is not yet documented",
       "caveats": []
+    },
+    "google-bigquery:statistics:v2": {
+      "level": "full",
+      "notes": "BigQuery writes column statistics to Iceberg manifest files for BigLake Iceberg tables. BigQuery uses its own internal statistics for query optimization and includes standard Iceberg column metrics in exported V2 snapshots.",
+      "caveats": [
+        "Statistics are managed automatically by BigQuery",
+        "External engines reading exported Iceberg snapshots benefit from the written statistics"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
+    },
+    "google-bigquery:statistics:v3": {
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
+      "caveats": [
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
+    },
+    "google-bigquery:bloom-filters:v2": {
+      "level": "none",
+      "notes": "BigQuery does not support Iceberg Parquet-level bloom filters or Puffin-based bloom filter statistics for BigLake Iceberg tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
+    },
+    "google-bigquery:bloom-filters:v3": {
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
+      "caveats": [
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
+    },
+    "google-dataproc:statistics:v2": {
+      "level": "full",
+      "notes": "Full column statistics support via Spark on Dataproc. Writes min/max, null counts, value counts to manifest files. Supports compute_table_stats procedure for Puffin-based NDV statistics.",
+      "caveats": [],
+      "links": []
+    },
+    "google-dataproc:statistics:v3": {
+      "level": "full",
+      "notes": "Column statistics fully supported via Spark on Dataproc with Iceberg V3",
+      "caveats": [],
+      "links": []
+    },
+    "google-dataproc:bloom-filters:v2": {
+      "level": "full",
+      "notes": "Full bloom filter support via Spark on Dataproc. Parquet-level bloom filters configurable via write.parquet.bloom-filter-enabled.column.* table properties. Also supports compute_table_stats procedure for Puffin-based statistics.",
+      "caveats": [
+        "Requires setting bloom filter table properties per column",
+        "Not enabled by default"
+      ],
+      "links": [
+        {
+          "label": "Iceberg configuration",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/"
+        }
+      ]
+    },
+    "google-dataproc:bloom-filters:v3": {
+      "level": "full",
+      "notes": "Full bloom filter support via Spark on Dataproc with Iceberg V3",
+      "caveats": [
+        "Requires setting bloom filter table properties per column"
+      ],
+      "links": []
     }
   }
 }

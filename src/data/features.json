@@ -120,6 +120,20 @@
       "description": "Integration with one or more Iceberg catalog implementations for table metadata management"
     },
     {
+      "id": "statistics",
+      "name": "Statistics (Column Metrics)",
+      "category": "read-write",
+      "introducedIn": "v2",
+      "description": "Column-level statistics in manifest files including min/max values, null counts, and distinct counts used for scan planning and predicate pushdown optimization"
+    },
+    {
+      "id": "bloom-filters",
+      "name": "Bloom Filters",
+      "category": "read-write",
+      "introducedIn": "v2",
+      "description": "Probabilistic data structure written in Puffin files to efficiently skip data files that definitely don't contain matching values, improving point lookup query performance"
+    },
+    {
       "id": "hive-metastore",
       "name": "Hive Metastore",
       "category": "catalog-support",

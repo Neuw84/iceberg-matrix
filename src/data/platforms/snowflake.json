@@ -18,8 +18,14 @@
         "Snowflake-managed tables use copy-on-write and never produce position deletes"
       ],
       "links": [
-        { "label": "Row-level deletes", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes" },
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Row-level deletes",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:position-deletes:v3": {
@@ -37,7 +43,10 @@
         "Row-level equality deletes not supported; Snowflake uses copy-on-write for DELETE operations"
       ],
       "links": [
-        { "label": "Row-level deletes", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes" }
+        {
+          "label": "Row-level deletes",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes"
+        }
       ]
     },
     "snowflake:equality-deletes:v3": {
@@ -57,8 +66,14 @@
         "Snowflake-managed tables always use copy-on-write"
       ],
       "links": [
-        { "label": "Row-level deletes", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes" },
-        { "label": "Manage Iceberg tables", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage" }
+        {
+          "label": "Row-level deletes",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes"
+        },
+        {
+          "label": "Manage Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
+        }
       ]
     },
     "snowflake:merge-on-read:v3": {
@@ -77,8 +92,14 @@
         "All DML operations (DELETE, UPDATE, MERGE) rewrite entire data files"
       ],
       "links": [
-        { "label": "Manage Iceberg tables", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage" },
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Manage Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:copy-on-write:v3": {
@@ -97,8 +118,14 @@
         "Externally managed tables have schema controlled by the external catalog"
       ],
       "links": [
-        { "label": "Manage Iceberg tables – Schema", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage" },
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Manage Iceberg tables – Schema",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:schema-evolution:v3": {
@@ -145,8 +172,14 @@
         "Uses Snowflake clustering in conjunction with Iceberg partition transforms"
       ],
       "links": [
-        { "label": "Create Iceberg tables", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create" },
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Create Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:hidden-partitioning:v3": {
@@ -164,8 +197,14 @@
         "Partition evolution is managed through Snowflake clustering, not native Iceberg partition evolution"
       ],
       "links": [
-        { "label": "Manage Iceberg tables", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage" },
-        { "label": "Create Iceberg tables", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create" }
+        {
+          "label": "Manage Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
+        },
+        {
+          "label": "Create Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create"
+        }
       ]
     },
     "snowflake:partition-evolution:v3": {
@@ -198,8 +237,14 @@
         "For external catalog tables, time travel depends on periodic refresh completing before snapshot expiry"
       ],
       "links": [
-        { "label": "Manage Iceberg tables", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage" },
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Manage Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:time-travel:v3": {
@@ -220,8 +265,14 @@
         "Orphan file deletion is NOT supported"
       ],
       "links": [
-        { "label": "Manage Iceberg tables", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage" },
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Manage Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:table-maintenance:v3": {
@@ -239,7 +290,10 @@
         "Iceberg branching and tagging features are not available in Snowflake"
       ],
       "links": [
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:branching-tagging:v3": {
@@ -258,8 +312,14 @@
         "Supports reading both Snowflake-managed and externally managed Iceberg tables"
       ],
       "links": [
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" },
-        { "label": "Iceberg table metadata", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-metadata" }
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        },
+        {
+          "label": "Iceberg table metadata",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-metadata"
+        }
       ]
     },
     "snowflake:read-support:v3": {
@@ -278,8 +338,14 @@
         "Externally managed tables support writes via Snowflake Open Catalog (REST catalog)"
       ],
       "links": [
-        { "label": "Manage Iceberg tables", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage" },
-        { "label": "Create Iceberg tables", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create" }
+        {
+          "label": "Manage Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
+        },
+        {
+          "label": "Create Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create"
+        }
       ]
     },
     "snowflake:write-insert:v3": {
@@ -298,8 +364,14 @@
         "Supported for Snowflake-managed Iceberg tables"
       ],
       "links": [
-        { "label": "Manage Iceberg tables", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage" },
-        { "label": "Row-level deletes", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes" }
+        {
+          "label": "Manage Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
+        },
+        {
+          "label": "Row-level deletes",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes"
+        }
       ]
     },
     "snowflake:write-merge-update-delete:v3": {
@@ -318,8 +390,14 @@
         "Snowflake can also serve as its own Iceberg catalog for managed tables"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" },
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:catalog-integration:v3": {
@@ -337,7 +415,10 @@
         "Hive Metastore is not a supported catalog integration"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        }
       ]
     },
     "snowflake:hive-metastore:v3": {
@@ -347,7 +428,10 @@
         "Hive Metastore is not a supported catalog integration"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        }
       ]
     },
     "snowflake:aws-glue-catalog:v2": {
@@ -358,8 +442,14 @@
         "Write support available via REST catalog integration"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" },
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:aws-glue-catalog:v3": {
@@ -377,8 +467,14 @@
         "Supports REST Catalog protocol for reading and writing Iceberg tables via external catalogs"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" },
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:rest-catalog:v3": {
@@ -396,7 +492,10 @@
         "Nessie catalog is not a supported catalog integration"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        }
       ]
     },
     "snowflake:nessie:v3": {
@@ -406,7 +505,10 @@
         "Nessie catalog is not a supported catalog integration"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        }
       ]
     },
     "snowflake:polaris:v2": {
@@ -417,8 +519,14 @@
         "Native integration with full read and write support"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" },
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:polaris:v3": {
@@ -436,8 +544,14 @@
         "Read-only access to Unity Catalog managed Iceberg tables via REST Catalog API"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" },
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:unity-catalog:v3": {
@@ -455,7 +569,10 @@
         "Hadoop catalog is not a supported catalog integration"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        }
       ]
     },
     "snowflake:hadoop-catalog:v3": {
@@ -465,7 +582,10 @@
         "Hadoop catalog is not a supported catalog integration"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        }
       ]
     },
     "snowflake:jdbc-catalog:v2": {
@@ -475,7 +595,10 @@
         "JDBC catalog is not a supported catalog integration"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        }
       ]
     },
     "snowflake:jdbc-catalog:v3": {
@@ -485,7 +608,10 @@
         "JDBC catalog is not a supported catalog integration"
       ],
       "links": [
-        { "label": "Configure catalog integration", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration" }
+        {
+          "label": "Configure catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+        }
       ]
     },
     "snowflake:table-creation:v2": {
@@ -496,8 +622,14 @@
         "Supports creating tables from external catalogs (Glue, REST, Object Storage)"
       ],
       "links": [
-        { "label": "Create Iceberg tables", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create" },
-        { "label": "Iceberg tables overview", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }
+        {
+          "label": "Create Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
       ]
     },
     "snowflake:table-creation:v3": {
@@ -585,6 +717,53 @@
       "links": []
     },
     "snowflake:lineage:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ],
+      "links": []
+    },
+    "snowflake:statistics:v2": {
+      "level": "full",
+      "notes": "Snowflake writes column-level statistics (min/max values, null counts, value counts) to Iceberg manifest files for managed tables and uses them for scan planning and file pruning.",
+      "caveats": [
+        "Statistics are managed automatically by Snowflake for managed Iceberg tables",
+        "Externally managed tables retain statistics written by the originating engine"
+      ],
+      "links": [
+        {
+          "label": "Manage Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
+        },
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
+      ]
+    },
+    "snowflake:statistics:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ],
+      "links": []
+    },
+    "snowflake:bloom-filters:v2": {
+      "level": "none",
+      "notes": "Snowflake does not support Iceberg bloom filters (Parquet-level or Puffin-based) for Iceberg tables. Snowflake uses its own micro-partition pruning and search optimization instead.",
+      "caveats": [
+        "Snowflake uses proprietary micro-partition pruning instead of Iceberg bloom filters"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables overview",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        }
+      ]
+    },
+    "snowflake:bloom-filters:v3": {
       "level": "unknown",
       "notes": "Snowflake has not yet announced Iceberg V3 support",
       "caveats": [

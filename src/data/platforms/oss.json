@@ -783,7 +783,7 @@
     },
     "clickhouse:schema-evolution:v2": {
       "level": "partial",
-      "notes": "ClickHouse can read schema-evolved Iceberg tables: add/remove columns, reorder, nullable promotion, and limited type casting (int\u2192long, float\u2192double, decimal widening). Cannot change nested structures or array/map element types",
+      "notes": "ClickHouse can read schema-evolved Iceberg tables: add/remove columns, reorder, nullable promotion, and limited type casting (int→long, float→double, decimal widening). Cannot change nested structures or array/map element types",
       "docUrl": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg#schema-evolution",
       "caveats": [
         "Read-only; cannot perform schema changes",
@@ -1177,7 +1177,7 @@
     },
     "spark:schema-evolution:v2": {
       "level": "full",
-      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int\u2192long, float\u2192double), and modify nullability",
+      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int→long, float→double), and modify nullability",
       "caveats": [],
       "links": [
         {
@@ -1725,7 +1725,7 @@
     },
     "flink:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column and partition changes are not supported via Flink DDL",
+      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes are not supported via Flink DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column additions, renames, drops, and reordering not supported via Flink SQL"
       ],
@@ -1733,7 +1733,7 @@
     },
     "flink:schema-evolution:v3": {
       "level": "partial",
-      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column and partition changes are not supported via Flink DDL",
+      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes are not supported via Flink DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column additions, renames, drops, and reordering not supported via Flink SQL"
       ],
@@ -1821,7 +1821,7 @@
     },
     "flink:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests \u2014 use Spark for full maintenance",
+      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests — use Spark for full maintenance",
       "caveats": [
         "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported"
       ],
@@ -3523,6 +3523,343 @@
       "level": "none",
       "notes": "Sink connector does not provide lineage tracking capabilities",
       "caveats": []
+    },
+    "duckdb:statistics:v2": {
+      "level": "full",
+      "notes": "DuckDB reads column statistics from Iceberg manifest files for scan planning and file pruning. When writing to Iceberg tables (v1.4.0+), DuckDB writes column statistics to manifest files via the standard Iceberg write path.",
+      "caveats": [
+        "Requires the iceberg extension"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Extension Overview",
+          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+        },
+        {
+          "label": "Writes in DuckDB-Iceberg (blog)",
+          "url": "https://duckdb.org/2025/11/28/iceberg-writes-in-duckdb"
+        }
+      ]
+    },
+    "duckdb:statistics:v3": {
+      "level": "partial",
+      "notes": "DuckDB can read column statistics from V3 tables that use only V2-compatible data types",
+      "caveats": [
+        "V3 reads supported only with V2-compatible data types"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Extension Overview",
+          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+        }
+      ]
+    },
+    "duckdb:bloom-filters:v2": {
+      "level": "none",
+      "notes": "DuckDB does not support reading or writing Iceberg Parquet-level bloom filters or Puffin-based bloom filter statistics.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Extension Overview",
+          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+        }
+      ]
+    },
+    "duckdb:bloom-filters:v3": {
+      "level": "none",
+      "notes": "DuckDB does not support Iceberg bloom filters on any format version",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Extension Overview",
+          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+        }
+      ]
+    },
+    "clickhouse:statistics:v2": {
+      "level": "partial",
+      "notes": "ClickHouse reads column statistics from Iceberg manifest files for file pruning during scan planning. Read-only; ClickHouse cannot write Iceberg tables.",
+      "caveats": [
+        "Read-only; cannot write Iceberg tables or statistics"
+      ],
+      "links": [
+        {
+          "label": "Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
+        }
+      ]
+    },
+    "clickhouse:statistics:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2; V3 is not yet supported",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
+        }
+      ]
+    },
+    "clickhouse:bloom-filters:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support reading Iceberg Parquet-level bloom filters or Puffin-based bloom filter statistics. ClickHouse has its own bloom filter index types but they do not apply to external Iceberg tables.",
+      "caveats": [
+        "Read-only Iceberg integration; no bloom filter support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
+        }
+      ]
+    },
+    "clickhouse:bloom-filters:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2; V3 is not yet supported",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
+        }
+      ]
+    },
+    "daft:statistics:v2": {
+      "level": "full",
+      "notes": "Daft reads column statistics from Iceberg manifest files via PyIceberg for predicate pushdown and file pruning during scan planning. Writes column statistics when appending data.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Daft Iceberg connector",
+          "url": "https://docs.daft.ai/en/stable/connectors/iceberg/"
+        }
+      ]
+    },
+    "daft:statistics:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ],
+      "links": []
+    },
+    "daft:bloom-filters:v2": {
+      "level": "none",
+      "notes": "Daft does not support reading or writing Iceberg bloom filters (Parquet-level or Puffin-based).",
+      "caveats": [],
+      "links": []
+    },
+    "daft:bloom-filters:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ],
+      "links": []
+    },
+    "spark:statistics:v2": {
+      "level": "full",
+      "notes": "As the reference Iceberg implementation, Spark writes comprehensive column statistics (min/max values, null counts, value counts, NaN counts) to manifest files by default. Statistics mode is configurable per column via write.metadata.metrics.default (default: truncate(16)) and write.metadata.metrics.column.* properties. Also supports compute_table_stats procedure for Puffin-based NDV statistics.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/"
+        },
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark:statistics:v3": {
+      "level": "full",
+      "notes": "Full column statistics support for V3 tables, including compute_table_stats procedure for Puffin-based statistics",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/"
+        },
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark:bloom-filters:v2": {
+      "level": "full",
+      "notes": "Full Parquet-level bloom filter support via write.parquet.bloom-filter-enabled.column.* table properties. Configurable false positive probability via write.parquet.bloom-filter-fpp.column.* and max bytes via write.parquet.bloom-filter-max-bytes. Also supports compute_table_stats procedure for Puffin-based statistics.",
+      "caveats": [
+        "Bloom filters must be explicitly enabled per column via table properties",
+        "Not enabled by default"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Configuration - Write Properties",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/#write-properties"
+        },
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark:bloom-filters:v3": {
+      "level": "full",
+      "notes": "Full bloom filter support for V3 tables with the same configuration options as V2",
+      "caveats": [
+        "Bloom filters must be explicitly enabled per column via table properties"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Configuration - Write Properties",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/#write-properties"
+        }
+      ]
+    },
+    "flink:statistics:v2": {
+      "level": "full",
+      "notes": "Flink Iceberg connector writes column statistics to manifest files by default via the standard Iceberg write path. Uses statistics for scan planning during reads in both batch and streaming modes.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Flink Writes",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
+        },
+        {
+          "label": "Flink Queries",
+          "url": "https://iceberg.apache.org/docs/latest/flink-queries/"
+        }
+      ]
+    },
+    "flink:statistics:v3": {
+      "level": "full",
+      "notes": "Column statistics supported for V3 tables via iceberg-flink-runtime",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Flink Writes",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
+        }
+      ]
+    },
+    "flink:bloom-filters:v2": {
+      "level": "partial",
+      "notes": "Parquet-level bloom filters can be enabled via Iceberg table properties (write.parquet.bloom-filter-enabled.column.*) which are respected by the Flink Iceberg writer. No compute_table_stats procedure or Puffin-based bloom filter support.",
+      "caveats": [
+        "Requires setting bloom filter table properties per column",
+        "Not enabled by default",
+        "No compute_table_stats procedure available in Flink"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/"
+        }
+      ]
+    },
+    "flink:bloom-filters:v3": {
+      "level": "partial",
+      "notes": "Parquet-level bloom filters supported via Iceberg table properties for V3 tables",
+      "caveats": [
+        "Requires setting bloom filter table properties per column",
+        "No compute_table_stats procedure available in Flink"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/"
+        }
+      ]
+    },
+    "kafka-connect:statistics:v2": {
+      "level": "partial",
+      "notes": "Kafka Connect Iceberg sink writes basic column statistics to manifest files via the standard Iceberg write path when appending data. Statistics are written automatically but configuration options are limited compared to Spark.",
+      "caveats": [
+        "Sink-only connector; limited statistics configuration",
+        "Statistics are written automatically as part of standard Iceberg write path"
+      ],
+      "links": [
+        {
+          "label": "Kafka Connect Iceberg",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:statistics:v3": {
+      "level": "partial",
+      "notes": "Basic column statistics written via standard Iceberg write path for V3 tables",
+      "caveats": [
+        "Limited statistics configuration compared to Spark"
+      ],
+      "links": [
+        {
+          "label": "Kafka Connect Iceberg",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:bloom-filters:v2": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink does not support configuring Parquet-level bloom filters or Puffin-based bloom filter statistics.",
+      "caveats": [
+        "Sink-only connector with limited write configuration options"
+      ],
+      "links": []
+    },
+    "kafka-connect:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink does not support bloom filters for V3 tables",
+      "caveats": [],
+      "links": []
+    },
+    "pyiceberg:statistics:v2": {
+      "level": "full",
+      "notes": "PyIceberg reads column statistics from manifest files for scan planning and file pruning. Writes column statistics (min/max, null counts, value counts) when appending or overwriting data. Statistics mode configurable via write.metadata.metrics.default and per-column properties.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    "pyiceberg:statistics:v3": {
+      "level": "full",
+      "notes": "Column statistics fully supported for V3 tables in PyIceberg",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    "pyiceberg:bloom-filters:v2": {
+      "level": "none",
+      "notes": "PyIceberg does not support reading or writing Parquet-level bloom filters or Puffin-based bloom filter statistics. PyIceberg uses PyArrow for Parquet writing which does not currently respect Iceberg bloom filter table properties.",
+      "caveats": [
+        "PyArrow-based Parquet writer does not support Iceberg bloom filter table properties"
+      ],
+      "links": [
+        {
+          "label": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    "pyiceberg:bloom-filters:v3": {
+      "level": "none",
+      "notes": "PyIceberg does not support bloom filters for V3 tables",
+      "caveats": [
+        "PyArrow-based Parquet writer does not support bloom filter configuration"
+      ],
+      "links": []
     }
   }
 }
