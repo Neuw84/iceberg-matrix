@@ -6,337 +6,648 @@
       "vendor": "Databricks",
       "category": "cloud",
       "group": "Databricks",
-      "docUrl": "https://docs.databricks.com/"
+      "docUrl": "https://docs.databricks.com/aws/en/iceberg/"
     }
   ],
   "support": {
     "databricks:position-deletes:v2": {
-      "level": "full",
-      "notes": "Supported via Delta Lake UniForm Iceberg compatibility layer",
-      "caveats": []
+      "level": "none",
+      "notes": "Iceberg v2 position deletes are not supported. Databricks supports only v3 deletion vectors for row-level deletions.",
+      "caveats": [
+        "Iceberg v2 position deletes are explicitly unsupported"
+      ],
+      "links": [
+        {"label": "Iceberg limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"}
+      ]
     },
     "databricks:position-deletes:v3": {
-      "level": "full",
-      "notes": "Supported with Iceberg V3 managed tables",
-      "caveats": []
+      "level": "none",
+      "notes": "Iceberg v3 uses deletion vectors instead of position deletes. Position deletes are a v2 concept replaced by deletion vectors in v3.",
+      "caveats": [
+        "V3 uses deletion vectors, not position deletes"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"}
+      ]
     },
     "databricks:equality-deletes:v2": {
-      "level": "full",
-      "notes": "Supported via Delta Lake UniForm Iceberg compatibility layer",
-      "caveats": []
+      "level": "none",
+      "notes": "Iceberg v2 equality-based deletes are not supported. Databricks supports only v3 deletion vectors.",
+      "caveats": [
+        "Iceberg v2 equality deletes are explicitly unsupported"
+      ],
+      "links": [
+        {"label": "Iceberg limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"}
+      ]
     },
     "databricks:equality-deletes:v3": {
-      "level": "full",
-      "notes": "Supported with Iceberg V3 managed tables",
-      "caveats": []
+      "level": "none",
+      "notes": "Iceberg v3 uses deletion vectors instead of equality deletes. Equality deletes are a v2 concept replaced by deletion vectors in v3.",
+      "caveats": [
+        "V3 uses deletion vectors, not equality deletes"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"}
+      ]
     },
     "databricks:merge-on-read:v2": {
-      "level": "full",
-      "notes": "Databricks uses deletion vectors which function similarly to merge-on-read",
-      "caveats": []
+      "level": "none",
+      "notes": "Iceberg v2 merge-on-read is not supported. Databricks does not support v2 position or equality deletes which are required for merge-on-read.",
+      "caveats": [
+        "No v2 delete file support means no merge-on-read"
+      ],
+      "links": [
+        {"label": "Iceberg limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"}
+      ]
     },
     "databricks:merge-on-read:v3": {
       "level": "full",
-      "notes": "Supported with Iceberg V3 deletion vectors",
-      "caveats": []
+      "notes": "Iceberg v3 deletion vectors enable efficient row-level deletes without rewriting data files, functionally equivalent to merge-on-read. Enabled by default on v3 tables. Requires DBR 17.3+ (Beta).",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)",
+        "Uses Iceberg v3 deletion vectors, not v2-style merge-on-read"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"},
+        {"label": "Deletion vectors", "url": "https://docs.databricks.com/aws/en/delta/deletion-vectors"}
+      ]
     },
     "databricks:copy-on-write:v2": {
       "level": "full",
-      "notes": "Copy-on-write supported",
-      "caveats": []
+      "notes": "Copy-on-write is the default write mode for managed Iceberg tables in Databricks.",
+      "caveats": [
+        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)"
+      ],
+      "links": [
+        {"label": "Managed Iceberg tables", "url": "https://docs.databricks.com/aws/en/iceberg/"},
+        {"label": "Managed tables", "url": "https://docs.databricks.com/aws/en/tables/managed"}
+      ]
     },
     "databricks:copy-on-write:v3": {
       "level": "full",
-      "notes": "Copy-on-write supported",
-      "caveats": []
+      "notes": "Copy-on-write supported for Iceberg v3 tables.",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"}
+      ]
     },
     "databricks:schema-evolution:v2": {
       "level": "full",
-      "notes": "Full schema evolution supported",
-      "caveats": []
+      "notes": "Full schema evolution supported on managed Iceberg tables including add, rename, drop, and reorder columns.",
+      "caveats": [
+        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)"
+      ],
+      "links": [
+        {"label": "Managed Iceberg tables", "url": "https://docs.databricks.com/aws/en/iceberg/"}
+      ]
     },
     "databricks:schema-evolution:v3": {
       "level": "full",
-      "notes": "Full schema evolution supported",
-      "caveats": []
+      "notes": "Full schema evolution supported on managed Iceberg v3 tables.",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"}
+      ]
     },
     "databricks:column-default-values:v2": {
       "level": "none",
-      "notes": "Column default values are a V3 feature",
-      "caveats": []
+      "notes": "Column default values are an Iceberg v3 feature not available in v2.",
+      "caveats": [],
+      "links": []
     },
     "databricks:column-default-values:v3": {
-      "level": "full",
-      "notes": "Supported with Iceberg V3 on Databricks",
-      "caveats": []
+      "level": "none",
+      "notes": "Defaults, including write defaults and initial defaults, are explicitly not supported in Databricks Iceberg v3 implementation.",
+      "caveats": [
+        "Explicitly listed as unsupported in Databricks Iceberg v3 limitations"
+      ],
+      "links": [
+        {"label": "Iceberg v3 limitations", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3#limitations"}
+      ]
     },
     "databricks:nanosecond-timestamps:v2": {
       "level": "none",
-      "notes": "Nanosecond timestamps are a V3 feature",
-      "caveats": []
+      "notes": "Nanosecond timestamps are an Iceberg v3 feature not available in v2.",
+      "caveats": [],
+      "links": []
     },
     "databricks:nanosecond-timestamps:v3": {
-      "level": "full",
-      "notes": "Supported with Iceberg V3 on Databricks",
-      "caveats": []
+      "level": "none",
+      "notes": "Nanosecond precision timestamps are explicitly not supported in Databricks Iceberg v3 implementation.",
+      "caveats": [
+        "Explicitly listed as unsupported in Databricks Iceberg v3 limitations"
+      ],
+      "links": [
+        {"label": "Iceberg v3 limitations", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3#limitations"}
+      ]
     },
     "databricks:hidden-partitioning:v2": {
-      "level": "full",
-      "notes": "Hidden partitioning supported",
-      "caveats": []
+      "level": "partial",
+      "notes": "Hidden partitioning is supported on managed Iceberg tables, but partitioning by expressions (years, months, days, hours, bucket) is not supported on managed Iceberg tables. Partitioning by BINARY type is also unsupported.",
+      "caveats": [
+        "Expression-based partitioning (years, months, days, hours, bucket) not supported on managed Iceberg tables",
+        "BINARY type partitioning not supported"
+      ],
+      "links": [
+        {"label": "Iceberg table limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"}
+      ]
     },
     "databricks:hidden-partitioning:v3": {
-      "level": "full",
-      "notes": "Hidden partitioning supported",
-      "caveats": []
+      "level": "partial",
+      "notes": "Hidden partitioning is supported on managed Iceberg v3 tables, but expression-based partitioning is not supported.",
+      "caveats": [
+        "Expression-based partitioning (years, months, days, hours, bucket) not supported on managed Iceberg tables",
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {"label": "Iceberg table limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"},
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"}
+      ]
     },
     "databricks:partition-evolution:v2": {
-      "level": "full",
-      "notes": "Partition evolution supported",
-      "caveats": []
+      "level": "partial",
+      "notes": "Partition evolution is supported on managed Iceberg tables only when interacting from external Iceberg engines. Not supported on foreign Iceberg tables.",
+      "caveats": [
+        "Only supported via external Iceberg engines, not directly in Databricks SQL",
+        "Not supported on foreign Iceberg tables"
+      ],
+      "links": [
+        {"label": "Iceberg table limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"}
+      ]
     },
     "databricks:partition-evolution:v3": {
-      "level": "full",
-      "notes": "Partition evolution supported",
-      "caveats": []
+      "level": "partial",
+      "notes": "Partition evolution is supported on managed Iceberg tables only when interacting from external Iceberg engines.",
+      "caveats": [
+        "Only supported via external Iceberg engines, not directly in Databricks SQL",
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {"label": "Iceberg table limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"},
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"}
+      ]
     },
     "databricks:multi-arg-transforms:v2": {
       "level": "none",
-      "notes": "Multi-argument transforms are a V3 feature",
-      "caveats": []
+      "notes": "Multi-argument transforms are an Iceberg v3 feature not available in v2.",
+      "caveats": [],
+      "links": []
     },
     "databricks:multi-arg-transforms:v3": {
-      "level": "full",
-      "notes": "Supported with Iceberg V3 on Databricks",
-      "caveats": []
+      "level": "none",
+      "notes": "Multi-argument transforms are explicitly not supported in Databricks Iceberg v3 implementation.",
+      "caveats": [
+        "Explicitly listed as unsupported in Databricks Iceberg v3 limitations"
+      ],
+      "links": [
+        {"label": "Iceberg v3 limitations", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3#limitations"}
+      ]
     },
     "databricks:time-travel:v2": {
       "level": "full",
-      "notes": "Time travel supported via Delta Lake and Iceberg interop",
-      "caveats": []
+      "notes": "Time travel supported for managed Iceberg tables. For foreign Iceberg tables, time travel is limited to snapshots previously read in Databricks.",
+      "caveats": [
+        "Foreign Iceberg tables: time travel only for previously-read snapshots"
+      ],
+      "links": [
+        {"label": "Iceberg table limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"},
+        {"label": "UniForm version tracking", "url": "https://docs.databricks.com/aws/en/delta/uniform"}
+      ]
     },
     "databricks:time-travel:v3": {
       "level": "full",
-      "notes": "Time travel supported",
-      "caveats": []
+      "notes": "Time travel supported for managed Iceberg v3 tables. RESTORE TABLE command available.",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"}
+      ]
     },
     "databricks:table-maintenance:v2": {
       "level": "full",
-      "notes": "Predictive optimization provides automatic compaction, vacuum, and optimization",
-      "caveats": []
+      "notes": "Predictive optimization provides automatic compaction, vacuum, snapshot expiration, and file compaction for managed Iceberg tables. Unity Catalog manages lifecycle tasks.",
+      "caveats": [
+        "Predictive optimization must be enabled for managed Iceberg table creation",
+        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)"
+      ],
+      "links": [
+        {"label": "Managed Iceberg tables", "url": "https://docs.databricks.com/aws/en/iceberg/"},
+        {"label": "Predictive optimization", "url": "https://docs.databricks.com/aws/en/optimizations/predictive-optimization"}
+      ]
     },
     "databricks:table-maintenance:v3": {
       "level": "full",
-      "notes": "Predictive optimization provides automatic compaction, vacuum, and optimization",
-      "caveats": []
+      "notes": "Predictive optimization provides automatic compaction, vacuum, snapshot expiration, and file compaction for managed Iceberg v3 tables.",
+      "caveats": [
+        "Predictive optimization must be enabled for managed Iceberg table creation",
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"},
+        {"label": "Predictive optimization", "url": "https://docs.databricks.com/aws/en/optimizations/predictive-optimization"}
+      ]
     },
     "databricks:branching-tagging:v2": {
-      "level": "partial",
-      "notes": "Databricks supports shallow clones for isolation but not native Iceberg branching and tagging API",
+      "level": "none",
+      "notes": "Branching and tagging are explicitly not supported for Iceberg tables in Databricks. Only the main branch is accessible when reading foreign Iceberg tables.",
       "caveats": [
-        "Uses Delta Lake shallow clones rather than native Iceberg branches/tags"
+        "Explicitly listed as unsupported in Databricks Iceberg documentation"
+      ],
+      "links": [
+        {"label": "Iceberg table limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"}
       ]
     },
     "databricks:branching-tagging:v3": {
-      "level": "partial",
-      "notes": "Databricks supports shallow clones for isolation but not native Iceberg branching and tagging API",
+      "level": "none",
+      "notes": "Branching and tagging are explicitly not supported for Iceberg tables in Databricks. Only the main branch is accessible.",
       "caveats": [
-        "Uses Delta Lake shallow clones rather than native Iceberg branches/tags"
+        "Explicitly listed as unsupported in Databricks Iceberg documentation"
+      ],
+      "links": [
+        {"label": "Iceberg table limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"}
       ]
     },
     "databricks:read-support:v2": {
       "level": "full",
-      "notes": "Full read support for Iceberg tables via UniForm and foreign tables",
-      "caveats": []
+      "notes": "Full read support for Iceberg v2 tables via managed Iceberg tables and foreign Iceberg tables (Lakehouse Federation). UniForm also enables Iceberg reads on Delta tables.",
+      "caveats": [
+        "Foreign Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)",
+        "Some data types not supported (UUID, Fixed, TIME, nested STRUCT with required fields)"
+      ],
+      "links": [
+        {"label": "Iceberg in Databricks", "url": "https://docs.databricks.com/aws/en/iceberg/"},
+        {"label": "UniForm (Iceberg reads on Delta)", "url": "https://docs.databricks.com/aws/en/delta/uniform"},
+        {"label": "Foreign tables", "url": "https://docs.databricks.com/aws/en/tables/foreign"}
+      ]
     },
     "databricks:read-support:v3": {
       "level": "full",
-      "notes": "Full read support for Iceberg V3 tables",
-      "caveats": []
+      "notes": "Full read support for Iceberg v3 tables. Requires DBR 17.3+.",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)",
+        "Some data types not supported (geospatial, unknown, nanosecond timestamps)"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"}
+      ]
     },
     "databricks:write-insert:v2": {
       "level": "full",
-      "notes": "INSERT INTO supported for Iceberg managed tables",
-      "caveats": []
+      "notes": "INSERT INTO supported for managed Iceberg tables. External engines can also write via the Iceberg REST Catalog API.",
+      "caveats": [
+        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)",
+        "UniForm tables are read-only for Iceberg clients"
+      ],
+      "links": [
+        {"label": "Managed Iceberg tables", "url": "https://docs.databricks.com/aws/en/iceberg/"},
+        {"label": "Iceberg REST Catalog access", "url": "https://docs.databricks.com/aws/en/external-access/iceberg"}
+      ]
     },
     "databricks:write-insert:v3": {
       "level": "full",
-      "notes": "INSERT INTO supported for Iceberg V3 managed tables",
-      "caveats": []
+      "notes": "INSERT INTO supported for managed Iceberg v3 tables.",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"}
+      ]
     },
     "databricks:write-merge-update-delete:v2": {
       "level": "full",
-      "notes": "MERGE, UPDATE, DELETE supported for Iceberg managed tables",
-      "caveats": []
+      "notes": "MERGE, UPDATE, DELETE supported for managed Iceberg tables via copy-on-write.",
+      "caveats": [
+        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)",
+        "Uses copy-on-write for row-level operations in v2"
+      ],
+      "links": [
+        {"label": "Managed Iceberg tables", "url": "https://docs.databricks.com/aws/en/iceberg/"}
+      ]
     },
     "databricks:write-merge-update-delete:v3": {
       "level": "full",
-      "notes": "MERGE, UPDATE, DELETE supported for Iceberg V3 managed tables",
-      "caveats": []
+      "notes": "MERGE, UPDATE, DELETE supported for managed Iceberg v3 tables with deletion vectors for efficient row-level operations.",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"}
+      ]
     },
     "databricks:catalog-integration:v2": {
       "level": "full",
-      "notes": "Unity Catalog provides native Iceberg REST Catalog API support",
-      "caveats": []
+      "notes": "Unity Catalog provides native Iceberg REST Catalog API support for both read and write access from external engines (Spark, Flink, Trino, PyIceberg, etc.).",
+      "caveats": [],
+      "links": [
+        {"label": "Iceberg REST Catalog access", "url": "https://docs.databricks.com/aws/en/external-access/iceberg"},
+        {"label": "Unity Catalog integrations", "url": "https://docs.databricks.com/aws/en/external-access/integrations"}
+      ]
     },
     "databricks:catalog-integration:v3": {
       "level": "full",
-      "notes": "Unity Catalog provides native Iceberg REST Catalog API support",
-      "caveats": []
+      "notes": "Unity Catalog provides native Iceberg REST Catalog API support with v3 compatibility.",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {"label": "Iceberg REST Catalog access", "url": "https://docs.databricks.com/aws/en/external-access/iceberg"}
+      ]
     },
     "databricks:hive-metastore:v2": {
-      "level": "full",
-      "notes": "Can read from external Hive Metastore via Lakehouse Federation",
-      "caveats": []
+      "level": "partial",
+      "notes": "Can read Iceberg tables from external Hive Metastore and AWS Glue via Lakehouse Federation foreign catalogs. Read-only access for external HMS; read-write only for internal federated HMS.",
+      "caveats": [
+        "External Hive Metastore and Glue federation is read-only",
+        "Write access only for internal federated Hive metastore",
+        "Foreign Iceberg tables have limited platform feature support"
+      ],
+      "links": [
+        {"label": "Hive metastore federation", "url": "https://docs.databricks.com/aws/en/query-federation/hms-federation-concepts"},
+        {"label": "Foreign tables", "url": "https://docs.databricks.com/aws/en/tables/foreign"},
+        {"label": "Lakehouse Federation", "url": "https://docs.databricks.com/aws/en/query-federation/"}
+      ]
     },
     "databricks:hive-metastore:v3": {
-      "level": "full",
-      "notes": "Can read from external Hive Metastore via Lakehouse Federation",
-      "caveats": []
+      "level": "partial",
+      "notes": "Can read Iceberg tables from external Hive Metastore via Lakehouse Federation. Read-only for external HMS.",
+      "caveats": [
+        "External Hive Metastore federation is read-only",
+        "Foreign Iceberg tables have limited platform feature support"
+      ],
+      "links": [
+        {"label": "Hive metastore federation", "url": "https://docs.databricks.com/aws/en/query-federation/hms-federation-concepts"},
+        {"label": "Lakehouse Federation", "url": "https://docs.databricks.com/aws/en/query-federation/"}
+      ]
     },
     "databricks:aws-glue-catalog:v2": {
-      "level": "full",
-      "notes": "Can read from AWS Glue Catalog via Lakehouse Federation",
-      "caveats": []
+      "level": "partial",
+      "notes": "Can read Iceberg tables from AWS Glue Catalog via Lakehouse Federation foreign catalogs. Read-only access.",
+      "caveats": [
+        "AWS Glue federation is read-only",
+        "Foreign Iceberg tables have limited platform feature support"
+      ],
+      "links": [
+        {"label": "Hive metastore federation (includes Glue)", "url": "https://docs.databricks.com/aws/en/query-federation/hms-federation-concepts"},
+        {"label": "Lakehouse Federation", "url": "https://docs.databricks.com/aws/en/query-federation/"}
+      ]
     },
     "databricks:aws-glue-catalog:v3": {
-      "level": "full",
-      "notes": "Can read from AWS Glue Catalog via Lakehouse Federation",
-      "caveats": []
+      "level": "partial",
+      "notes": "Can read Iceberg tables from AWS Glue Catalog via Lakehouse Federation. Read-only access.",
+      "caveats": [
+        "AWS Glue federation is read-only",
+        "Foreign Iceberg tables have limited platform feature support"
+      ],
+      "links": [
+        {"label": "Hive metastore federation (includes Glue)", "url": "https://docs.databricks.com/aws/en/query-federation/hms-federation-concepts"},
+        {"label": "Lakehouse Federation", "url": "https://docs.databricks.com/aws/en/query-federation/"}
+      ]
     },
     "databricks:rest-catalog:v2": {
       "level": "full",
-      "notes": "Unity Catalog implements the Iceberg REST Catalog API",
-      "caveats": []
+      "notes": "Unity Catalog implements the Iceberg REST Catalog API specification. Supports read and write for managed Iceberg tables, read-only for UniForm Delta and foreign Iceberg tables. Credential vending supported.",
+      "caveats": [],
+      "links": [
+        {"label": "Iceberg REST Catalog access", "url": "https://docs.databricks.com/aws/en/external-access/iceberg"},
+        {"label": "Credential vending", "url": "https://docs.databricks.com/aws/en/external-access/credential-vending"}
+      ]
     },
     "databricks:rest-catalog:v3": {
       "level": "full",
-      "notes": "Unity Catalog implements the Iceberg REST Catalog API",
-      "caveats": []
+      "notes": "Unity Catalog implements the Iceberg REST Catalog API with v3 support.",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {"label": "Iceberg REST Catalog access", "url": "https://docs.databricks.com/aws/en/external-access/iceberg"}
+      ]
     },
     "databricks:nessie:v2": {
       "level": "none",
-      "notes": "Databricks does not natively support Nessie catalog",
-      "caveats": []
+      "notes": "Databricks does not natively support Nessie catalog.",
+      "caveats": [],
+      "links": []
     },
     "databricks:nessie:v3": {
       "level": "none",
-      "notes": "Databricks does not natively support Nessie catalog",
-      "caveats": []
+      "notes": "Databricks does not natively support Nessie catalog.",
+      "caveats": [],
+      "links": []
     },
     "databricks:polaris:v2": {
       "level": "partial",
-      "notes": "Can connect to Polaris via REST Catalog API",
+      "notes": "Can connect to external Polaris catalog via the Iceberg REST Catalog API, but this requires external configuration and is not natively integrated.",
       "caveats": [
-        "Requires external Polaris endpoint configuration"
+        "Requires external Polaris endpoint configuration",
+        "Not a native integration — uses generic REST catalog support"
+      ],
+      "links": [
+        {"label": "Iceberg REST Catalog access", "url": "https://docs.databricks.com/aws/en/external-access/iceberg"}
       ]
     },
     "databricks:polaris:v3": {
       "level": "partial",
-      "notes": "Can connect to Polaris via REST Catalog API",
+      "notes": "Can connect to external Polaris catalog via the Iceberg REST Catalog API.",
       "caveats": [
-        "Requires external Polaris endpoint configuration"
+        "Requires external Polaris endpoint configuration",
+        "Not a native integration — uses generic REST catalog support"
+      ],
+      "links": [
+        {"label": "Iceberg REST Catalog access", "url": "https://docs.databricks.com/aws/en/external-access/iceberg"}
       ]
     },
     "databricks:unity-catalog:v2": {
       "level": "full",
-      "notes": "Native Unity Catalog with Iceberg REST Catalog API support",
-      "caveats": []
+      "notes": "Native Unity Catalog with Iceberg REST Catalog API support. Manages lifecycle tasks including snapshot expiration and file compaction. Supports credential vending for external engine access.",
+      "caveats": [],
+      "links": [
+        {"label": "Iceberg in Databricks", "url": "https://docs.databricks.com/aws/en/iceberg/"},
+        {"label": "Iceberg REST Catalog access", "url": "https://docs.databricks.com/aws/en/external-access/iceberg"},
+        {"label": "Managed tables", "url": "https://docs.databricks.com/aws/en/tables/managed"}
+      ]
     },
     "databricks:unity-catalog:v3": {
       "level": "full",
-      "notes": "Native Unity Catalog with Iceberg REST Catalog API support for V3",
-      "caveats": []
+      "notes": "Native Unity Catalog with Iceberg REST Catalog API support for v3 tables including deletion vectors and VARIANT type.",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"},
+        {"label": "Iceberg REST Catalog access", "url": "https://docs.databricks.com/aws/en/external-access/iceberg"}
+      ]
     },
     "databricks:hadoop-catalog:v2": {
       "level": "none",
-      "notes": "Databricks does not support Hadoop catalog for Iceberg",
-      "caveats": []
+      "notes": "Databricks does not support Hadoop catalog for Iceberg.",
+      "caveats": [],
+      "links": []
     },
     "databricks:hadoop-catalog:v3": {
       "level": "none",
-      "notes": "Databricks does not support Hadoop catalog for Iceberg",
-      "caveats": []
+      "notes": "Databricks does not support Hadoop catalog for Iceberg.",
+      "caveats": [],
+      "links": []
     },
     "databricks:jdbc-catalog:v2": {
       "level": "none",
-      "notes": "Databricks does not support JDBC catalog for Iceberg",
-      "caveats": []
+      "notes": "Databricks does not support JDBC catalog for Iceberg.",
+      "caveats": [],
+      "links": []
     },
     "databricks:jdbc-catalog:v3": {
       "level": "none",
-      "notes": "Databricks does not support JDBC catalog for Iceberg",
-      "caveats": []
+      "notes": "Databricks does not support JDBC catalog for Iceberg.",
+      "caveats": [],
+      "links": []
     },
     "databricks:table-creation:v2": {
       "level": "full",
-      "notes": "Databricks supports creating Iceberg tables via SQL DDL and UniForm",
-      "caveats": []
+      "notes": "Supports CREATE TABLE ... USING iceberg for managed Iceberg tables in Unity Catalog. Also supports UniForm (Delta tables with Iceberg reads) via TBLPROPERTIES. External engines can create tables via REST Catalog API.",
+      "caveats": [
+        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)",
+        "Predictive optimization must be enabled for managed Iceberg table creation"
+      ],
+      "links": [
+        {"label": "Managed Iceberg tables", "url": "https://docs.databricks.com/aws/en/iceberg/"},
+        {"label": "UniForm (Iceberg reads on Delta)", "url": "https://docs.databricks.com/aws/en/delta/uniform"},
+        {"label": "Managed tables", "url": "https://docs.databricks.com/aws/en/tables/managed"}
+      ]
     },
     "databricks:table-creation:v3": {
       "level": "full",
-      "notes": "Table creation supported with Iceberg V3 managed tables",
-      "caveats": []
+      "notes": "Supports creating Iceberg v3 tables with deletion vectors and VARIANT columns. Can upgrade existing tables to v3.",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)",
+        "Managed Iceberg tables upgraded to v3 cannot be downgraded"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"}
+      ]
     },
     "databricks:variant-type:v2": {
       "level": "none",
-      "notes": "Variant Type is a V3 feature",
-      "caveats": []
+      "notes": "Iceberg v2 tables do not support VARIANT columns. VARIANT requires Iceberg v3.",
+      "caveats": [],
+      "links": [
+        {"label": "VARIANT type reference", "url": "https://docs.databricks.com/aws/en/sql/language-manual/data-types/variant-type"}
+      ]
     },
     "databricks:variant-type:v3": {
       "level": "full",
-      "notes": "Databricks supports Variant type natively",
-      "caveats": []
+      "notes": "VARIANT data type is supported on Iceberg v3 tables. Adding a VARIANT column upgrades the table to v3. Requires DBR 15.3+ for read/write.",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)",
+        "Adding a VARIANT column automatically upgrades an existing table to v3"
+      ],
+      "links": [
+        {"label": "Iceberg v3 VARIANT", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3#use-the-variant-data-type"},
+        {"label": "VARIANT type reference", "url": "https://docs.databricks.com/aws/en/sql/language-manual/data-types/variant-type"},
+        {"label": "Variant type support", "url": "https://docs.databricks.com/aws/en/delta/variant"}
+      ]
     },
     "databricks:shredded-variant:v2": {
       "level": "none",
-      "notes": "Shredded Variant is a V3 feature",
-      "caveats": []
+      "notes": "Shredded Variant is a v3 feature not available in v2.",
+      "caveats": [],
+      "links": []
     },
     "databricks:shredded-variant:v3": {
-      "level": "partial",
-      "notes": "Shredded variant support is being added to Databricks",
-      "caveats": []
+      "level": "full",
+      "notes": "Variant shredding is supported in DBR 17.2+ for both Delta and Iceberg tables. Shredding improves query performance by storing frequently accessed fields in columnar format.",
+      "caveats": [
+        "Requires DBR 17.2+",
+        "Iceberg v3 features are in Beta"
+      ],
+      "links": [
+        {"label": "Variant blog post", "url": "https://www.databricks.com/blog/introducing-variant-new-open-standard-semi-structured-data-apache-parquettm-delta-lake"},
+        {"label": "Variant type support", "url": "https://docs.databricks.com/aws/en/delta/variant"}
+      ]
     },
     "databricks:geometry-type:v2": {
       "level": "none",
-      "notes": "Geometry Type is a V3 feature",
-      "caveats": []
+      "notes": "Geometry/geospatial types are an Iceberg v3 feature not available in v2.",
+      "caveats": [],
+      "links": []
     },
     "databricks:geometry-type:v3": {
-      "level": "unknown",
-      "notes": "Databricks V3 geometry type support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Geospatial types are explicitly not supported in Databricks Iceberg v3 implementation.",
+      "caveats": [
+        "Explicitly listed as unsupported in Databricks Iceberg v3 limitations"
+      ],
+      "links": [
+        {"label": "Iceberg v3 limitations", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3#limitations"}
+      ]
     },
     "databricks:vector-type:v2": {
       "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
+      "notes": "Vector Type is a v3 feature not available in v2.",
+      "caveats": [],
+      "links": []
     },
     "databricks:vector-type:v3": {
       "level": "unknown",
-      "notes": "Databricks V3 vector type support is not yet documented",
-      "caveats": []
+      "notes": "Vector type support for Iceberg v3 tables is not documented in Databricks. Vector search is explicitly not supported on managed Iceberg tables.",
+      "caveats": [
+        "Vector search is not supported on managed Iceberg tables"
+      ],
+      "links": [
+        {"label": "Iceberg table limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"}
+      ]
     },
     "databricks:cdc-support:v2": {
       "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
+      "notes": "Iceberg tables do not support Change Data Feed (CDF) in Databricks. CDF is a Delta Lake feature. UniForm tables support CDF for Delta clients but not for Iceberg readers.",
+      "caveats": [
+        "Iceberg does not support change data feed",
+        "Incremental processing not supported for managed Iceberg tables"
+      ],
+      "links": [
+        {"label": "Iceberg table limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"},
+        {"label": "UniForm limitations", "url": "https://docs.databricks.com/aws/en/delta/uniform"}
+      ]
     },
     "databricks:cdc-support:v3": {
-      "level": "full",
-      "notes": "Databricks supports CDC via Delta Live Tables and structured streaming",
-      "caveats": []
+      "level": "partial",
+      "notes": "Iceberg v3 introduces row lineage (row IDs and last-modified sequence numbers) which enables CDC-like tracking. Row lineage is required and automatically enabled on all v3 tables. However, Databricks does not yet support change data feed on Iceberg tables directly.",
+      "caveats": [
+        "Row lineage provides CDC building blocks but change data feed is not supported on Iceberg tables",
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)",
+        "Materialized views and streaming tables cannot use Iceberg as incremental source"
+      ],
+      "links": [
+        {"label": "Iceberg v3 features (row lineage)", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"},
+        {"label": "Iceberg table limitations", "url": "https://docs.databricks.com/aws/en/iceberg/"}
+      ]
     },
     "databricks:lineage:v2": {
-      "level": "none",
-      "notes": "Lineage is a V3 feature",
-      "caveats": []
+      "level": "full",
+      "notes": "Unity Catalog captures runtime data lineage for all tables registered in Unity Catalog, including managed Iceberg tables. Column-level lineage is supported. Lineage data retained for one year.",
+      "caveats": [
+        "Tables must be registered in Unity Catalog (not path-based access)",
+        "Column lineage requires both source and target referenced by table name"
+      ],
+      "links": [
+        {"label": "Data lineage in Unity Catalog", "url": "https://docs.databricks.com/aws/en/data-governance/unity-catalog/data-lineage"}
+      ]
     },
     "databricks:lineage:v3": {
       "level": "full",
-      "notes": "Databricks Unity Catalog provides lineage tracking for Iceberg tables",
-      "caveats": []
+      "notes": "Unity Catalog captures runtime data lineage for Iceberg v3 tables. Additionally, Iceberg v3 row lineage tracks incremental changes at the row level with unique row IDs.",
+      "caveats": [
+        "Tables must be registered in Unity Catalog",
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {"label": "Data lineage in Unity Catalog", "url": "https://docs.databricks.com/aws/en/data-governance/unity-catalog/data-lineage"},
+        {"label": "Iceberg v3 row lineage", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"}
+      ]
     }
   }
 }
