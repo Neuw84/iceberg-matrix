@@ -20,777 +20,1293 @@
   "support": {
     "azure-synapse:position-deletes:v2": {
       "level": "partial",
-      "notes": "Read support for position deletes via Spark pools; limited native SQL support",
+      "notes": "Supported via Spark pools (3.4/3.5) with manually installed iceberg-spark-runtime JAR; not available in serverless or dedicated SQL pools",
       "caveats": [
-        "Requires Spark pools for full support"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; serverless SQL pool and dedicated SQL pool have no Iceberg support",
+        "Microsoft recommends migrating Synapse Spark workloads to Microsoft Fabric"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        },
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
       ]
     },
     "azure-synapse:position-deletes:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": [
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
       ]
     },
     "azure-synapse:equality-deletes:v2": {
       "level": "partial",
-      "notes": "Read support for equality deletes via Spark pools; limited native SQL support",
+      "notes": "Supported via Spark pools (3.4/3.5) with manually installed iceberg-spark-runtime JAR; not available in serverless or dedicated SQL pools",
       "caveats": [
-        "Requires Spark pools for full support"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; serverless SQL pool and dedicated SQL pool have no Iceberg support",
+        "Microsoft recommends migrating Synapse Spark workloads to Microsoft Fabric"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        },
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
       ]
     },
     "azure-synapse:equality-deletes:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": [
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
       ]
     },
     "azure-synapse:merge-on-read:v2": {
       "level": "partial",
-      "notes": "Merge-on-read supported via Spark pools on Synapse",
+      "notes": "Merge-on-read supported via Spark pools with manually installed Iceberg runtime; not available in SQL pools",
       "caveats": [
-        "Requires Spark pools"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; no SQL pool support for Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:merge-on-read:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:copy-on-write:v2": {
       "level": "partial",
-      "notes": "Copy-on-write supported via Spark pools on Synapse",
+      "notes": "Copy-on-write supported via Spark pools with manually installed Iceberg runtime; not available in SQL pools",
       "caveats": [
-        "Requires Spark pools"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; no SQL pool support for Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:copy-on-write:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Schema evolution supported via Spark pools; serverless SQL pool has read-only Iceberg support",
+      "notes": "Schema evolution supported via Spark pools with manually installed Iceberg runtime; serverless SQL pool does not support Iceberg at all",
       "caveats": [
-        "Serverless SQL pool is read-only for Iceberg"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Serverless SQL pool does not support Iceberg (only Parquet, Delta Lake, CSV)",
+        "Dedicated SQL pool has no Iceberg support"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        },
+        {
+          "label": "Serverless SQL pool overview",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview"
+        }
       ]
     },
     "azure-synapse:schema-evolution:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:column-default-values:v2": {
       "level": "none",
-      "notes": "Column default values are a V3 feature",
-      "caveats": []
+      "notes": "Column default values are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:column-default-values:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:nanosecond-timestamps:v2": {
       "level": "none",
-      "notes": "Nanosecond timestamps are a V3 feature",
-      "caveats": []
+      "notes": "Nanosecond timestamps are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:nanosecond-timestamps:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:hidden-partitioning:v2": {
       "level": "partial",
-      "notes": "Hidden partitioning supported via Spark pools",
+      "notes": "Hidden partitioning supported via Spark pools with manually installed Iceberg runtime",
       "caveats": [
-        "Requires Spark pools"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; no SQL pool support for Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:hidden-partitioning:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:partition-evolution:v2": {
       "level": "partial",
-      "notes": "Partition evolution supported via Spark pools",
+      "notes": "Partition evolution supported via Spark pools with manually installed Iceberg runtime",
       "caveats": [
-        "Requires Spark pools"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; no SQL pool support for Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:partition-evolution:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:multi-arg-transforms:v2": {
       "level": "none",
-      "notes": "Multi-argument transforms are a V3 feature",
-      "caveats": []
+      "notes": "Multi-argument transforms are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:multi-arg-transforms:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:time-travel:v2": {
       "level": "partial",
-      "notes": "Time travel supported via Spark pools; limited in serverless SQL pool",
+      "notes": "Time travel supported via Spark pools with manually installed Iceberg runtime; serverless SQL pool does not support Iceberg",
       "caveats": [
-        "Serverless SQL pool has limited time travel support"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; serverless SQL pool does not support Iceberg time travel"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:time-travel:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Table maintenance available via Spark pools; no automatic optimization",
+      "notes": "Table maintenance (compaction, expire snapshots, etc.) available via Spark pools with manually installed Iceberg runtime; no built-in automatic optimization",
       "caveats": [
-        "Requires manual Spark procedures"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Requires manual Spark procedures; no automatic table optimization like Fabric provides",
+        "Only available via Spark pools"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:table-maintenance:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:branching-tagging:v2": {
       "level": "partial",
-      "notes": "Branching and tagging available via Spark pools",
+      "notes": "Branching and tagging available via Spark pools with manually installed Iceberg runtime (requires Iceberg 1.2+)",
       "caveats": [
-        "Requires Spark pools"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Requires iceberg-spark-runtime 1.2+ for branching and tagging support",
+        "Only available via Spark pools"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:branching-tagging:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:read-support:v2": {
-      "level": "full",
-      "notes": "Read support available via both serverless SQL pool and Spark pools",
-      "caveats": []
+      "level": "partial",
+      "notes": "Read support available only via Spark pools with manually installed iceberg-spark-runtime JAR; serverless SQL pool does NOT support Iceberg (only Parquet, Delta Lake, CSV); dedicated SQL pool has no Iceberg support",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Serverless SQL pool does NOT support Iceberg — only Parquet, Delta Lake, and delimited text formats",
+        "Dedicated SQL pool has no Iceberg support",
+        "Microsoft recommends migrating Synapse Spark workloads to Microsoft Fabric"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        },
+        {
+          "label": "Serverless SQL pool overview (supported formats)",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview"
+        },
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
+      ]
     },
     "azure-synapse:read-support:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": [
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
       ]
     },
     "azure-synapse:write-insert:v2": {
       "level": "partial",
-      "notes": "Write support available via Spark pools only; serverless SQL pool is read-only",
+      "notes": "Write/INSERT support available via Spark pools only with manually installed Iceberg runtime; serverless SQL pool does not support Iceberg; dedicated SQL pool has no Iceberg support",
       "caveats": [
-        "Serverless SQL pool is read-only for Iceberg"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Serverless SQL pool does not support Iceberg at all",
+        "Dedicated SQL pool has no Iceberg support"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:write-insert:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:write-merge-update-delete:v2": {
       "level": "partial",
-      "notes": "MERGE, UPDATE, DELETE available via Spark pools only",
+      "notes": "MERGE, UPDATE, DELETE available via Spark pools only with manually installed Iceberg runtime and SQL extensions configured; no SQL pool support",
       "caveats": [
-        "Serverless SQL pool is read-only for Iceberg"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Requires configuring spark.sql.extensions with IcebergSparkSessionExtensions",
+        "Serverless SQL pool and dedicated SQL pool have no Iceberg support"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:write-merge-update-delete:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:catalog-integration:v2": {
       "level": "partial",
-      "notes": "Supports Hive Metastore and custom catalogs via Spark pools",
+      "notes": "Standard Spark Iceberg catalogs (Hive, Hadoop, REST, JDBC) can be configured manually via Spark pool settings; no native Synapse catalog integration for Iceberg",
       "caveats": [
-        "Catalog support depends on Spark pool configuration"
+        "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
+        "No native Synapse catalog integration for Iceberg — all catalog configuration is manual",
+        "Catalog type depends on user-supplied Spark configuration"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:catalog-integration:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:hive-metastore:v2": {
       "level": "partial",
-      "notes": "Hive Metastore supported via Spark pools",
+      "notes": "Hive Metastore catalog can be configured via Spark pool Iceberg settings; uses the standard Spark Iceberg HiveCatalog implementation",
       "caveats": [
-        "Requires Spark pool configuration"
+        "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
+        "Requires configuring spark.sql.catalog with org.apache.iceberg.spark.SparkCatalog",
+        "No native Synapse integration — standard OSS Spark Iceberg configuration"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:hive-metastore:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:aws-glue-catalog:v2": {
       "level": "none",
-      "notes": "Azure Synapse does not support AWS Glue Catalog",
-      "caveats": []
+      "notes": "Azure Synapse does not support AWS Glue Catalog; cross-cloud catalog integration is not available",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:aws-glue-catalog:v3": {
       "level": "none",
-      "notes": "Azure Synapse does not support AWS Glue Catalog",
-      "caveats": []
+      "notes": "Azure Synapse does not support AWS Glue Catalog; cross-cloud catalog integration is not available",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:rest-catalog:v2": {
       "level": "partial",
-      "notes": "REST Catalog can be configured via Spark pools",
+      "notes": "Iceberg REST Catalog can be configured via Spark pool settings using the standard Spark Iceberg RESTCatalog implementation",
       "caveats": [
-        "Requires Spark pool configuration"
+        "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
+        "No native Synapse REST catalog endpoint — must point to an external REST catalog server",
+        "Standard OSS Spark Iceberg configuration applies"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:rest-catalog:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:nessie:v2": {
       "level": "partial",
-      "notes": "Nessie can be configured via Spark pools",
+      "notes": "Nessie catalog can be configured via Spark pool settings with the appropriate Nessie Iceberg JAR; requires additional library installation",
       "caveats": [
-        "Requires Spark pool configuration"
+        "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
+        "Requires additional nessie-spark-extensions JAR beyond the Iceberg runtime",
+        "Must point to an external Nessie server"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:nessie:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:polaris:v2": {
       "level": "none",
-      "notes": "Azure Synapse does not natively support Polaris",
-      "caveats": []
+      "notes": "Azure Synapse does not natively support Polaris catalog; could theoretically connect via REST catalog interface but not tested or documented",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:polaris:v3": {
       "level": "none",
-      "notes": "Azure Synapse does not natively support Polaris",
-      "caveats": []
+      "notes": "Azure Synapse does not natively support Polaris catalog",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:unity-catalog:v2": {
       "level": "none",
-      "notes": "Azure Synapse does not support Unity Catalog",
-      "caveats": []
+      "notes": "Azure Synapse does not support Databricks Unity Catalog",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:unity-catalog:v3": {
       "level": "none",
-      "notes": "Azure Synapse does not support Unity Catalog",
-      "caveats": []
+      "notes": "Azure Synapse does not support Databricks Unity Catalog",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:hadoop-catalog:v2": {
       "level": "partial",
-      "notes": "Hadoop catalog can be configured via Spark pools",
+      "notes": "Hadoop catalog can be configured via Spark pool settings; works with ADLS Gen2 using abfss:// paths as the warehouse location",
       "caveats": [
-        "Requires Spark pool configuration"
+        "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
+        "Uses ADLS Gen2 (abfss://) as the underlying storage; standard Hadoop catalog with ADLS connector",
+        "No native Synapse integration — standard OSS Spark Iceberg configuration"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:hadoop-catalog:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:jdbc-catalog:v2": {
       "level": "partial",
-      "notes": "JDBC catalog can be configured via Spark pools",
+      "notes": "JDBC catalog can be configured via Spark pool settings using the standard Spark Iceberg JdbcCatalog implementation",
       "caveats": [
-        "Requires Spark pool configuration"
+        "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
+        "Requires network access from Spark pool to the JDBC endpoint",
+        "Standard OSS Spark Iceberg configuration applies"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
       ]
     },
     "azure-synapse:jdbc-catalog:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "Synapse V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:position-deletes:v2": {
-      "level": "partial",
-      "notes": "Azure Fabric reads Iceberg tables via OneLake Delta-to-Iceberg interop; position delete support depends on the writing engine",
-      "caveats": [
-        "Fabric primarily uses Delta Lake internally with Iceberg interop layer"
-      ]
-    },
-    "azure-fabric:position-deletes:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:equality-deletes:v2": {
-      "level": "partial",
-      "notes": "Equality delete support depends on the Iceberg interop layer and writing engine",
-      "caveats": [
-        "Fabric primarily uses Delta Lake internally with Iceberg interop layer"
-      ]
-    },
-    "azure-fabric:equality-deletes:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:merge-on-read:v2": {
-      "level": "partial",
-      "notes": "Merge-on-read behavior depends on the Iceberg interop layer",
-      "caveats": [
-        "Fabric primarily uses Delta Lake internally"
-      ]
-    },
-    "azure-fabric:merge-on-read:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:copy-on-write:v2": {
-      "level": "full",
-      "notes": "Copy-on-write supported via Delta Lake engine with Iceberg interop",
-      "caveats": []
-    },
-    "azure-fabric:copy-on-write:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:schema-evolution:v2": {
-      "level": "full",
-      "notes": "Schema evolution supported via OneLake and Delta-Iceberg interop",
-      "caveats": []
-    },
-    "azure-fabric:schema-evolution:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:column-default-values:v2": {
-      "level": "none",
-      "notes": "Column default values are a V3 feature",
-      "caveats": []
-    },
-    "azure-fabric:column-default-values:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:nanosecond-timestamps:v2": {
-      "level": "none",
-      "notes": "Nanosecond timestamps are a V3 feature",
-      "caveats": []
-    },
-    "azure-fabric:nanosecond-timestamps:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:hidden-partitioning:v2": {
-      "level": "full",
-      "notes": "Hidden partitioning supported via OneLake",
-      "caveats": []
-    },
-    "azure-fabric:hidden-partitioning:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:partition-evolution:v2": {
-      "level": "partial",
-      "notes": "Partition evolution support depends on the Delta-Iceberg interop layer",
-      "caveats": [
-        "May have limitations compared to native Iceberg partition evolution"
-      ]
-    },
-    "azure-fabric:partition-evolution:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:multi-arg-transforms:v2": {
-      "level": "none",
-      "notes": "Multi-argument transforms are a V3 feature",
-      "caveats": []
-    },
-    "azure-fabric:multi-arg-transforms:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:time-travel:v2": {
-      "level": "full",
-      "notes": "Time travel supported via OneLake",
-      "caveats": []
-    },
-    "azure-fabric:time-travel:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:table-maintenance:v2": {
-      "level": "full",
-      "notes": "Fabric provides automatic optimization for tables in OneLake",
-      "caveats": []
-    },
-    "azure-fabric:table-maintenance:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:branching-tagging:v2": {
-      "level": "none",
-      "notes": "Azure Fabric does not support Iceberg branching and tagging",
-      "caveats": []
-    },
-    "azure-fabric:branching-tagging:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:read-support:v2": {
-      "level": "full",
-      "notes": "Full read support for Iceberg tables via OneLake shortcuts and Delta-Iceberg interop",
-      "caveats": []
-    },
-    "azure-fabric:read-support:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:write-insert:v2": {
-      "level": "full",
-      "notes": "Write support via OneLake with Iceberg format",
-      "caveats": []
-    },
-    "azure-fabric:write-insert:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:write-merge-update-delete:v2": {
-      "level": "partial",
-      "notes": "DML operations supported via Fabric Spark or Lakehouse engine; not all Iceberg DML features exposed natively",
-      "caveats": [
-        "Full DML requires Fabric Spark runtime"
-      ]
-    },
-    "azure-fabric:write-merge-update-delete:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:catalog-integration:v2": {
-      "level": "full",
-      "notes": "OneLake provides catalog integration with Iceberg REST Catalog API support",
-      "caveats": []
-    },
-    "azure-fabric:catalog-integration:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:hive-metastore:v2": {
-      "level": "none",
-      "notes": "Azure Fabric does not support Hive Metastore for Iceberg",
-      "caveats": []
-    },
-    "azure-fabric:hive-metastore:v3": {
-      "level": "none",
-      "notes": "Azure Fabric does not support Hive Metastore for Iceberg",
-      "caveats": []
-    },
-    "azure-fabric:aws-glue-catalog:v2": {
-      "level": "none",
-      "notes": "Azure Fabric does not support AWS Glue Catalog",
-      "caveats": []
-    },
-    "azure-fabric:aws-glue-catalog:v3": {
-      "level": "none",
-      "notes": "Azure Fabric does not support AWS Glue Catalog",
-      "caveats": []
-    },
-    "azure-fabric:rest-catalog:v2": {
-      "level": "full",
-      "notes": "OneLake Table APIs support the Iceberg REST Catalog specification",
-      "caveats": []
-    },
-    "azure-fabric:rest-catalog:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Fabric V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:nessie:v2": {
-      "level": "none",
-      "notes": "Azure Fabric does not support Nessie catalog",
-      "caveats": []
-    },
-    "azure-fabric:nessie:v3": {
-      "level": "none",
-      "notes": "Azure Fabric does not support Nessie catalog",
-      "caveats": []
-    },
-    "azure-fabric:polaris:v2": {
-      "level": "none",
-      "notes": "Azure Fabric does not natively support Polaris",
-      "caveats": []
-    },
-    "azure-fabric:polaris:v3": {
-      "level": "none",
-      "notes": "Azure Fabric does not natively support Polaris",
-      "caveats": []
-    },
-    "azure-fabric:unity-catalog:v2": {
-      "level": "none",
-      "notes": "Azure Fabric does not support Unity Catalog",
-      "caveats": []
-    },
-    "azure-fabric:unity-catalog:v3": {
-      "level": "none",
-      "notes": "Azure Fabric does not support Unity Catalog",
-      "caveats": []
-    },
-    "azure-fabric:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "Azure Fabric does not support Hadoop catalog",
-      "caveats": []
-    },
-    "azure-fabric:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Azure Fabric does not support Hadoop catalog",
-      "caveats": []
-    },
-    "azure-fabric:jdbc-catalog:v2": {
-      "level": "none",
-      "notes": "Azure Fabric does not support JDBC catalog",
-      "caveats": []
-    },
-    "azure-fabric:jdbc-catalog:v3": {
-      "level": "none",
-      "notes": "Azure Fabric does not support JDBC catalog",
-      "caveats": []
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:table-creation:v2": {
       "level": "partial",
-      "notes": "Azure Synapse supports creating Iceberg tables via Spark pools",
+      "notes": "Iceberg table creation supported via Spark pools with manually installed iceberg-spark-runtime JAR and SQL extensions; not available in serverless or dedicated SQL pools",
       "caveats": [
-        "Requires Spark pools; not available in serverless SQL"
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Requires configuring spark.sql.extensions with IcebergSparkSessionExtensions",
+        "Not available in serverless SQL pool or dedicated SQL pool"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        },
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
       ]
     },
     "azure-synapse:table-creation:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse has not yet announced Iceberg V3 support",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
       "caveats": [
-        "V3 support not yet announced"
-      ]
-    },
-    "azure-fabric:table-creation:v2": {
-      "level": "partial",
-      "notes": "Azure Fabric supports creating Iceberg tables via Spark notebooks",
-      "caveats": [
-        "Requires Spark runtime"
-      ]
-    },
-    "azure-fabric:table-creation:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:variant-type:v2": {
       "level": "none",
-      "notes": "Variant Type is a V3 feature",
-      "caveats": []
+      "notes": "Variant type is a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:variant-type:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse V3 variant type support is not yet documented",
-      "caveats": []
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:shredded-variant:v2": {
       "level": "none",
-      "notes": "Shredded Variant is a V3 feature",
-      "caveats": []
+      "notes": "Shredded variant is a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:shredded-variant:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse V3 shredded variant support is not yet documented",
-      "caveats": []
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:geometry-type:v2": {
       "level": "none",
-      "notes": "Geometry Type is a V3 feature",
-      "caveats": []
+      "notes": "Geometry type is a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:geometry-type:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse V3 geometry type support is not yet documented",
-      "caveats": []
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:vector-type:v2": {
       "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
+      "notes": "Vector type is a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:vector-type:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse V3 vector type support is not yet documented",
-      "caveats": []
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:cdc-support:v2": {
       "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
+      "notes": "CDC support is a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:cdc-support:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse V3 cdc support support is not yet documented",
-      "caveats": []
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
     },
     "azure-synapse:lineage:v2": {
       "level": "none",
-      "notes": "Lineage is a V3 feature",
-      "caveats": []
+      "notes": "Lineage is a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
     },
     "azure-synapse:lineage:v3": {
       "level": "unknown",
-      "notes": "Azure Synapse V3 lineage support is not yet documented",
-      "caveats": []
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-fabric:position-deletes:v2": {
+      "level": "partial",
+      "notes": "OneLake virtualizes Iceberg tables as Delta Lake using Apache XTable, which converts positional delete files during Iceberg-to-Delta conversion",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Position deletes are translated during metadata virtualization; not a native Iceberg engine"
+      ],
+      "links": [
+        {
+          "label": "How OneLake provides Iceberg support",
+          "url": "https://blog.fabric.microsoft.com/en-US/blog/how-to-access-your-microsoft-fabric-tables-in-apache-iceberg-format/"
+        },
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:position-deletes:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric; Microsoft is actively working on V3 compatibility",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": [
+        {
+          "label": "How OneLake provides Iceberg support",
+          "url": "https://blog.fabric.microsoft.com/en-US/blog/how-to-access-your-microsoft-fabric-tables-in-apache-iceberg-format/"
+        }
+      ]
+    },
+    "azure-fabric:equality-deletes:v2": {
+      "level": "partial",
+      "notes": "Equality delete support depends on the Apache XTable virtualization layer that converts Iceberg metadata to Delta Lake format",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Equality delete handling depends on XTable conversion fidelity"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:merge-on-read:v2": {
+      "level": "partial",
+      "notes": "When reading external Iceberg tables via shortcuts, merge-on-read is handled by the XTable virtualization layer converting to Delta Lake",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Fabric uses Delta Lake merge strategies internally, not Iceberg MoR"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:copy-on-write:v2": {
+      "level": "partial",
+      "notes": "Fabric uses Delta Lake copy-on-write internally; when Delta tables are virtualized as Iceberg, the underlying CoW behavior is preserved",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "CoW is the underlying Delta Lake behavior, not native Iceberg CoW"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Schema evolution works on the Delta Lake side; for Iceberg shortcuts, metadata changes may not be immediately reflected until a data change occurs",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg metadata changes (add/drop/rename columns) may require a data change to trigger re-conversion"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:column-default-values:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "Iceberg hidden partitioning is preserved when reading via OneLake shortcuts; Fabric creates Delta partitioned tables natively, which are virtualized as Iceberg",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Partitioning is translated between formats during virtualization"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:partition-evolution:v2": {
+      "level": "partial",
+      "notes": "Partition evolution support depends on the metadata virtualization layer; may have limitations compared to native Iceberg partition evolution",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Partition evolution may not fully round-trip through Delta-Iceberg virtualization"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:time-travel:v2": {
+      "level": "partial",
+      "notes": "Time travel is available on Delta Lake tables within Fabric; for Iceberg shortcuts virtualized as Delta, time travel operates on the Delta log, not Iceberg snapshots",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Time travel operates on virtualized Delta log, not native Iceberg snapshot history"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:time-travel:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "Fabric provides automatic optimization (compaction, V-Order) for Delta Lake tables; for Iceberg shortcuts, maintenance must be performed by the source Iceberg writer",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Auto-optimization applies to Delta tables only; Iceberg shortcuts require external maintenance"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Fabric does not support Iceberg branching and tagging; Fabric uses Delta Lake natively which does not have equivalent branch/tag features",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric; branching/tagging also not supported",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support for Iceberg tables via OneLake shortcuts with automatic metadata virtualization to Delta Lake (GA). Also supports Delta-to-Iceberg virtualization for external Iceberg readers. OneLake-Snowflake bidirectional Iceberg read is GA as of Jan 2026.",
+      "caveats": [
+        "Not all Iceberg data types are supported (e.g., time type); some type width issues with certain numeric types",
+        "Iceberg time data type is not supported",
+        "Private links not supported; some region restrictions (Qatar Central, Norway West)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        },
+        {
+          "label": "OneLake and Snowflake interoperability (GA)",
+          "url": "https://blog.fabric.microsoft.com/en-us/blog/microsoft-onelake-and-snowflake-interoperability-is-now-generally-available/"
+        },
+        {
+          "label": "How OneLake provides Iceberg support",
+          "url": "https://blog.fabric.microsoft.com/en-US/blog/how-to-access-your-microsoft-fabric-tables-in-apache-iceberg-format/"
+        }
+      ]
+    },
+    "azure-fabric:read-support:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric; V3 compatibility is actively being developed",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": [
+        {
+          "label": "How OneLake provides Iceberg support",
+          "url": "https://blog.fabric.microsoft.com/en-US/blog/how-to-access-your-microsoft-fabric-tables-in-apache-iceberg-format/"
+        }
+      ]
+    },
+    "azure-fabric:write-insert:v2": {
+      "level": "partial",
+      "notes": "Fabric writes Delta Lake tables natively, which are auto-virtualized as Iceberg for external readers. External tools (e.g., Snowflake) can write Iceberg tables directly to OneLake. Fabric itself does not write native Iceberg format.",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Fabric engines write Delta Lake, not native Iceberg; external Iceberg writers (Snowflake) can write directly to OneLake"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        },
+        {
+          "label": "OneLake and Snowflake interoperability (GA)",
+          "url": "https://blog.fabric.microsoft.com/en-us/blog/microsoft-onelake-and-snowflake-interoperability-is-now-generally-available/"
+        }
+      ]
+    },
+    "azure-fabric:write-insert:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "DML operations (MERGE, UPDATE, DELETE) operate on Delta Lake tables within Fabric; changes are reflected in the virtualized Iceberg view. No native Iceberg DML from Fabric engines.",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "DML is Delta Lake-based; Iceberg view is read-only from Fabric perspective"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:catalog-integration:v2": {
+      "level": "partial",
+      "notes": "OneLake Table APIs (Preview) provide Iceberg REST Catalog (IRC) and Unity Catalog API endpoints for metadata read operations. Write operations are not yet supported.",
+      "caveats": [
+        "OneLake Table APIs are in Preview as of Feb 2026",
+        "Only read-only metadata operations supported; catalog write operations not yet available"
+      ],
+      "links": [
+        {
+          "label": "OneLake Table APIs overview",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/table-apis/table-apis-overview"
+        },
+        {
+          "label": "OneLake Table APIs for Iceberg",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/table-apis/iceberg-table-apis-overview"
+        }
+      ]
+    },
+    "azure-fabric:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:hive-metastore:v2": {
+      "level": "none",
+      "notes": "Fabric does not support Hive Metastore for Iceberg catalog integration",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:hive-metastore:v3": {
+      "level": "none",
+      "notes": "Fabric does not support Hive Metastore for Iceberg catalog integration",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "Fabric does not support AWS Glue Catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Fabric does not support AWS Glue Catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:rest-catalog:v2": {
+      "level": "partial",
+      "notes": "OneLake Table APIs (Preview) implement the Iceberg REST Catalog (IRC) specification at https://onelake.table.fabric.microsoft.com/iceberg. Currently read-only metadata operations only (list namespaces, list tables, get table). Metadata write operations planned for future.",
+      "caveats": [
+        "OneLake Table APIs are in Preview",
+        "Read-only metadata operations; write operations not yet supported",
+        "Requires Microsoft Entra ID authentication"
+      ],
+      "links": [
+        {
+          "label": "OneLake Table APIs for Iceberg",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/table-apis/iceberg-table-apis-overview"
+        },
+        {
+          "label": "OneLake Table APIs getting started",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/table-apis/onelake-iceberg-table-apis-detailed"
+        }
+      ]
+    },
+    "azure-fabric:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:nessie:v2": {
+      "level": "none",
+      "notes": "Fabric does not support Nessie catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:nessie:v3": {
+      "level": "none",
+      "notes": "Fabric does not support Nessie catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:polaris:v2": {
+      "level": "none",
+      "notes": "Fabric does not natively support Polaris catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:polaris:v3": {
+      "level": "none",
+      "notes": "Fabric does not natively support Polaris catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "OneLake Table APIs (Preview) support the Unity Catalog API open standard for metadata read operations, in addition to the Iceberg REST Catalog API",
+      "caveats": [
+        "OneLake Table APIs are in Preview",
+        "Read-only metadata operations only"
+      ],
+      "links": [
+        {
+          "label": "OneLake Table APIs overview",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/table-apis/table-apis-overview"
+        }
+      ]
+    },
+    "azure-fabric:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Fabric does not support Hadoop catalog for Iceberg",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Fabric does not support Hadoop catalog for Iceberg",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "Fabric does not support JDBC catalog for Iceberg",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Fabric does not support JDBC catalog for Iceberg",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:table-creation:v2": {
+      "level": "partial",
+      "notes": "Fabric creates Delta Lake tables (via Spark notebooks, pipelines, etc.) that are automatically virtualized as Iceberg for external readers. External writers (e.g., Snowflake) can create Iceberg tables directly in OneLake.",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Native Iceberg table creation only via external writers (e.g., Snowflake); Fabric creates Delta tables virtualized as Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        },
+        {
+          "label": "OneLake and Snowflake interoperability (GA)",
+          "url": "https://blog.fabric.microsoft.com/en-us/blog/microsoft-onelake-and-snowflake-interoperability-is-now-generally-available/"
+        }
+      ]
+    },
+    "azure-fabric:table-creation:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
     },
     "azure-fabric:variant-type:v2": {
       "level": "none",
-      "notes": "Variant Type is a V3 feature",
-      "caveats": []
+      "notes": "Variant type is an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
     },
     "azure-fabric:variant-type:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric V3 variant type support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
     },
     "azure-fabric:shredded-variant:v2": {
       "level": "none",
-      "notes": "Shredded Variant is a V3 feature",
-      "caveats": []
+      "notes": "Shredded variant is an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
     },
     "azure-fabric:shredded-variant:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric V3 shredded variant support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
     },
     "azure-fabric:geometry-type:v2": {
       "level": "none",
-      "notes": "Geometry Type is a V3 feature",
-      "caveats": []
+      "notes": "Geometry type is an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
     },
     "azure-fabric:geometry-type:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric V3 geometry type support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
     },
     "azure-fabric:vector-type:v2": {
       "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
+      "notes": "Vector type is an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
     },
     "azure-fabric:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric V3 vector type support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
     },
     "azure-fabric:cdc-support:v2": {
       "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
+      "notes": "CDC support is an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
     },
     "azure-fabric:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric V3 cdc support support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
     },
     "azure-fabric:lineage:v2": {
       "level": "none",
-      "notes": "Lineage is a V3 feature",
-      "caveats": []
+      "notes": "Lineage is an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
     },
     "azure-fabric:lineage:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric V3 lineage support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
     }
   }
 }
