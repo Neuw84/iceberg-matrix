@@ -20,228 +20,461 @@
   "support": {
     "google-bigquery:position-deletes:v2": {
       "level": "partial",
-      "notes": "BigQuery manages Iceberg tables internally; position deletes handled transparently for BigLake Iceberg tables",
+      "notes": "BigQuery manages Iceberg tables as a fully managed service; delete operations are handled internally via DML and exported as Iceberg V2 snapshots",
       "caveats": [
-        "BigQuery abstracts away Iceberg internals; behavior depends on BigLake implementation"
+        "BigQuery abstracts away Iceberg delete file internals; users cannot directly control position delete behavior",
+        "External engines read the exported V2 snapshots only"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:position-deletes:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:equality-deletes:v2": {
       "level": "partial",
-      "notes": "BigQuery manages deletes internally for BigLake Iceberg tables",
+      "notes": "BigQuery manages deletes internally for BigLake Iceberg tables via DML; delete semantics are abstracted from the user",
       "caveats": [
-        "BigQuery abstracts away Iceberg internals"
+        "BigQuery abstracts away Iceberg delete file internals; equality delete behavior is managed internally"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:equality-deletes:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:merge-on-read:v2": {
       "level": "partial",
-      "notes": "BigQuery handles read strategies internally for BigLake Iceberg tables",
+      "notes": "BigQuery handles read strategies internally for BigLake Iceberg tables; merge-on-read vs copy-on-write is not user-configurable",
       "caveats": [
-        "Strategy is managed by BigQuery, not user-configurable"
+        "Read strategy is managed by BigQuery, not user-configurable"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:merge-on-read:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:copy-on-write:v2": {
       "level": "full",
-      "notes": "BigQuery uses copy-on-write for BigLake Iceberg table mutations",
-      "caveats": []
+      "notes": "BigQuery uses copy-on-write for BigLake Iceberg table mutations; DML operations produce new Parquet data files",
+      "caveats": [],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:copy-on-write:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:schema-evolution:v2": {
       "level": "full",
-      "notes": "Schema evolution supported for BigLake Iceberg tables including add, drop, rename columns and type changes",
-      "caveats": []
+      "notes": "Schema evolution supported: add, drop, rename columns, change data types and column modes. Some type limitations apply (BIGNUMERIC, INTERVAL, JSON, RANGE, GEOGRAPHY not supported)",
+      "caveats": [
+        "BIGNUMERIC, INTERVAL, JSON, RANGE, and GEOGRAPHY data types are not supported",
+        "Schema with default value expressions not supported",
+        "Schema with field collations not supported"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        },
+        {
+          "label": "Managing table schemas",
+          "url": "https://cloud.google.com/bigquery/docs/managing-table-schemas"
+        }
+      ]
     },
     "google-bigquery:schema-evolution:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:column-default-values:v2": {
       "level": "none",
-      "notes": "Column default values are a V3 feature",
+      "notes": "Column default values are an Iceberg V3 feature; not applicable to V2",
       "caveats": []
     },
     "google-bigquery:column-default-values:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery does not support Iceberg V3; additionally, BigLake Iceberg tables explicitly do not support schema with default value expressions",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported",
+        "Default value expressions explicitly not supported for BigLake Iceberg tables"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:nanosecond-timestamps:v2": {
       "level": "none",
-      "notes": "Nanosecond timestamps are a V3 feature",
+      "notes": "Nanosecond timestamps are an Iceberg V3 feature; not applicable to V2",
       "caveats": []
     },
     "google-bigquery:nanosecond-timestamps:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 nanosecond timestamps are not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:hidden-partitioning:v2": {
       "level": "partial",
-      "notes": "BigQuery supports table partitioning for BigLake Iceberg tables (in preview)",
+      "notes": "Table partitioning supported for BigLake Iceberg tables (in Preview). Limited to DATE, DATETIME, and TIMESTAMP column types. BigQuery automatically scopes queries to the right partitions (hidden partitioning)",
       "caveats": [
-        "Table partitioning for Iceberg is in preview"
+        "Partitioning is in Preview and requires sign-up",
+        "Only DATE, DATETIME, and TIMESTAMP partition column types are supported",
+        "Partition expiration is not supported"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        },
+        {
+          "label": "Partitioned tables",
+          "url": "https://cloud.google.com/bigquery/docs/partitioned-tables"
+        }
       ]
     },
     "google-bigquery:hidden-partitioning:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:partition-evolution:v2": {
       "level": "none",
-      "notes": "BigQuery does not support Iceberg partition evolution for BigLake tables",
-      "caveats": []
+      "notes": "Partition evolution is explicitly not supported for BigLake Iceberg tables in BigQuery",
+      "caveats": [
+        "Partition evolution is explicitly listed as unsupported in the official documentation"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:partition-evolution:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 and partition evolution is not supported even for V2",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported",
+        "Partition evolution not supported"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:multi-arg-transforms:v2": {
       "level": "none",
-      "notes": "Multi-argument transforms are a V3 feature",
+      "notes": "Multi-argument transforms are an Iceberg V3 feature; not applicable to V2",
       "caveats": []
     },
     "google-bigquery:multi-arg-transforms:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:time-travel:v2": {
       "level": "full",
-      "notes": "Time travel supported for BigLake Iceberg tables in BigQuery",
-      "caveats": []
+      "notes": "Time travel supported for BigLake Iceberg tables in BigQuery for historical data access",
+      "caveats": [
+        "Time travel uses BigQuery native time travel mechanism, not Iceberg snapshot-based time travel"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        },
+        {
+          "label": "Time travel",
+          "url": "https://cloud.google.com/bigquery/docs/time-travel"
+        }
+      ]
     },
     "google-bigquery:time-travel:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:table-maintenance:v2": {
       "level": "full",
-      "notes": "BigQuery provides automatic storage optimization including adaptive file sizing, clustering, and garbage collection",
-      "caveats": []
+      "notes": "BigQuery provides fully automatic storage optimization including adaptive file sizing, automatic clustering, garbage collection, and metadata optimization. No manual maintenance required",
+      "caveats": [
+        "Storage optimization is fully automatic and not user-configurable",
+        "Billed in Data Compute Units (DCUs) per second"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:table-maintenance:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:branching-tagging:v2": {
       "level": "none",
-      "notes": "BigQuery does not support Iceberg branching and tagging",
-      "caveats": []
+      "notes": "BigQuery does not support Iceberg branching and tagging for BigLake Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:branching-tagging:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery does not support Iceberg branching and tagging; V3 also not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:read-support:v2": {
       "level": "full",
-      "notes": "Full read support for BigLake Iceberg tables with V2 snapshot export",
-      "caveats": []
+      "notes": "Full read support for BigLake Iceberg tables. Iceberg V2 snapshot export with automatic refresh on each table mutation enables direct query access from open-source and third-party engines",
+      "caveats": [],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:read-support:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only exports Iceberg V2 snapshots; V3 read support is not available",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:write-insert:v2": {
       "level": "full",
-      "notes": "INSERT INTO supported for BigLake Iceberg tables",
-      "caveats": []
+      "notes": "INSERT INTO supported via GoogleSQL DML. Also supports batch loading via LOAD DATA and streaming via BigQuery Storage Write API",
+      "caveats": [],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:write-insert:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:write-merge-update-delete:v2": {
       "level": "full",
-      "notes": "MERGE, UPDATE, DELETE supported for BigLake Iceberg tables; multi-statement transactions in preview",
-      "caveats": []
+      "notes": "MERGE, UPDATE, DELETE supported via GoogleSQL DML for BigLake Iceberg tables. Multi-statement transactions are available in Preview",
+      "caveats": [
+        "Multi-statement transactions are in Preview and require sign-up"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:write-merge-update-delete:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-bigquery:catalog-integration:v2": {
       "level": "full",
-      "notes": "BigLake Metastore provides catalog integration for Iceberg tables",
-      "caveats": []
+      "notes": "BigLake metastore provides unified, managed, serverless catalog integration for Iceberg tables. Supports both BigQuery native access and Iceberg REST Catalog API (GA) for interoperability with Spark, Trino, and other engines",
+      "caveats": [],
+      "links": [
+        {
+          "label": "BigLake metastore",
+          "url": "https://cloud.google.com/bigquery/docs/about-blms"
+        },
+        {
+          "label": "Iceberg REST catalog",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     },
     "google-bigquery:catalog-integration:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2; catalog integration is V2 only",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake metastore",
+          "url": "https://cloud.google.com/bigquery/docs/about-blms"
+        }
       ]
     },
     "google-bigquery:hive-metastore:v2": {
       "level": "partial",
-      "notes": "BigQuery can read external Iceberg tables registered in Hive Metastore via BigLake",
+      "notes": "BigQuery can read external Iceberg tables registered in Hive Metastore via BigLake external tables. BigLake metastore is the recommended metastore; Hive Metastore integration is for legacy/external data",
       "caveats": [
-        "Read-only for external Hive Metastore tables"
+        "Read-only for external Hive Metastore-registered Iceberg tables",
+        "BigLake metastore is the recommended catalog for new workflows"
+      ],
+      "links": [
+        {
+          "label": "BigLake metastore",
+          "url": "https://cloud.google.com/bigquery/docs/about-blms"
+        }
       ]
     },
     "google-bigquery:hive-metastore:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2; Hive Metastore integration is read-only and V2 only",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported"
+      ],
+      "links": [
+        {
+          "label": "BigLake metastore",
+          "url": "https://cloud.google.com/bigquery/docs/about-blms"
+        }
       ]
     },
     "google-bigquery:aws-glue-catalog:v2": {
@@ -256,19 +489,35 @@
     },
     "google-bigquery:rest-catalog:v2": {
       "level": "full",
-      "notes": "BigLake Metastore supports the Iceberg REST Catalog API",
-      "caveats": []
+      "notes": "BigLake metastore supports the Iceberg REST Catalog API (GA as of November 2025). Provides interoperability with Spark, Trino, and other Iceberg-compatible engines. Supports credential vending for secure storage access delegation",
+      "caveats": [],
+      "links": [
+        {
+          "label": "BigLake metastore Iceberg REST catalog",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        },
+        {
+          "label": "REST catalog GA announcement",
+          "url": "https://cloud.google.com/blog/products/data-analytics/biglake-metastore-now-supports-iceberg-rest-catalog"
+        }
+      ]
     },
     "google-bigquery:rest-catalog:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2; REST catalog serves V2 metadata only",
       "caveats": [
-        "BigQuery V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake metastore Iceberg REST catalog",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
       ]
     },
     "google-bigquery:nessie:v2": {
       "level": "none",
-      "notes": "BigQuery does not support Nessie catalog",
+      "notes": "BigQuery does not support Nessie catalog; BigLake metastore is the native catalog",
       "caveats": []
     },
     "google-bigquery:nessie:v3": {
@@ -278,7 +527,7 @@
     },
     "google-bigquery:polaris:v2": {
       "level": "none",
-      "notes": "BigQuery does not natively support Polaris",
+      "notes": "BigQuery does not natively support Polaris; BigLake metastore is the native catalog",
       "caveats": []
     },
     "google-bigquery:polaris:v3": {
@@ -288,7 +537,7 @@
     },
     "google-bigquery:unity-catalog:v2": {
       "level": "none",
-      "notes": "BigQuery does not support Unity Catalog",
+      "notes": "BigQuery does not support Unity Catalog; BigLake metastore is the native catalog",
       "caveats": []
     },
     "google-bigquery:unity-catalog:v3": {
@@ -298,7 +547,7 @@
     },
     "google-bigquery:hadoop-catalog:v2": {
       "level": "none",
-      "notes": "BigQuery does not support Hadoop catalog",
+      "notes": "BigQuery does not support Hadoop catalog; BigLake metastore is the native catalog",
       "caveats": []
     },
     "google-bigquery:hadoop-catalog:v3": {
@@ -308,7 +557,7 @@
     },
     "google-bigquery:jdbc-catalog:v2": {
       "level": "none",
-      "notes": "BigQuery does not support JDBC catalog",
+      "notes": "BigQuery does not support JDBC catalog; BigLake metastore is the native catalog",
       "caveats": []
     },
     "google-bigquery:jdbc-catalog:v3": {
@@ -576,14 +825,30 @@
     },
     "google-bigquery:table-creation:v2": {
       "level": "full",
-      "notes": "BigQuery supports creating BigLake Iceberg tables via SQL DDL",
-      "caveats": []
+      "notes": "BigQuery supports creating BigLake Iceberg tables via SQL DDL (CREATE TABLE), bq CLI, and REST API. Requires Cloud resource connection and Cloud Storage bucket",
+      "caveats": [
+        "Requires a Cloud resource connection with write permissions to Cloud Storage",
+        "Must specify file_format=PARQUET and table_format=ICEBERG",
+        "Table rename, copy, clone, and snapshot operations are not supported"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:table-creation:v3": {
-      "level": "unknown",
-      "notes": "BigQuery has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 table creation is not supported",
       "caveats": [
-        "V3 support not yet announced"
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
       ]
     },
     "google-dataproc:table-creation:v2": {
@@ -598,63 +863,113 @@
     },
     "google-bigquery:variant-type:v2": {
       "level": "none",
-      "notes": "Variant Type is a V3 feature",
+      "notes": "Variant type is an Iceberg V3 feature; not applicable to V2",
       "caveats": []
     },
     "google-bigquery:variant-type:v3": {
-      "level": "unknown",
-      "notes": "Google BigQuery V3 variant type support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2; V3 variant type is not supported",
+      "caveats": [
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:shredded-variant:v2": {
       "level": "none",
-      "notes": "Shredded Variant is a V3 feature",
+      "notes": "Shredded variant is an Iceberg V3 feature; not applicable to V2",
       "caveats": []
     },
     "google-bigquery:shredded-variant:v3": {
-      "level": "unknown",
-      "notes": "Google BigQuery V3 shredded variant support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2; V3 shredded variant is not supported",
+      "caveats": [
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:geometry-type:v2": {
       "level": "none",
-      "notes": "Geometry Type is a V3 feature",
+      "notes": "Geometry type is an Iceberg V3 feature; not applicable to V2. Note: BigLake Iceberg tables do not support GEOGRAPHY data type",
       "caveats": []
     },
     "google-bigquery:geometry-type:v3": {
-      "level": "unknown",
-      "notes": "Google BigQuery V3 geometry type support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2; V3 geometry type is not supported. GEOGRAPHY data type is also explicitly unsupported for BigLake Iceberg tables",
+      "caveats": [
+        "Only Iceberg V2 format is supported",
+        "GEOGRAPHY data type not supported for BigLake Iceberg tables"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:vector-type:v2": {
       "level": "none",
-      "notes": "Vector Type is a V3 feature",
+      "notes": "Vector type is an Iceberg V3 feature; not applicable to V2",
       "caveats": []
     },
     "google-bigquery:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Google BigQuery V3 vector type support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2; V3 vector type is not supported",
+      "caveats": [
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:cdc-support:v2": {
       "level": "none",
-      "notes": "Cdc Support is a V3 feature",
+      "notes": "CDC support is an Iceberg V3 feature; not applicable to V2",
       "caveats": []
     },
     "google-bigquery:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Google BigQuery V3 cdc support support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2; V3 CDC support is not supported",
+      "caveats": [
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-bigquery:lineage:v2": {
       "level": "none",
-      "notes": "Lineage is a V3 feature",
+      "notes": "Iceberg-level lineage is a V3 feature; not applicable to V2. Note: BigQuery provides lineage capabilities via Dataplex Universal Catalog integration",
       "caveats": []
     },
     "google-bigquery:lineage:v3": {
-      "level": "unknown",
-      "notes": "Google BigQuery V3 lineage support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2; V3 Iceberg lineage is not supported. BigQuery provides its own lineage via Dataplex Universal Catalog",
+      "caveats": [
+        "Only Iceberg V2 format is supported",
+        "BigQuery-level lineage available via Dataplex, not Iceberg-native"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        }
+      ]
     },
     "google-dataproc:variant-type:v2": {
       "level": "none",

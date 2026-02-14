@@ -351,272 +351,556 @@
     },
     "aws-glue:position-deletes:v2": {
       "level": "full",
-      "notes": "Supported in AWS Glue 4.0+ with Spark-based Iceberg connector",
-      "caveats": []
+      "notes": "Supported via Spark on Glue 3.0+ (Iceberg 0.13.1+); Glue 4.0+ (Iceberg 1.0.0) recommended for production",
+      "caveats": [
+        "Glue 3.0 (Iceberg 0.13.1) requires DynamoDB lock manager for atomic transactions"
+      ],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:position-deletes:v3": {
       "level": "full",
-      "notes": "Supported via Spark on Glue with Iceberg V3",
-      "caveats": []
+      "notes": "V3 replaces positional deletes with deletion vectors (Puffin files); requires Glue 5.0+ (Iceberg 1.7.1+), Glue 5.1 (Iceberg 1.10.0) recommended",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support",
+        "Glue 5.1 (Iceberg 1.10.0) recommended for full deletion vector support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:equality-deletes:v2": {
       "level": "full",
-      "notes": "Supported in AWS Glue with Spark-based Iceberg connector",
-      "caveats": []
+      "notes": "Supported via Spark on Glue 3.0+; Glue 4.0+ recommended",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:equality-deletes:v3": {
       "level": "full",
-      "notes": "Supported via Spark on Glue with Iceberg V3",
-      "caveats": []
+      "notes": "V3 replaces equality deletes with deletion vectors; requires Glue 5.0+, Glue 5.1 recommended",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support",
+        "V3 deletion vectors supersede V2 equality delete files"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:merge-on-read:v2": {
       "level": "full",
-      "notes": "Merge-on-read supported via Spark on Glue",
-      "caveats": []
+      "notes": "Merge-on-read supported via Spark on Glue 3.0+",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:merge-on-read:v3": {
       "level": "full",
-      "notes": "Merge-on-read supported via Spark on Glue with V3",
-      "caveats": []
+      "notes": "Merge-on-read with V3 deletion vectors; requires Glue 5.0+, Glue 5.1 recommended for best performance",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:copy-on-write:v2": {
       "level": "full",
-      "notes": "Copy-on-write supported via Spark on Glue",
-      "caveats": []
+      "notes": "Copy-on-write supported via Spark on Glue 3.0+",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:copy-on-write:v3": {
       "level": "full",
-      "notes": "Copy-on-write supported via Spark on Glue",
-      "caveats": []
+      "notes": "Copy-on-write supported via Spark on Glue 5.0+",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:schema-evolution:v2": {
       "level": "full",
-      "notes": "Full schema evolution via Spark on Glue",
-      "caveats": []
+      "notes": "Full schema evolution (add, drop, rename, reorder columns) via Spark SQL on Glue 3.0+; ALTER TABLE RENAME not available on Glue 3.0",
+      "caveats": [
+        "ALTER TABLE ... RENAME TO not available on Glue 3.0 (Iceberg 0.13.1)"
+      ],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:schema-evolution:v3": {
       "level": "full",
-      "notes": "Full schema evolution supported",
-      "caveats": []
+      "notes": "Full schema evolution supported via Spark on Glue 5.0+",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:column-default-values:v2": {
       "level": "none",
-      "notes": "Column default values are a V3 feature",
+      "notes": "Column default values are a V3 feature, not available in format version 2",
       "caveats": []
     },
     "aws-glue:column-default-values:v3": {
       "level": "full",
-      "notes": "Supported via Spark on Glue with Iceberg V3",
-      "caveats": []
+      "notes": "Supported via Spark on Glue 5.0+ (Iceberg 1.7.1+); requires format-version=3",
+      "caveats": [
+        "Requires Glue 5.0+ with V3 format tables"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:nanosecond-timestamps:v2": {
       "level": "none",
-      "notes": "Nanosecond timestamps are a V3 feature",
+      "notes": "Nanosecond timestamps are a V3 feature, not available in format version 2",
       "caveats": []
     },
     "aws-glue:nanosecond-timestamps:v3": {
       "level": "full",
-      "notes": "Supported via Spark on Glue with Iceberg V3",
-      "caveats": []
+      "notes": "Supported via Spark on Glue 5.0+ (Iceberg 1.7.1+); requires format-version=3",
+      "caveats": [
+        "Requires Glue 5.0+ with V3 format tables"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:hidden-partitioning:v2": {
       "level": "full",
-      "notes": "Full hidden partitioning via Spark on Glue",
-      "caveats": []
+      "notes": "Supports identity, bucket, truncate, year, month, day, hour partition transforms via Spark on Glue 3.0+",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:hidden-partitioning:v3": {
       "level": "full",
-      "notes": "Full hidden partitioning supported",
-      "caveats": []
+      "notes": "Full hidden partitioning supported via Spark on Glue 5.0+",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:partition-evolution:v2": {
       "level": "full",
-      "notes": "Partition evolution supported via Spark",
-      "caveats": []
+      "notes": "Partition evolution supported via Spark SQL ALTER TABLE on Glue 3.0+",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:partition-evolution:v3": {
       "level": "full",
-      "notes": "Partition evolution supported",
-      "caveats": []
+      "notes": "Partition evolution supported via Spark on Glue 5.0+",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support"
+      ]
     },
     "aws-glue:multi-arg-transforms:v2": {
       "level": "none",
-      "notes": "Multi-argument transforms are a V3 feature",
+      "notes": "Multi-argument transforms are a V3 feature, not available in format version 2",
       "caveats": []
     },
     "aws-glue:multi-arg-transforms:v3": {
       "level": "full",
-      "notes": "Supported via Spark on Glue with Iceberg V3",
-      "caveats": []
+      "notes": "Supported via Spark on Glue 5.0+ (Iceberg 1.7.1+); requires format-version=3",
+      "caveats": [
+        "Requires Glue 5.0+ with V3 format tables"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:time-travel:v2": {
       "level": "full",
-      "notes": "Time travel via Spark on Glue",
-      "caveats": []
+      "notes": "Query by snapshot ID or timestamp via Spark SQL on Glue 3.0+",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:time-travel:v3": {
       "level": "full",
-      "notes": "Time travel supported",
-      "caveats": []
+      "notes": "Time travel supported via Spark on Glue 5.0+; spans V2 and V3 snapshots after upgrade",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:table-maintenance:v2": {
       "level": "full",
-      "notes": "AWS Glue Data Catalog provides automatic compaction, snapshot expiry, and orphan file removal",
-      "caveats": []
+      "notes": "Spark procedures (rewrite_data_files, expire_snapshots, remove_orphan_files) available on Glue 4.0+; AWS Glue Data Catalog provides automatic compaction, snapshot expiry, and orphan file removal",
+      "caveats": [
+        "Glue 3.0 (Iceberg 0.13.1) has limited maintenance procedures",
+        "Automatic optimization requires Glue Data Catalog configuration"
+      ],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        },
+        {
+          "label": "Working with Iceberg in AWS Glue (prescriptive guidance)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/iceberg-glue.html"
+        }
+      ]
     },
     "aws-glue:table-maintenance:v3": {
       "level": "full",
-      "notes": "AWS Glue Data Catalog provides automatic optimization for V3 tables",
-      "caveats": []
+      "notes": "Full table maintenance for V3 tables; automatic optimization via Glue Data Catalog compacts deletion vector files and removes old V2 delete files after upgrade",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support",
+        "First compaction after V2\u2192V3 upgrade removes old positional/equality delete files"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:branching-tagging:v2": {
-      "level": "full",
-      "notes": "Supported via Spark on Glue",
-      "caveats": []
+      "level": "partial",
+      "notes": "Branching and tagging require Iceberg \u22651.2.0; only available natively on Glue 5.0+ (Iceberg 1.7.1) or via custom JARs on Glue 4.0",
+      "caveats": [
+        "Not available on Glue 3.0 or Glue 4.0 with native Iceberg (0.13.1 / 1.0.0)",
+        "Requires Glue 5.0+ or custom Iceberg JARs \u22651.2.0"
+      ],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:branching-tagging:v3": {
-      "level": "full",
-      "notes": "Supported via Spark on Glue",
-      "caveats": []
+      "level": "partial",
+      "notes": "Branching and tagging supported on Glue 5.0+ (Iceberg 1.7.1+) with V3 tables",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:read-support:v2": {
       "level": "full",
-      "notes": "Full read support via Spark on Glue",
-      "caveats": []
+      "notes": "Full read support via Spark on Glue 3.0+; supports GlueContext DynamicFrame and Spark DataFrame APIs",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:read-support:v3": {
       "level": "full",
-      "notes": "Full read support",
-      "caveats": []
+      "notes": "Full read support for V3 tables on Glue 5.0+; handles deletion vectors transparently",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:write-insert:v2": {
       "level": "full",
-      "notes": "INSERT INTO supported via Spark on Glue",
-      "caveats": []
+      "notes": "INSERT INTO, CTAS, and DataFrame append supported via Spark and GlueContext APIs on Glue 3.0+",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:write-insert:v3": {
       "level": "full",
-      "notes": "INSERT INTO supported",
-      "caveats": []
+      "notes": "INSERT INTO supported on Glue 5.0+ with V3 format tables",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:write-merge-update-delete:v2": {
       "level": "full",
-      "notes": "MERGE, UPDATE, DELETE supported via Spark on Glue",
-      "caveats": []
+      "notes": "MERGE, UPDATE, DELETE supported via Spark SQL with IcebergSparkSessionExtensions on Glue 3.0+; GlueContext native API supports append/overwrite only",
+      "caveats": [
+        "Requires IcebergSparkSessionExtensions for UPDATE/DELETE/MERGE",
+        "GlueContext write_data_frame API limited to append and overwrite modes"
+      ],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:write-merge-update-delete:v3": {
       "level": "full",
-      "notes": "MERGE, UPDATE, DELETE supported",
-      "caveats": []
+      "notes": "MERGE, UPDATE, DELETE supported via Spark SQL on Glue 5.0+; V3 deletion vectors improve write performance for updates and deletes",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support",
+        "Requires IcebergSparkSessionExtensions for UPDATE/DELETE/MERGE"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:catalog-integration:v2": {
       "level": "full",
-      "notes": "Native AWS Glue Data Catalog integration with Iceberg REST API",
-      "caveats": []
+      "notes": "Native AWS Glue Data Catalog integration as Iceberg catalog; also supports Iceberg REST Catalog API",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        },
+        {
+          "label": "Working with Iceberg in AWS Glue (prescriptive guidance)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/iceberg-glue.html"
+        }
+      ]
     },
     "aws-glue:catalog-integration:v3": {
       "level": "full",
-      "notes": "Native AWS Glue Data Catalog integration with Iceberg REST API",
-      "caveats": []
+      "notes": "Native AWS Glue Data Catalog integration with V3 support; Iceberg REST Catalog API supported",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:hive-metastore:v2": {
       "level": "partial",
-      "notes": "Can connect to external Hive Metastore via Spark on Glue, but not the default catalog",
+      "notes": "Can connect to external Hive Metastore via custom Spark catalog configuration; Glue Data Catalog is the default and recommended catalog",
       "caveats": [
-        "Requires custom Spark configuration"
+        "Requires custom Spark configuration",
+        "Not the default catalog; Glue Data Catalog is preferred"
+      ],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
       ]
     },
     "aws-glue:hive-metastore:v3": {
       "level": "partial",
-      "notes": "Can connect to external Hive Metastore via Spark on Glue, but not the default catalog",
+      "notes": "Can connect to external Hive Metastore via custom Spark configuration on Glue 5.0+",
       "caveats": [
-        "Requires custom Spark configuration"
+        "Requires custom Spark configuration",
+        "Not the default catalog; Glue Data Catalog is preferred"
       ]
     },
     "aws-glue:aws-glue-catalog:v2": {
       "level": "full",
-      "notes": "Native default catalog for AWS Glue",
-      "caveats": []
+      "notes": "Native default catalog for AWS Glue; pre-configured as glue_catalog with GlueCatalog implementation",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        },
+        {
+          "label": "Working with Iceberg in AWS Glue (prescriptive guidance)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/iceberg-glue.html"
+        }
+      ]
     },
     "aws-glue:aws-glue-catalog:v3": {
       "level": "full",
-      "notes": "Native default catalog for AWS Glue with V3 support",
-      "caveats": []
+      "notes": "Native default catalog for AWS Glue with V3 table support; automatic table optimization available",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:rest-catalog:v2": {
       "level": "full",
-      "notes": "AWS Glue Data Catalog supports the Iceberg REST Catalog API",
-      "caveats": []
+      "notes": "AWS Glue Data Catalog supports the Iceberg REST Catalog API, enabling cross-engine interoperability",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Glue Iceberg REST API",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/connect-glu-iceberg-rest.html"
+        }
+      ]
     },
     "aws-glue:rest-catalog:v3": {
       "level": "full",
-      "notes": "AWS Glue Data Catalog supports the Iceberg REST Catalog API",
-      "caveats": []
+      "notes": "AWS Glue Data Catalog REST Catalog API supports V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Glue Iceberg REST API",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/connect-glu-iceberg-rest.html"
+        },
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:nessie:v2": {
       "level": "partial",
-      "notes": "Can connect to Nessie via custom Spark configuration on Glue",
+      "notes": "Can connect to Nessie via custom Spark catalog configuration on Glue; not natively integrated",
       "caveats": [
-        "Requires custom Spark configuration and Nessie endpoint"
+        "Requires custom Spark configuration and Nessie endpoint",
+        "Nessie JARs must be provided via --extra-jars"
       ]
     },
     "aws-glue:nessie:v3": {
       "level": "partial",
-      "notes": "Can connect to Nessie via custom Spark configuration on Glue",
+      "notes": "Can connect to Nessie via custom Spark configuration on Glue 5.0+",
       "caveats": [
-        "Requires custom Spark configuration and Nessie endpoint"
+        "Requires custom Spark configuration, Nessie endpoint, and extra JARs"
       ]
     },
     "aws-glue:polaris:v2": {
       "level": "partial",
       "notes": "Can connect to Polaris via REST Catalog configuration on Glue",
       "caveats": [
-        "Requires custom Spark configuration"
+        "Requires custom Spark REST Catalog configuration"
       ]
     },
     "aws-glue:polaris:v3": {
       "level": "partial",
-      "notes": "Can connect to Polaris via REST Catalog configuration on Glue",
+      "notes": "Can connect to Polaris via REST Catalog configuration on Glue 5.0+",
       "caveats": [
-        "Requires custom Spark configuration"
+        "Requires custom Spark REST Catalog configuration"
       ]
     },
     "aws-glue:unity-catalog:v2": {
       "level": "none",
-      "notes": "AWS Glue does not natively support Unity Catalog",
+      "notes": "AWS Glue does not natively support Databricks Unity Catalog",
       "caveats": []
     },
     "aws-glue:unity-catalog:v3": {
       "level": "none",
-      "notes": "AWS Glue does not natively support Unity Catalog",
+      "notes": "AWS Glue does not natively support Databricks Unity Catalog",
       "caveats": []
     },
     "aws-glue:hadoop-catalog:v2": {
       "level": "partial",
-      "notes": "Can use Hadoop catalog via custom Spark configuration on Glue",
+      "notes": "Can use Hadoop catalog via custom Spark configuration on Glue; not recommended for production",
       "caveats": [
-        "Requires custom Spark configuration"
+        "Requires custom Spark configuration",
+        "No atomic rename guarantee on S3; Glue Data Catalog recommended instead"
       ]
     },
     "aws-glue:hadoop-catalog:v3": {
       "level": "partial",
-      "notes": "Can use Hadoop catalog via custom Spark configuration on Glue",
+      "notes": "Can use Hadoop catalog via custom Spark configuration on Glue 5.0+; not recommended",
       "caveats": [
-        "Requires custom Spark configuration"
+        "Requires custom Spark configuration",
+        "No atomic rename guarantee on S3; Glue Data Catalog recommended instead"
       ]
     },
     "aws-glue:jdbc-catalog:v2": {
       "level": "partial",
       "notes": "Can use JDBC catalog via custom Spark configuration on Glue",
       "caveats": [
-        "Requires custom Spark configuration and JDBC endpoint"
+        "Requires custom Spark configuration, JDBC driver, and endpoint"
       ]
     },
     "aws-glue:jdbc-catalog:v3": {
       "level": "partial",
-      "notes": "Can use JDBC catalog via custom Spark configuration on Glue",
+      "notes": "Can use JDBC catalog via custom Spark configuration on Glue 5.0+",
       "caveats": [
-        "Requires custom Spark configuration and JDBC endpoint"
+        "Requires custom Spark configuration, JDBC driver, and endpoint"
       ]
     },
     "aws-emr:position-deletes:v2": {
@@ -1129,65 +1413,86 @@
     },
     "aws-managed-flink:position-deletes:v2": {
       "level": "full",
-      "notes": "Supported via Flink Iceberg connector on Amazon Managed Flink",
-      "caveats": []
+      "notes": "Supported via user-provided iceberg-flink-runtime JAR on Amazon Managed Flink (Flink 1.19/1.20 with Iceberg 1.6.0+)",
+      "caveats": [
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR in their application"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/"
     },
     "aws-managed-flink:position-deletes:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "V3 support available when bundling iceberg-flink-runtime 1.7.0+ (which supports format-version 3). Managed Flink itself is not listed in AWS's V3 support matrix since it runs user-provided JARs",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support",
+        "Not listed in AWS V3 support matrix \u2014 V3 depends entirely on the Iceberg library version bundled by the user"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/"
     },
     "aws-managed-flink:equality-deletes:v2": {
       "level": "full",
-      "notes": "Supported via Flink Iceberg connector",
-      "caveats": []
+      "notes": "Supported via UPSERT mode with equality deletes in the Flink Iceberg connector; requires V2 format and primary key",
+      "caveats": [
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:equality-deletes:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "Equality deletes supported with V3 format when bundling iceberg-flink-runtime 1.7.0+",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:merge-on-read:v2": {
       "level": "full",
-      "notes": "Merge-on-read supported via Flink Iceberg connector",
-      "caveats": []
+      "notes": "Merge-on-read supported via streaming upsert mode using equality deletes in the Flink Iceberg connector",
+      "caveats": [
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:merge-on-read:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "Merge-on-read supported with V3 format including deletion vectors when bundling iceberg-flink-runtime 1.7.0+",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:copy-on-write:v2": {
       "level": "full",
-      "notes": "Copy-on-write supported via Flink Iceberg connector",
-      "caveats": []
+      "notes": "Copy-on-write supported via INSERT INTO and INSERT OVERWRITE in the Flink Iceberg connector",
+      "caveats": [
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
     },
     "aws-managed-flink:copy-on-write:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "Copy-on-write supported with V3 format when bundling iceberg-flink-runtime 1.7.0+",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
     },
     "aws-managed-flink:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Flink Iceberg connector supports adding columns; rename and reorder are limited",
+      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column additions, renames, drops, reordering, and partition changes are not supported via Flink SQL DDL",
       "caveats": [
-        "Column rename and reorder not fully supported"
-      ]
+        "ALTER TABLE only supports changing table properties; column and partition schema changes not supported via Flink SQL",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table"
     },
     "aws-managed-flink:schema-evolution:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "partial",
+      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column and partition changes not supported via Flink SQL DDL",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "ALTER TABLE only supports changing table properties; column and partition schema changes not supported via Flink SQL",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table"
     },
     "aws-managed-flink:column-default-values:v2": {
       "level": "none",
@@ -1196,9 +1501,9 @@
     },
     "aws-managed-flink:column-default-values:v3": {
       "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "notes": "Column default values are a V3 feature; Flink Iceberg integration has not explicitly documented support",
       "caveats": [
-        "V3 support not yet announced"
+        "No explicit documentation for Flink support of V3 column default values"
       ]
     },
     "aws-managed-flink:nanosecond-timestamps:v2": {
@@ -1208,36 +1513,40 @@
     },
     "aws-managed-flink:nanosecond-timestamps:v3": {
       "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "notes": "Nanosecond timestamps are a V3 feature; Flink Iceberg integration has not explicitly documented support",
       "caveats": [
-        "V3 support not yet announced"
+        "No explicit documentation for Flink support of V3 nanosecond timestamps"
       ]
     },
     "aws-managed-flink:hidden-partitioning:v2": {
-      "level": "full",
-      "notes": "Flink Iceberg connector supports hidden partitioning with identity, bucket, and truncate transforms",
-      "caveats": []
+      "level": "partial",
+      "notes": "Flink can read and write to tables with hidden partitions created by other engines, but Flink DDL PARTITION BY does not support transform functions (e.g., days(), hours(), bucket())",
+      "caveats": [
+        "Flink DDL PARTITION BY does not support transform functions; use Spark or another engine to create hidden-partitioned tables",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#partitioned-by"
     },
     "aws-managed-flink:hidden-partitioning:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "partial",
+      "notes": "Flink can read and write to V3 tables with hidden partitions created by other engines, but Flink DDL does not support creating tables with transform-based partitioning",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Flink DDL PARTITION BY does not support transform functions; use Spark or another engine to create hidden-partitioned tables",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#partitioned-by"
     },
     "aws-managed-flink:partition-evolution:v2": {
-      "level": "partial",
-      "notes": "Flink Iceberg connector has limited partition evolution support",
-      "caveats": [
-        "Partition evolution support is limited compared to Spark"
-      ]
+      "level": "none",
+      "notes": "Flink ALTER TABLE does not support partition changes; partition evolution must be performed via Spark or another engine",
+      "caveats": [],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table"
     },
     "aws-managed-flink:partition-evolution:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Flink ALTER TABLE does not support partition changes; partition evolution must be performed via Spark or another engine",
+      "caveats": [],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table"
     },
     "aws-managed-flink:multi-arg-transforms:v2": {
       "level": "none",
@@ -1246,205 +1555,261 @@
     },
     "aws-managed-flink:multi-arg-transforms:v3": {
       "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "notes": "Multi-argument transforms are a V3 feature; Flink Iceberg integration has not explicitly documented support",
       "caveats": [
-        "V3 support not yet announced"
+        "No explicit documentation for Flink support of V3 multi-argument transforms"
       ]
     },
     "aws-managed-flink:time-travel:v2": {
-      "level": "partial",
-      "notes": "Flink can read specific snapshots via configuration but lacks full SQL-level time travel syntax",
+      "level": "full",
+      "notes": "Flink supports time travel via snapshot-id and as-of-timestamp read options in batch mode, plus branch and tag reads via SQL hints",
       "caveats": [
-        "No native SQL time travel syntax; requires snapshot ID configuration"
-      ]
+        "Uses SQL hint syntax (/*+ OPTIONS('snapshot-id'='...') */) rather than native SQL time travel syntax"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/#reading-branches-and-tags-with-sql"
     },
     "aws-managed-flink:time-travel:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "Time travel supported for V3 tables via snapshot-id, as-of-timestamp, branch, and tag read options when bundling iceberg-flink-runtime 1.7.0+",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Uses SQL hint syntax (/*+ OPTIONS('snapshot-id'='...') */) rather than native SQL time travel syntax",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/#reading-branches-and-tags-with-sql"
     },
     "aws-managed-flink:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Available on Flink 1.20.3+",
+      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests \u2014 use Spark for full maintenance",
       "caveats": [
-        "Not yet at Spark level"
-      ]
+        "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink/"
     },
     "aws-managed-flink:table-maintenance:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "partial",
+      "notes": "Flink supports the rewrite files action (compaction) for V3 tables but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink/"
     },
     "aws-managed-flink:branching-tagging:v2": {
       "level": "partial",
-      "notes": "Flink can write to branches via table properties but cannot create or manage branches/tags",
+      "notes": "Flink can write to branches via FlinkSink.toBranch() and read from branches/tags via SQL hints. Cannot create or manage branches/tags via DDL",
       "caveats": [
-        "Cannot create or manage branches/tags; write-to-branch only"
-      ]
+        "Cannot create or manage branches/tags; read and write to existing branches/tags only"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/#reading-branches-and-tags-with-sql"
     },
     "aws-managed-flink:branching-tagging:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "partial",
+      "notes": "Flink can write to branches and read from branches/tags for V3 tables when bundling iceberg-flink-runtime 1.7.0+. Cannot create or manage branches/tags via DDL",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Cannot create or manage branches/tags; read and write to existing branches/tags only",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/#reading-branches-and-tags-with-sql"
     },
     "aws-managed-flink:read-support:v2": {
       "level": "full",
-      "notes": "Full read support including streaming and batch reads via Flink Iceberg connector",
-      "caveats": []
+      "notes": "Full read support in both batch and streaming modes, including incremental reads from snapshots via Flink Iceberg connector",
+      "caveats": [
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/"
     },
     "aws-managed-flink:read-support:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "Full read support for V3 tables in both batch and streaming modes when bundling iceberg-flink-runtime 1.7.0+",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/"
     },
     "aws-managed-flink:write-insert:v2": {
       "level": "full",
-      "notes": "INSERT INTO supported in both batch and streaming modes via Flink Iceberg connector",
-      "caveats": []
+      "notes": "INSERT INTO supported in both batch and streaming modes; INSERT OVERWRITE supported in batch mode only",
+      "caveats": [
+        "INSERT OVERWRITE is not supported in streaming mode",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
     },
     "aws-managed-flink:write-insert:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "INSERT INTO and INSERT OVERWRITE supported with V3 format when bundling iceberg-flink-runtime 1.7.0+; INSERT OVERWRITE is batch-only",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "INSERT OVERWRITE is not supported in streaming mode",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
     },
     "aws-managed-flink:write-merge-update-delete:v2": {
       "level": "partial",
-      "notes": "Flink Iceberg connector supports upsert mode via primary keys; native MERGE/UPDATE/DELETE SQL is limited",
+      "notes": "Flink supports UPSERT mode via equality deletes (requires V2 format and primary key) but does not support SQL MERGE INTO, UPDATE, or DELETE statements",
       "caveats": [
-        "No full MERGE SQL support",
-        "Upsert via primary key configuration only"
-      ]
+        "No SQL MERGE INTO, UPDATE, or DELETE syntax; uses streaming upsert mode with equality deletes instead",
+        "UPSERT requires V2+ format and a PRIMARY KEY defined on the table"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:write-merge-update-delete:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "partial",
+      "notes": "Flink supports UPSERT mode via equality deletes for V3 tables but does not support SQL MERGE INTO, UPDATE, or DELETE statements",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "No SQL MERGE INTO, UPDATE, or DELETE syntax; uses streaming upsert mode with equality deletes instead",
+        "UPSERT requires a PRIMARY KEY defined on the table",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:catalog-integration:v2": {
       "level": "full",
-      "notes": "Supports AWS Glue Catalog and other Iceberg catalogs via Flink catalog configuration",
-      "caveats": []
+      "notes": "Supports built-in Iceberg catalog types (hive, hadoop, rest, glue, jdbc, nessie) plus custom catalog implementations via catalog-impl",
+      "caveats": [
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR and iceberg-aws-bundle for AWS integrations"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:catalog-integration:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "Supports built-in Iceberg catalog types for V3 tables when bundling iceberg-flink-runtime 1.7.0+",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) and iceberg-aws-bundle for AWS integrations"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:hive-metastore:v2": {
-      "level": "partial",
-      "notes": "Hive Metastore can be configured as a catalog backend but is not the default on Managed Flink",
+      "level": "full",
+      "notes": "Hive Metastore supported via Iceberg's built-in catalog-type='hive'; requires bundling Hive connector JARs alongside iceberg-flink-runtime",
       "caveats": [
-        "Requires custom catalog configuration"
-      ]
+        "Requires bundling Hive connector JARs (e.g., flink-sql-connector-hive) in addition to iceberg-flink-runtime"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#hive-catalog"
     },
     "aws-managed-flink:hive-metastore:v3": {
-      "level": "partial",
-      "notes": "Hive Metastore can be configured as a catalog backend",
+      "level": "full",
+      "notes": "Hive Metastore supported for V3 tables via Iceberg's built-in catalog-type='hive' when bundling iceberg-flink-runtime 1.7.0+",
       "caveats": [
-        "Requires custom catalog configuration"
-      ]
+        "Requires bundling Hive connector JARs and iceberg-flink-runtime 1.7.0+ for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#hive-catalog"
     },
     "aws-managed-flink:aws-glue-catalog:v2": {
       "level": "full",
-      "notes": "Native integration with AWS Glue Data Catalog on Amazon Managed Flink",
-      "caveats": []
+      "notes": "AWS Glue Data Catalog supported via Iceberg's built-in catalog-type='glue'; requires bundling iceberg-aws-bundle alongside iceberg-flink-runtime",
+      "caveats": [
+        "Requires bundling iceberg-aws-bundle JAR for Glue and S3 integration"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/aws/#glue-catalog"
     },
     "aws-managed-flink:aws-glue-catalog:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "AWS Glue Data Catalog supported for V3 tables when bundling iceberg-flink-runtime 1.7.0+ and iceberg-aws-bundle",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Requires bundling iceberg-aws-bundle JAR for Glue and S3 integration",
+        "Requires iceberg-flink-runtime 1.7.0+ for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/aws/#glue-catalog"
     },
     "aws-managed-flink:rest-catalog:v2": {
       "level": "full",
-      "notes": "REST Catalog supported via Flink Iceberg connector configuration",
-      "caveats": []
+      "notes": "REST Catalog supported via Iceberg's built-in catalog-type='rest'",
+      "caveats": [
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
     "aws-managed-flink:rest-catalog:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "REST Catalog supported for V3 tables when bundling iceberg-flink-runtime 1.7.0+",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
     "aws-managed-flink:nessie:v2": {
-      "level": "partial",
-      "notes": "Nessie can be configured via REST Catalog or custom catalog on Flink",
+      "level": "full",
+      "notes": "Nessie supported via Iceberg's built-in catalog-type='nessie'",
       "caveats": [
-        "Requires custom catalog configuration and Nessie endpoint"
-      ]
+        "Requires Nessie endpoint configuration and bundling iceberg-flink-runtime JAR"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:nessie:v3": {
-      "level": "partial",
-      "notes": "Nessie can be configured via REST Catalog or custom catalog on Flink",
+      "level": "full",
+      "notes": "Nessie supported for V3 tables when bundling iceberg-flink-runtime 1.7.0+",
       "caveats": [
-        "Requires custom catalog configuration and Nessie endpoint"
-      ]
+        "Requires Nessie endpoint configuration and iceberg-flink-runtime 1.7.0+ for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:polaris:v2": {
-      "level": "partial",
-      "notes": "Polaris can be used via REST Catalog configuration on Flink",
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog API (catalog-type='rest') with Polaris endpoint",
       "caveats": [
-        "Requires REST Catalog endpoint configuration"
-      ]
+        "Requires REST Catalog endpoint configuration pointing to Polaris"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
     "aws-managed-flink:polaris:v3": {
-      "level": "partial",
-      "notes": "Polaris can be used via REST Catalog configuration on Flink",
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog API for V3 tables when bundling iceberg-flink-runtime 1.7.0+",
       "caveats": [
-        "Requires REST Catalog endpoint configuration"
-      ]
+        "Requires REST Catalog endpoint configuration pointing to Polaris",
+        "Requires iceberg-flink-runtime 1.7.0+ for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
     "aws-managed-flink:unity-catalog:v2": {
-      "level": "none",
-      "notes": "Amazon Managed Flink does not natively support Unity Catalog",
-      "caveats": []
+      "level": "partial",
+      "notes": "Can connect to Unity Catalog via REST Catalog API (catalog-type='rest') but not a natural fit for the AWS ecosystem",
+      "caveats": [
+        "Requires REST Catalog endpoint configuration pointing to Unity Catalog",
+        "Not a typical integration for AWS Managed Flink"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
     "aws-managed-flink:unity-catalog:v3": {
-      "level": "none",
-      "notes": "Amazon Managed Flink does not natively support Unity Catalog",
-      "caveats": []
+      "level": "partial",
+      "notes": "Can connect to Unity Catalog via REST Catalog API for V3 tables but not a natural fit for the AWS ecosystem",
+      "caveats": [
+        "Requires REST Catalog endpoint configuration pointing to Unity Catalog",
+        "Not a typical integration for AWS Managed Flink"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
     "aws-managed-flink:hadoop-catalog:v2": {
       "level": "full",
-      "notes": "Hadoop catalog supported via Flink Iceberg connector",
-      "caveats": []
+      "notes": "Hadoop catalog supported via Iceberg's built-in catalog-type='hadoop'; ships with Hadoop jars by default in iceberg-flink-runtime",
+      "caveats": [],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#hadoop-catalog"
     },
     "aws-managed-flink:hadoop-catalog:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "Hadoop catalog supported for V3 tables when bundling iceberg-flink-runtime 1.7.0+",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Requires iceberg-flink-runtime 1.7.0+ for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#hadoop-catalog"
     },
     "aws-managed-flink:jdbc-catalog:v2": {
-      "level": "partial",
-      "notes": "JDBC catalog can be configured via Flink Iceberg connector",
+      "level": "full",
+      "notes": "JDBC catalog supported via Iceberg's built-in catalog-type='jdbc'; requires bundling JDBC driver JAR",
       "caveats": [
-        "Requires JDBC driver and endpoint configuration"
-      ]
+        "Requires bundling JDBC driver JAR and endpoint configuration"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:jdbc-catalog:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "JDBC catalog supported for V3 tables when bundling iceberg-flink-runtime 1.7.0+ and JDBC driver",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Requires bundling JDBC driver JAR and iceberg-flink-runtime 1.7.0+ for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-redshift:position-deletes:v2": {
       "level": "full",
@@ -1608,14 +1973,35 @@
     },
     "aws-redshift:read-support:v2": {
       "level": "full",
-      "notes": "Full read support for Iceberg V2 tables via Redshift Spectrum and native integration",
-      "caveats": []
+      "notes": "Full read support for Iceberg V1 and V2 tables via Redshift Spectrum, Redshift Serverless, and provisioned clusters. Supports external schemas and three-part notation with auto-mounted catalogs. Can join Iceberg tables with local Redshift tables. Supports materialized views on Iceberg tables.",
+      "caveats": [
+        "Automatic query rewriting and automatic materialized views on Iceberg tables are not supported",
+        "COPY command cannot ingest from Iceberg tables; use INSERT INTO ... SELECT or CTAS",
+        "fixed(L) and uuid types not supported",
+        "Strings larger than 16384 chars are truncated"
+      ],
+      "links": [
+        {
+          "label": "Querying Iceberg",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        },
+        {
+          "label": "Querying Iceberg Supported Data Types",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg-supported-data-types.html"
+        }
+      ]
     },
     "aws-redshift:read-support:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
+      "level": "none",
+      "notes": "Amazon Redshift does not support Iceberg V3. Only V1 and V2 are supported. V3 types (variant, geometry, timestamp_ns) are explicitly unsupported.",
       "caveats": [
-        "V3 support not yet announced"
+        "V3 not supported"
+      ],
+      "links": [
+        {
+          "label": "Querying Iceberg Supported Data Types",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg-supported-data-types.html"
+        }
       ]
     },
     "aws-redshift:write-insert:v2": {
@@ -1823,7 +2209,7 @@
     "aws-athena:table-creation:v2": {
       "level": "full",
       "notes": "Athena supports CREATE TABLE for Iceberg tables via CTAS and standard DDL",
-      "caveats": [       
+      "caveats": [
         "The set of table properties that you can declared is limited."
       ],
       "links": [
@@ -1842,13 +2228,30 @@
     },
     "aws-glue:table-creation:v2": {
       "level": "full",
-      "notes": "AWS Glue supports creating Iceberg tables via Spark DDL and Glue Data Catalog API",
-      "caveats": []
+      "notes": "Create Iceberg tables via Spark SQL DDL (CREATE TABLE, CTAS) or Glue Data Catalog CreateTable API on Glue 3.0+",
+      "caveats": [
+        "Glue Data Catalog UpdateTable API does not support Iceberg table format as input"
+      ],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
     },
     "aws-glue:table-creation:v3": {
       "level": "full",
-      "notes": "Table creation supported via Spark on Glue with Iceberg V3",
-      "caveats": []
+      "notes": "Create V3 tables via Spark SQL DDL with format-version=3 on Glue 5.0+; upgrade V2\u2192V3 via ALTER TABLE SET TBLPROPERTIES",
+      "caveats": [
+        "Requires Glue 5.0+ for V3 format support",
+        "V2\u2192V3 upgrade is one-way; cannot downgrade back to V2"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-emr:table-creation:v2": {
       "level": "full",
@@ -1875,15 +2278,21 @@
     },
     "aws-managed-flink:table-creation:v2": {
       "level": "full",
-      "notes": "Amazon Managed Flink supports creating Iceberg tables via Flink SQL DDL",
-      "caveats": []
+      "notes": "Flink Iceberg connector supports CREATE TABLE via Flink SQL DDL; partitioning limited to identity transforms only",
+      "caveats": [
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR",
+        "PARTITION BY does not support transform functions (days, hours, bucket, truncate)"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#create-table"
     },
     "aws-managed-flink:table-creation:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink has not yet announced Iceberg V3 support",
+      "level": "full",
+      "notes": "V3 table creation supported via Flink SQL DDL with 'format-version'='3' table property when bundling iceberg-flink-runtime 1.7.0+",
       "caveats": [
-        "V3 support not yet announced"
-      ]
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support",
+        "PARTITION BY does not support transform functions (days, hours, bucket, truncate)"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#create-table"
     },
     "aws-athena:variant-type:v2": {
       "level": "none",
@@ -1947,65 +2356,96 @@
     },
     "aws-glue:variant-type:v2": {
       "level": "none",
-      "notes": "Variant Type is a V3 feature",
+      "notes": "Variant type is a V3 feature, not available in format version 2",
       "caveats": []
     },
     "aws-glue:variant-type:v3": {
-      "level": "full",
-      "notes": "Variant type supported via Spark on AWS Glue with Iceberg V3",
-      "caveats": []
+      "level": "partial",
+      "notes": "Variant type introduced in Iceberg V3; basic support available on Glue 5.1 (Iceberg 1.10.0) but the spec is still evolving",
+      "caveats": [
+        "Requires Glue 5.1 (Iceberg 1.10.0)",
+        "Variant type support is still maturing in the Iceberg ecosystem"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-glue:shredded-variant:v2": {
       "level": "none",
-      "notes": "Shredded Variant is a V3 feature",
+      "notes": "Shredded variant is a V3 feature, not available in format version 2",
       "caveats": []
     },
     "aws-glue:shredded-variant:v3": {
       "level": "unknown",
-      "notes": "AWS Glue V3 shredded variant support is not yet documented",
-      "caveats": []
+      "notes": "Shredded variant support in AWS Glue is not yet documented; depends on Iceberg library support",
+      "caveats": [
+        "Not yet documented for AWS Glue"
+      ]
     },
     "aws-glue:geometry-type:v2": {
       "level": "none",
-      "notes": "Geometry Type is a V3 feature",
+      "notes": "Geometry type is a V3 feature, not available in format version 2",
       "caveats": []
     },
     "aws-glue:geometry-type:v3": {
       "level": "unknown",
-      "notes": "AWS Glue V3 geometry type support is not yet documented",
-      "caveats": []
+      "notes": "Geometry type support in AWS Glue is not yet documented",
+      "caveats": [
+        "Not yet documented for AWS Glue"
+      ]
     },
     "aws-glue:vector-type:v2": {
       "level": "none",
-      "notes": "Vector Type is a V3 feature",
+      "notes": "Vector type is a V3 feature, not available in format version 2",
       "caveats": []
     },
     "aws-glue:vector-type:v3": {
       "level": "unknown",
-      "notes": "AWS Glue V3 vector type support is not yet documented",
-      "caveats": []
+      "notes": "Vector type support in AWS Glue is not yet documented",
+      "caveats": [
+        "Not yet documented for AWS Glue"
+      ]
     },
     "aws-glue:cdc-support:v2": {
       "level": "none",
-      "notes": "Cdc Support is a V3 feature",
+      "notes": "Row-level CDC tracking is a V3 feature (row lineage); not available in format version 2",
       "caveats": []
     },
     "aws-glue:cdc-support:v3": {
-      "level": "partial",
-      "notes": "CDC support available via Spark streaming on AWS Glue",
+      "level": "full",
+      "notes": "V3 row lineage enables row-level change tracking via _row_id and _last_updated_sequence_number fields; requires Glue 5.1 (Iceberg 1.10.0) for full support",
       "caveats": [
-        "Requires streaming configuration"
+        "Requires Glue 5.1 (Iceberg 1.10.0) for row lineage",
+        "No historical backfill of row lineage after V2\u2192V3 upgrade"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
       ]
     },
     "aws-glue:lineage:v2": {
       "level": "none",
-      "notes": "Lineage is a V3 feature",
+      "notes": "Row lineage is a V3 feature, not available in format version 2",
       "caveats": []
     },
     "aws-glue:lineage:v3": {
-      "level": "unknown",
-      "notes": "AWS Glue V3 lineage support is not yet documented",
-      "caveats": []
+      "level": "full",
+      "notes": "V3 row lineage provides _row_id and _last_updated_sequence_number metadata fields for precise change tracking; requires Glue 5.1 (Iceberg 1.10.0)",
+      "caveats": [
+        "Requires Glue 5.1 (Iceberg 1.10.0)",
+        "No historical backfill after V2\u2192V3 upgrade"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
     },
     "aws-emr:variant-type:v2": {
       "level": "none",
@@ -2131,63 +2571,82 @@
     },
     "aws-managed-flink:variant-type:v2": {
       "level": "none",
-      "notes": "Variant Type is a V3 feature",
+      "notes": "Variant type is a V3 feature; not applicable to V2 tables",
       "caveats": []
     },
     "aws-managed-flink:variant-type:v3": {
       "level": "unknown",
-      "notes": "Amazon Managed Flink V3 variant type support is not yet documented",
-      "caveats": []
+      "notes": "Variant type is a V3 feature; Flink Iceberg integration has not explicitly documented support for the variant type",
+      "caveats": [
+        "No explicit documentation for Flink support of V3 variant type"
+      ]
     },
     "aws-managed-flink:shredded-variant:v2": {
       "level": "none",
-      "notes": "Shredded Variant is a V3 feature",
+      "notes": "Shredded variant is a V3 feature; not applicable to V2 tables",
       "caveats": []
     },
     "aws-managed-flink:shredded-variant:v3": {
       "level": "unknown",
-      "notes": "Amazon Managed Flink V3 shredded variant support is not yet documented",
-      "caveats": []
+      "notes": "Shredded variant is a V3 feature; Flink Iceberg integration has not explicitly documented support",
+      "caveats": [
+        "No explicit documentation for Flink support of V3 shredded variant"
+      ]
     },
     "aws-managed-flink:geometry-type:v2": {
       "level": "none",
-      "notes": "Geometry Type is a V3 feature",
+      "notes": "Geometry type is a V3 feature; not applicable to V2 tables",
       "caveats": []
     },
     "aws-managed-flink:geometry-type:v3": {
       "level": "unknown",
-      "notes": "Amazon Managed Flink V3 geometry type support is not yet documented",
-      "caveats": []
+      "notes": "Geometry type is a V3 feature; Flink Iceberg integration has not explicitly documented support",
+      "caveats": [
+        "No explicit documentation for Flink support of V3 geometry type"
+      ]
     },
     "aws-managed-flink:vector-type:v2": {
       "level": "none",
-      "notes": "Vector Type is a V3 feature",
+      "notes": "Vector type is a V3 feature; not applicable to V2 tables",
       "caveats": []
     },
     "aws-managed-flink:vector-type:v3": {
       "level": "unknown",
-      "notes": "Amazon Managed Flink V3 vector type support is not yet documented",
-      "caveats": []
+      "notes": "Vector type is a V3 feature; Flink Iceberg integration has not explicitly documented support",
+      "caveats": [
+        "No explicit documentation for Flink support of V3 vector type"
+      ]
     },
     "aws-managed-flink:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
+      "level": "full",
+      "notes": "Flink Iceberg connector supports CDC via UPSERT mode with equality deletes on V2 tables; requires primary key and write.upsert.enabled=true",
+      "caveats": [
+        "Requires V2 format and PRIMARY KEY defined on the table",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink V3 cdc support support is not yet documented",
-      "caveats": []
+      "level": "full",
+      "notes": "CDC via UPSERT mode supported on V3 tables with deletion vectors when bundling iceberg-flink-runtime 1.7.0+",
+      "caveats": [
+        "Requires PRIMARY KEY defined on the table",
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:lineage:v2": {
       "level": "none",
-      "notes": "Lineage is a V3 feature",
+      "notes": "Row lineage is a V3 feature; not applicable to V2 tables",
       "caveats": []
     },
     "aws-managed-flink:lineage:v3": {
       "level": "unknown",
-      "notes": "Amazon Managed Flink V3 lineage support is not yet documented",
-      "caveats": []
+      "notes": "Row lineage is a V3 feature introduced with deletion vectors; Flink Iceberg integration has not explicitly documented support for querying row lineage metadata fields",
+      "caveats": [
+        "No explicit documentation for Flink support of V3 row lineage metadata fields (_row_id, _last_updated_sequence_number)"
+      ],
+      "docUrl": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
     }
   }
 }
