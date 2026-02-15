@@ -783,7 +783,7 @@
     },
     "clickhouse:schema-evolution:v2": {
       "level": "partial",
-      "notes": "ClickHouse can read schema-evolved Iceberg tables: add/remove columns, reorder, nullable promotion, and limited type casting (int→long, float→double, decimal widening). Cannot change nested structures or array/map element types",
+      "notes": "ClickHouse can read schema-evolved Iceberg tables: add/remove columns, reorder, nullable promotion, and limited type casting (int\u2192long, float\u2192double, decimal widening). Cannot change nested structures or array/map element types",
       "docUrl": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg#schema-evolution",
       "caveats": [
         "Read-only; cannot perform schema changes",
@@ -1177,7 +1177,7 @@
     },
     "spark:schema-evolution:v2": {
       "level": "full",
-      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int→long, float→double), and modify nullability",
+      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int\u2192long, float\u2192double), and modify nullability",
       "caveats": [],
       "links": [
         {
@@ -1725,7 +1725,7 @@
     },
     "flink:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes are not supported via Flink DDL",
+      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column and partition changes are not supported via Flink DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column additions, renames, drops, and reordering not supported via Flink SQL"
       ],
@@ -1733,7 +1733,7 @@
     },
     "flink:schema-evolution:v3": {
       "level": "partial",
-      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes are not supported via Flink DDL",
+      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column and partition changes are not supported via Flink DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column additions, renames, drops, and reordering not supported via Flink SQL"
       ],
@@ -1821,7 +1821,7 @@
     },
     "flink:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests — use Spark for full maintenance",
+      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests \u2014 use Spark for full maintenance",
       "caveats": [
         "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported"
       ],
@@ -3860,6 +3860,177 @@
         "PyArrow-based Parquet writer does not support bloom filter configuration"
       ],
       "links": []
+    },
+    "duckdb:type-promotion:v2": {
+      "level": "none",
+      "notes": "DuckDB's Iceberg extension supports read and basic write operations (INSERT, UPDATE, DELETE) but does not support ALTER TABLE column type changes for Iceberg tables. Type promotions must be performed using Spark or another DDL-capable engine.",
+      "caveats": [
+        "DuckDB can read Iceberg tables that have been type-promoted by other engines",
+        "ALTER TABLE column type changes are not supported for Iceberg tables in DuckDB"
+      ],
+      "links": [
+        {
+          "label": "DuckDB Iceberg extension",
+          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+        },
+        {
+          "label": "DuckDB Iceberg writes",
+          "url": "https://duckdb.org/2025/11/28/iceberg-writes-in-duckdb"
+        }
+      ]
+    },
+    "duckdb:type-promotion:v3": {
+      "level": "none",
+      "notes": "DuckDB does not support ALTER TABLE column type changes for Iceberg V3 tables.",
+      "caveats": [
+        "ALTER TABLE type changes not supported for Iceberg tables in DuckDB"
+      ],
+      "links": []
+    },
+    "clickhouse:type-promotion:v2": {
+      "level": "none",
+      "notes": "ClickHouse's Iceberg integration is primarily read-oriented with experimental write support. ALTER TABLE column type changes are not supported for Iceberg tables.",
+      "caveats": [
+        "ClickHouse can read Iceberg tables that have been type-promoted by other engines",
+        "Write support for Iceberg is experimental and does not include schema DDL"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:type-promotion:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2; V3 is not yet supported",
+      "caveats": [
+        "ClickHouse does not support Iceberg V3"
+      ],
+      "links": []
+    },
+    "daft:type-promotion:v2": {
+      "level": "none",
+      "notes": "Daft is a DataFrame engine focused on reads and writes via PyIceberg. It does not provide DDL operations for type promotion; type changes must be performed using PyIceberg's update_schema() API or another engine.",
+      "caveats": [
+        "Daft can read Iceberg tables that have been type-promoted by other engines",
+        "No ALTER TABLE or schema DDL support in Daft"
+      ],
+      "links": [
+        {
+          "label": "Daft Iceberg connector",
+          "url": "https://docs.daft.ai/en/stable/connectors/iceberg/"
+        }
+      ]
+    },
+    "daft:type-promotion:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ],
+      "links": []
+    },
+    "spark:type-promotion:v2": {
+      "level": "full",
+      "notes": "Spark is the reference implementation for Iceberg and supports all spec-defined type promotions via ALTER TABLE ALTER COLUMN TYPE: int to long, float to double, and increasing decimal precision. The operation is metadata-only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark DDL \u2013 ALTER TABLE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        },
+        {
+          "label": "Schema evolution",
+          "url": "https://iceberg.apache.org/docs/latest/evolution/"
+        }
+      ]
+    },
+    "spark:type-promotion:v3": {
+      "level": "full",
+      "notes": "Full type promotion support for V3 tables with the same promotions as V2: int to long, float to double, and decimal precision widening.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark DDL \u2013 ALTER TABLE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        }
+      ]
+    },
+    "flink:type-promotion:v2": {
+      "level": "none",
+      "notes": "Flink's Iceberg integration does not support ALTER TABLE column type changes. The ALTER TABLE command in Flink for Iceberg only supports property changes, not column type modifications. Flink can read tables that have been type-promoted by other engines.",
+      "caveats": [
+        "ALTER TABLE in Flink for Iceberg only supports property changes",
+        "Column type changes tracked in GitHub issue #7312 but not yet implemented",
+        "Type promotions must be performed using Spark or another DDL-capable engine"
+      ],
+      "links": [
+        {
+          "label": "Flink DDL",
+          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        },
+        {
+          "label": "Flink ALTER TABLE column support issue",
+          "url": "https://github.com/apache/iceberg/issues/7312"
+        }
+      ]
+    },
+    "flink:type-promotion:v3": {
+      "level": "none",
+      "notes": "Flink's Iceberg integration does not support ALTER TABLE column type changes for V3 tables.",
+      "caveats": [
+        "ALTER TABLE in Flink for Iceberg only supports property changes, not column type changes"
+      ],
+      "links": []
+    },
+    "kafka-connect:type-promotion:v2": {
+      "level": "none",
+      "notes": "The Iceberg Kafka Connect sink connector does not support type promotion. Schema evolution in the connector is limited to adding new columns when iceberg.tables.evolve-schema-enabled is true.",
+      "caveats": [
+        "Kafka Connect sink only supports adding new columns for schema evolution",
+        "Type promotions must be performed using Spark or another DDL-capable engine"
+      ],
+      "links": [
+        {
+          "label": "Kafka Connect for Iceberg",
+          "url": "https://iceberg.apache.org/docs/nightly/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:type-promotion:v3": {
+      "level": "none",
+      "notes": "The Iceberg Kafka Connect sink connector does not support type promotion for V3 tables.",
+      "caveats": [
+        "Kafka Connect sink only supports adding new columns for schema evolution"
+      ],
+      "links": []
+    },
+    "pyiceberg:type-promotion:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports type promotion via the update_schema() context manager's update_column() method. Supports all Iceberg spec-defined promotions: int to long, float to double, and increasing decimal precision. The operation is metadata-only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg API \u2013 Schema evolution",
+          "url": "https://py.iceberg.apache.org/api/"
+        },
+        {
+          "label": "PyIceberg type promotion",
+          "url": "https://deepwiki.com/apache/iceberg-python/3.3-schemas-and-types"
+        }
+      ]
+    },
+    "pyiceberg:type-promotion:v3": {
+      "level": "full",
+      "notes": "Full type promotion support for V3 tables via update_schema() context manager.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg API \u2013 Schema evolution",
+          "url": "https://py.iceberg.apache.org/api/"
+        }
+      ]
     }
   }
 }

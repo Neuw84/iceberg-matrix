@@ -119,7 +119,7 @@
       ],
       "links": [
         {
-          "label": "Manage Iceberg tables – Schema",
+          "label": "Manage Iceberg tables \u2013 Schema",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
         },
         {
@@ -764,6 +764,32 @@
       ]
     },
     "snowflake:bloom-filters:v3": {
+      "level": "unknown",
+      "notes": "Snowflake has not yet announced Iceberg V3 support",
+      "caveats": [
+        "Snowflake V3 support not yet announced"
+      ],
+      "links": []
+    },
+    "snowflake:type-promotion:v2": {
+      "level": "full",
+      "notes": "Snowflake supports type promotion for Iceberg tables in accordance with the Apache Iceberg spec: int to long, float to double, and increasing decimal precision. Available via ALTER ICEBERG TABLE ALTER COLUMN SET DATA TYPE.",
+      "caveats": [
+        "Only supported for Snowflake-managed Iceberg tables, not externally managed tables",
+        "Metadata-only operation; existing data files are not rewritten"
+      ],
+      "links": [
+        {
+          "label": "ALTER ICEBERG TABLE SET DATA TYPE",
+          "url": "https://docs.snowflake.com/en/sql-reference/sql/alter-iceberg-table-alter-column-set-data-type"
+        },
+        {
+          "label": "Iceberg data types",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-data-types"
+        }
+      ]
+    },
+    "snowflake:type-promotion:v3": {
       "level": "unknown",
       "notes": "Snowflake has not yet announced Iceberg V3 support",
       "caveats": [

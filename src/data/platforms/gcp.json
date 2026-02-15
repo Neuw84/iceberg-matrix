@@ -1115,6 +1115,54 @@
         "Requires setting bloom filter table properties per column"
       ],
       "links": []
+    },
+    "google-bigquery:type-promotion:v2": {
+      "level": "partial",
+      "notes": "BigQuery supports schema evolution for Iceberg tables including add, drop, and rename columns. Type changes are supported but limited to BigQuery's own type system mappings.",
+      "caveats": [
+        "Type promotion behavior depends on BigQuery's Iceberg integration layer",
+        "BigQuery-managed Iceberg tables (BigLake) use BigQuery's type system with Iceberg metadata export"
+      ],
+      "links": [
+        {
+          "label": "BigLake tables for Iceberg",
+          "url": "https://cloud.google.com/bigquery/docs/iceberg-tables"
+        },
+        {
+          "label": "Modifying table schemas",
+          "url": "https://docs.cloud.google.com/bigquery/docs/managing-table-schemas"
+        }
+      ]
+    },
+    "google-bigquery:type-promotion:v3": {
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2; V3 is not supported",
+      "caveats": [
+        "BigQuery does not support Iceberg V3"
+      ],
+      "links": []
+    },
+    "google-dataproc:type-promotion:v2": {
+      "level": "full",
+      "notes": "Full type promotion support via Spark on Dataproc, same as OSS Spark: int to long, float to double, and decimal precision widening via ALTER TABLE ALTER COLUMN TYPE.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark DDL \u2013 ALTER TABLE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        }
+      ]
+    },
+    "google-dataproc:type-promotion:v3": {
+      "level": "full",
+      "notes": "Full type promotion support via Spark on Dataproc for V3 Iceberg tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark DDL \u2013 ALTER TABLE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        }
+      ]
     }
   }
 }

@@ -606,7 +606,7 @@
       "notes": "Can connect to external Polaris catalog via the Iceberg REST Catalog API, but this requires external configuration and is not natively integrated.",
       "caveats": [
         "Requires external Polaris endpoint configuration",
-        "Not a native integration — uses generic REST catalog support"
+        "Not a native integration \u2014 uses generic REST catalog support"
       ],
       "links": [
         {
@@ -620,7 +620,7 @@
       "notes": "Can connect to external Polaris catalog via the Iceberg REST Catalog API.",
       "caveats": [
         "Requires external Polaris endpoint configuration",
-        "Not a native integration — uses generic REST catalog support"
+        "Not a native integration \u2014 uses generic REST catalog support"
       ],
       "links": [
         {
@@ -940,6 +940,35 @@
         {
           "label": "Iceberg v3 features",
           "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"
+        }
+      ]
+    },
+    "databricks:type-promotion:v2": {
+      "level": "full",
+      "notes": "Databricks supports type widening for Iceberg tables via ALTER TABLE ALTER COLUMN. Supported promotions include int to long, float to double, and decimal precision widening. The operation is metadata-only and does not rewrite data files.",
+      "caveats": [
+        "Type widening must be enabled via delta.enableTypeWidening table property for Delta-managed tables; native Iceberg tables follow Iceberg spec rules",
+        "Some wider promotions (e.g., int to decimal) require explicit ALTER TABLE to prevent accidental changes"
+      ],
+      "links": [
+        {
+          "label": "Type widening",
+          "url": "https://docs.databricks.com/aws/en/delta/type-widening"
+        },
+        {
+          "label": "ALTER TABLE COLUMN",
+          "url": "https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-syntax-ddl-alter-table-manage-column"
+        }
+      ]
+    },
+    "databricks:type-promotion:v3": {
+      "level": "full",
+      "notes": "Type widening supported for Iceberg V3 tables with the same promotions as V2: int to long, float to double, and decimal precision widening.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Type widening",
+          "url": "https://docs.databricks.com/aws/en/delta/type-widening"
         }
       ]
     }

@@ -36,6 +36,13 @@
       "description": "Add, drop, rename, reorder columns or change column types without rewriting existing data files"
     },
     {
+      "id": "type-promotion",
+      "name": "Type Promotion / Widening",
+      "category": "table-management",
+      "introducedIn": "v2",
+      "description": "Widen column data types without rewriting existing data files, such as int to long, float to double, or increasing decimal precision. Enables safe type evolution while maintaining backward compatibility with existing data."
+    },
+    {
       "id": "column-default-values",
       "name": "Column Default Values",
       "category": "table-management",
