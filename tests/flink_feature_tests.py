@@ -751,10 +751,12 @@ def generate_markdown(report: dict) -> str:
     for t in report["tests"]:
         emoji = status_emoji.get(t["result"], "❓")
         match_str = "✅" if t["match"] else "❌ DISCREPANCY"
-        details = t["details"][:80].replace("|", "\\|") if t["details"] else ""
+        details = t["details"][:80].replace("\n", " ").replace("\r", "").replace("|", "\\|") if t["details"] else ""
+        feature_name = t["feature_name"].replace("|", "\\|")
+        json_level = t["json_level"].replace("|", "\\|") if t["json_level"] else ""
         lines.append(
-            f"| {t['feature_name']} | {t['version']} | {emoji} {t['result']} "
-            f"| {t['json_level']} | {match_str} | {details} |"
+            f"| {feature_name} | {t['version']} | {emoji} {t['result']} "
+            f"| {json_level} | {match_str} | {details} |"
         )
 
     lines.append("")
@@ -764,8 +766,9 @@ def generate_markdown(report: dict) -> str:
         lines.append("## ⚠️ Discrepancies")
         lines.append("")
         for t in discs:
+            detail_clean = t["details"][:120].replace("\n", " ").replace("\r", "") if t["details"] else ""
             lines.append(f"- **{t['feature_name']}** ({t['version']}): "
-                         f"test={t['result']}, json={t['json_level']} — {t['details'][:120]}")
+                         f"test={t['result']}, json={t['json_level']} — {detail_clean}")
         lines.append("")
 
     return "\n".join(lines)
