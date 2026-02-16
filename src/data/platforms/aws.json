@@ -1728,30 +1728,26 @@
       "links": []
     },
     "aws-managed-flink:type-promotion:v2": {
-      "level": "none",
-      "notes": "Flink's Iceberg integration does not support ALTER TABLE column type changes. Flink can read tables that have been type-promoted by other engines, but cannot perform the promotion itself.",
-      "caveats": [
-        "ALTER TABLE in Flink for Iceberg only supports property changes, not column type changes",
-        "Type promotions must be performed using Spark or another DDL-capable engine"
-      ],
+      "level": "full",
+      "notes": "Flink supports type widening for Iceberg tables",
+      "caveats": [],
       "links": [
         {
-          "label": "Flink DDL",
-          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
-        },
-        {
-          "label": "Flink ALTER TABLE column support issue",
-          "url": "https://github.com/apache/iceberg/issues/7312"
+          "label": "Flink writes - type widening",
+          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#dynamic-routing-configuration"
         }
       ]
     },
     "aws-managed-flink:type-promotion:v3": {
-      "level": "none",
-      "notes": "Flink's Iceberg integration does not support ALTER TABLE column type changes for V3 tables.",
-      "caveats": [
-        "ALTER TABLE in Flink for Iceberg only supports property changes, not column type changes"
-      ],
-      "links": []
+      "level": "full",
+      "notes": "Flink supports type widening for Iceberg V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Flink writes - type widening",
+          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#dynamic-routing-configuration"
+        }
+      ]
     },
     "aws-redshift:type-promotion:v2": {
       "level": "partial",
