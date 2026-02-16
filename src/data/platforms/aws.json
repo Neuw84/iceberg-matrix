@@ -463,9 +463,12 @@
       "caveats": []
     },
     "aws-firehose:write-merge-update-delete:v2": {
-      "level": "Full",
-      "notes": "Firehose needs to use Json Paths to do this",
-      "caveats": []
+      "level": "full",
+      "notes": "Firehose supports MERGE, UPDATE, and DELETE operations using JSON query definitions to specify the operation type",
+      "caveats": [
+        "Requires JSON query to define the operation",
+        "When you specify the operation as update or delete, you must either specify unique keys for the destination table when you set up your Firehose stream, or set identifier-field-ids in Iceberg"
+      ]
     },
     "aws-firehose:write-merge-update-delete:v3": {
       "level": "none",
