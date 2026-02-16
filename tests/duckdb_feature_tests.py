@@ -897,17 +897,17 @@ def load_duckdb_json_support() -> dict:
 def compute_match(test_result: str, json_level: str) -> bool:
     """
     Determine if test result matches JSON level.
-    - pass → json should be 'full' or 'partial'
-    - fail → json should be 'none' or 'unknown'
+    - pass → json should be 'full' or 'partial' (NOT 'unknown' — we have evidence now)
+    - fail → json should be 'none' (NOT 'unknown' — we have evidence now)
     - skip → always matches (cannot verify)
     - error → always matches (test issue, not data issue)
     """
     if test_result in ("skip", "error"):
         return True
     if test_result == "pass":
-        return json_level in ("full", "partial", "unknown")
+        return json_level in ("full", "partial")
     if test_result == "fail":
-        return json_level in ("none", "unknown")
+        return json_level == "none"
     return True
 
 
