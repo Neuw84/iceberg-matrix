@@ -965,11 +965,9 @@
       "caveats": []
     },
     "aws-redshift:position-deletes:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:equality-deletes:v2": {
       "level": "full",
@@ -977,11 +975,9 @@
       "caveats": []
     },
     "aws-redshift:equality-deletes:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:merge-on-read:v2": {
       "level": "full",
@@ -989,11 +985,9 @@
       "caveats": []
     },
     "aws-redshift:merge-on-read:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:copy-on-write:v2": {
       "level": "full",
@@ -1001,11 +995,9 @@
       "caveats": []
     },
     "aws-redshift:copy-on-write:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:schema-evolution:v2": {
       "level": "full",
@@ -1013,11 +1005,9 @@
       "caveats": []
     },
     "aws-redshift:schema-evolution:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:column-default-values:v2": {
       "level": "none",
@@ -1025,11 +1015,9 @@
       "caveats": []
     },
     "aws-redshift:column-default-values:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:table-creation:v2": {
       "level": "full",
@@ -1037,11 +1025,9 @@
       "caveats": []
     },
     "aws-redshift:table-creation:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:hidden-partitioning:v2": {
       "level": "full",
@@ -1049,11 +1035,9 @@
       "caveats": []
     },
     "aws-redshift:hidden-partitioning:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:partition-evolution:v2": {
       "level": "partial",
@@ -1063,11 +1047,9 @@
       ]
     },
     "aws-redshift:partition-evolution:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:multi-arg-transforms:v2": {
       "level": "none",
@@ -1075,11 +1057,9 @@
       "caveats": []
     },
     "aws-redshift:multi-arg-transforms:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:time-travel:v2": {
       "level": "full",
@@ -1087,11 +1067,9 @@
       "caveats": []
     },
     "aws-redshift:time-travel:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:table-maintenance:v2": {
       "level": "partial",
@@ -1101,11 +1079,9 @@
       ]
     },
     "aws-redshift:table-maintenance:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:branching-tagging:v2": {
       "level": "none",
@@ -1113,11 +1089,9 @@
       "caveats": []
     },
     "aws-redshift:branching-tagging:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:read-support:v2": {
       "level": "full",
@@ -1141,16 +1115,8 @@
     },
     "aws-redshift:read-support:v3": {
       "level": "none",
-      "notes": "Amazon Redshift does not support Iceberg V3. Only V1 and V2 are supported. V3 types (variant, geometry, timestamp_ns) are explicitly unsupported.",
-      "caveats": [
-        "V3 not supported"
-      ],
-      "links": [
-        {
-          "label": "Querying Iceberg Supported Data Types",
-          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg-supported-data-types.html"
-        }
-      ]
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:write-insert:v2": {
       "level": "full",
@@ -1158,11 +1124,9 @@
       "caveats": []
     },
     "aws-redshift:write-insert:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:write-merge-update-delete:v2": {
       "level": "full",
@@ -1170,11 +1134,9 @@
       "caveats": []
     },
     "aws-redshift:write-merge-update-delete:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:catalog-integration:v2": {
       "level": "full",
@@ -1182,11 +1144,9 @@
       "caveats": []
     },
     "aws-redshift:catalog-integration:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:hive-metastore:v2": {
       "level": "none",
@@ -1195,7 +1155,7 @@
     },
     "aws-redshift:hive-metastore:v3": {
       "level": "none",
-      "notes": "Redshift uses AWS Glue Catalog for Iceberg tables",
+      "notes": "Redshift does not support Iceberg V3",
       "caveats": []
     },
     "aws-redshift:aws-glue-catalog:v2": {
@@ -1204,11 +1164,9 @@
       "caveats": []
     },
     "aws-redshift:aws-glue-catalog:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:rest-catalog:v2": {
       "level": "none",
@@ -1217,7 +1175,7 @@
     },
     "aws-redshift:rest-catalog:v3": {
       "level": "none",
-      "notes": "Redshift does not support REST Catalog directly",
+      "notes": "Redshift does not support Iceberg V3",
       "caveats": []
     },
     "aws-redshift:nessie:v2": {
@@ -1227,7 +1185,7 @@
     },
     "aws-redshift:nessie:v3": {
       "level": "none",
-      "notes": "Redshift does not support Nessie catalog",
+      "notes": "Redshift does not support Iceberg V3",
       "caveats": []
     },
     "aws-redshift:polaris:v2": {
@@ -1237,7 +1195,7 @@
     },
     "aws-redshift:polaris:v3": {
       "level": "none",
-      "notes": "Redshift does not support Polaris catalog",
+      "notes": "Redshift does not support Iceberg V3",
       "caveats": []
     },
     "aws-redshift:unity-catalog:v2": {
@@ -1247,7 +1205,7 @@
     },
     "aws-redshift:unity-catalog:v3": {
       "level": "none",
-      "notes": "Redshift does not support Unity Catalog",
+      "notes": "Redshift does not support Iceberg V3",
       "caveats": []
     },
     "aws-redshift:hadoop-catalog:v2": {
@@ -1257,7 +1215,7 @@
     },
     "aws-redshift:hadoop-catalog:v3": {
       "level": "none",
-      "notes": "Redshift does not support Hadoop catalog",
+      "notes": "Redshift does not support Iceberg V3",
       "caveats": []
     },
     "aws-redshift:jdbc-catalog:v2": {
@@ -1267,7 +1225,7 @@
     },
     "aws-redshift:jdbc-catalog:v3": {
       "level": "none",
-      "notes": "Redshift does not support JDBC catalog",
+      "notes": "Redshift does not support Iceberg V3",
       "caveats": []
     },
     "aws-redshift:variant-type:v2": {
@@ -1276,11 +1234,9 @@
       "caveats": []
     },
     "aws-redshift:variant-type:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:shredded-variant:v2": {
       "level": "none",
@@ -1288,11 +1244,9 @@
       "caveats": []
     },
     "aws-redshift:shredded-variant:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:geometry-type:v2": {
       "level": "none",
@@ -1300,11 +1254,9 @@
       "caveats": []
     },
     "aws-redshift:geometry-type:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:vector-type:v2": {
       "level": "none",
@@ -1312,11 +1264,9 @@
       "caveats": []
     },
     "aws-redshift:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:nanosecond-timestamps:v2": {
       "level": "none",
@@ -1324,11 +1274,9 @@
       "caveats": []
     },
     "aws-redshift:nanosecond-timestamps:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:cdc-support:v2": {
       "level": "none",
@@ -1336,11 +1284,9 @@
       "caveats": []
     },
     "aws-redshift:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:lineage:v2": {
       "level": "none",
@@ -1348,11 +1294,9 @@
       "caveats": []
     },
     "aws-redshift:lineage:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-athena:table-creation:v2": {
       "level": "full",
@@ -1725,12 +1669,9 @@
       ]
     },
     "aws-redshift:statistics:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ],
-      "links": []
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-redshift:bloom-filters:v2": {
       "level": "none",
@@ -1739,12 +1680,9 @@
       "links": []
     },
     "aws-redshift:bloom-filters:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ],
-      "links": []
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-athena:type-promotion:v2": {
       "level": "full",
@@ -1828,12 +1766,9 @@
       ]
     },
     "aws-redshift:type-promotion:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Redshift V3 support not yet announced"
-      ],
-      "links": []
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3",
+      "caveats": []
     },
     "aws-emr-glue:position-deletes:v2": {
       "level": "full",
