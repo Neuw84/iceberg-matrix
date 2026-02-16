@@ -135,7 +135,7 @@
     },
     {
       "id": "bloom-filters",
-      "name": "Bloom Filters",
+      "name": "Bloom Filters & Puffin",
       "category": "read-write",
       "introducedIn": "v2",
       "description": "Probabilistic data structure written in Puffin files to efficiently skip data files that definitely don't contain matching values, improving point lookup query performance"

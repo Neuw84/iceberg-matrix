@@ -34,7 +34,7 @@
     },
     {
       "id": "aws-redshift",
-      "name": "Amazon Redshift",
+      "name": "Redshift (S3)",
       "vendor": "AWS",
       "category": "cloud",
       "group": "AWS",
