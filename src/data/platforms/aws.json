@@ -26,7 +26,7 @@
     },
     {
       "id": "aws-managed-flink",
-      "name": "Managed Flink",
+      "name": "Managed Flink (1.20+)",
       "vendor": "AWS",
       "category": "cloud",
       "group": "AWS",
