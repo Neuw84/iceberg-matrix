@@ -8,6 +8,9 @@ then compares results with the DuckDB entries from oss.json.
 Usage:
     python tests/duckdb_feature_tests.py
 
+Environment variables for version selection:
+    DUCKDB_VERSION  - Override reported DuckDB version (default: auto-detected)
+
 Requirements:
     - duckdb >= 1.4.0 (Iceberg write support)
 """
@@ -38,6 +41,7 @@ REPO_ROOT = os.environ.get(
     str(Path(__file__).resolve().parent.parent),
 )
 REPORT_DIR = os.environ.get("REPORT_DIR", os.path.join(os.getcwd(), "test-reports"))
+DUCKDB_VERSION = os.environ.get("DUCKDB_VERSION", duckdb.__version__)
 
 
 # ---------------------------------------------------------------------------
@@ -935,7 +939,7 @@ def generate_report(results: list) -> dict:
     report = {
         "timestamp": datetime.now(tz=__import__('datetime').timezone.utc).isoformat(),
         "engine": "DuckDB",
-        "duckdb_version": duckdb.__version__,
+        "duckdb_version": DUCKDB_VERSION,
         "tests": tests_output,
         "summary": {
             "total": len(results),
@@ -1009,7 +1013,7 @@ def main():
     print("=" * 70)
     print("  DuckDB Iceberg Feature Test Suite")
     print("=" * 70)
-    print(f"DuckDB version: {duckdb.__version__}")
+    print(f"DuckDB version: {DUCKDB_VERSION}")
     print(f"Warehouse: {WAREHOUSE_DIR}")
     print(f"Repo root: {REPO_ROOT}")
     print()

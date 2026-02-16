@@ -9,6 +9,11 @@ entries from oss.json.
 Usage:
     python tests/flink_feature_tests.py
 
+Environment variables for version selection:
+    FLINK_VERSION           - Flink engine version (default: "unknown")
+    FLINK_ICEBERG_VERSION   - Iceberg library version used with Flink (default: "unknown")
+    FLINK_HOME              - Path to Flink installation
+
 Requirements:
     - Flink standalone cluster running (FLINK_HOME set)
     - Iceberg Flink runtime JAR in Flink's lib/ directory
@@ -38,6 +43,7 @@ REPO_ROOT = os.environ.get(
 REPORT_DIR = os.environ.get("REPORT_DIR", os.path.join(os.getcwd(), "test-reports"))
 SQL_CLIENT = os.path.join(FLINK_HOME, "bin", "sql-client.sh") if FLINK_HOME else "sql-client.sh"
 FLINK_VERSION = os.environ.get("FLINK_VERSION", "unknown")
+FLINK_ICEBERG_VERSION = os.environ.get("FLINK_ICEBERG_VERSION", "unknown")
 
 
 # ---------------------------------------------------------------------------
@@ -699,6 +705,7 @@ def generate_report(results: list) -> dict:
         "timestamp": datetime.now(tz=timezone.utc).isoformat(),
         "engine": "Flink",
         "flink_version": FLINK_VERSION,
+        "flink_iceberg_version": FLINK_ICEBERG_VERSION,
         "tests": tests_output,
         "summary": {
             "total": len(results),
@@ -718,6 +725,7 @@ def generate_markdown(report: dict) -> str:
     lines.append("")
     lines.append(f"- **Timestamp:** {report['timestamp']}")
     lines.append(f"- **Flink Version:** {report['flink_version']}")
+    lines.append(f"- **Flink Iceberg Version:** {report['flink_iceberg_version']}")
     lines.append("")
 
     s = report["summary"]
@@ -772,6 +780,7 @@ def main():
     print("  Flink Iceberg Feature Test Suite")
     print("=" * 70)
     print(f"Flink version: {FLINK_VERSION}")
+    print(f"Flink Iceberg version: {FLINK_ICEBERG_VERSION}")
     print(f"FLINK_HOME: {FLINK_HOME}")
     print(f"Warehouse: {WAREHOUSE_DIR}")
     print(f"Repo root: {REPO_ROOT}")
