@@ -329,8 +329,8 @@
       "caveats": []
     },
     "aws-firehose:merge-on-read:v2": {
-      "level": "full",
-      "notes": "Firehose does not support merge-on-read",
+      "level": "partial",
+      "notes": "Firehose will use equality deletes for updates and deletes",
       "caveats": []
     },
     "aws-firehose:merge-on-read:v3": {
