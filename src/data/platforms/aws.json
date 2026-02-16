@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "aws-athena",
-      "name": "AWS Athena",
+      "name": "Athena (v3)",
       "vendor": "AWS",
       "category": "cloud",
       "group": "AWS",
