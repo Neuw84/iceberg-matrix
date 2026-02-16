@@ -176,9 +176,12 @@
       "caveats": []
     },
     "aws-athena:branching-tagging:v2": {
-      "level": "none",
-      "notes": "Athena does not support branching and tagging",
-      "caveats": []
+      "level": "partial",
+      "notes": "Athena can read tags via the $ref metadata table but cannot create or manage branches and tags",
+      "caveats": [
+        "Read-only access to tags via $ref metadata table",
+        "Cannot create or manage branches and tags"
+      ]
     },
     "aws-athena:branching-tagging:v3": {
       "level": "none",
@@ -1563,12 +1566,17 @@
       "caveats": []
     },
     "aws-athena:bloom-filters:v2": {
-      "level": "none",
-      "notes": "Athena does not support configuring or using Iceberg Parquet-level bloom filters or Puffin-based bloom filter statistics.",
+      "level": "unknown",
+      "notes": "Bloom filters are supported in Trino (trinodb/trino#21602) but further testing is needed to confirm Athena support",
       "caveats": [
-        "Parquet bloom filter table properties not documented for Athena"
+        "Needs further testing to confirm support"
       ],
-      "links": []
+      "links": [
+        {
+          "label": "Trino bloom filter PR",
+          "url": "https://github.com/trinodb/trino/pull/21602"
+        }
+      ]
     },
     "aws-athena:bloom-filters:v3": {
       "level": "none",
@@ -1685,20 +1693,10 @@
       "caveats": []
     },
     "aws-athena:type-promotion:v2": {
-      "level": "full",
-      "notes": "Athena supports type promotion for Iceberg tables: integer to bigint, float to double, and increasing decimal precision. Use ALTER TABLE CHANGE COLUMN to widen column types.",
+      "level": "unknown",
+      "notes": "Type promotion may be supported but further testing is needed to confirm behavior",
       "caveats": [
-        "Metadata-only operation; no data file rewrite required"
-      ],
-      "links": [
-        {
-          "label": "Evolve Iceberg table schema",
-          "url": "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg-evolving-table-schema.html"
-        },
-        {
-          "label": "ALTER TABLE CHANGE COLUMN",
-          "url": "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg-alter-table-change-column.html"
-        }
+        "Needs further testing to confirm support"
       ]
     },
     "aws-athena:type-promotion:v3": {
