@@ -94,6 +94,42 @@ Each entry has:
 - `caveats` — array of strings with limitations
 - `links` - Array of public links with docs
 
+## Running the Iceberg Feature Tests
+
+The repo includes a PySpark-based test suite that validates Iceberg features against an actual local Spark+Iceberg environment and compares results with the JSON support data.
+
+### Prerequisites
+
+- Java 11 or 17
+- Python 3.11+
+
+### Local Execution
+
+```bash
+# Install dependencies
+pip install -r tests/requirements.txt
+
+# Download the Iceberg Spark runtime JAR
+ICEBERG_VERSION=1.7.1
+curl -fSL -o "iceberg-spark-runtime-3.5_2.12-${ICEBERG_VERSION}.jar" \
+  "https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.5_2.12/${ICEBERG_VERSION}/iceberg-spark-runtime-3.5_2.12-${ICEBERG_VERSION}.jar"
+
+# Run the tests
+python tests/iceberg_feature_tests.py
+```
+
+Reports are written to `test-reports/` as both JSON and Markdown.
+
+### CI
+
+Tests run automatically on pull requests via the **Iceberg Feature Tests** GitHub Actions workflow. The workflow:
+- Sets up Java 17, Python 3.11, PySpark, and the Iceberg runtime JAR
+- Runs all feature tests in Spark local mode
+- Uploads the report as a build artifact
+- Posts a summary comment on PRs
+
+You can also trigger the workflow manually via `workflow_dispatch`.
+
 ## License
 
 This project is licensed under the [MIT License](./LICENSE).
