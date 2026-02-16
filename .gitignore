@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+tests/iceberg-spark-runtime-*.jar
+tests/venv/
+test-reports/

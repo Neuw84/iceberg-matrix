@@ -1,0 +1,82 @@
+name: DuckDB Iceberg Feature Tests
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  duckdb-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install DuckDB
+        run: pip install duckdb
+
+      - name: Run DuckDB Iceberg feature tests
+        run: |
+          export REPO_ROOT="${GITHUB_WORKSPACE}"
+          export REPORT_DIR="${GITHUB_WORKSPACE}/test-reports"
+          export ICEBERG_WAREHOUSE="${RUNNER_TEMP}/duckdb-iceberg-warehouse"
+          python tests/duckdb_feature_tests.py
+        continue-on-error: true
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: duckdb-iceberg-test-report
+          path: test-reports/
+          retention-days: 30
+
+      - name: Post PR comment with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'test-reports/duckdb-iceberg-test-report.md';
+            if (!fs.existsSync(reportPath)) {
+              console.log('No report found, skipping comment');
+              return;
+            }
+            const body = fs.readFileSync(reportPath, 'utf8');
+            const truncated = body.length > 60000 ? body.substring(0, 60000) + '\n\n... (truncated)' : body;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const marker = '<!-- duckdb-iceberg-test-report -->';
+            const existing = comments.find(c => c.body.includes(marker));
+            const commentBody = `${marker}\n${truncated}`;
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: commentBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody,
+              });
+            }
