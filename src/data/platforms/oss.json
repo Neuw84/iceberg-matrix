@@ -3763,32 +3763,17 @@
       ]
     },
     "flink:bloom-filters:v2": {
-      "level": "partial",
-      "notes": "Parquet-level bloom filters can be enabled via Iceberg table properties (write.parquet.bloom-filter-enabled.column.*) which are respected by the Flink Iceberg writer. No compute_table_stats procedure or Puffin-based bloom filter support.",
+      "level": "unknown",
+      "notes": "Bloom filter support requires further testing to confirm",
       "caveats": [
-        "Requires setting bloom filter table properties per column",
-        "Not enabled by default",
-        "No compute_table_stats procedure available in Flink"
-      ],
-      "links": [
-        {
-          "label": "Iceberg Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/configuration/"
-        }
+        "Needs further testing to confirm support"
       ]
     },
     "flink:bloom-filters:v3": {
-      "level": "partial",
-      "notes": "Parquet-level bloom filters supported via Iceberg table properties for V3 tables",
+      "level": "unknown",
+      "notes": "Bloom filter support requires further testing to confirm",
       "caveats": [
-        "Requires setting bloom filter table properties per column",
-        "No compute_table_stats procedure available in Flink"
-      ],
-      "links": [
-        {
-          "label": "Iceberg Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/configuration/"
-        }
+        "Needs further testing to confirm support"
       ]
     },
     "kafka-connect:statistics:v2": {
