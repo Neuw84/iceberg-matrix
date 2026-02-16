@@ -53,8 +53,7 @@ const GROUP_LOGOS: Partial<Record<PlatformGroup, string>> = {
 
 const PLATFORM_LOGOS: Record<string, string> = {
   "aws-athena": "/logos/aws-athena.svg",
-  "aws-glue": "/logos/aws-glue.svg",
-  "aws-emr": "/logos/spark.svg",
+  "aws-emr-glue": "/logos/spark.svg",
   "aws-managed-flink": "/logos/flink.svg",
   databricks: "/logos/databricks.svg",
   snowflake: "/logos/snowflake.svg",
