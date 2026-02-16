@@ -18,7 +18,7 @@
     },
     {
       "id": "aws-firehose",
-      "name": "Amazon Data Firehose",
+      "name": "Data Firehose",
       "vendor": "AWS",
       "category": "cloud",
       "group": "AWS",
