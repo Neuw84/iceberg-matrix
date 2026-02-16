@@ -10,8 +10,8 @@ permissions:
   pull-requests: write
 
 env:
-  SPARK_VERSION: "3.5"
-  ICEBERG_VERSION: "1.7.1"
+  SPARK_VERSION: "4.0"
+  ICEBERG_VERSION: "1.10.1"
 
 jobs:
   iceberg-tests:
@@ -41,8 +41,8 @@ jobs:
 
       - name: Download Iceberg Spark runtime JAR
         run: |
-          JAR_NAME="iceberg-spark-runtime-${SPARK_VERSION}_2.12-${ICEBERG_VERSION}.jar"
-          JAR_URL="https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-${SPARK_VERSION}_2.12/${ICEBERG_VERSION}/${JAR_NAME}"
+          JAR_NAME="iceberg-spark-runtime-${SPARK_VERSION}_2.13-${ICEBERG_VERSION}.jar"
+          JAR_URL="https://search.maven.org/remotecontent?filepath=org/apache/iceberg/iceberg-spark-runtime-${SPARK_VERSION}_2.13/${ICEBERG_VERSION}/${JAR_NAME}"
           echo "Downloading ${JAR_URL}"
           curl -fSL -o "${JAR_NAME}" "${JAR_URL}"
           echo "ICEBERG_JAR=$(pwd)/${JAR_NAME}" >> $GITHUB_ENV
