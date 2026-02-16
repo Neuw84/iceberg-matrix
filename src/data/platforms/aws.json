@@ -691,16 +691,30 @@
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#partitioned-by"
     },
     "aws-managed-flink:partition-evolution:v2": {
-      "level": "none",
-      "notes": "Flink ALTER TABLE does not support partition changes; partition evolution must be performed via Spark or another engine",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table"
+      "level": "partial",
+      "notes": "Partition evolution supported via the Dynamic Sink (Sink V2-based implementation)",
+      "caveats": [
+        "Requires Dynamic Sink (Sink V2-based implementation)"
+      ],
+      "links": [
+        {
+          "label": "Flink Sink V2-based implementation",
+          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#sink-v2-based-implementation"
+        }
+      ]
     },
     "aws-managed-flink:partition-evolution:v3": {
-      "level": "none",
-      "notes": "Flink ALTER TABLE does not support partition changes; partition evolution must be performed via Spark or another engine",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table"
+      "level": "partial",
+      "notes": "Partition evolution supported via the Dynamic Sink (Sink V2-based implementation) for V3 tables",
+      "caveats": [
+        "Requires Dynamic Sink (Sink V2-based implementation)"
+      ],
+      "links": [
+        {
+          "label": "Flink Sink V2-based implementation",
+          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#sink-v2-based-implementation"
+        }
+      ]
     },
     "aws-managed-flink:multi-arg-transforms:v2": {
       "level": "none",
@@ -1323,12 +1337,9 @@
       "caveats": []
     },
     "aws-firehose:table-creation:v2": {
-      "level": "partial",
-      "notes": "Firehose can auto-create Iceberg tables when delivering data, with limited schema control",
-      "caveats": [
-        "Schema inferred from incoming data",
-        "Limited control over table properties"
-      ]
+      "level": "none",
+      "notes": "Firehose cannot create Iceberg tables; the table must already exist",
+      "caveats": []
     },
     "aws-firehose:table-creation:v3": {
       "level": "none",

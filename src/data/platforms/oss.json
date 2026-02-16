@@ -1780,16 +1780,30 @@
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#partitioned-by"
     },
     "flink:partition-evolution:v2": {
-      "level": "none",
-      "notes": "Flink ALTER TABLE does not support partition changes; partition evolution must be performed via Spark or another engine",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table"
+      "level": "partial",
+      "notes": "Partition evolution supported via the Dynamic Sink (Sink V2-based implementation)",
+      "caveats": [
+        "Requires Dynamic Sink (Sink V2-based implementation)"
+      ],
+      "links": [
+        {
+          "label": "Flink Sink V2-based implementation",
+          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#sink-v2-based-implementation"
+        }
+      ]
     },
     "flink:partition-evolution:v3": {
-      "level": "none",
-      "notes": "Flink ALTER TABLE does not support partition changes; partition evolution must be performed via Spark or another engine",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table"
+      "level": "partial",
+      "notes": "Partition evolution supported via the Dynamic Sink (Sink V2-based implementation) for V3 tables",
+      "caveats": [
+        "Requires Dynamic Sink (Sink V2-based implementation)"
+      ],
+      "links": [
+        {
+          "label": "Flink Sink V2-based implementation",
+          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#sink-v2-based-implementation"
+        }
+      ]
     },
     "flink:multi-arg-transforms:v2": {
       "level": "none",
