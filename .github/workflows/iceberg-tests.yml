@@ -1,0 +1,104 @@
+name: Iceberg Feature Tests
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  SPARK_VERSION: "3.5"
+  ICEBERG_VERSION: "1.7.1"
+
+jobs:
+  iceberg-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r tests/requirements.txt
+
+      - name: Download Iceberg Spark runtime JAR
+        run: |
+          JAR_NAME="iceberg-spark-runtime-${SPARK_VERSION}_2.12-${ICEBERG_VERSION}.jar"
+          JAR_URL="https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-${SPARK_VERSION}_2.12/${ICEBERG_VERSION}/${JAR_NAME}"
+          echo "Downloading ${JAR_URL}"
+          curl -fSL -o "${JAR_NAME}" "${JAR_URL}"
+          echo "ICEBERG_JAR=$(pwd)/${JAR_NAME}" >> $GITHUB_ENV
+
+      - name: Run Iceberg feature tests
+        run: |
+          export REPO_ROOT="${GITHUB_WORKSPACE}"
+          export REPORT_DIR="${GITHUB_WORKSPACE}/test-reports"
+          export ICEBERG_WAREHOUSE="${RUNNER_TEMP}/iceberg-warehouse"
+          python tests/iceberg_feature_tests.py
+        continue-on-error: true
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iceberg-test-report
+          path: test-reports/
+          retention-days: 30
+
+      - name: Post PR comment with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'test-reports/iceberg-test-report.md';
+            if (!fs.existsSync(reportPath)) {
+              console.log('No report found, skipping comment');
+              return;
+            }
+            const body = fs.readFileSync(reportPath, 'utf8');
+            const truncated = body.length > 60000 ? body.substring(0, 60000) + '\n\n... (truncated)' : body;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const marker = '<!-- iceberg-test-report -->';
+            const existing = comments.find(c => c.body.includes(marker));
+            const commentBody = `${marker}\n${truncated}`;
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: commentBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody,
+              });
+            }
