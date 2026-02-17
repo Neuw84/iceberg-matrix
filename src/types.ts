@@ -56,3 +56,6 @@ export interface FilterState {
   selectedSupportLevels: SupportLevel[];
   searchQuery: string;
 }
+
+export type AwsS3Mode = "s3-buckets" | "s3-tables";
+

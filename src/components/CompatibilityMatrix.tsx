@@ -1,5 +1,6 @@
 import { Fragment, useState } from "react";
 import type {
+  AwsS3Mode,
   CompatibilityData,
   Feature,
   FeatureCategory,
@@ -73,11 +74,15 @@ interface PopoverState {
 interface CompatibilityMatrixProps {
   data: CompatibilityData;
   filters: FilterState;
+  awsS3Mode: AwsS3Mode;
+  onAwsS3ModeChange: (mode: AwsS3Mode) => void;
 }
 
 export function CompatibilityMatrix({
   data,
   filters,
+  awsS3Mode,
+  onAwsS3ModeChange,
 }: CompatibilityMatrixProps) {
   const [popover, setPopover] = useState<PopoverState | null>(null);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<FeatureCategory>>(new Set());
@@ -110,6 +115,9 @@ export function CompatibilityMatrix({
       platformGroups.push({ group: p.group, platforms: [p] });
     }
   }
+
+  // Check if any AWS platform is visible
+  const hasAwsPlatforms = platformGroups.some((pg) => pg.group === "AWS");
 
   const GROUP_COLORS: Record<PlatformGroup, string> = {
     AWS: "bg-orange-100 text-orange-900 border-orange-200",
@@ -165,7 +173,25 @@ export function CompatibilityMatrix({
                   colSpan={pg.platforms.length * versions.length}
                   className={`px-2 py-1.5 text-center text-[10px] font-bold uppercase tracking-wider border-b border-x ${GROUP_COLORS[pg.group]}`}
                 >
-                  {pg.group}
+                  <div className="flex items-center justify-center gap-2">
+                    <span>{pg.group}</span>
+                    {pg.group === "AWS" && hasAwsPlatforms && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAwsS3ModeChange(awsS3Mode === "s3-buckets" ? "s3-tables" : "s3-buckets");
+                        }}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold cursor-pointer transition-colors border border-orange-300 bg-white text-orange-700 hover:bg-orange-200 normal-case tracking-normal"
+                        aria-label={`Switch to ${awsS3Mode === "s3-buckets" ? "S3 Tables" : "S3 Buckets"}`}
+                        title={`Currently showing ${awsS3Mode === "s3-buckets" ? "S3 Buckets" : "S3 Tables"} data. Click to switch.`}
+                      >
+                        <span className={awsS3Mode === "s3-buckets" ? "font-bold" : "font-normal opacity-60"}>S3 Buckets</span>
+                        <span className="text-orange-300">/</span>
+                        <span className={awsS3Mode === "s3-tables" ? "font-bold" : "font-normal opacity-60"}>S3 Tables</span>
+                      </button>
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>

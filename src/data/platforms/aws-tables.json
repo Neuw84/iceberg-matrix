@@ -1,0 +1,2240 @@
+{
+  "platforms": [
+    {
+      "id": "aws-athena",
+      "name": "Athena (v3)",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/athena/"
+    },
+    {
+      "id": "aws-emr-glue",
+      "name": "EMR/Glue",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/"
+    },
+    {
+      "id": "aws-firehose",
+      "name": "Data Firehose",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/firehose/"
+    },
+    {
+      "id": "aws-managed-flink",
+      "name": "Managed Flink (1.20+)",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/managed-flink/"
+    },
+    {
+      "id": "aws-redshift-s3",
+      "name": "Redshift (S3)",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/redshift/"
+    },
+    {
+      "id": "aws-redshift-rms",
+      "name": "Redshift (RMS)",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/redshift/"
+    }
+  ],
+  "support": {
+    "aws-athena:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Athena engine v3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:position-deletes:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Athena engine v3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Supports merge-on-read for both position and equality deletes with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:copy-on-write:v2": {
+      "level": "partial",
+      "notes": "Copy-on-write is the default write mode; MERGE/DELETE use merge-on-read regardless of table properties",
+      "caveats": [
+        "MERGE and DELETE always use merge-on-read"
+      ]
+    },
+    "aws-athena:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Add, drop, and rename columns supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:type-promotion:v2": {
+      "level": "full",
+      "notes": "Type promotion supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:type-promotion:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:column-default-values:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:table-creation:v2": {
+      "level": "full",
+      "notes": "CREATE TABLE supported with S3 Tables via Athena",
+      "caveats": []
+    },
+    "aws-athena:table-creation:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Supports identity, bucket, truncate, year, month, day, hour transforms with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Partition evolution supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:time-travel:v2": {
+      "level": "full",
+      "notes": "Query by snapshot ID or timestamp with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:time-travel:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "S3 Tables provides automatic compaction; manual OPTIMIZE and VACUUM also supported via Athena",
+      "caveats": [
+        "S3 Tables handles compaction automatically",
+        "Manual maintenance still available"
+      ]
+    },
+    "aws-athena:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:branching-tagging:v2": {
+      "level": "partial",
+      "notes": "Athena can read tags via $ref metadata table but cannot create or manage branches/tags on S3 Tables",
+      "caveats": [
+        "Read-only access to tags"
+      ]
+    },
+    "aws-athena:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via Athena engine v3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:read-support:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO and CTAS supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:write-insert:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported via Athena engine v3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Integrated with S3 Tables catalog (AWS-managed REST-based catalog)",
+      "caveats": []
+    },
+    "aws-athena:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:statistics:v2": {
+      "level": "full",
+      "notes": "Column statistics supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:statistics:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:bloom-filters:v2": {
+      "level": "unknown",
+      "notes": "Bloom filter support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-athena:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:hive-metastore:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own catalog; Hive Metastore not supported",
+      "caveats": []
+    },
+    "aws-athena:hive-metastore:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
+      "caveats": []
+    },
+    "aws-athena:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:rest-catalog:v2": {
+      "level": "full",
+      "notes": "S3 Tables exposes a REST-compatible catalog API",
+      "caveats": []
+    },
+    "aws-athena:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:nessie:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-athena:nessie:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:polaris:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-athena:polaris:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:unity-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-athena:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-athena:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-athena:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:variant-type:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:geometry-type:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector type is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:vector-type:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:cdc-support:v2": {
+      "level": "none",
+      "notes": "CDC is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:cdc-support:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-athena:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage tracking is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:lineage:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR with S3 Tables integration",
+      "caveats": []
+    },
+    "aws-emr-glue:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR with S3 Tables integration",
+      "caveats": []
+    },
+    "aws-emr-glue:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Merge-on-read supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:type-promotion:v2": {
+      "level": "full",
+      "notes": "Type promotion supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-emr-glue:table-creation:v2": {
+      "level": "full",
+      "notes": "CREATE TABLE supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "All partition transforms supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Partition evolution supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-emr-glue:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel via snapshot ID and timestamp supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:table-maintenance:v2": {
+      "level": "full",
+      "notes": "S3 Tables provides automatic compaction; Spark procedures also available for manual maintenance",
+      "caveats": [
+        "S3 Tables handles compaction automatically"
+      ]
+    },
+    "aws-emr-glue:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Full branching and tagging support via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO, INSERT OVERWRITE, and CTAS supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE INTO, UPDATE, DELETE supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Integrated with S3 Tables catalog via EMR",
+      "caveats": []
+    },
+    "aws-emr-glue:statistics:v2": {
+      "level": "full",
+      "notes": "Column statistics supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:bloom-filters:v2": {
+      "level": "full",
+      "notes": "Bloom filters and Puffin files supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:hive-metastore:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
+      "caveats": []
+    },
+    "aws-emr-glue:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
+      "caveats": []
+    },
+    "aws-emr-glue:rest-catalog:v2": {
+      "level": "full",
+      "notes": "S3 Tables exposes a REST-compatible catalog API used by EMR",
+      "caveats": []
+    },
+    "aws-emr-glue:nessie:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-emr-glue:polaris:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-emr-glue:unity-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-emr-glue:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-emr-glue:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-emr-glue:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr-glue:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr-glue:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr-glue:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector type is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr-glue:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-emr-glue:cdc-support:v2": {
+      "level": "none",
+      "notes": "CDC is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr-glue:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage tracking is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr-glue:position-deletes:v3": {
+      "level": "full",
+      "notes": "V3 position deletes supported via Spark 3.5+ on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:equality-deletes:v3": {
+      "level": "full",
+      "notes": "V3 equality deletes supported via Spark 3.5+ on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:merge-on-read:v3": {
+      "level": "full",
+      "notes": "V3 merge-on-read with deletion vectors supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:copy-on-write:v3": {
+      "level": "full",
+      "notes": "V3 copy-on-write supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:schema-evolution:v3": {
+      "level": "full",
+      "notes": "V3 schema evolution supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:type-promotion:v3": {
+      "level": "full",
+      "notes": "V3 type promotion supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:column-default-values:v3": {
+      "level": "full",
+      "notes": "V3 column default values supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:table-creation:v3": {
+      "level": "full",
+      "notes": "V3 table creation supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "V3 hidden partitioning supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:partition-evolution:v3": {
+      "level": "full",
+      "notes": "V3 partition evolution supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Multi-argument transforms support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-emr-glue:time-travel:v3": {
+      "level": "full",
+      "notes": "V3 time travel supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:table-maintenance:v3": {
+      "level": "full",
+      "notes": "S3 Tables provides automatic compaction; Spark procedures also available for V3 tables",
+      "caveats": [
+        "S3 Tables handles compaction automatically"
+      ]
+    },
+    "aws-emr-glue:branching-tagging:v3": {
+      "level": "full",
+      "notes": "V3 branching and tagging supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:read-support:v3": {
+      "level": "full",
+      "notes": "Full V3 read support via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:write-insert:v3": {
+      "level": "full",
+      "notes": "V3 INSERT INTO, INSERT OVERWRITE, and CTAS supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:write-merge-update-delete:v3": {
+      "level": "full",
+      "notes": "V3 MERGE INTO, UPDATE, DELETE supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Integrated with S3 Tables catalog via EMR for V3",
+      "caveats": []
+    },
+    "aws-emr-glue:statistics:v3": {
+      "level": "full",
+      "notes": "V3 column statistics supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:bloom-filters:v3": {
+      "level": "full",
+      "notes": "V3 bloom filters supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr-glue:hive-metastore:v3": {
+      "level": "none",
+      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
+      "caveats": []
+    },
+    "aws-emr-glue:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
+      "caveats": []
+    },
+    "aws-emr-glue:rest-catalog:v3": {
+      "level": "full",
+      "notes": "S3 Tables exposes a REST-compatible catalog API used by EMR for V3",
+      "caveats": []
+    },
+    "aws-emr-glue:nessie:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-emr-glue:polaris:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-emr-glue:unity-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-emr-glue:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-emr-glue:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-emr-glue:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Variant type support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-emr-glue:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Shredded variant support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-emr-glue:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Geometry type support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-emr-glue:vector-type:v3": {
+      "level": "unknown",
+      "notes": "Vector type support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-emr-glue:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "Nanosecond timestamp support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-emr-glue:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "CDC support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-emr-glue:lineage:v3": {
+      "level": "unknown",
+      "notes": "Lineage tracking support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-managed-flink:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via iceberg-flink-runtime JAR with S3 Tables REST catalog",
+      "caveats": [
+        "Users must bundle iceberg-flink-runtime JAR"
+      ]
+    },
+    "aws-managed-flink:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via UPSERT mode with S3 Tables REST catalog",
+      "caveats": [
+        "Users must bundle iceberg-flink-runtime JAR"
+      ]
+    },
+    "aws-managed-flink:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Merge-on-read supported via streaming upsert mode with S3 Tables",
+      "caveats": [
+        "Users must bundle iceberg-flink-runtime JAR"
+      ]
+    },
+    "aws-managed-flink:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported via INSERT INTO with S3 Tables",
+      "caveats": [
+        "Users must bundle iceberg-flink-runtime JAR"
+      ]
+    },
+    "aws-managed-flink:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Flink can read evolved schemas but ALTER TABLE only supports changing table properties with S3 Tables",
+      "caveats": [
+        "Column and partition schema changes not supported via Flink SQL"
+      ]
+    },
+    "aws-managed-flink:type-promotion:v2": {
+      "level": "partial",
+      "notes": "Type promotion limited by Flink SQL DDL capabilities with S3 Tables",
+      "caveats": [
+        "ALTER TABLE only supports changing table properties"
+      ]
+    },
+    "aws-managed-flink:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:table-creation:v2": {
+      "level": "full",
+      "notes": "CREATE TABLE supported via Flink SQL with S3 Tables REST catalog",
+      "caveats": [
+        "Users must bundle iceberg-flink-runtime JAR"
+      ]
+    },
+    "aws-managed-flink:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "Flink can read/write hidden-partitioned tables on S3 Tables but cannot create them via DDL",
+      "caveats": [
+        "Flink DDL does not support transform functions in PARTITION BY"
+      ]
+    },
+    "aws-managed-flink:partition-evolution:v2": {
+      "level": "partial",
+      "notes": "Partition evolution supported via Dynamic Sink with S3 Tables",
+      "caveats": [
+        "Requires Dynamic Sink (Sink V2-based implementation)"
+      ]
+    },
+    "aws-managed-flink:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel via snapshot-id and as-of-timestamp with S3 Tables",
+      "caveats": [
+        "Uses SQL hint syntax"
+      ]
+    },
+    "aws-managed-flink:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "S3 Tables provides automatic compaction; Flink rewrite files action also available",
+      "caveats": [
+        "S3 Tables handles compaction automatically",
+        "Only rewrite files action available from Flink"
+      ]
+    },
+    "aws-managed-flink:branching-tagging:v2": {
+      "level": "partial",
+      "notes": "Flink can read/write branches and tags on S3 Tables but cannot create them",
+      "caveats": [
+        "Cannot create or manage branches/tags via DDL"
+      ]
+    },
+    "aws-managed-flink:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support in batch and streaming modes with S3 Tables",
+      "caveats": [
+        "Users must bundle iceberg-flink-runtime JAR"
+      ]
+    },
+    "aws-managed-flink:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported in batch and streaming modes with S3 Tables",
+      "caveats": [
+        "INSERT OVERWRITE is batch-only"
+      ]
+    },
+    "aws-managed-flink:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "UPSERT mode via equality deletes with S3 Tables; no SQL MERGE/UPDATE/DELETE",
+      "caveats": [
+        "No SQL MERGE INTO, UPDATE, or DELETE syntax"
+      ]
+    },
+    "aws-managed-flink:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Connects to S3 Tables via REST catalog type",
+      "caveats": [
+        "Users must bundle iceberg-flink-runtime JAR"
+      ]
+    },
+    "aws-managed-flink:statistics:v2": {
+      "level": "full",
+      "notes": "Column statistics supported via Flink with S3 Tables",
+      "caveats": []
+    },
+    "aws-managed-flink:bloom-filters:v2": {
+      "level": "unknown",
+      "notes": "Bloom filter support via Flink with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-managed-flink:hive-metastore:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
+      "caveats": []
+    },
+    "aws-managed-flink:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
+      "caveats": []
+    },
+    "aws-managed-flink:rest-catalog:v2": {
+      "level": "full",
+      "notes": "S3 Tables exposes a REST-compatible catalog API used by Flink",
+      "caveats": []
+    },
+    "aws-managed-flink:nessie:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:polaris:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:unity-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector type is a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:cdc-support:v2": {
+      "level": "none",
+      "notes": "CDC is a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage tracking is a V3 feature",
+      "caveats": []
+    },
+    "aws-managed-flink:position-deletes:v3": {
+      "level": "full",
+      "notes": "V3 position deletes supported via iceberg-flink-runtime 1.7.0+ with S3 Tables",
+      "caveats": [
+        "Users must bundle iceberg-flink-runtime JAR 1.7.0+"
+      ]
+    },
+    "aws-managed-flink:equality-deletes:v3": {
+      "level": "full",
+      "notes": "V3 equality deletes supported with S3 Tables",
+      "caveats": [
+        "Users must bundle iceberg-flink-runtime JAR 1.7.0+"
+      ]
+    },
+    "aws-managed-flink:merge-on-read:v3": {
+      "level": "full",
+      "notes": "V3 merge-on-read with deletion vectors supported with S3 Tables",
+      "caveats": [
+        "Users must bundle iceberg-flink-runtime JAR 1.7.0+"
+      ]
+    },
+    "aws-managed-flink:copy-on-write:v3": {
+      "level": "full",
+      "notes": "V3 copy-on-write supported with S3 Tables",
+      "caveats": [
+        "Users must bundle iceberg-flink-runtime JAR 1.7.0+"
+      ]
+    },
+    "aws-managed-flink:schema-evolution:v3": {
+      "level": "partial",
+      "notes": "V3 schema evolution limited by Flink SQL DDL with S3 Tables",
+      "caveats": [
+        "Column and partition schema changes not supported via Flink SQL"
+      ]
+    },
+    "aws-managed-flink:type-promotion:v3": {
+      "level": "partial",
+      "notes": "V3 type promotion limited by Flink SQL DDL with S3 Tables",
+      "caveats": []
+    },
+    "aws-managed-flink:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "V3 column default values support via Flink with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-managed-flink:table-creation:v3": {
+      "level": "full",
+      "notes": "V3 table creation supported via Flink SQL with S3 Tables REST catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:hidden-partitioning:v3": {
+      "level": "partial",
+      "notes": "Flink can read/write V3 hidden-partitioned tables on S3 Tables but cannot create them via DDL",
+      "caveats": []
+    },
+    "aws-managed-flink:partition-evolution:v3": {
+      "level": "partial",
+      "notes": "V3 partition evolution supported via Dynamic Sink with S3 Tables",
+      "caveats": []
+    },
+    "aws-managed-flink:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Multi-argument transforms support via Flink with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-managed-flink:time-travel:v3": {
+      "level": "full",
+      "notes": "V3 time travel supported via Flink with S3 Tables",
+      "caveats": []
+    },
+    "aws-managed-flink:table-maintenance:v3": {
+      "level": "partial",
+      "notes": "S3 Tables provides automatic compaction; Flink rewrite files also available for V3",
+      "caveats": [
+        "S3 Tables handles compaction automatically"
+      ]
+    },
+    "aws-managed-flink:branching-tagging:v3": {
+      "level": "partial",
+      "notes": "Flink can read/write V3 branches and tags on S3 Tables but cannot create them",
+      "caveats": []
+    },
+    "aws-managed-flink:read-support:v3": {
+      "level": "full",
+      "notes": "Full V3 read support via Flink with S3 Tables",
+      "caveats": [
+        "Users must bundle iceberg-flink-runtime JAR 1.7.0+"
+      ]
+    },
+    "aws-managed-flink:write-insert:v3": {
+      "level": "full",
+      "notes": "V3 INSERT INTO supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-managed-flink:write-merge-update-delete:v3": {
+      "level": "partial",
+      "notes": "V3 UPSERT mode via equality deletes with S3 Tables; no SQL MERGE/UPDATE/DELETE",
+      "caveats": []
+    },
+    "aws-managed-flink:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Connects to S3 Tables via REST catalog type for V3",
+      "caveats": []
+    },
+    "aws-managed-flink:statistics:v3": {
+      "level": "full",
+      "notes": "V3 column statistics supported via Flink with S3 Tables",
+      "caveats": []
+    },
+    "aws-managed-flink:bloom-filters:v3": {
+      "level": "unknown",
+      "notes": "V3 bloom filter support via Flink with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-managed-flink:hive-metastore:v3": {
+      "level": "none",
+      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
+      "caveats": []
+    },
+    "aws-managed-flink:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
+      "caveats": []
+    },
+    "aws-managed-flink:rest-catalog:v3": {
+      "level": "full",
+      "notes": "S3 Tables exposes a REST-compatible catalog API used by Flink for V3",
+      "caveats": []
+    },
+    "aws-managed-flink:nessie:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:polaris:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:unity-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-managed-flink:variant-type:v3": {
+      "level": "unknown",
+      "notes": "V3 variant type support via Flink with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-managed-flink:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "V3 shredded variant support via Flink with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-managed-flink:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "V3 geometry type support via Flink with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-managed-flink:vector-type:v3": {
+      "level": "unknown",
+      "notes": "V3 vector type support via Flink with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-managed-flink:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "V3 nanosecond timestamp support via Flink with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-managed-flink:cdc-support:v3": {
+      "level": "unknown",
+      "notes": "V3 CDC support via Flink with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-managed-flink:lineage:v3": {
+      "level": "unknown",
+      "notes": "V3 lineage tracking support via Flink with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-redshift-s3:position-deletes:v2": {
+      "level": "full",
+      "notes": "Redshift reads position deletes when querying S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:position-deletes:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Redshift reads equality deletes when querying S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Merge-on-read supported when querying S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported when writing to S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Redshift can read evolved schemas from S3 Tables; ALTER TABLE support limited",
+      "caveats": [
+        "Schema changes should be made via Spark/EMR"
+      ]
+    },
+    "aws-redshift-s3:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:type-promotion:v2": {
+      "level": "partial",
+      "notes": "Type promotion limited when accessing S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:type-promotion:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:column-default-values:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:table-creation:v2": {
+      "level": "full",
+      "notes": "CREATE EXTERNAL TABLE supported for S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:table-creation:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Redshift supports reading hidden-partitioned tables on S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:partition-evolution:v2": {
+      "level": "partial",
+      "notes": "Redshift can read partition-evolved tables on S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel supported via Redshift with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:time-travel:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "S3 Tables provides automatic compaction; limited manual maintenance via Redshift",
+      "caveats": [
+        "S3 Tables handles compaction automatically"
+      ]
+    },
+    "aws-redshift-s3:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Redshift does not support branching and tagging on S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support for S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:read-support:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported for S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:write-insert:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported for S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Redshift integrates with S3 Tables catalog",
+      "caveats": []
+    },
+    "aws-redshift-s3:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:statistics:v2": {
+      "level": "full",
+      "notes": "Column statistics supported when querying S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:statistics:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:bloom-filters:v2": {
+      "level": "unknown",
+      "notes": "Bloom filter support for S3 Tables via Redshift not explicitly documented",
+      "caveats": []
+    },
+    "aws-redshift-s3:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:hive-metastore:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
+      "caveats": []
+    },
+    "aws-redshift-s3:hive-metastore:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
+      "caveats": []
+    },
+    "aws-redshift-s3:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:rest-catalog:v2": {
+      "level": "full",
+      "notes": "S3 Tables exposes a REST-compatible catalog API used by Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:nessie:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-redshift-s3:nessie:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:polaris:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-redshift-s3:polaris:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:unity-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-redshift-s3:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-redshift-s3:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-redshift-s3:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:variant-type:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:geometry-type:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector type is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:vector-type:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:cdc-support:v2": {
+      "level": "none",
+      "notes": "CDC is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:cdc-support:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage tracking is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:lineage:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-rms:position-deletes:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:position-deletes:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:merge-on-read:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:copy-on-write:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:schema-evolution:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:type-promotion:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:type-promotion:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:column-default-values:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:column-default-values:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:table-creation:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:table-creation:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:hidden-partitioning:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:partition-evolution:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:time-travel:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:time-travel:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:read-support:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:read-support:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:write-insert:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:write-insert:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:write-merge-update-delete:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:catalog-integration:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:statistics:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:statistics:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:bloom-filters:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:hive-metastore:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:hive-metastore:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:rest-catalog:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:nessie:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:nessie:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:polaris:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:polaris:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:unity-catalog:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:variant-type:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:variant-type:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:geometry-type:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:geometry-type:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:vector-type:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:vector-type:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:cdc-support:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:cdc-support:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:lineage:v2": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-redshift-rms:lineage:v3": {
+      "level": "none",
+      "notes": "Redshift Managed Storage (RMS) does not use S3 Tables; RMS has its own managed storage",
+      "caveats": []
+    },
+    "aws-firehose:position-deletes:v2": {
+      "level": "none",
+      "notes": "Firehose is a delivery service; it writes to Iceberg tables but does not read or process delete files",
+      "caveats": []
+    },
+    "aws-firehose:position-deletes:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Firehose does not support delete operations",
+      "caveats": []
+    },
+    "aws-firehose:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:merge-on-read:v2": {
+      "level": "partial",
+      "notes": "Firehose will use equality deletes for updates and deletes",
+      "caveats": []
+    },
+    "aws-firehose:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:copy-on-write:v2": {
+      "level": "partial",
+      "notes": "Firehose append-only mode effectively uses copy-on-write semantics (new data files, no delete files)",
+      "caveats": [
+        "Only append mode; no UPDATE/DELETE support"
+      ]
+    },
+    "aws-firehose:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Firehose can deliver to tables with evolved schemas but cannot perform schema changes itself",
+      "caveats": [
+        "Schema changes must be made externally"
+      ]
+    },
+    "aws-firehose:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:column-default-values:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Firehose supports writing to hidden-partitioned Iceberg tables using dynamic partitioning",
+      "caveats": []
+    },
+    "aws-firehose:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:partition-evolution:v2": {
+      "level": "none",
+      "notes": "Firehose cannot modify table partitioning",
+      "caveats": []
+    },
+    "aws-firehose:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:time-travel:v2": {
+      "level": "none",
+      "notes": "Firehose is a write-only delivery service; no read or query capabilities",
+      "caveats": []
+    },
+    "aws-firehose:time-travel:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Firehose does not perform table maintenance operations",
+      "caveats": []
+    },
+    "aws-firehose:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Firehose does not support branching and tagging",
+      "caveats": []
+    },
+    "aws-firehose:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:read-support:v2": {
+      "level": "none",
+      "notes": "Firehose is a write-only delivery service",
+      "caveats": []
+    },
+    "aws-firehose:read-support:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:write-insert:v2": {
+      "level": "full",
+      "notes": "Firehose delivers streaming data as INSERT/append operations to Iceberg tables on S3",
+      "caveats": []
+    },
+    "aws-firehose:write-insert:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "Firehose supports MERGE, UPDATE, and DELETE operations using JSON query definitions to specify the operation type",
+      "caveats": [
+        "Requires JSON query to define the operation",
+        "When you specify the operation as update or delete, you must either specify unique keys for the destination table when you set up your Firehose stream, or set identifier-field-ids in Iceberg"
+      ]
+    },
+    "aws-firehose:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Firehose integrates with AWS Glue Data Catalog for Iceberg table metadata",
+      "caveats": []
+    },
+    "aws-firehose:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:hive-metastore:v2": {
+      "level": "none",
+      "notes": "Firehose uses AWS Glue Catalog exclusively for Iceberg",
+      "caveats": []
+    },
+    "aws-firehose:hive-metastore:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Firehose uses AWS Glue Data Catalog for Iceberg table delivery",
+      "caveats": []
+    },
+    "aws-firehose:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:rest-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose does not support REST Catalog",
+      "caveats": []
+    },
+    "aws-firehose:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:nessie:v2": {
+      "level": "none",
+      "notes": "Firehose does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-firehose:nessie:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:polaris:v2": {
+      "level": "none",
+      "notes": "Firehose does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-firehose:polaris:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:unity-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-firehose:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-firehose:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-firehose:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:table-creation:v2": {
+      "level": "none",
+      "notes": "Firehose cannot create Iceberg tables; the table must already exist",
+      "caveats": []
+    },
+    "aws-firehose:table-creation:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:variant-type:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:geometry-type:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:vector-type:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:cdc-support:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:lineage:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:statistics:v2": {
+      "level": "partial",
+      "notes": "Firehose writes basic column statistics to Iceberg manifest files when delivering data to Iceberg tables. Statistics are written automatically as part of the standard Iceberg write path.",
+      "caveats": [
+        "Limited configuration options for statistics compared to Spark",
+        "Firehose is a write-only delivery service"
+      ],
+      "links": []
+    },
+    "aws-firehose:statistics:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": [],
+      "links": []
+    },
+    "aws-firehose:bloom-filters:v2": {
+      "level": "none",
+      "notes": "Firehose does not support configuring Parquet-level bloom filters or Puffin-based bloom filter statistics for Iceberg tables.",
+      "caveats": [],
+      "links": []
+    },
+    "aws-firehose:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": [],
+      "links": []
+    },
+    "aws-firehose:type-promotion:v2": {
+      "level": "none",
+      "notes": "Firehose is an ingestion service and does not support DDL operations like type promotion. Schema evolution in Firehose is limited to adding new columns from source schema changes.",
+      "caveats": [
+        "Firehose cannot perform ALTER TABLE or type change operations",
+        "Type promotions must be performed externally using Athena, Spark, or another DDL-capable engine"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg delivery",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/database-as-source-iceberg.html"
+        }
+      ]
+    },
+    "aws-firehose:type-promotion:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": [],
+      "links": []
+    }
+  }
+}

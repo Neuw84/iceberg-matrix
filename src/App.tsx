@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { FilterState } from "./types";
-import { data } from "./data/load-data";
+import type { AwsS3Mode, FilterState } from "./types";
+import { data, dataS3Tables } from "./data/load-data";
 import { FilterPanel } from "./components/FilterPanel";
 import { VersionTabs } from "./components/VersionTabs";
 import { CompatibilityMatrix } from "./components/CompatibilityMatrix";
@@ -18,12 +18,15 @@ const initialFilters: FilterState = {
 export default function App() {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [introOpen, setIntroOpen] = useState(false);
+  const [awsS3Mode, setAwsS3Mode] = useState<AwsS3Mode>("s3-buckets");
+
+  const activeData = awsS3Mode === "s3-tables" ? dataS3Tables : data;
 
   const handleVersionChange = (versions: typeof filters.selectedVersions) => {
     setFilters((prev) => ({ ...prev, selectedVersions: versions }));
   };
 
-  const { platforms } = applyFilters(data, filters);
+  const { platforms } = applyFilters(activeData, filters);
   const isCompareMode = filters.selectedVersions.length > 1;
 
   return (
@@ -47,7 +50,7 @@ export default function App() {
               </div>
             </div>
             <VersionTabs
-              versions={data.versions}
+              versions={activeData.versions}
               selected={filters.selectedVersions}
               onChange={handleVersionChange}
             />
@@ -95,20 +98,20 @@ export default function App() {
         <div className="mb-3">
           <FilterPanel
             filters={filters}
-            data={data}
+            data={activeData}
             onFilterChange={setFilters}
           />
         </div>
 
         {isCompareMode && (
           <ComparisonSummary
-            data={data}
+            data={activeData}
             platforms={platforms}
             versions={filters.selectedVersions}
           />
         )}
 
-        <CompatibilityMatrix data={data} filters={filters} />
+        <CompatibilityMatrix data={activeData} filters={filters} awsS3Mode={awsS3Mode} onAwsS3ModeChange={setAwsS3Mode} />
       </main>
 
       <footer className="border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-6">
