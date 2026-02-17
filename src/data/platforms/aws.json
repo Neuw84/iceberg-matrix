@@ -1929,10 +1929,10 @@
       "caveats": []
     },
     "aws-athena:bloom-filters:v2": {
-      "level": "unknown",
-      "notes": "Bloom filters are supported in Trino (trinodb/trino#21602) but further testing is needed to confirm Athena support",
+      "level": "partial",
+      "notes": "Athena can use Glue catalog statistics for cost-based optimization (CBO). Bloom filter read/write support requires further testing to confirm.",
       "caveats": [
-        "Needs further testing to confirm support"
+        "Bloom filter read/write support needs further testing"
       ],
       "links": [
         {
