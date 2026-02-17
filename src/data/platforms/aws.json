@@ -2112,7 +2112,7 @@
       "links": [
         {
           "label": "Flink writes - type widening",
-          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#dynamic-routing-configuration"
+          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#schema-evolution"
         }
       ]
     },
@@ -2123,7 +2123,7 @@
       "links": [
         {
           "label": "Flink writes - type widening",
-          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#dynamic-routing-configuration"
+          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#schema-evolution"
         }
       ]
     },
