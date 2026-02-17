@@ -2068,10 +2068,16 @@
       "caveats": []
     },
     "aws-athena:type-promotion:v2": {
-      "level": "unknown",
-      "notes": "Type promotion may be supported but further testing is needed to confirm behavior",
+      "level": "full",
+      "notes": "Athena supports type widening via ALTER TABLE CHANGE COLUMN (e.g. decimal(9,6) to decimal(12,6), int to bigint, float to double)",
       "caveats": [
-        "Needs further testing to confirm support"
+        "Metadata-only operation; no data file rewrite required"
+      ],
+      "links": [
+        {
+          "label": "ALTER TABLE CHANGE COLUMN",
+          "url": "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg-alter-table-change-column.html"
+        }
       ]
     },
     "aws-athena:type-promotion:v3": {
