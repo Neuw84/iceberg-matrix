@@ -79,23 +79,25 @@
       ]
     },
     "duckdb:equality-deletes:v2": {
-      "level": "none",
-      "notes": "DuckDB does not support reading or writing equality deletes",
-      "caveats": [
-        "Equality deletes not supported; only positional deletes are supported"
-      ],
+      "level": "full",
+      "notes": "DuckDB supports reading tables with equality deletes",
+      "caveats": [],
       "links": [
         {
           "label": "Iceberg Extension Overview",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+        },
+        {
+          "label": "Equality Delete Support PR",
+          "url": "https://github.com/duckdb/duckdb-iceberg/pull/201"
         }
       ]
     },
     "duckdb:equality-deletes:v3": {
       "level": "none",
-      "notes": "DuckDB does not support equality deletes on any Iceberg version",
+      "notes": "DuckDB Iceberg extension does not yet support V3",
       "caveats": [
-        "Equality deletes not supported"
+        "V3 support not yet available"
       ],
       "links": [
         {
@@ -105,11 +107,11 @@
       ]
     },
     "duckdb:merge-on-read:v2": {
-      "level": "partial",
-      "notes": "DuckDB supports merge-on-read with position deletes only; equality deletes not supported",
+      "level": "full",
+      "notes": "DuckDB supports merge-on-read semantics for both reads and writes; UPDATE/DELETE use positional deletes",
       "caveats": [
-        "No equality delete support",
-        "Only merge-on-read semantics for writes"
+        "Only merge-on-read semantics for writes (copy-on-write not supported for UPDATE/DELETE)",
+        "UPDATE/DELETE limited to non-partitioned and non-sorted tables"
       ],
       "links": [
         {
