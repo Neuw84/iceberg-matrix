@@ -602,11 +602,10 @@
       "links": []
     },
     "databricks:polaris:v2": {
-      "level": "partial",
-      "notes": "Can connect to external Polaris catalog via the Iceberg REST Catalog API, but this requires external configuration and is not natively integrated.",
+      "level": "unknown",
+      "notes": "Databricks documentation does not mention Polaris catalog integration. Unity Catalog supports the Iceberg REST Catalog API, which could theoretically connect to Polaris, but this is not documented.",
       "caveats": [
-        "Requires external Polaris endpoint configuration",
-        "Not a native integration \u2014 uses generic REST catalog support"
+        "Not documented in Databricks Iceberg documentation"
       ],
       "links": [
         {
@@ -616,11 +615,10 @@
       ]
     },
     "databricks:polaris:v3": {
-      "level": "partial",
-      "notes": "Can connect to external Polaris catalog via the Iceberg REST Catalog API.",
+      "level": "unknown",
+      "notes": "Databricks documentation does not mention Polaris catalog integration for Iceberg v3 tables.",
       "caveats": [
-        "Requires external Polaris endpoint configuration",
-        "Not a native integration \u2014 uses generic REST catalog support"
+        "Not documented in Databricks Iceberg documentation"
       ],
       "links": [
         {
@@ -765,20 +763,15 @@
       "links": []
     },
     "databricks:shredded-variant:v3": {
-      "level": "full",
-      "notes": "Variant shredding is supported in DBR 17.2+ for both Delta and Iceberg tables. Shredding improves query performance by storing frequently accessed fields in columnar format.",
+      "level": "unknown",
+      "notes": "Databricks documentation does not explicitly describe shredded variant support for managed Iceberg v3 tables. VARIANT type is supported but shredding is not specifically documented for Iceberg tables.",
       "caveats": [
-        "Requires DBR 17.2+",
-        "Iceberg v3 features are in Beta"
+        "Not explicitly documented for managed Iceberg v3 tables"
       ],
       "links": [
         {
-          "label": "Variant blog post",
-          "url": "https://www.databricks.com/blog/introducing-variant-new-open-standard-semi-structured-data-apache-parquettm-delta-lake"
-        },
-        {
-          "label": "Variant type support",
-          "url": "https://docs.databricks.com/aws/en/delta/variant"
+          "label": "Iceberg v3 features",
+          "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"
         }
       ]
     },
@@ -858,42 +851,35 @@
       ]
     },
     "databricks:lineage:v2": {
-      "level": "full",
-      "notes": "Unity Catalog captures runtime data lineage for all tables registered in Unity Catalog, including managed Iceberg tables. Column-level lineage is supported. Lineage data retained for one year.",
-      "caveats": [
-        "Tables must be registered in Unity Catalog (not path-based access)",
-        "Column lineage requires both source and target referenced by table name"
-      ],
+      "level": "none",
+      "notes": "Iceberg v3 row lineage (row IDs and last-modified sequence numbers) is a v3-only feature. Not available in v2.",
+      "caveats": [],
       "links": [
         {
-          "label": "Data lineage in Unity Catalog",
-          "url": "https://docs.databricks.com/aws/en/data-governance/unity-catalog/data-lineage"
+          "label": "Iceberg v3 features",
+          "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"
         }
       ]
     },
     "databricks:lineage:v3": {
       "level": "full",
-      "notes": "Unity Catalog captures runtime data lineage for Iceberg v3 tables. Additionally, Iceberg v3 row lineage tracks incremental changes at the row level with unique row IDs.",
+      "notes": "Row lineage is required and automatically enabled on all Iceberg v3 tables. Tracks incremental changes to table data with unique row IDs and last-modified sequence numbers.",
       "caveats": [
-        "Tables must be registered in Unity Catalog",
+        "Row lineage is required for all v3 tables — cannot be disabled",
         "Iceberg v3 features are in Beta (requires DBR 17.3+)"
       ],
       "links": [
         {
-          "label": "Data lineage in Unity Catalog",
-          "url": "https://docs.databricks.com/aws/en/data-governance/unity-catalog/data-lineage"
-        },
-        {
-          "label": "Iceberg v3 row lineage",
+          "label": "Iceberg v3 features",
           "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"
         }
       ]
     },
     "databricks:statistics:v2": {
-      "level": "full",
-      "notes": "Databricks writes column-level statistics to Iceberg manifest files for managed Iceberg tables and uses them for scan planning. Statistics are also available through UniForm for Delta tables exposed as Iceberg.",
+      "level": "unknown",
+      "notes": "Databricks documentation does not explicitly describe column-level statistics support for managed Iceberg tables. Predictive optimization handles table maintenance but statistics details are not documented.",
       "caveats": [
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)"
+        "Not explicitly documented for managed Iceberg tables"
       ],
       "links": [
         {
@@ -903,10 +889,10 @@
       ]
     },
     "databricks:statistics:v3": {
-      "level": "full",
-      "notes": "Column statistics fully supported on managed Iceberg v3 tables.",
+      "level": "unknown",
+      "notes": "Databricks documentation does not explicitly describe column-level statistics support for managed Iceberg v3 tables.",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Not explicitly documented for managed Iceberg v3 tables"
       ],
       "links": [
         {
@@ -944,31 +930,28 @@
       ]
     },
     "databricks:type-promotion:v2": {
-      "level": "full",
-      "notes": "Databricks supports type widening for Iceberg tables via ALTER TABLE ALTER COLUMN. Supported promotions include int to long, float to double, and decimal precision widening. The operation is metadata-only and does not rewrite data files.",
+      "level": "unknown",
+      "notes": "Databricks documentation does not explicitly describe type promotion/widening for managed Iceberg tables. Type widening is documented for Delta Lake tables but not confirmed for native Iceberg tables.",
       "caveats": [
-        "Type widening must be enabled via delta.enableTypeWidening table property for Delta-managed tables; native Iceberg tables follow Iceberg spec rules",
-        "Some wider promotions (e.g., int to decimal) require explicit ALTER TABLE to prevent accidental changes"
+        "Not explicitly documented for managed Iceberg tables"
       ],
       "links": [
         {
-          "label": "Type widening",
-          "url": "https://docs.databricks.com/aws/en/delta/type-widening"
-        },
-        {
-          "label": "ALTER TABLE COLUMN",
-          "url": "https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-syntax-ddl-alter-table-manage-column"
+          "label": "Managed Iceberg tables",
+          "url": "https://docs.databricks.com/aws/en/iceberg/"
         }
       ]
     },
     "databricks:type-promotion:v3": {
-      "level": "full",
-      "notes": "Type widening supported for Iceberg V3 tables with the same promotions as V2: int to long, float to double, and decimal precision widening.",
-      "caveats": [],
+      "level": "unknown",
+      "notes": "Databricks documentation does not explicitly describe type promotion/widening for managed Iceberg v3 tables. Type widening is documented for Delta Lake tables but not confirmed for native Iceberg tables.",
+      "caveats": [
+        "Not explicitly documented for managed Iceberg v3 tables"
+      ],
       "links": [
         {
-          "label": "Type widening",
-          "url": "https://docs.databricks.com/aws/en/delta/type-widening"
+          "label": "Iceberg v3 features",
+          "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"
         }
       ]
     }
