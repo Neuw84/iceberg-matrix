@@ -2637,6 +2637,12 @@
       "caveats": [
         "Deletion vectors read support only",
         "No position delete file writing"
+      ],
+      "links": [
+        {
+          "label": "PyIceberg v0.10.0 Release Notes",
+          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.10.0"
+        }
       ]
     },
     "pyiceberg:equality-deletes:v2": {
@@ -2668,6 +2674,12 @@
       "caveats": [
         "Read-side deletion vectors only",
         "Write-side MoR not supported"
+      ],
+      "links": [
+        {
+          "label": "PyIceberg v0.10.0 Release Notes",
+          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.10.0"
+        }
       ]
     },
     "pyiceberg:copy-on-write:v2": {
@@ -2714,16 +2726,24 @@
     },
     "pyiceberg:hidden-partitioning:v2": {
       "level": "full",
-      "notes": "PyIceberg supports defining hidden partitions with identity, bucket, truncate, year, month, day, hour transforms",
-      "caveats": [
-        "Partitioned writes only support identity and time transforms; bucket and truncate partition writes are not supported"
+      "notes": "PyIceberg supports hidden partitioning with identity, bucket, truncate, year, month, day, hour transforms; bucket and truncate write support added in v0.9.0 via iceberg-rust",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg v0.9.0 Release Notes",
+          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.9.0"
+        }
       ]
     },
     "pyiceberg:hidden-partitioning:v3": {
       "level": "full",
-      "notes": "Hidden partitioning supported in V3 with same transform support as V2",
-      "caveats": [
-        "Partitioned writes only support identity and time transforms"
+      "notes": "Hidden partitioning fully supported in V3 with all transforms including bucket and truncate (via iceberg-rust)",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg v0.9.0 Release Notes",
+          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.9.0"
+        }
       ]
     },
     "pyiceberg:partition-evolution:v2": {
@@ -2799,6 +2819,12 @@
       "notes": "V3 read support including deletion vectors (added in v0.10.0) and nanosecond timestamps",
       "caveats": [
         "Cannot read tables containing equality delete files"
+      ],
+      "links": [
+        {
+          "label": "PyIceberg v0.10.0 Release Notes",
+          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.10.0"
+        }
       ]
     },
     "pyiceberg:write-insert:v2": {
@@ -2984,7 +3010,13 @@
     "pyiceberg:nanosecond-timestamps:v3": {
       "level": "full",
       "notes": "PyIceberg supports timestamp_ns and timestamptz_ns types (added in v0.10.0)",
-      "caveats": []
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg v0.10.0 Release Notes",
+          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.10.0"
+        }
+      ]
     },
     "pyiceberg:cdc-support:v2": {
       "level": "none",
