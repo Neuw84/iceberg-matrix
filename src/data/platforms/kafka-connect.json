@@ -1,0 +1,370 @@
+{
+  "platforms": [
+    {
+      "id": "kafka-connect",
+      "name": "Kafka Connect",
+      "vendor": "Apache",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+    }
+  ],
+  "support": {
+    "kafka-connect:position-deletes:v2": {
+      "level": "none",
+      "notes": "Apache Iceberg OSS Kafka Connect sink is append-only; does not write position delete files",
+      "caveats": ["OSS connector only supports appends"]
+    },
+    "kafka-connect:position-deletes:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg OSS Kafka Connect sink is append-only; does not write position delete files",
+      "caveats": ["OSS connector only supports appends"]
+    },
+    "kafka-connect:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Apache Iceberg OSS Kafka Connect sink is append-only; does not write equality delete files",
+      "caveats": ["OSS connector only supports appends; equality deletes require Tabular/Confluent commercial connector"]
+    },
+    "kafka-connect:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg OSS Kafka Connect sink is append-only; does not write equality delete files",
+      "caveats": ["OSS connector only supports appends; equality deletes require Tabular/Confluent commercial connector"]
+    },
+    "kafka-connect:merge-on-read:v2": {
+      "level": "none",
+      "notes": "Apache Iceberg OSS Kafka Connect sink is append-only; merge-on-read not applicable",
+      "caveats": ["OSS connector only supports appends"]
+    },
+    "kafka-connect:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg OSS Kafka Connect sink is append-only; merge-on-read not applicable",
+      "caveats": ["OSS connector only supports appends"]
+    },
+    "kafka-connect:copy-on-write:v2": {
+      "level": "none",
+      "notes": "Sink connector does not rewrite data files for mutations",
+      "caveats": []
+    },
+    "kafka-connect:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Sink connector does not rewrite data files for mutations",
+      "caveats": []
+    },
+    "kafka-connect:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Schema evolution adds missing record fields to the table schema when iceberg.tables.evolve-schema-enabled is true",
+      "caveats": ["Only supports adding new columns; does not support column renaming, reordering, or type promotion"]
+    },
+    "kafka-connect:schema-evolution:v3": {
+      "level": "partial",
+      "notes": "Schema evolution adds missing record fields to the table schema when iceberg.tables.evolve-schema-enabled is true",
+      "caveats": ["Only supports adding new columns; does not support column renaming, reordering, or type promotion"]
+    },
+    "kafka-connect:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature; not applicable to V2 tables",
+      "caveats": []
+    },
+    "kafka-connect:column-default-values:v3": {
+      "level": "none",
+      "notes": "Sink connector does not manage or set column default values",
+      "caveats": []
+    },
+    "kafka-connect:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature; not applicable to V2 tables",
+      "caveats": []
+    },
+    "kafka-connect:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "No documented support for nanosecond timestamp types in the sink connector",
+      "caveats": []
+    },
+    "kafka-connect:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "Partition transforms can be specified via iceberg.tables.default-partition-by or per-table partition-by when auto-creating tables",
+      "caveats": ["Only applies during auto table creation; does not modify partitioning of existing tables"]
+    },
+    "kafka-connect:hidden-partitioning:v3": {
+      "level": "partial",
+      "notes": "Partition transforms can be specified via iceberg.tables.default-partition-by or per-table partition-by when auto-creating tables",
+      "caveats": ["Only applies during auto table creation; does not modify partitioning of existing tables"]
+    },
+    "kafka-connect:partition-evolution:v2": {
+      "level": "none",
+      "notes": "Sink connector does not support modifying partition specs of existing tables",
+      "caveats": []
+    },
+    "kafka-connect:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Sink connector does not support modifying partition specs of existing tables",
+      "caveats": []
+    },
+    "kafka-connect:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument partition transforms are a V3 feature; not applicable to V2 tables",
+      "caveats": []
+    },
+    "kafka-connect:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "No documented support for multi-argument partition transforms in the sink connector",
+      "caveats": []
+    },
+    "kafka-connect:time-travel:v2": {
+      "level": "none",
+      "notes": "Sink-only connector; does not support read operations or time travel queries",
+      "caveats": []
+    },
+    "kafka-connect:time-travel:v3": {
+      "level": "none",
+      "notes": "Sink-only connector; does not support read operations or time travel queries",
+      "caveats": []
+    },
+    "kafka-connect:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Sink connector does not provide table maintenance operations (compaction, expiring snapshots, etc.)",
+      "caveats": []
+    },
+    "kafka-connect:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Sink connector does not provide table maintenance operations (compaction, expiring snapshots, etc.)",
+      "caveats": []
+    },
+    "kafka-connect:branching-tagging:v2": {
+      "level": "partial",
+      "notes": "Supports writing to a specific branch via iceberg.tables.default-commit-branch or per-table commit-branch configuration",
+      "caveats": ["Write-to-branch only; cannot create, delete, or manage branches/tags"]
+    },
+    "kafka-connect:branching-tagging:v3": {
+      "level": "partial",
+      "notes": "Supports writing to a specific branch via iceberg.tables.default-commit-branch or per-table commit-branch configuration",
+      "caveats": ["Write-to-branch only; cannot create, delete, or manage branches/tags"]
+    },
+    "kafka-connect:read-support:v2": {
+      "level": "none",
+      "notes": "Sink-only connector; does not support reading Iceberg tables",
+      "caveats": []
+    },
+    "kafka-connect:read-support:v3": {
+      "level": "none",
+      "notes": "Sink-only connector; does not support reading Iceberg tables",
+      "caveats": []
+    },
+    "kafka-connect:write-insert:v2": {
+      "level": "full",
+      "notes": "Appends records from Kafka topics into Iceberg tables with exactly-once delivery semantics",
+      "caveats": []
+    },
+    "kafka-connect:write-insert:v3": {
+      "level": "full",
+      "notes": "Appends records from Kafka topics into Iceberg tables with exactly-once delivery semantics",
+      "caveats": []
+    },
+    "kafka-connect:write-merge-update-delete:v2": {
+      "level": "none",
+      "notes": "Apache Iceberg OSS Kafka Connect sink is append-only; does not support MERGE, UPDATE, or DELETE operations",
+      "caveats": ["OSS connector only supports appends; upsert/CDC modes require Tabular/Confluent commercial connector"]
+    },
+    "kafka-connect:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg OSS Kafka Connect sink is append-only; does not support MERGE, UPDATE, or DELETE operations",
+      "caveats": ["OSS connector only supports appends; upsert/CDC modes require Tabular/Confluent commercial connector"]
+    },
+    "kafka-connect:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Supports REST, Hive, Hadoop as built-in catalog types, plus Glue, DynamoDB, Nessie, JDBC, and BigQuery Metastore via catalog-impl",
+      "caveats": []
+    },
+    "kafka-connect:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Supports REST, Hive, Hadoop as built-in catalog types, plus Glue, DynamoDB, Nessie, JDBC, and BigQuery Metastore via catalog-impl",
+      "caveats": []
+    },
+    "kafka-connect:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Hive Metastore is a built-in catalog type; requires HMS client distribution or adding HMS client dependency",
+      "caveats": []
+    },
+    "kafka-connect:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Hive Metastore is a built-in catalog type; requires HMS client distribution or adding HMS client dependency",
+      "caveats": []
+    },
+    "kafka-connect:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supported via iceberg.catalog.catalog-impl with GlueCatalog; documented with configuration examples",
+      "caveats": []
+    },
+    "kafka-connect:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supported via iceberg.catalog.catalog-impl with GlueCatalog; documented with configuration examples",
+      "caveats": []
+    },
+    "kafka-connect:rest-catalog:v2": {
+      "level": "full",
+      "notes": "REST Catalog is a built-in catalog type with first-class support and documented configuration examples",
+      "caveats": []
+    },
+    "kafka-connect:rest-catalog:v3": {
+      "level": "full",
+      "notes": "REST Catalog is a built-in catalog type with first-class support and documented configuration examples",
+      "caveats": []
+    },
+    "kafka-connect:nessie:v2": {
+      "level": "full",
+      "notes": "Nessie supported via iceberg.catalog.catalog-impl with NessieCatalog; documented with configuration examples",
+      "caveats": []
+    },
+    "kafka-connect:nessie:v3": {
+      "level": "full",
+      "notes": "Nessie supported via iceberg.catalog.catalog-impl with NessieCatalog; documented with configuration examples",
+      "caveats": []
+    },
+    "kafka-connect:polaris:v2": {
+      "level": "partial",
+      "notes": "Polaris can be used via REST Catalog protocol as Polaris implements the Iceberg REST Catalog spec",
+      "caveats": ["Not explicitly documented; works through REST Catalog compatibility"]
+    },
+    "kafka-connect:polaris:v3": {
+      "level": "partial",
+      "notes": "Polaris can be used via REST Catalog protocol as Polaris implements the Iceberg REST Catalog spec",
+      "caveats": ["Not explicitly documented; works through REST Catalog compatibility"]
+    },
+    "kafka-connect:unity-catalog:v2": {
+      "level": "none",
+      "notes": "Unity Catalog is not supported by the Kafka Connect Iceberg sink connector",
+      "caveats": []
+    },
+    "kafka-connect:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Unity Catalog is not supported by the Kafka Connect Iceberg sink connector",
+      "caveats": []
+    },
+    "kafka-connect:hadoop-catalog:v2": {
+      "level": "full",
+      "notes": "Hadoop is a built-in catalog type with first-class support",
+      "caveats": []
+    },
+    "kafka-connect:hadoop-catalog:v3": {
+      "level": "full",
+      "notes": "Hadoop is a built-in catalog type with first-class support",
+      "caveats": []
+    },
+    "kafka-connect:jdbc-catalog:v2": {
+      "level": "partial",
+      "notes": "JDBC Catalog supported via catalog-impl but JDBC drivers are not included in the default distribution",
+      "caveats": ["Requires adding JDBC driver dependency manually"]
+    },
+    "kafka-connect:jdbc-catalog:v3": {
+      "level": "partial",
+      "notes": "JDBC Catalog supported via catalog-impl but JDBC drivers are not included in the default distribution",
+      "caveats": ["Requires adding JDBC driver dependency manually"]
+    },
+    "kafka-connect:table-creation:v2": {
+      "level": "partial",
+      "notes": "Supports automatic table creation via iceberg.tables.auto-create-enabled with schema inferred from incoming records",
+      "caveats": ["Schema derived from incoming Kafka records; supports configuring partitioning and identity columns via connector properties"]
+    },
+    "kafka-connect:table-creation:v3": {
+      "level": "partial",
+      "notes": "Supports automatic table creation via iceberg.tables.auto-create-enabled with schema inferred from incoming records",
+      "caveats": ["Schema derived from incoming Kafka records; supports configuring partitioning and identity columns via connector properties"]
+    },
+    "kafka-connect:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature; not applicable to V2 tables",
+      "caveats": []
+    },
+    "kafka-connect:variant-type:v3": {
+      "level": "none",
+      "notes": "No documented support for Iceberg variant type in the sink connector",
+      "caveats": []
+    },
+    "kafka-connect:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature; not applicable to V2 tables",
+      "caveats": []
+    },
+    "kafka-connect:shredded-variant:v3": {
+      "level": "none",
+      "notes": "No documented support for shredded variant in the sink connector",
+      "caveats": []
+    },
+    "kafka-connect:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature; not applicable to V2 tables",
+      "caveats": []
+    },
+    "kafka-connect:geometry-type:v3": {
+      "level": "none",
+      "notes": "No documented support for geometry type in the sink connector",
+      "caveats": []
+    },
+    "kafka-connect:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector type is a V3 feature; not applicable to V2 tables",
+      "caveats": []
+    },
+    "kafka-connect:vector-type:v3": {
+      "level": "none",
+      "notes": "No documented support for vector type in the sink connector",
+      "caveats": []
+    },
+    "kafka-connect:cdc-support:v2": {
+      "level": "none",
+      "notes": "Apache Iceberg OSS Kafka Connect sink is append-only; CDC/upsert modes are only available in the Tabular/Confluent commercial connector",
+      "caveats": ["OSS connector only supports appends; CDC requires Tabular/Confluent commercial connector"]
+    },
+    "kafka-connect:cdc-support:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg OSS Kafka Connect sink is append-only; CDC/upsert modes are only available in the Tabular/Confluent commercial connector",
+      "caveats": ["OSS connector only supports appends; CDC requires Tabular/Confluent commercial connector"]
+    },
+    "kafka-connect:lineage:v2": {
+      "level": "none",
+      "notes": "Sink connector does not provide lineage tracking capabilities",
+      "caveats": []
+    },
+    "kafka-connect:lineage:v3": {
+      "level": "none",
+      "notes": "Sink connector does not provide lineage tracking capabilities",
+      "caveats": []
+    },
+    "kafka-connect:statistics:v2": {
+      "level": "partial",
+      "notes": "Kafka Connect Iceberg sink writes basic column statistics to manifest files via the standard Iceberg write path when appending data",
+      "caveats": ["Sink-only connector; limited statistics configuration"],
+      "links": [{"label": "Kafka Connect Iceberg", "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"}]
+    },
+    "kafka-connect:statistics:v3": {
+      "level": "partial",
+      "notes": "Basic column statistics written via standard Iceberg write path for V3 tables",
+      "caveats": ["Limited statistics configuration compared to Spark"],
+      "links": [{"label": "Kafka Connect Iceberg", "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"}]
+    },
+    "kafka-connect:bloom-filters:v2": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink does not support configuring Parquet-level bloom filters or Puffin-based bloom filter statistics",
+      "caveats": ["Sink-only connector with limited write configuration options"],
+      "links": []
+    },
+    "kafka-connect:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Kafka Connect Iceberg sink does not support bloom filters for V3 tables",
+      "caveats": [],
+      "links": []
+    },
+    "kafka-connect:type-promotion:v2": {
+      "level": "none",
+      "notes": "The Iceberg Kafka Connect sink connector does not support type promotion. Schema evolution is limited to adding new columns",
+      "caveats": ["Kafka Connect sink only supports adding new columns for schema evolution"],
+      "links": [{"label": "Kafka Connect for Iceberg", "url": "https://iceberg.apache.org/docs/nightly/kafka-connect/"}]
+    },
+    "kafka-connect:type-promotion:v3": {
+      "level": "none",
+      "notes": "The Iceberg Kafka Connect sink connector does not support type promotion for V3 tables",
+      "caveats": ["Kafka Connect sink only supports adding new columns for schema evolution"],
+      "links": []
+    }
+  }
+}
