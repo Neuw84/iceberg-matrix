@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "databricks",
-      "name": "Databricks",
+      "name": "Databricks (17.3)",
       "vendor": "Databricks",
       "category": "cloud",
       "group": "Databricks",

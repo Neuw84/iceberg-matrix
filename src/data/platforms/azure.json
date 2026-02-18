@@ -10,7 +10,7 @@
     },
     {
       "id": "azure-fabric",
-      "name": "Fabric",
+      "name": "Fabric (1.3)",
       "vendor": "Microsoft",
       "category": "cloud",
       "group": "Azure",
