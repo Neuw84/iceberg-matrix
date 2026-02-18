@@ -269,9 +269,17 @@
       "caveats": []
     },
     "aws-athena:polaris:v2": {
-      "level": "none",
-      "notes": "Athena does not support Polaris catalog",
-      "caveats": []
+      "level": "partial",
+      "notes": "Athena can access Polaris catalog via AWS Glue Data Catalog federation",
+      "caveats": [
+        "Requires catalog federation setup in AWS Glue Data Catalog"
+      ],
+      "links": [
+        {
+          "label": "Access Snowflake Horizon Catalog data using catalog federation",
+          "url": "https://aws.amazon.com/blogs/big-data/access-snowflake-horizon-catalog-data-using-catalog-federation-in-the-aws-glue-data-catalog/"
+        }
+      ]
     },
     "aws-athena:polaris:v3": {
       "level": "none",
@@ -279,9 +287,18 @@
       "caveats": []
     },
     "aws-athena:unity-catalog:v2": {
-      "level": "none",
-      "notes": "Athena does not support Unity Catalog",
-      "caveats": []
+      "level": "partial",
+      "notes": "Athena can access Unity Catalog via AWS Glue Data Catalog federation with Databricks. Tables must be native Iceberg tables or Delta tables with UniForm enabled",
+      "caveats": [
+        "Requires catalog federation setup in AWS Glue Data Catalog",
+        "Delta tables require UniForm enabled to be read as Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Catalog federation with Databricks",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation-databricks.html"
+        }
+      ]
     },
     "aws-athena:unity-catalog:v3": {
       "level": "none",
