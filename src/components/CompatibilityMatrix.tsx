@@ -48,11 +48,10 @@ const CATEGORY_COLORS: Record<FeatureCategory, string> = {
 /** Map platform IDs to logo filenames in /logos/ — only correct matches */
 const PLATFORM_LOGOS: Record<string, string> = {
   "aws-athena": "/logos/aws-athena.svg",
-  "aws-glue": "/logos/aws-glue.svg",
-  "aws-firehose": "/logos/aws-glue.svg",
   "aws-emr": "/logos/spark.svg",
+  "aws-glue": "/logos/aws-glue.svg",
   "aws-managed-flink": "/logos/flink.svg",
-  "aws-redshift": "/logos/aws-redshift.svg",
+  "aws-redshift-s3": "/logos/aws-redshift.svg",
   databricks: "/logos/databricks.svg",
   snowflake: "/logos/snowflake.svg",
   duckdb: "/logos/duckdb.svg",

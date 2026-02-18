@@ -1,0 +1,388 @@
+{
+  "platforms": [
+    {
+      "id": "aws-firehose",
+      "name": "Data Firehose",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/firehose/"
+    }
+  ],
+  "support": {
+    "aws-firehose:position-deletes:v2": {
+      "level": "none",
+      "notes": "Firehose is a delivery service; it writes to Iceberg tables but does not read or process delete files",
+      "caveats": []
+    },
+    "aws-firehose:position-deletes:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Firehose does not support delete operations",
+      "caveats": []
+    },
+    "aws-firehose:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:merge-on-read:v2": {
+      "level": "partial",
+      "notes": "Firehose will use equality deletes for updates and deletes",
+      "caveats": []
+    },
+    "aws-firehose:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:copy-on-write:v2": {
+      "level": "partial",
+      "notes": "Firehose append-only mode effectively uses copy-on-write semantics (new data files, no delete files)",
+      "caveats": [
+        "Only append mode; no UPDATE/DELETE support"
+      ]
+    },
+    "aws-firehose:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Firehose can deliver to tables with evolved schemas but cannot perform schema changes itself",
+      "caveats": [
+        "Schema changes must be made externally"
+      ]
+    },
+    "aws-firehose:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:column-default-values:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Firehose supports writing to hidden-partitioned Iceberg tables using dynamic partitioning",
+      "caveats": []
+    },
+    "aws-firehose:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:partition-evolution:v2": {
+      "level": "none",
+      "notes": "Firehose cannot modify table partitioning",
+      "caveats": []
+    },
+    "aws-firehose:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:time-travel:v2": {
+      "level": "none",
+      "notes": "Firehose is a write-only delivery service; no read or query capabilities",
+      "caveats": []
+    },
+    "aws-firehose:time-travel:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Firehose does not perform table maintenance operations",
+      "caveats": []
+    },
+    "aws-firehose:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Firehose does not support branching and tagging",
+      "caveats": []
+    },
+    "aws-firehose:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:read-support:v2": {
+      "level": "none",
+      "notes": "Firehose is a write-only delivery service",
+      "caveats": []
+    },
+    "aws-firehose:read-support:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:write-insert:v2": {
+      "level": "full",
+      "notes": "Firehose delivers streaming data as INSERT/append operations to Iceberg tables on S3",
+      "caveats": []
+    },
+    "aws-firehose:write-insert:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "Firehose supports MERGE, UPDATE, and DELETE operations using JSON query definitions to specify the operation type",
+      "caveats": [
+        "Requires JSON query to define the operation",
+        "When you specify the operation as update or delete, you must either specify unique keys for the destination table when you set up your Firehose stream, or set identifier-field-ids in Iceberg"
+      ]
+    },
+    "aws-firehose:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Firehose integrates with AWS Glue Data Catalog for Iceberg table metadata",
+      "caveats": []
+    },
+    "aws-firehose:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:hive-metastore:v2": {
+      "level": "none",
+      "notes": "Firehose uses AWS Glue Catalog exclusively for Iceberg",
+      "caveats": []
+    },
+    "aws-firehose:hive-metastore:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Firehose uses AWS Glue Data Catalog for Iceberg table delivery",
+      "caveats": []
+    },
+    "aws-firehose:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:rest-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose does not support REST Catalog",
+      "caveats": []
+    },
+    "aws-firehose:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:nessie:v2": {
+      "level": "none",
+      "notes": "Firehose does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-firehose:nessie:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:polaris:v2": {
+      "level": "none",
+      "notes": "Firehose does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-firehose:polaris:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:unity-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-firehose:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-firehose:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-firehose:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:table-creation:v2": {
+      "level": "none",
+      "notes": "Firehose cannot create Iceberg tables; the table must already exist",
+      "caveats": []
+    },
+    "aws-firehose:table-creation:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:variant-type:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:geometry-type:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:vector-type:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:cdc-support:v2": {
+      "level": "none",
+      "notes": "Cdc Support is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:cdc-support:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "aws-firehose:lineage:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-firehose:statistics:v2": {
+      "level": "partial",
+      "notes": "Firehose writes basic column statistics to Iceberg manifest files when delivering data to Iceberg tables. Statistics are written automatically as part of the standard Iceberg write path.",
+      "caveats": [
+        "Limited configuration options for statistics compared to Spark",
+        "Firehose is a write-only delivery service"
+      ],
+      "links": []
+    },
+    "aws-firehose:statistics:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": [],
+      "links": []
+    },
+    "aws-firehose:bloom-filters:v2": {
+      "level": "none",
+      "notes": "Firehose does not support configuring Parquet-level bloom filters or Puffin-based bloom filter statistics for Iceberg tables.",
+      "caveats": [],
+      "links": []
+    },
+    "aws-firehose:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": [],
+      "links": []
+    },
+    "aws-firehose:type-promotion:v2": {
+      "level": "none",
+      "notes": "Firehose is an ingestion service and does not support DDL operations like type promotion. Schema evolution in Firehose is limited to adding new columns from source schema changes.",
+      "caveats": [
+        "Firehose cannot perform ALTER TABLE or type change operations",
+        "Type promotions must be performed externally using Athena, Spark, or another DDL-capable engine"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg delivery",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/database-as-source-iceberg.html"
+        }
+      ]
+    },
+    "aws-firehose:type-promotion:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3",
+      "caveats": [],
+      "links": []
+    }
+  }
+}
