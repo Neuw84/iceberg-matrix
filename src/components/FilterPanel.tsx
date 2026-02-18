@@ -63,6 +63,8 @@ const PLATFORM_LOGOS: Record<string, string> = {
   flink: "/logos/flink.svg",
   daft: "/logos/daft.svg",
   "kafka-connect": "/logos/kafka-connect.svg",
+  "google-bigquery": "/logos/bigquery.svg",
+  "google-dataproc": "/logos/dataproc.svg",
 };
 
 interface FilterPanelProps {

@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "azure-synapse",
-      "name": "Synapse (3.5+)",
+      "name": "Synapse (3.5)",
       "vendor": "Microsoft",
       "category": "cloud",
       "group": "Azure",
