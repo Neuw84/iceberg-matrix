@@ -6,289 +6,242 @@
       "vendor": "Snowflake",
       "category": "cloud",
       "group": "Snowflake",
-      "docUrl": "https://docs.snowflake.com/"
+      "docUrl": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
     }
   ],
   "support": {
     "snowflake:position-deletes:v2": {
       "level": "partial",
-      "notes": "Position deletes are supported for externally managed Iceberg tables only. Snowflake-managed tables use copy-on-write exclusively and do not produce position delete files.",
+      "notes": "Position deletes supported for externally managed Iceberg tables only. Snowflake-managed tables use copy-on-write exclusively.",
       "caveats": [
-        "Only supported when reading externally managed Iceberg tables that contain position delete files",
-        "Snowflake-managed tables use copy-on-write and never produce position deletes"
+        "Only supported when reading externally managed Iceberg tables",
+        "Snowflake-managed tables use copy-on-write and never produce position deletes",
+        "Perform regular compaction to remove old delete files for best read performance"
       ],
       "links": [
         {
-          "label": "Row-level deletes",
+          "label": "Use row-level deletes",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
         }
       ]
     },
     "snowflake:position-deletes:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:equality-deletes:v2": {
       "level": "none",
-      "notes": "Row-level equality deletes are not supported. Snowflake uses copy-on-write for all DELETE operations on managed tables.",
+      "notes": "Row-level equality deletes explicitly not supported per official documentation. Snowflake supports position deletes only.",
       "caveats": [
-        "Row-level equality deletes not supported; Snowflake uses copy-on-write for DELETE operations"
+        "Equality deletes not supported",
+        "Snowflake-managed tables use copy-on-write for DELETE operations"
       ],
       "links": [
         {
-          "label": "Row-level deletes",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes"
+          "label": "Considerations and limitations",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg#considerations-and-limitations"
         }
       ]
     },
     "snowflake:equality-deletes:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
+
     "snowflake:merge-on-read:v2": {
       "level": "partial",
-      "notes": "Merge-on-read is supported for externally managed Iceberg tables via the ENABLE_ICEBERG_MERGE_ON_READ session parameter. Snowflake-managed tables use copy-on-write exclusively.",
+      "notes": "Merge-on-read supported for externally managed tables via ENABLE_ICEBERG_MERGE_ON_READ parameter. Snowflake-managed tables use copy-on-write exclusively.",
       "caveats": [
-        "Only available for externally managed Iceberg tables, not Snowflake-managed tables",
-        "Requires setting the ENABLE_ICEBERG_MERGE_ON_READ session parameter",
+        "Only for externally managed Iceberg tables",
+        "Requires ENABLE_ICEBERG_MERGE_ON_READ parameter set to TRUE",
         "Snowflake-managed tables always use copy-on-write"
       ],
       "links": [
         {
-          "label": "Row-level deletes",
+          "label": "Use row-level deletes",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes"
-        },
-        {
-          "label": "Manage Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
         }
       ]
     },
     "snowflake:merge-on-read:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:copy-on-write:v2": {
       "level": "full",
       "notes": "Copy-on-write is the exclusive write strategy for Snowflake-managed Iceberg tables. All DELETE, UPDATE, and MERGE operations rewrite affected data files.",
       "caveats": [
-        "Exclusive write strategy for Snowflake-managed Iceberg tables",
-        "All DML operations (DELETE, UPDATE, MERGE) rewrite entire data files"
+        "Default and only mode for Snowflake-managed tables",
+        "Can be enabled for externally managed tables by setting ENABLE_ICEBERG_MERGE_ON_READ to FALSE"
       ],
       "links": [
         {
           "label": "Manage Iceberg tables",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
         }
       ]
     },
     "snowflake:copy-on-write:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:schema-evolution:v2": {
       "level": "full",
-      "notes": "Full schema evolution supported for Snowflake-managed Iceberg tables, including add, drop, rename, and reorder columns.",
+      "notes": "Full schema evolution supported for Snowflake-managed Iceberg tables including add, drop, rename, and reorder columns.",
       "caveats": [
         "Schema evolution applies to Snowflake-managed Iceberg tables",
         "Externally managed tables have schema controlled by the external catalog"
       ],
       "links": [
         {
-          "label": "Manage Iceberg tables \u2013 Schema",
+          "label": "Manage Iceberg tables",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
         }
       ]
     },
     "snowflake:schema-evolution:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
+
     "snowflake:column-default-values:v2": {
       "level": "none",
-      "notes": "Column default values are a V3 feature not available in Iceberg V2",
+      "notes": "Column default values are a V3 feature not available in Iceberg V2.",
       "caveats": [],
       "links": []
     },
     "snowflake:column-default-values:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:nanosecond-timestamps:v2": {
       "level": "none",
-      "notes": "Nanosecond timestamps are a V3 feature not available in Iceberg V2",
+      "notes": "Nanosecond timestamps are a V3 feature. Snowflake supports microsecond precision per the Iceberg V2 specification.",
       "caveats": [],
-      "links": []
+      "links": [
+        {
+          "label": "Data types for Iceberg tables",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-data-types"
+        }
+      ]
     },
     "snowflake:nanosecond-timestamps:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:hidden-partitioning:v2": {
       "level": "partial",
-      "notes": "Snowflake supports Iceberg partition transforms (year, month, day, hour, truncate, bucket, identity) but the bucket transform can negatively impact query performance.",
+      "notes": "Snowflake supports Iceberg partition transforms (year, month, day, hour, truncate, bucket, identity). Bucket transform impacts query performance.",
       "caveats": [
-        "Bucket partition transform may negatively impact query performance in Snowflake",
-        "Uses Snowflake clustering in conjunction with Iceberg partition transforms"
+        "Bucket partition transform may negatively impact query performance",
+        "Partition evolution not supported for Snowflake-managed tables"
       ],
       "links": [
         {
-          "label": "Create Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+          "label": "Iceberg partitioning",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-metadata#iceberg-partitioning"
         }
       ]
     },
     "snowflake:hidden-partitioning:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:partition-evolution:v2": {
       "level": "partial",
-      "notes": "Limited partition evolution support. Partition evolution is managed through Snowflake's internal clustering mechanisms rather than native Iceberg partition evolution.",
+      "notes": "Partition evolution not supported for Snowflake-managed tables. Supported for externally managed tables if done with an external engine.",
       "caveats": [
-        "Partition evolution is managed through Snowflake clustering, not native Iceberg partition evolution"
+        "Not supported for Snowflake-managed tables - must drop and recreate table",
+        "Supported for externally managed tables when evolution is done externally"
       ],
       "links": [
         {
-          "label": "Manage Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
-        },
-        {
-          "label": "Create Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create"
+          "label": "Partitioning support matrix",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-metadata#partitioning-support-matrix"
         }
       ]
     },
     "snowflake:partition-evolution:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
+
     "snowflake:multi-arg-transforms:v2": {
       "level": "none",
-      "notes": "Multi-argument transforms are a V3 feature not available in Iceberg V2",
+      "notes": "Multi-argument transforms are a V3 feature not available in Iceberg V2.",
       "caveats": [],
       "links": []
     },
     "snowflake:multi-arg-transforms:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:time-travel:v2": {
       "level": "full",
-      "notes": "Time travel is fully supported for Snowflake-managed Iceberg tables. For external catalog tables, time travel depends on periodic metadata refresh completing before snapshots expire.",
+      "notes": "Time travel fully supported via DATA_RETENTION_TIME_IN_DAYS parameter. Query historical snapshots within the retention period.",
       "caveats": [
-        "Full time travel support for Snowflake-managed Iceberg tables",
-        "For external catalog tables, time travel depends on periodic refresh completing before snapshot expiry"
+        "Retention period configurable via DATA_RETENTION_TIME_IN_DAYS",
+        "For externally managed tables, time travel depends on periodic refresh completing before snapshot expiry"
       ],
       "links": [
         {
-          "label": "Manage Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+          "label": "Time travel",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-metadata#time-travel"
         }
       ]
     },
     "snowflake:time-travel:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:table-maintenance:v2": {
-      "level": "full",
-      "notes": "Snowflake automatically handles table maintenance for managed Iceberg tables including auto-compaction, manifest compaction, and snapshot expiry. Orphan file deletion is not supported.",
+      "level": "partial",
+      "notes": "Automatic table optimization for Snowflake-managed tables: data compaction, manifest compaction, snapshot expiry. Orphan file deletion NOT supported.",
       "caveats": [
-        "Automatic compaction of small data files (auto-compaction)",
-        "Automatic manifest compaction",
-        "Automatic snapshot expiry",
-        "Orphan file deletion is NOT supported"
+        "Automatic data compaction (can be disabled)",
+        "Automatic manifest compaction (cannot be disabled)",
+        "Automatic snapshot expiry (cannot be disabled)",
+        "Orphan file deletion NOT supported - contact Snowflake Support"
       ],
       "links": [
         {
-          "label": "Manage Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+          "label": "Table optimization",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#table-optimization-for-snowflake-managed-iceberg-tables"
         }
       ]
     },
     "snowflake:table-maintenance:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:branching-tagging:v2": {
       "level": "none",
-      "notes": "Snowflake does not support Iceberg branching and tagging",
-      "caveats": [
-        "Iceberg branching and tagging features are not available in Snowflake"
-      ],
+      "notes": "Iceberg branching and tagging features are not mentioned as supported in Snowflake documentation.",
+      "caveats": [],
       "links": [
         {
           "label": "Iceberg tables overview",
@@ -298,122 +251,96 @@
     },
     "snowflake:branching-tagging:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
+
     "snowflake:read-support:v2": {
       "level": "full",
-      "notes": "Full read support for Iceberg tables in Parquet format. Supports both Snowflake-managed and externally managed Iceberg tables.",
+      "notes": "Full read support for Iceberg tables in Parquet format. Supports both Snowflake-managed and externally managed tables.",
       "caveats": [
-        "Only Parquet file format is supported for Iceberg tables",
-        "Supports reading both Snowflake-managed and externally managed Iceberg tables"
+        "Only Parquet file format supported",
+        "Parquet files with unsigned integer logical type not supported"
       ],
       "links": [
         {
           "label": "Iceberg tables overview",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
-        },
-        {
-          "label": "Iceberg table metadata",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-metadata"
         }
       ]
     },
     "snowflake:read-support:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:write-insert:v2": {
       "level": "full",
-      "notes": "INSERT INTO supported for Snowflake-managed Iceberg tables. Externally managed tables can also support writes when using Snowflake as a REST catalog.",
+      "notes": "INSERT INTO fully supported for Snowflake-managed tables. Write support for externally managed tables via REST catalog is GA.",
       "caveats": [
-        "Fully supported for Snowflake-managed Iceberg tables",
-        "Externally managed tables support writes via Snowflake Open Catalog (REST catalog)"
+        "Full support for Snowflake-managed tables",
+        "Externally managed tables support writes via Iceberg REST catalog (GA Oct 2025)"
       ],
       "links": [
         {
-          "label": "Manage Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
-        },
-        {
-          "label": "Create Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create"
+          "label": "Use DML commands",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-dml-commands"
         }
       ]
     },
     "snowflake:write-insert:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:write-merge-update-delete:v2": {
       "level": "full",
-      "notes": "MERGE, UPDATE, and DELETE are fully supported for Snowflake-managed Iceberg tables using copy-on-write mode.",
+      "notes": "MERGE, UPDATE, DELETE, and TRUNCATE fully supported for Snowflake-managed tables using copy-on-write. Also supported for externally managed tables via REST catalog.",
       "caveats": [
-        "All DML operations use copy-on-write mode (rewrites affected data files)",
-        "Supported for Snowflake-managed Iceberg tables"
+        "All DML operations use copy-on-write for Snowflake-managed tables",
+        "Externally managed tables support position deletes (not equality deletes)"
       ],
       "links": [
         {
-          "label": "Manage Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
-        },
-        {
-          "label": "Row-level deletes",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes"
+          "label": "Use DML commands",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-dml-commands"
         }
       ]
     },
     "snowflake:write-merge-update-delete:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
+
     "snowflake:catalog-integration:v2": {
       "level": "full",
-      "notes": "Snowflake supports multiple catalog integrations including Snowflake Open Catalog (Polaris), REST Catalog, and AWS Glue.",
+      "notes": "Supports multiple catalog integrations: Snowflake Open Catalog (Polaris), REST Catalog, AWS Glue, and object storage metadata files.",
       "caveats": [
-        "Supports Snowflake Open Catalog (Polaris), REST Catalog, and AWS Glue as external catalogs",
-        "Snowflake can also serve as its own Iceberg catalog for managed tables"
+        "Snowflake can serve as its own Iceberg catalog for managed tables",
+        "External catalogs supported via catalog integrations"
       ],
       "links": [
         {
           "label": "Configure catalog integration",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
         }
       ]
     },
     "snowflake:catalog-integration:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:hive-metastore:v2": {
       "level": "none",
-      "notes": "Snowflake does not support Hive Metastore as a catalog for Iceberg tables",
-      "caveats": [
-        "Hive Metastore is not a supported catalog integration"
-      ],
+      "notes": "Hive Metastore is not a supported catalog integration for Snowflake Iceberg tables.",
+      "caveats": [],
       "links": [
         {
           "label": "Configure catalog integration",
@@ -423,74 +350,54 @@
     },
     "snowflake:hive-metastore:v3": {
       "level": "none",
-      "notes": "Snowflake does not support Hive Metastore for Iceberg",
-      "caveats": [
-        "Hive Metastore is not a supported catalog integration"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        }
-      ]
+      "notes": "Hive Metastore not supported.",
+      "caveats": [],
+      "links": []
     },
     "snowflake:aws-glue-catalog:v2": {
       "level": "full",
-      "notes": "Snowflake supports AWS Glue as an external catalog for Iceberg tables. Read access via external tables and write support via REST catalog integration.",
+      "notes": "AWS Glue supported as an external catalog via REST catalog integration. Read and write access available.",
       "caveats": [
-        "Read access to Iceberg tables registered in AWS Glue Catalog",
-        "Write support available via REST catalog integration"
+        "Dropping externally managed table through Snowflake doesn't delete underlying files (AWS Glue specific)"
       ],
       "links": [
         {
           "label": "Configure catalog integration",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
         }
       ]
     },
     "snowflake:aws-glue-catalog:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:rest-catalog:v2": {
       "level": "full",
-      "notes": "Snowflake supports the Iceberg REST Catalog protocol for external catalog integration.",
+      "notes": "Full support for Iceberg REST Catalog protocol. Enables read and write access to externally managed tables.",
       "caveats": [
-        "Supports REST Catalog protocol for reading and writing Iceberg tables via external catalogs"
+        "Write support for externally managed tables requires REST catalog",
+        "External catalogs that don't conform to REST protocol not supported for writes"
       ],
       "links": [
         {
-          "label": "Configure catalog integration",
+          "label": "Configure catalog integration for REST catalogs",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
         }
       ]
     },
     "snowflake:rest-catalog:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
+
     "snowflake:nessie:v2": {
       "level": "none",
-      "notes": "Snowflake does not support Nessie as a catalog for Iceberg tables",
-      "caveats": [
-        "Nessie catalog is not a supported catalog integration"
-      ],
+      "notes": "Nessie catalog is not a supported catalog integration for Snowflake Iceberg tables.",
+      "caveats": [],
       "links": [
         {
           "label": "Configure catalog integration",
@@ -500,74 +407,54 @@
     },
     "snowflake:nessie:v3": {
       "level": "none",
-      "notes": "Snowflake does not support Nessie catalog",
-      "caveats": [
-        "Nessie catalog is not a supported catalog integration"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        }
-      ]
+      "notes": "Nessie catalog not supported.",
+      "caveats": [],
+      "links": []
     },
     "snowflake:polaris:v2": {
       "level": "full",
-      "notes": "Snowflake Open Catalog is built on the open-source Polaris project, providing native Polaris catalog integration.",
+      "notes": "Snowflake Open Catalog is built on Apache Polaris. Native integration with full read and write support.",
       "caveats": [
         "Snowflake Open Catalog is Snowflake's managed service built on Polaris",
-        "Native integration with full read and write support"
+        "Can sync Snowflake-managed tables with Open Catalog for third-party engine access"
       ],
       "links": [
         {
-          "label": "Configure catalog integration",
+          "label": "Configure catalog integration for Snowflake Open Catalog",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
         }
       ]
     },
     "snowflake:polaris:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:unity-catalog:v2": {
       "level": "partial",
-      "notes": "Snowflake can access Unity Catalog Iceberg tables via the REST Catalog API, but with read-only access.",
+      "notes": "Can access Unity Catalog Iceberg tables via REST Catalog API. CTAS not supported when Unity Catalog is remote catalog.",
       "caveats": [
-        "Read-only access to Unity Catalog managed Iceberg tables via REST Catalog API"
+        "Access via REST Catalog API",
+        "CREATE TABLE AS SELECT not supported with Unity Catalog as remote catalog"
       ],
       "links": [
         {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+          "label": "Externally managed write support limitations",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg#externally-managed-write-support"
         }
       ]
     },
     "snowflake:unity-catalog:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:hadoop-catalog:v2": {
       "level": "none",
-      "notes": "Snowflake does not support Hadoop catalog for Iceberg tables",
-      "caveats": [
-        "Hadoop catalog is not a supported catalog integration"
-      ],
+      "notes": "Hadoop catalog is not a supported catalog integration for Snowflake Iceberg tables.",
+      "caveats": [],
       "links": [
         {
           "label": "Configure catalog integration",
@@ -577,23 +464,14 @@
     },
     "snowflake:hadoop-catalog:v3": {
       "level": "none",
-      "notes": "Snowflake does not support Hadoop catalog",
-      "caveats": [
-        "Hadoop catalog is not a supported catalog integration"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        }
-      ]
+      "notes": "Hadoop catalog not supported.",
+      "caveats": [],
+      "links": []
     },
     "snowflake:jdbc-catalog:v2": {
       "level": "none",
-      "notes": "Snowflake does not support JDBC catalog for Iceberg tables",
-      "caveats": [
-        "JDBC catalog is not a supported catalog integration"
-      ],
+      "notes": "JDBC catalog is not a supported catalog integration for Snowflake Iceberg tables.",
+      "caveats": [],
       "links": [
         {
           "label": "Configure catalog integration",
@@ -603,159 +481,129 @@
     },
     "snowflake:jdbc-catalog:v3": {
       "level": "none",
-      "notes": "Snowflake does not support JDBC catalog",
-      "caveats": [
-        "JDBC catalog is not a supported catalog integration"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        }
-      ]
+      "notes": "JDBC catalog not supported.",
+      "caveats": [],
+      "links": []
     },
+
     "snowflake:table-creation:v2": {
       "level": "full",
-      "notes": "Snowflake supports creating Iceberg tables as Snowflake-managed tables or as externally managed tables using external catalogs.",
+      "notes": "CREATE ICEBERG TABLE supported for Snowflake-managed tables and externally managed tables via catalog integrations.",
       "caveats": [
-        "Supports CREATE ICEBERG TABLE for Snowflake-managed tables",
-        "Supports creating tables from external catalogs (Glue, REST, Object Storage)"
+        "Snowflake-managed tables require external volume and base location",
+        "External catalog tables require catalog integration",
+        "Can create from Iceberg metadata files, Delta files, or REST catalog"
       ],
       "links": [
         {
           "label": "Create Iceberg tables",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
         }
       ]
     },
     "snowflake:table-creation:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:variant-type:v2": {
       "level": "none",
-      "notes": "Variant Type is a V3 feature not available in Iceberg V2",
+      "notes": "Variant Type is a V3 feature not available in Iceberg V2.",
       "caveats": [],
       "links": []
     },
     "snowflake:variant-type:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:shredded-variant:v2": {
       "level": "none",
-      "notes": "Shredded Variant is a V3 feature not available in Iceberg V2",
+      "notes": "Shredded Variant is a V3 feature not available in Iceberg V2.",
       "caveats": [],
       "links": []
     },
     "snowflake:shredded-variant:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:geometry-type:v2": {
       "level": "none",
-      "notes": "Geometry Type is a V3 feature not available in Iceberg V2",
+      "notes": "Geometry Type is a V3 feature not available in Iceberg V2.",
       "caveats": [],
       "links": []
     },
     "snowflake:geometry-type:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:vector-type:v2": {
       "level": "none",
-      "notes": "Vector Type is a V3 feature not available in Iceberg V2",
+      "notes": "Vector Type is a V3 feature not available in Iceberg V2.",
       "caveats": [],
       "links": []
     },
     "snowflake:vector-type:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
+
     "snowflake:cdc-support:v2": {
       "level": "none",
-      "notes": "CDC Support is a V3 feature not available in Iceberg V2",
+      "notes": "CDC Support is a V3 feature not available in Iceberg V2.",
       "caveats": [],
       "links": []
     },
     "snowflake:cdc-support:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:lineage:v2": {
       "level": "none",
-      "notes": "Lineage is a V3 feature not available in Iceberg V2",
+      "notes": "Lineage is a V3 feature not available in Iceberg V2.",
       "caveats": [],
       "links": []
     },
     "snowflake:lineage:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:statistics:v2": {
       "level": "full",
-      "notes": "Snowflake writes column-level statistics (min/max values, null counts, value counts) to Iceberg manifest files for managed tables and uses them for scan planning and file pruning.",
+      "notes": "Column-level statistics (min/max, null counts) written to manifest files for Snowflake-managed tables and used for scan planning.",
       "caveats": [
-        "Statistics are managed automatically by Snowflake for managed Iceberg tables",
-        "Externally managed tables retain statistics written by the originating engine"
+        "Statistics managed automatically for Snowflake-managed tables",
+        "Externally managed tables retain statistics from originating engine"
       ],
       "links": [
         {
           "label": "Manage Iceberg tables",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
         }
       ]
     },
     "snowflake:statistics:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:bloom-filters:v2": {
       "level": "none",
-      "notes": "Snowflake does not support Iceberg bloom filters (Parquet-level or Puffin-based) for Iceberg tables. Snowflake uses its own micro-partition pruning and search optimization instead.",
-      "caveats": [
-        "Snowflake uses proprietary micro-partition pruning instead of Iceberg bloom filters"
-      ],
+      "notes": "Snowflake does not support Iceberg bloom filters. Uses proprietary micro-partition pruning and search optimization instead.",
+      "caveats": [],
       "links": [
         {
           "label": "Iceberg tables overview",
@@ -765,36 +613,28 @@
     },
     "snowflake:bloom-filters:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     },
     "snowflake:type-promotion:v2": {
       "level": "full",
-      "notes": "Snowflake supports type promotion for Iceberg tables in accordance with the Apache Iceberg spec: int to long, float to double, and increasing decimal precision. Available via ALTER ICEBERG TABLE ALTER COLUMN SET DATA TYPE.",
+      "notes": "Type promotion supported per Iceberg spec: int to long, float to double, increasing decimal precision. Metadata-only operation.",
       "caveats": [
-        "Only supported for Snowflake-managed Iceberg tables, not externally managed tables",
-        "Metadata-only operation; existing data files are not rewritten"
+        "Only for Snowflake-managed tables",
+        "Existing data files not rewritten"
       ],
       "links": [
         {
-          "label": "ALTER ICEBERG TABLE SET DATA TYPE",
-          "url": "https://docs.snowflake.com/en/sql-reference/sql/alter-iceberg-table-alter-column-set-data-type"
-        },
-        {
-          "label": "Iceberg data types",
+          "label": "Data types for Iceberg tables",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-data-types"
         }
       ]
     },
     "snowflake:type-promotion:v3": {
       "level": "unknown",
-      "notes": "Snowflake has not yet announced Iceberg V3 support",
-      "caveats": [
-        "Snowflake V3 support not yet announced"
-      ],
+      "notes": "Snowflake supports Iceberg V1 and V2 only. V3 support not yet announced.",
+      "caveats": [],
       "links": []
     }
   }
