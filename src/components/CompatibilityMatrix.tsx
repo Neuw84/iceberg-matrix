@@ -63,6 +63,8 @@ const PLATFORM_LOGOS: Record<string, string> = {
   "kafka-connect": "/logos/kafka-connect.svg",
   "google-bigquery": "/logos/bigquery.svg",
   "google-dataproc": "/logos/dataproc.svg",
+  "azure-synapse": "/logos/synapse.png",
+  "azure-fabric": "/logos/fabric.png",
 };
 
 interface PopoverState {
