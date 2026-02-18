@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "google-bigquery",
-      "name": "Google BigQuery",
+      "name": "BigQuery",
       "vendor": "Google",
       "category": "cloud",
       "group": "GCP",
@@ -10,7 +10,7 @@
     },
     {
       "id": "google-dataproc",
-      "name": "Google Dataproc",
+      "name": "Dataproc (2.3)",
       "vendor": "Google",
       "category": "cloud",
       "group": "GCP",

@@ -10,7 +10,7 @@
     },
     {
       "id": "aws-emr",
-      "name": "EMR",
+      "name": "EMR (7.12.0 Spark)",
       "vendor": "AWS",
       "category": "cloud",
       "group": "AWS",
@@ -18,7 +18,7 @@
     },
     {
       "id": "aws-glue",
-      "name": "Glue",
+      "name": "Glue (5.1)",
       "vendor": "AWS",
       "category": "cloud",
       "group": "AWS",
@@ -26,7 +26,7 @@
     },
     {
       "id": "aws-managed-flink",
-      "name": "Managed Flink (1.20+)",
+      "name": "Managed Flink (1.20)",
       "vendor": "AWS",
       "category": "cloud",
       "group": "AWS",
