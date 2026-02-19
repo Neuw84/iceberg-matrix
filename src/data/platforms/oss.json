@@ -26,7 +26,7 @@
     },
     {
       "id": "spark",
-      "name": "OSS Spark",
+      "name": "OSS Spark (4.1)",
       "vendor": "Apache",
       "category": "open-source",
       "group": "3rd Party",
