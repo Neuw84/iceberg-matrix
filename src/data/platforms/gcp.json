@@ -369,7 +369,9 @@
     "google-bigquery:write-insert:v2": {
       "level": "full",
       "notes": "INSERT INTO supported via GoogleSQL DML. Also supports batch loading via LOAD DATA and streaming via BigQuery Storage Write API",
-      "caveats": [],
+      "caveats": [
+        "Writing from external engines is not supported; data must be added exclusively through BigQuery"
+      ],
       "links": [
         {
           "label": "BigLake Iceberg tables in BigQuery",
@@ -395,7 +397,8 @@
       "notes": "MERGE, UPDATE, DELETE supported via GoogleSQL DML for BigLake Iceberg tables. Multi-statement transactions are available in Preview. Only one concurrent mutating DML statement runs per table; additional statements are queued",
       "caveats": [
         "Multi-statement transactions are in Preview and require sign-up",
-        "Only one concurrent mutating DML statement per table; additional are queued"
+        "Only one concurrent mutating DML statement per table; additional are queued",
+        "Writing from external engines is not supported; data must be modified exclusively through BigQuery"
       ],
       "links": [
         {
