@@ -10,7 +10,7 @@
     },
     {
       "id": "clickhouse",
-      "name": "ClickHouse",
+      "name": "ClickHouse (26.1)",
       "vendor": "ClickHouse Inc.",
       "category": "open-source",
       "group": "3rd Party",
@@ -735,9 +735,14 @@
     },
     "clickhouse:equality-deletes:v2": {
       "level": "none",
-      "notes": "Equality deletes are explicitly not supported; only position deletes are supported",
-      "docUrl": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg#deleted-rows",
-      "caveats": []
+      "notes": "Equality deletes are not yet supported; only position deletes are supported",
+      "caveats": [],
+      "links": [
+        {
+          "label": "GitHub Issue #75930 (planned support)",
+          "url": "https://github.com/ClickHouse/ClickHouse/issues/75930"
+        }
+      ]
     },
     "clickhouse:equality-deletes:v3": {
       "level": "none",
@@ -923,28 +928,36 @@
       ]
     },
     "clickhouse:write-insert:v2": {
-      "level": "none",
-      "notes": "ClickHouse provides read-only Iceberg integration; writing to Iceberg tables is not supported",
-      "docUrl": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg",
-      "caveats": []
+      "level": "partial",
+      "notes": "ClickHouse supports INSERT INTO for Iceberg tables (experimental)",
+      "caveats": [
+        "Experimental feature"
+      ],
+      "links": [
+        {
+          "label": "GitHub Issue #49973",
+          "url": "https://github.com/ClickHouse/ClickHouse/issues/49973"
+        }
+      ]
     },
     "clickhouse:write-insert:v3": {
       "level": "none",
-      "notes": "ClickHouse provides read-only Iceberg integration; writing to Iceberg tables is not supported",
-      "docUrl": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg",
-      "caveats": []
+      "notes": "ClickHouse only supports Iceberg V1 and V2; V3 is not yet supported",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ]
     },
     "clickhouse:write-merge-update-delete:v2": {
       "level": "none",
-      "notes": "ClickHouse provides read-only Iceberg integration; no MERGE/UPDATE/DELETE support for Iceberg tables",
-      "docUrl": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg",
+      "notes": "ClickHouse supports INSERT but not MERGE/UPDATE/DELETE for Iceberg tables",
       "caveats": []
     },
     "clickhouse:write-merge-update-delete:v3": {
       "level": "none",
-      "notes": "ClickHouse provides read-only Iceberg integration; no MERGE/UPDATE/DELETE support for Iceberg tables",
-      "docUrl": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg",
-      "caveats": []
+      "notes": "ClickHouse only supports Iceberg V1 and V2; V3 is not yet supported",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ]
     },
     "clickhouse:catalog-integration:v2": {
       "level": "full",
@@ -2354,10 +2367,16 @@
       ]
     },
     "pyiceberg:equality-deletes:v2": {
-      "level": "none",
-      "notes": "PyIceberg cannot read or write equality delete files; reading a table with equality deletes raises an error",
+      "level": "partial",
+      "notes": "PyIceberg can read equality delete files but cannot write them",
       "caveats": [
-        "Reading tables with equality delete files raises an error"
+        "Read-only support for equality deletes"
+      ],
+      "links": [
+        {
+          "label": "GitHub PR #2255",
+          "url": "https://github.com/apache/iceberg-python/pull/2255"
+        }
       ]
     },
     "pyiceberg:equality-deletes:v3": {
@@ -2369,10 +2388,9 @@
     },
     "pyiceberg:merge-on-read:v2": {
       "level": "partial",
-      "notes": "PyIceberg can read tables with position delete files (merge-on-read), but cannot write merge-on-read deletes; all deletes use copy-on-write",
+      "notes": "PyIceberg can read tables with position and equality delete files (merge-on-read), but cannot write merge-on-read deletes; all deletes use copy-on-write",
       "caveats": [
-        "Read-side MoR only (position deletes)",
-        "Cannot read equality delete files",
+        "Read-side MoR only (position and equality deletes)",
         "All writes use copy-on-write"
       ]
     },
