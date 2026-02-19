@@ -34,7 +34,7 @@
     },
     {
       "id": "flink",
-      "name": "OSS Flink",
+      "name": "OSS Flink (2.2.0)",
       "vendor": "Apache",
       "category": "open-source",
       "group": "3rd Party",
