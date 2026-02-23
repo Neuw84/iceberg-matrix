@@ -734,13 +734,20 @@
       ]
     },
     "clickhouse:equality-deletes:v2": {
-      "level": "none",
-      "notes": "Equality deletes are not yet supported; only position deletes are supported",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Equality deletes are supported via the table function approach. Not documented on the official docs page but confirmed via GitHub PR #75930 and ClickHouse engineers. The recommended approach is the icebergS3/icebergLocal table functions (read-only).",
+      "caveats": [
+        "Not yet reflected in official documentation",
+        "Read-only via table functions; no write support"
+      ],
       "links": [
         {
-          "label": "GitHub Issue #75930 (planned support)",
-          "url": "https://github.com/ClickHouse/ClickHouse/issues/75930"
+          "label": "GitHub PR #75930 (equality deletes implementation)",
+          "url": "https://github.com/ClickHouse/ClickHouse/pull/75930"
+        },
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
         }
       ]
     },
@@ -753,11 +760,12 @@
       ]
     },
     "clickhouse:merge-on-read:v2": {
-      "level": "partial",
-      "notes": "ClickHouse can read tables using merge-on-read with position deletes only; equality deletes and deletion vectors are not supported",
+      "level": "full",
+      "notes": "ClickHouse can read merge-on-read tables with both position deletes and equality deletes via the table function approach (icebergS3/icebergLocal). Deletion vectors (V3) are not supported.",
       "docUrl": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg#deleted-rows",
       "caveats": [
-        "Only position deletes supported; no equality delete or deletion vector support"
+        "Read-only via table functions; no write support",
+        "Deletion vectors (V3) not supported"
       ]
     },
     "clickhouse:merge-on-read:v3": {
@@ -928,15 +936,13 @@
       ]
     },
     "clickhouse:write-insert:v2": {
-      "level": "partial",
-      "notes": "ClickHouse supports INSERT INTO for Iceberg tables (experimental)",
-      "caveats": [
-        "Experimental feature"
-      ],
+      "level": "none",
+      "notes": "ClickHouse Iceberg integration via table functions (icebergS3/icebergLocal) is read-only; no INSERT support via table functions",
+      "caveats": [],
       "links": [
         {
-          "label": "GitHub Issue #49973",
-          "url": "https://github.com/ClickHouse/ClickHouse/issues/49973"
+          "label": "ClickHouse Iceberg Table Function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
         }
       ]
     },
@@ -949,8 +955,14 @@
     },
     "clickhouse:write-merge-update-delete:v2": {
       "level": "none",
-      "notes": "ClickHouse supports INSERT but not MERGE/UPDATE/DELETE for Iceberg tables",
-      "caveats": []
+      "notes": "ClickHouse Iceberg integration via table functions is read-only; no MERGE/UPDATE/DELETE support",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg Table Function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
     },
     "clickhouse:write-merge-update-delete:v3": {
       "level": "none",
@@ -3526,15 +3538,16 @@
       "links": []
     },
     "clickhouse:type-promotion:v2": {
-      "level": "none",
-      "notes": "ClickHouse's Iceberg integration is primarily read-oriented with experimental write support. ALTER TABLE column type changes are not supported for Iceberg tables.",
+      "level": "partial",
+      "notes": "ClickHouse can read Iceberg tables that have undergone type promotion (int→long, float→double, decimal precision widening) via the table function approach. Cannot perform type promotion itself — that must be done by another engine (e.g. Spark). Nested structure and array/map element type changes are not supported.",
       "caveats": [
-        "ClickHouse can read Iceberg tables that have been type-promoted by other engines",
-        "Write support for Iceberg is experimental and does not include schema DDL"
+        "Read-only; cannot perform type promotion via ClickHouse",
+        "No nested structure or array/map element type evolution",
+        "Type promotion must be performed by another engine"
       ],
       "links": [
         {
-          "label": "ClickHouse Iceberg table function",
+          "label": "ClickHouse Iceberg schema evolution docs",
           "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
         }
       ]

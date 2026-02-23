@@ -2,3 +2,4 @@ pyspark==4.0.0
 getdaft
 pyiceberg[sql-sqlite,pyarrow]
 duckdb
+clickhouse-connect
