@@ -50,7 +50,7 @@ jobs:
         run: |
           curl -fsSL https://clickhouse.com/install.sh | CLICKHOUSE_INSTALL_BINARY_ONLY=1 sh
           echo "$HOME/.clickhouse-install/bin" >> $GITHUB_PATH
-          clickhouse local --version
+          "$HOME/.clickhouse-install/bin/clickhouse" local --version
 
       - name: Run ClickHouse Iceberg feature tests
         run: |
