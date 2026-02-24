@@ -60,6 +60,7 @@ jobs:
           export REPO_ROOT="${GITHUB_WORKSPACE}"
           export REPORT_DIR="${GITHUB_WORKSPACE}/test-reports"
           export ICEBERG_WAREHOUSE="${RUNNER_TEMP}/clickhouse-iceberg-warehouse"
+          export ICEBERG_JAR="${ICEBERG_JAR}"
           python tests/clickhouse_feature_tests.py
         continue-on-error: true
 

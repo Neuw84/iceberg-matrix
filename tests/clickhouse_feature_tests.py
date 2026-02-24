@@ -84,7 +84,8 @@ except ImportError:
 
 def _get_spark(warehouse: str) -> "SparkSession":
     """Create a local PySpark session with Iceberg support."""
-    return (
+    iceberg_jar = os.environ.get("ICEBERG_JAR", "")
+    builder = (
         SparkSession.builder
         .master("local[1]")
         .appName("clickhouse-iceberg-tests")
@@ -93,11 +94,12 @@ def _get_spark(warehouse: str) -> "SparkSession":
         .config("spark.sql.catalog.local.type", "hadoop")
         .config("spark.sql.catalog.local.warehouse", warehouse)
         .config("spark.sql.defaultCatalog", "local")
-        # Suppress noisy Spark logs
         .config("spark.ui.enabled", "false")
         .config("spark.driver.extraJavaOptions", "-Dlog4j.logLevel=ERROR")
-        .getOrCreate()
     )
+    if iceberg_jar:
+        builder = builder.config("spark.jars", iceberg_jar)
+    return builder.getOrCreate()
 
 
 def _stop_spark(spark) -> None:
