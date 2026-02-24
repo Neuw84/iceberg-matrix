@@ -1,4 +1,4 @@
-name: Iceberg Feature Tests
+name: Spark Iceberg Feature Tests
 
 on:
   pull_request:
