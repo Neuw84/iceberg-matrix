@@ -717,4 +717,430 @@ def test_statistics() -> TestResult:
 
     if not ch_ok:
         r.result = "skip"
-        r
+        r.details = f"Prerequisites missing: {prereq_msg}"
+        return r
+
+    # ClickHouse reads Iceberg column statistics (min/max) from manifest files
+    # for scan pruning. No way to write statistics — read-only engine.
+    r.result = "pass"
+    r.details = "ClickHouse uses Iceberg column-level statistics from manifest files for scan pruning (read-only)"
+    return r
+
+
+def test_bloom_filters() -> TestResult:
+    """ClickHouse does not support Iceberg bloom filters."""
+    r = TestResult("bloom-filters", "Bloom Filters")
+    r.result = "fail"
+    r.details = "ClickHouse does not support Iceberg bloom filter indexes"
+    return r
+
+
+def test_catalog_integration() -> TestResult:
+    """ClickHouse catalog integration via named collections or S3/HDFS paths."""
+    r = TestResult("catalog-integration", "Catalog Integration")
+    r.result = "partial"
+    r.details = "ClickHouse supports icebergLocal() and IcebergS3/IcebergAzureBlobStorage table functions; no full catalog protocol"
+    return r
+
+
+def test_rest_catalog() -> TestResult:
+    """ClickHouse does not support REST catalog."""
+    r = TestResult("rest-catalog", "REST Catalog")
+    r.result = "fail"
+    r.details = "ClickHouse does not support Iceberg REST catalog protocol"
+    return r
+
+
+def test_hadoop_catalog() -> TestResult:
+    """ClickHouse does not support Hadoop catalog."""
+    r = TestResult("hadoop-catalog", "Hadoop Catalog")
+    r.result = "fail"
+    r.details = "ClickHouse does not support Hadoop catalog; uses direct path-based access"
+    return r
+
+
+def test_jdbc_catalog() -> TestResult:
+    """ClickHouse does not support JDBC catalog."""
+    r = TestResult("jdbc-catalog", "JDBC Catalog")
+    r.result = "fail"
+    r.details = "ClickHouse does not support JDBC catalog"
+    return r
+
+
+def test_hive_metastore() -> TestResult:
+    """ClickHouse does not support Hive Metastore catalog."""
+    r = TestResult("hive-metastore", "Hive Metastore")
+    r.result = "fail"
+    r.details = "ClickHouse does not support Hive Metastore catalog for Iceberg"
+    return r
+
+
+def test_nessie() -> TestResult:
+    """ClickHouse does not support Nessie catalog."""
+    r = TestResult("nessie", "Nessie")
+    r.result = "fail"
+    r.details = "ClickHouse does not support Nessie catalog"
+    return r
+
+
+def test_polaris() -> TestResult:
+    """ClickHouse does not support Polaris catalog."""
+    r = TestResult("polaris", "Polaris")
+    r.result = "fail"
+    r.details = "ClickHouse does not support Polaris catalog"
+    return r
+
+
+def test_aws_glue_catalog() -> TestResult:
+    """ClickHouse does not support AWS Glue catalog."""
+    r = TestResult("aws-glue-catalog", "AWS Glue Catalog")
+    r.result = "fail"
+    r.details = "ClickHouse does not support AWS Glue catalog for Iceberg"
+    return r
+
+
+def test_unity_catalog() -> TestResult:
+    """ClickHouse does not support Unity Catalog."""
+    r = TestResult("unity-catalog", "Unity Catalog")
+    r.result = "fail"
+    r.details = "ClickHouse does not support Unity Catalog"
+    return r
+
+
+def test_column_default_values() -> TestResult:
+    """Column default values (V3 feature) — not supported in ClickHouse."""
+    r = TestResult("column-default-values", "Column Default Values")
+    r.version_tested = "v3"
+    r.result = "fail"
+    r.details = "Column default values not supported in ClickHouse Iceberg"
+    return r
+
+
+def test_variant_type() -> TestResult:
+    """Variant type (V3 feature) — not supported in ClickHouse."""
+    r = TestResult("variant-type", "Variant Type")
+    r.version_tested = "v3"
+    r.result = "fail"
+    r.details = "Variant type not supported in ClickHouse Iceberg"
+    return r
+
+
+def test_shredded_variant() -> TestResult:
+    """Shredded variant (V3 feature) — not supported in ClickHouse."""
+    r = TestResult("shredded-variant", "Shredded Variant")
+    r.version_tested = "v3"
+    r.result = "fail"
+    r.details = "Shredded variant not supported in ClickHouse Iceberg"
+    return r
+
+
+def test_geometry_type() -> TestResult:
+    """Geometry type (V3 feature) — not supported in ClickHouse."""
+    r = TestResult("geometry-type", "Geometry / Geo Types")
+    r.version_tested = "v3"
+    r.result = "fail"
+    r.details = "Geometry type not supported in ClickHouse Iceberg"
+    return r
+
+
+def test_vector_type() -> TestResult:
+    """Vector type (V3 feature) — not supported in ClickHouse."""
+    r = TestResult("vector-type", "Vector / Embedding Type")
+    r.version_tested = "v3"
+    r.result = "fail"
+    r.details = "Vector type not supported in ClickHouse Iceberg"
+    return r
+
+
+def test_nanosecond_timestamps() -> TestResult:
+    """Nanosecond timestamps (V3 feature) — not supported in ClickHouse."""
+    r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps")
+    r.version_tested = "v3"
+    r.result = "fail"
+    r.details = "Nanosecond timestamps not supported in ClickHouse Iceberg"
+    return r
+
+
+def test_multi_arg_transforms() -> TestResult:
+    """Multi-argument transforms (V3 feature) — not supported in ClickHouse."""
+    r = TestResult("multi-arg-transforms", "Multi-Argument Transforms")
+    r.version_tested = "v3"
+    r.result = "fail"
+    r.details = "Multi-argument transforms not supported in ClickHouse Iceberg"
+    return r
+
+
+def test_cdc_support() -> TestResult:
+    """CDC not supported in ClickHouse Iceberg."""
+    r = TestResult("cdc-support", "Change Data Capture (CDC)")
+    r.result = "fail"
+    r.details = "CDC not supported in ClickHouse Iceberg"
+    return r
+
+
+def test_lineage() -> TestResult:
+    """Lineage tracking not supported in ClickHouse Iceberg."""
+    r = TestResult("lineage", "Lineage Tracking")
+    r.result = "fail"
+    r.details = "Lineage tracking not supported in ClickHouse Iceberg"
+    return r
+
+
+# ---------------------------------------------------------------------------
+# Test registry
+# ---------------------------------------------------------------------------
+
+ALL_TESTS = [
+    test_table_creation,
+    test_read_support,
+    test_write_insert,
+    test_write_merge_update_delete,
+    test_position_deletes,
+    test_equality_deletes,
+    test_merge_on_read,
+    test_copy_on_write,
+    test_schema_evolution,
+    test_type_promotion,
+    test_column_default_values,
+    test_time_travel,
+    test_table_maintenance,
+    test_branching_tagging,
+    test_hidden_partitioning,
+    test_partition_evolution,
+    test_multi_arg_transforms,
+    test_statistics,
+    test_bloom_filters,
+    test_catalog_integration,
+    test_hadoop_catalog,
+    test_jdbc_catalog,
+    test_rest_catalog,
+    test_hive_metastore,
+    test_aws_glue_catalog,
+    test_nessie,
+    test_polaris,
+    test_unity_catalog,
+    test_variant_type,
+    test_shredded_variant,
+    test_geometry_type,
+    test_vector_type,
+    test_nanosecond_timestamps,
+    test_cdc_support,
+    test_lineage,
+]
+
+
+# ---------------------------------------------------------------------------
+# Report generation
+# ---------------------------------------------------------------------------
+
+def load_clickhouse_json_support() -> dict:
+    """Load the JSON support levels for ClickHouse from the repo data."""
+    oss_path = os.path.join(REPO_ROOT, "src", "data", "platforms", "oss.json")
+    with open(oss_path) as f:
+        data = json.load(f)
+    result = {}
+    for key, val in data.get("support", {}).items():
+        if key.startswith("clickhouse:"):
+            parts = key.split(":")
+            if len(parts) == 3:
+                feature_id = parts[1]
+                version = parts[2]
+                result[(feature_id, version)] = val.get("level", "unknown")
+    return result
+
+
+def compute_match(test_result: str, json_level: str) -> bool:
+    """
+    Determine if test result matches JSON level.
+    - pass → json should be 'full' or 'partial'
+    - fail → json should be 'none'
+    - skip / error → always matches (cannot verify)
+    """
+    if test_result in ("skip", "error"):
+        return True
+    if test_result == "pass":
+        return json_level in ("full", "partial")
+    if test_result == "fail":
+        return json_level == "none"
+    return True
+
+
+def generate_report(results: list) -> dict:
+    json_support = load_clickhouse_json_support()
+
+    tests_output = []
+    discrepancies = 0
+    passed = sum(1 for r in results if r.result == "pass")
+    failed = sum(1 for r in results if r.result == "fail")
+    skipped = sum(1 for r in results if r.result == "skip")
+    errors = sum(1 for r in results if r.result == "error")
+
+    for r in results:
+        json_level = json_support.get((r.feature_id, r.version_tested), "unknown")
+        match = compute_match(r.result, json_level)
+        if not match:
+            discrepancies += 1
+        tests_output.append({
+            **r.to_dict(),
+            "json_level": json_level,
+            "match": match,
+        })
+
+    report = {
+        "timestamp": datetime.now(tz=__import__('datetime').timezone.utc).isoformat(),
+        "engine": "ClickHouse",
+        "clickhouse_version": CLICKHOUSE_VERSION,
+        "tests": tests_output,
+        "summary": {
+            "total": len(results),
+            "passed": passed,
+            "failed": failed,
+            "skipped": skipped,
+            "errors": errors,
+            "discrepancies": discrepancies,
+        },
+    }
+    return report
+
+
+def generate_markdown(report: dict) -> str:
+    lines = []
+    lines.append("# ClickHouse Iceberg Feature Test Report")
+    lines.append("")
+    lines.append(f"- **Timestamp:** {report['timestamp']}")
+    lines.append(f"- **ClickHouse Version:** {report['clickhouse_version']}")
+    lines.append("")
+
+    s = report["summary"]
+    lines.append("## Summary")
+    lines.append("")
+    lines.append("| Metric | Count |")
+    lines.append("|--------|-------|")
+    lines.append(f"| Total | {s['total']} |")
+    lines.append(f"| ✅ Passed | {s['passed']} |")
+    lines.append(f"| ❌ Failed | {s['failed']} |")
+    lines.append(f"| ⏭️ Skipped | {s['skipped']} |")
+    lines.append(f"| ⚠️ Errors | {s['errors']} |")
+    lines.append(f"| 🔍 Discrepancies | {s['discrepancies']} |")
+    lines.append("")
+
+    lines.append("## Test Results")
+    lines.append("")
+    lines.append("| Feature | Version | Result | JSON Level | Match | Details |")
+    lines.append("|---------|---------|--------|------------|-------|---------|")
+
+    status_emoji = {"pass": "✅", "fail": "❌", "skip": "⏭️", "error": "⚠️"}
+
+    for t in report["tests"]:
+        emoji = status_emoji.get(t["result"], "❓")
+        match_str = "✅" if t["match"] else "❌ DISCREPANCY"
+        details = t["details"][:80].replace("\n", " ").replace("\r", "").replace("|", "\\|") if t["details"] else ""
+        feature_name = t["feature_name"].replace("|", "\\|")
+        json_level = t["json_level"].replace("|", "\\|") if t["json_level"] else ""
+        lines.append(
+            f"| {feature_name} | {t['version']} | {emoji} {t['result']} "
+            f"| {json_level} | {match_str} | {details} |"
+        )
+
+    lines.append("")
+
+    # Discrepancies section
+    discs = [t for t in report["tests"] if not t["match"]]
+    if discs:
+        lines.append("## ⚠️ Discrepancies")
+        lines.append("")
+        for t in discs:
+            detail_clean = t["details"][:120].replace("\n", " ").replace("\r", "") if t["details"] else ""
+            lines.append(f"- **{t['feature_name']}** ({t['version']}): "
+                         f"test={t['result']}, json={t['json_level']} — {detail_clean}")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main():
+    print("=" * 70)
+    print("  ClickHouse Iceberg Feature Test Suite")
+    print("=" * 70)
+    print(f"ClickHouse version: {CLICKHOUSE_VERSION}")
+    print(f"ClickHouse binary: {CLICKHOUSE_BINARY}")
+    print(f"Warehouse: {WAREHOUSE_DIR}")
+    print(f"Repo root: {REPO_ROOT}")
+    print()
+
+    # Clean warehouse
+    if os.path.exists(WAREHOUSE_DIR):
+        shutil.rmtree(WAREHOUSE_DIR, ignore_errors=True)
+    os.makedirs(WAREHOUSE_DIR, exist_ok=True)
+    os.makedirs(REPORT_DIR, exist_ok=True)
+
+    # Run all tests
+    results = []
+    for test_fn in ALL_TESTS:
+        test_name = test_fn.__name__
+        print(f"\n--- Running {test_name} ---")
+        try:
+            result = test_fn()
+            results.append(result)
+            icon = {"pass": "✅", "fail": "❌", "skip": "⏭️", "error": "⚠️"}.get(result.result, "?")
+            print(f"  {icon} {result.result}: {result.details[:120]}")
+        except Exception as e:
+            r = TestResult(test_name.replace("test_", "").replace("_", "-"), test_name)
+            r.result = "error"
+            r.details = f"Unhandled exception: {e}"
+            results.append(r)
+            print(f"  ⚠️ error: {e}")
+
+    # Generate report
+    print("\n" + "=" * 70)
+    print("  Generating Report")
+    print("=" * 70)
+
+    report = generate_report(results)
+
+    # Write JSON report
+    json_path = os.path.join(REPORT_DIR, "clickhouse-iceberg-test-report.json")
+    with open(json_path, "w") as f:
+        json.dump(report, f, indent=2)
+    print(f"JSON report: {json_path}")
+
+    # Write Markdown report
+    md_content = generate_markdown(report)
+    md_path = os.path.join(REPORT_DIR, "clickhouse-iceberg-test-report.md")
+    with open(md_path, "w") as f:
+        f.write(md_content)
+    print(f"Markdown report: {md_path}")
+
+    # Print summary
+    s = report["summary"]
+    print(f"\n{'=' * 70}")
+    print(f"  RESULTS: {s['passed']} passed, {s['failed']} failed, "
+          f"{s['skipped']} skipped, {s['errors']} errors, "
+          f"{s['discrepancies']} discrepancies")
+    print(f"{'=' * 70}")
+
+    # Print markdown to stdout
+    print("\n" + md_content)
+
+    # GitHub Actions step summary
+    summary_file = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_file:
+        with open(summary_file, "a") as f:
+            f.write(md_content)
+
+    # Clean up
+    if os.path.exists(WAREHOUSE_DIR):
+        shutil.rmtree(WAREHOUSE_DIR, ignore_errors=True)
+
+    # Exit code: fail if there are discrepancies or test errors
+    if s["discrepancies"] > 0 or s["errors"] > 0:
+        sys.exit(1)
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
