@@ -48,10 +48,12 @@ jobs:
 
       - name: Install ClickHouse
         run: |
-          curl -fsSL https://clickhouse.com/install.sh | CLICKHOUSE_INSTALL_BINARY_ONLY=1 sh
-          chmod +x ./clickhouse
-          echo "$(pwd)" >> $GITHUB_PATH
-          ./clickhouse local --version
+          sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
+          curl -fsSL 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key' | sudo gpg --dearmor -o /usr/share/keyrings/clickhouse-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" | sudo tee /etc/apt/sources.list.d/clickhouse.list
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y clickhouse-client clickhouse-common-static
+          clickhouse local --version
 
       - name: Run ClickHouse Iceberg feature tests
         run: |
