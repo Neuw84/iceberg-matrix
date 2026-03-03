@@ -45,7 +45,7 @@ export default function App() {
                   Apache Iceberg™ Compatibility Matrix
                 </h1>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Feature support across platforms and engines
+                  Community driven matrix feature support across platforms and engines
                 </p>
               </div>
             </div>
