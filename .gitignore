@@ -24,4 +24,6 @@ dist-ssr
 *.sw?
 tests/iceberg-spark-runtime-*.jar
 tests/venv/
+tests/flink-venv/
+tests/iceberg-flink-runtime-*.jar
 test-reports/
