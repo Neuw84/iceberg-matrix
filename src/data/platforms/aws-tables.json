@@ -766,7 +766,7 @@
       "notes": "V3 support available when bundling iceberg-flink-runtime 1.7.0+ (which supports format-version 3). Managed Flink itself is not listed in AWS's V3 support matrix since it runs user-provided JARs",
       "caveats": [
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support",
-        "Not listed in AWS V3 support matrix — V3 depends entirely on the Iceberg library version bundled by the user"
+        "Not listed in AWS V3 support matrix \u2014 V3 depends entirely on the Iceberg library version bundled by the user"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/"
     },
@@ -820,7 +820,7 @@
     },
     "aws-managed-flink:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties — column additions, renames, drops, reordering, and partition changes are not supported via Flink SQL DDL",
+      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column additions, renames, drops, reordering, and partition changes are not supported via Flink SQL DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column and partition schema changes not supported via Flink SQL",
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
@@ -829,7 +829,7 @@
     },
     "aws-managed-flink:schema-evolution:v3": {
       "level": "partial",
-      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes not supported via Flink SQL DDL",
+      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column and partition changes not supported via Flink SQL DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column and partition schema changes not supported via Flink SQL",
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
@@ -935,7 +935,7 @@
     },
     "aws-managed-flink:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests — use Spark for full maintenance",
+      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests \u2014 use Spark for full maintenance",
       "caveats": [
         "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported",
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
@@ -2033,6 +2033,103 @@
       "level": "unknown",
       "notes": "Lineage tracking support with S3 Tables not explicitly documented",
       "caveats": []
+    },
+    "aws-athena:snowflake-open-catalog:v2": {
+      "level": "none",
+      "notes": "Athena uses AWS Glue Catalog exclusively and does not support connecting to external REST catalogs including Snowflake Open Catalog.",
+      "caveats": [],
+      "links": []
+    },
+    "aws-athena:snowflake-open-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support external REST catalogs.",
+      "caveats": [],
+      "links": []
+    },
+    "aws-emr:snowflake-open-catalog:v2": {
+      "level": "full",
+      "notes": "EMR Spark natively supports REST catalog via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Open Catalog endpoint.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "aws-emr:snowflake-open-catalog:v3": {
+      "level": "partial",
+      "notes": "V3 support via EMR Spark requires iceberg-spark-runtime 1.7.0+.",
+      "caveats": [
+        "Requires iceberg-spark-runtime 1.7.0+ for V3 table support"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "aws-glue:snowflake-open-catalog:v2": {
+      "level": "partial",
+      "notes": "AWS Glue Spark jobs can connect to Snowflake Open Catalog as a REST catalog using the Iceberg REST catalog configuration. Requires additional connector setup.",
+      "caveats": [
+        "Requires bundling Iceberg REST catalog dependency in Glue job",
+        "Not a native Glue catalog integration"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "aws-glue:snowflake-open-catalog:v3": {
+      "level": "unknown",
+      "notes": "V3 support via Glue Spark depends on Iceberg library version used; REST catalog connectivity pattern unchanged.",
+      "caveats": [
+        "V3 support depends on Iceberg library version bundled in Glue job"
+      ],
+      "links": []
+    },
+    "aws-managed-flink:snowflake-open-catalog:v2": {
+      "level": "full",
+      "notes": "Amazon Managed Flink can connect to Snowflake Open Catalog via REST catalog when iceberg-flink-runtime JAR (1.6.0+) is bundled in the application.",
+      "caveats": [
+        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "aws-managed-flink:snowflake-open-catalog:v3": {
+      "level": "partial",
+      "notes": "V3 support requires bundling iceberg-flink-runtime 1.7.0+. REST catalog connectivity unchanged.",
+      "caveats": [
+        "Requires iceberg-flink-runtime 1.7.0+ for V3 table support",
+        "Iceberg is not a pre-built connector"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "aws-redshift-s3:snowflake-open-catalog:v2": {
+      "level": "none",
+      "notes": "Redshift with S3 Tables uses the S3 Tables built-in catalog and does not support connecting to external REST catalogs including Snowflake Open Catalog.",
+      "caveats": [],
+      "links": []
+    },
+    "aws-redshift-s3:snowflake-open-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables.",
+      "caveats": [],
+      "links": []
     }
   }
 }

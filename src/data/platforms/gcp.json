@@ -1188,7 +1188,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
@@ -1199,8 +1199,44 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        }
+      ]
+    },
+    "google-bigquery:snowflake-open-catalog:v2": {
+      "level": "none",
+      "notes": "BigQuery uses its own managed metastore and does not support connecting to external REST catalogs including Snowflake Open Catalog.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:snowflake-open-catalog:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support external REST catalogs.",
+      "caveats": [],
+      "links": []
+    },
+    "google-dataproc:snowflake-open-catalog:v2": {
+      "level": "full",
+      "notes": "Dataproc runs Spark and supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest pointing to the Open Catalog endpoint.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "google-dataproc:snowflake-open-catalog:v3": {
+      "level": "partial",
+      "notes": "V3 support via Dataproc Spark requires iceberg-spark-runtime 1.7.0+.",
+      "caveats": [
+        "Requires iceberg-spark-runtime 1.7.0+ for V3 table support"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
         }
       ]
     }

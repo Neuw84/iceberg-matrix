@@ -160,7 +160,7 @@
       ],
       "links": [
         {
-          "label": "Manage Iceberg tables – Schema",
+          "label": "Manage Iceberg tables \u2013 Schema",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
         },
         {
@@ -1097,6 +1097,30 @@
         {
           "label": "Release Notes",
           "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+        }
+      ]
+    },
+    "snowflake:snowflake-open-catalog:v2": {
+      "level": "full",
+      "notes": "Native integration \u2014 Snowflake is the provider. Connect via CREATE CATALOG INTEGRATION TYPE=ICEBERG_REST with Snowflake Open Catalog as the REST endpoint.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "snowflake:snowflake-open-catalog:v3": {
+      "level": "full",
+      "notes": "Full support for Iceberg V3 tables via Snowflake Open Catalog. Public Preview as of March 2026.",
+      "caveats": [
+        "Public Preview as of March 2026"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
         }
       ]
     }

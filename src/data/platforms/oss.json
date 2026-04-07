@@ -825,7 +825,7 @@
     },
     "clickhouse:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Reading schema-evolved Iceberg tables is supported via the icebergS3/icebergLocal table functions (recommended approach): add/remove columns, reorder, nullable promotion, and limited type casting (int→long, float→double, decimal widening). Cannot change nested structures or array/map element types.",
+      "notes": "Reading schema-evolved Iceberg tables is supported via the icebergS3/icebergLocal table functions (recommended approach): add/remove columns, reorder, nullable promotion, and limited type casting (int\u2192long, float\u2192double, decimal widening). Cannot change nested structures or array/map element types.",
       "caveats": [
         "Read-only via table functions; cannot perform schema changes",
         "No nested structure or array/map element type evolution",
@@ -3784,7 +3784,7 @@
     },
     "clickhouse:type-promotion:v2": {
       "level": "partial",
-      "notes": "ClickHouse can read Iceberg tables that have undergone type promotion (int→long, float→double, decimal precision widening) via the icebergS3/icebergLocal table functions (recommended approach). Cannot perform type promotion itself — that must be done by another engine (e.g. Spark). Nested structure and array/map element type changes are not supported.",
+      "notes": "ClickHouse can read Iceberg tables that have undergone type promotion (int\u2192long, float\u2192double, decimal precision widening) via the icebergS3/icebergLocal table functions (recommended approach). Cannot perform type promotion itself \u2014 that must be done by another engine (e.g. Spark). Nested structure and array/map element type changes are not supported.",
       "caveats": [
         "Read-only via table functions; cannot perform type promotion",
         "No nested structure or array/map element type evolution",
@@ -3903,6 +3903,138 @@
         {
           "label": "PyIceberg API \u2013 Schema evolution",
           "url": "https://py.iceberg.apache.org/api/"
+        }
+      ]
+    },
+    "spark:snowflake-open-catalog:v2": {
+      "level": "full",
+      "notes": "Spark Iceberg connector supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest and the Open Catalog endpoint URI.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "spark:snowflake-open-catalog:v3": {
+      "level": "partial",
+      "notes": "V3 support depends on iceberg-spark-runtime version (1.7.0+ recommended). REST catalog connectivity unchanged.",
+      "caveats": [
+        "Requires iceberg-spark-runtime 1.7.0+ for V3 table support"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "flink:snowflake-open-catalog:v2": {
+      "level": "full",
+      "notes": "Flink Iceberg connector supports REST catalog. Configure with catalog-type=rest and the Open Catalog endpoint URI.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "flink:snowflake-open-catalog:v3": {
+      "level": "partial",
+      "notes": "V3 support depends on iceberg-flink-runtime version (1.7.0+ recommended). REST catalog connectivity unchanged.",
+      "caveats": [
+        "Requires iceberg-flink-runtime 1.7.0+ for V3 table support"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "duckdb:snowflake-open-catalog:v2": {
+      "level": "full",
+      "notes": "DuckDB Iceberg extension supports REST catalog for reads and writes. Configure with ATTACH using the Open Catalog REST endpoint.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "duckdb:snowflake-open-catalog:v3": {
+      "level": "unknown",
+      "notes": "DuckDB V3 Iceberg table support is partial; REST catalog connectivity to Open Catalog is not yet explicitly documented for V3.",
+      "caveats": [
+        "V3 catalog support via DuckDB not yet documented"
+      ],
+      "links": []
+    },
+    "clickhouse:snowflake-open-catalog:v2": {
+      "level": "partial",
+      "notes": "ClickHouse supports REST catalog via the IcebergCatalog table function. Connection to Snowflake Open Catalog follows the same REST catalog configuration.",
+      "caveats": [
+        "REST catalog support available but with configuration complexity",
+        "Feature set may be limited compared to native catalog integrations"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "clickhouse:snowflake-open-catalog:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 Iceberg support is not yet documented; REST catalog connectivity pattern unchanged.",
+      "caveats": [
+        "V3 support not yet documented in ClickHouse"
+      ],
+      "links": []
+    },
+    "daft:snowflake-open-catalog:v2": {
+      "level": "full",
+      "notes": "Daft supports REST catalog natively via PyIceberg integration. Configure with type=rest and the Open Catalog endpoint.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "daft:snowflake-open-catalog:v3": {
+      "level": "unknown",
+      "notes": "Daft V3 REST catalog support not yet documented.",
+      "caveats": [
+        "V3 support via Daft not yet documented"
+      ],
+      "links": []
+    },
+    "pyiceberg:snowflake-open-catalog:v2": {
+      "level": "full",
+      "notes": "PyIceberg has first-class REST catalog support. Configure with type=rest and the Open Catalog endpoint in pyiceberg config.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+        }
+      ]
+    },
+    "pyiceberg:snowflake-open-catalog:v3": {
+      "level": "partial",
+      "notes": "PyIceberg REST catalog support is available; V3 feature support depends on PyIceberg version (0.8.0+ recommended).",
+      "caveats": [
+        "Requires PyIceberg 0.8.0+ for V3 table support"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Open Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
         }
       ]
     }

@@ -183,6 +183,13 @@
       "description": "Databricks Unity Catalog providing unified governance for data and AI assets, with Iceberg REST Catalog API support"
     },
     {
+      "id": "snowflake-open-catalog",
+      "name": "Snowflake Open Catalog",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "Snowflake Open Catalog \u2014 Snowflake's managed catalog service based on Apache Polaris, implementing the Iceberg REST Catalog API with cross-engine RBAC and fine-grained table governance"
+    },
+    {
       "id": "hadoop-catalog",
       "name": "Hadoop Catalog",
       "category": "catalog-support",
