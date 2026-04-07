@@ -1203,6 +1203,42 @@
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
+    },
+    "google-bigquery:snowflake-horizon-catalog:v2": {
+      "level": "none",
+      "notes": "BigQuery uses its own managed metastore and does not support connecting to external REST catalogs including Snowflake Horizon Catalog.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support external REST catalogs.",
+      "caveats": [],
+      "links": []
+    },
+    "google-dataproc:snowflake-horizon-catalog:v2": {
+      "level": "full",
+      "notes": "Dataproc runs Spark and supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "google-dataproc:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "V3 support via Dataproc Spark requires iceberg-spark-runtime 1.7.0+.",
+      "caveats": [
+        "Requires iceberg-spark-runtime 1.7.0+ for V3 table support"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
     }
   }
 }

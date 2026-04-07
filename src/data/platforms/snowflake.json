@@ -474,7 +474,7 @@
       "notes": "INSERT INTO supported for Snowflake-managed Iceberg tables. Externally managed tables can also support writes when using Snowflake as a REST catalog.",
       "caveats": [
         "Fully supported for Snowflake-managed Iceberg tables",
-        "Externally managed tables support writes via Snowflake Open Catalog (REST catalog)"
+        "Externally managed tables support writes via Snowflake Horizon Catalog (REST catalog)"
       ],
       "links": [
         {
@@ -541,9 +541,9 @@
     },
     "snowflake:catalog-integration:v2": {
       "level": "full",
-      "notes": "Snowflake supports multiple catalog integrations including Snowflake Open Catalog (Polaris), REST Catalog, and AWS Glue.",
+      "notes": "Snowflake supports multiple catalog integrations including Snowflake Horizon Catalog (Polaris), REST Catalog, and AWS Glue.",
       "caveats": [
-        "Supports Snowflake Open Catalog (Polaris), REST Catalog, and AWS Glue as external catalogs",
+        "Supports Snowflake Horizon Catalog (Polaris), REST Catalog, and AWS Glue as external catalogs",
         "Snowflake can also serve as its own Iceberg catalog for managed tables"
       ],
       "links": [
@@ -697,9 +697,9 @@
     },
     "snowflake:polaris:v2": {
       "level": "full",
-      "notes": "Snowflake Open Catalog is built on the open-source Polaris project, providing native Polaris catalog integration.",
+      "notes": "Snowflake Horizon Catalog is built on the open-source Polaris project, providing native Polaris catalog integration.",
       "caveats": [
-        "Snowflake Open Catalog is Snowflake's managed service built on Polaris",
+        "Snowflake Horizon Catalog is Snowflake's managed service built on Polaris",
         "Native integration with full read and write support"
       ],
       "links": [
@@ -715,7 +715,7 @@
     },
     "snowflake:polaris:v3": {
       "level": "full",
-      "notes": "Snowflake Open Catalog (Polaris) supported for Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Snowflake Horizon Catalog (Polaris) supported for Iceberg V3 tables. Public Preview (as of March 2026).",
       "caveats": [
         "Public Preview (as of March 2026)"
       ],
@@ -1097,6 +1097,30 @@
         {
           "label": "Release Notes",
           "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+        }
+      ]
+    },
+    "snowflake:snowflake-horizon-catalog:v2": {
+      "level": "full",
+      "notes": "Native integration — Snowflake is the provider. Connect via CREATE CATALOG INTEGRATION TYPE=ICEBERG_REST with Snowflake Horizon Catalog as the REST endpoint.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "snowflake:snowflake-horizon-catalog:v3": {
+      "level": "full",
+      "notes": "Full support for Iceberg V3 tables via Snowflake Horizon Catalog. Public Preview as of March 2026.",
+      "caveats": [
+        "Public Preview as of March 2026"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     }

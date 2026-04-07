@@ -913,6 +913,36 @@
           "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"
         }
       ]
+    },
+    "databricks:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Databricks can connect to Snowflake Horizon Catalog via ICEBERG_REST catalog integration for read access. Databricks does not support writes to externally managed Iceberg tables — this is a Databricks engine limitation, not a Horizon Catalog limitation. Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog.",
+      "caveats": [
+        "Read-only — Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog",
+        "Managed Iceberg tables in Databricks are in Public Preview (requires DBR 16.4 LTS+)"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "databricks:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "Databricks can read Iceberg V3 tables via the Horizon Catalog REST API; however, Databricks does not support the full V3 spec. Tables using V3-only features such as nanosecond timestamps or deletion vectors may fail to read. Write support is not available — this is a Databricks engine limitation, not a Horizon Catalog limitation.",
+      "caveats": [
+        "Read-only — Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Tables using V3-only features (nanosecond timestamps, deletion vectors) may fail to read",
+        "Databricks does not support the full Iceberg V3 spec"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
     }
   }
 }

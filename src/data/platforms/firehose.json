@@ -383,6 +383,18 @@
       "notes": "Firehose does not support Iceberg V3",
       "caveats": [],
       "links": []
+    },
+    "aws-firehose:snowflake-horizon-catalog:v2": {
+      "level": "none",
+      "notes": "Firehose is a write-only delivery service that uses AWS Glue Catalog exclusively and does not support REST catalog connections.",
+      "caveats": [],
+      "links": []
+    },
+    "aws-firehose:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3.",
+      "caveats": [],
+      "links": []
     }
   }
 }

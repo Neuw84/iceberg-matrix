@@ -1441,6 +1441,42 @@
         "Fabric does not support Iceberg V3"
       ],
       "links": []
+    },
+    "azure-synapse:snowflake-horizon-catalog:v2": {
+      "level": "none",
+      "notes": "Azure Synapse Analytics uses its own catalog and does not support connecting to external REST catalogs including Snowflake Horizon Catalog.",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "Azure Synapse does not support external REST catalogs.",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Microsoft OneLake and Snowflake interoperability is generally available (Feb 2026). Fabric can bidirectionally read Iceberg data managed by Snowflake via Horizon Catalog, and Snowflake-managed Iceberg tables can be natively stored in OneLake. Write access from Fabric engines to Snowflake-managed Iceberg tables via Horizon Catalog is not supported.",
+      "caveats": [
+        "Read interop is GA; write from Fabric to Snowflake-managed Iceberg not supported via Horizon Catalog",
+        "Requires OneLake Snowflake item configuration"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        },
+        {
+          "label": "Microsoft OneLake and Snowflake interoperability (GA)",
+          "url": "https://blog.fabric.microsoft.com/en-GB/blog/microsoft-onelake-and-snowflake-interoperability-is-now-generally-available/"
+        }
+      ]
+    },
+    "azure-fabric:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "Azure Fabric does not support external REST catalogs.",
+      "caveats": [],
+      "links": []
     }
   }
 }
