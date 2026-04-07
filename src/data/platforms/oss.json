@@ -3906,18 +3906,18 @@
         }
       ]
     },
-    "spark:snowflake-open-catalog:v2": {
+    "spark:snowflake-horizon-catalog:v2": {
       "level": "full",
       "notes": "Spark Iceberg connector supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest and the Open Catalog endpoint URI.",
       "caveats": [],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "spark:snowflake-open-catalog:v3": {
+    "spark:snowflake-horizon-catalog:v3": {
       "level": "partial",
       "notes": "V3 support depends on iceberg-spark-runtime version (1.7.0+ recommended). REST catalog connectivity unchanged.",
       "caveats": [
@@ -3925,23 +3925,23 @@
       ],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "flink:snowflake-open-catalog:v2": {
+    "flink:snowflake-horizon-catalog:v2": {
       "level": "full",
       "notes": "Flink Iceberg connector supports REST catalog. Configure with catalog-type=rest and the Open Catalog endpoint URI.",
       "caveats": [],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "flink:snowflake-open-catalog:v3": {
+    "flink:snowflake-horizon-catalog:v3": {
       "level": "partial",
       "notes": "V3 support depends on iceberg-flink-runtime version (1.7.0+ recommended). REST catalog connectivity unchanged.",
       "caveats": [
@@ -3949,23 +3949,23 @@
       ],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "duckdb:snowflake-open-catalog:v2": {
+    "duckdb:snowflake-horizon-catalog:v2": {
       "level": "full",
       "notes": "DuckDB Iceberg extension supports REST catalog for reads and writes. Configure with ATTACH using the Open Catalog REST endpoint.",
       "caveats": [],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "duckdb:snowflake-open-catalog:v3": {
+    "duckdb:snowflake-horizon-catalog:v3": {
       "level": "unknown",
       "notes": "DuckDB V3 Iceberg table support is partial; REST catalog connectivity to Open Catalog is not yet explicitly documented for V3.",
       "caveats": [
@@ -3973,21 +3973,21 @@
       ],
       "links": []
     },
-    "clickhouse:snowflake-open-catalog:v2": {
+    "clickhouse:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "ClickHouse supports REST catalog via the IcebergCatalog table function. Connection to Snowflake Open Catalog follows the same REST catalog configuration.",
+      "notes": "ClickHouse supports REST catalog via the IcebergCatalog table function. Connection to Snowflake Horizon Catalog follows the same REST catalog configuration.",
       "caveats": [
         "REST catalog support available but with configuration complexity",
         "Feature set may be limited compared to native catalog integrations"
       ],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "clickhouse:snowflake-open-catalog:v3": {
+    "clickhouse:snowflake-horizon-catalog:v3": {
       "level": "unknown",
       "notes": "ClickHouse V3 Iceberg support is not yet documented; REST catalog connectivity pattern unchanged.",
       "caveats": [
@@ -3995,18 +3995,18 @@
       ],
       "links": []
     },
-    "daft:snowflake-open-catalog:v2": {
+    "daft:snowflake-horizon-catalog:v2": {
       "level": "full",
       "notes": "Daft supports REST catalog natively via PyIceberg integration. Configure with type=rest and the Open Catalog endpoint.",
       "caveats": [],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "daft:snowflake-open-catalog:v3": {
+    "daft:snowflake-horizon-catalog:v3": {
       "level": "unknown",
       "notes": "Daft V3 REST catalog support not yet documented.",
       "caveats": [
@@ -4014,18 +4014,18 @@
       ],
       "links": []
     },
-    "pyiceberg:snowflake-open-catalog:v2": {
+    "pyiceberg:snowflake-horizon-catalog:v2": {
       "level": "full",
       "notes": "PyIceberg has first-class REST catalog support. Configure with type=rest and the Open Catalog endpoint in pyiceberg config.",
       "caveats": [],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "pyiceberg:snowflake-open-catalog:v3": {
+    "pyiceberg:snowflake-horizon-catalog:v3": {
       "level": "partial",
       "notes": "PyIceberg REST catalog support is available; V3 feature support depends on PyIceberg version (0.8.0+ recommended).",
       "caveats": [
@@ -4033,8 +4033,8 @@
       ],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     }

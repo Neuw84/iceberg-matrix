@@ -914,24 +914,24 @@
         }
       ]
     },
-    "databricks:snowflake-open-catalog:v2": {
+    "databricks:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "Databricks can connect to Snowflake Open Catalog via ICEBERG_REST catalog integration. Unity Catalog is the primary catalog; cross-catalog queries have limitations.",
+      "notes": "Databricks can connect to Snowflake Horizon Catalog via ICEBERG_REST catalog integration for read access. Databricks does not support writes to externally managed Iceberg tables \u2014 this is a Databricks engine limitation, not a Horizon Catalog limitation. Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog.",
       "caveats": [
-        "Unity Catalog is the primary catalog; Open Catalog is an external REST catalog",
-        "Cross-catalog write operations may have limitations",
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)"
+        "Read-only \u2014 Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog",
+        "Managed Iceberg tables in Databricks are in Public Preview (requires DBR 16.4 LTS+)"
       ],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "databricks:snowflake-open-catalog:v3": {
+    "databricks:snowflake-horizon-catalog:v3": {
       "level": "unknown",
-      "notes": "V3 support for Databricks connecting to Snowflake Open Catalog not yet documented.",
+      "notes": "V3 support for Databricks connecting to Snowflake Horizon Catalog not yet documented.",
       "caveats": [
         "V3 cross-catalog support not yet documented"
       ],

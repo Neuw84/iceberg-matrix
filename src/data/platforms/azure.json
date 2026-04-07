@@ -1442,25 +1442,25 @@
       ],
       "links": []
     },
-    "azure-synapse:snowflake-open-catalog:v2": {
+    "azure-synapse:snowflake-horizon-catalog:v2": {
       "level": "none",
-      "notes": "Azure Synapse Analytics uses its own catalog and does not support connecting to external REST catalogs including Snowflake Open Catalog.",
+      "notes": "Azure Synapse Analytics uses its own catalog and does not support connecting to external REST catalogs including Snowflake Horizon Catalog.",
       "caveats": [],
       "links": []
     },
-    "azure-synapse:snowflake-open-catalog:v3": {
+    "azure-synapse:snowflake-horizon-catalog:v3": {
       "level": "none",
       "notes": "Azure Synapse does not support external REST catalogs.",
       "caveats": [],
       "links": []
     },
-    "azure-fabric:snowflake-open-catalog:v2": {
+    "azure-fabric:snowflake-horizon-catalog:v2": {
       "level": "none",
-      "notes": "Azure Fabric uses its own OneLake catalog and does not support connecting to external REST catalogs including Snowflake Open Catalog.",
+      "notes": "Azure Fabric uses its own OneLake catalog and does not support connecting to external REST catalogs including Snowflake Horizon Catalog.",
       "caveats": [],
       "links": []
     },
-    "azure-fabric:snowflake-open-catalog:v3": {
+    "azure-fabric:snowflake-horizon-catalog:v3": {
       "level": "none",
       "notes": "Azure Fabric does not support external REST catalogs.",
       "caveats": [],

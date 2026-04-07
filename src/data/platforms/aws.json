@@ -2942,30 +2942,39 @@
         }
       ]
     },
-    "aws-athena:snowflake-open-catalog:v2": {
-      "level": "none",
-      "notes": "Athena uses AWS Glue Catalog exclusively and does not support connecting to external REST catalogs including Snowflake Open Catalog.",
-      "caveats": [],
-      "links": []
+    "aws-athena:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Athena can access Snowflake Horizon Catalog via AWS Glue Catalog Federation, enabling read-only access to Snowflake-managed Iceberg V2 tables. Write operations are not supported. The V3 limitation is an Athena engine limitation, not a Catalog Federation limitation.",
+      "caveats": [
+        "Read-only \u2014 write operations not supported via Athena",
+        "Requires AWS Glue Catalog Federation configuration",
+        "V3 limitation is an Athena engine constraint, not a Horizon Catalog constraint"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
     },
-    "aws-athena:snowflake-open-catalog:v3": {
+    "aws-athena:snowflake-horizon-catalog:v3": {
       "level": "none",
       "notes": "Athena does not support external REST catalogs.",
       "caveats": [],
       "links": []
     },
-    "aws-emr:snowflake-open-catalog:v2": {
+    "aws-emr:snowflake-horizon-catalog:v2": {
       "level": "full",
       "notes": "EMR Spark natively supports REST catalog via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Open Catalog endpoint.",
       "caveats": [],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "aws-emr:snowflake-open-catalog:v3": {
+    "aws-emr:snowflake-horizon-catalog:v3": {
       "level": "partial",
       "notes": "V3 support via EMR Spark requires iceberg-spark-runtime 1.7.0+.",
       "caveats": [
@@ -2973,26 +2982,26 @@
       ],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "aws-glue:snowflake-open-catalog:v2": {
+    "aws-glue:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "AWS Glue Spark jobs can connect to Snowflake Open Catalog as a REST catalog using the Iceberg REST catalog configuration. Requires additional connector setup.",
+      "notes": "AWS Glue Spark jobs can connect to Snowflake Horizon Catalog as a REST catalog using the Iceberg REST catalog configuration. Requires additional connector setup.",
       "caveats": [
         "Requires bundling Iceberg REST catalog dependency in Glue job",
         "Not a native Glue catalog integration"
       ],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "aws-glue:snowflake-open-catalog:v3": {
+    "aws-glue:snowflake-horizon-catalog:v3": {
       "level": "unknown",
       "notes": "V3 support via Glue Spark depends on Iceberg library version used; REST catalog connectivity pattern unchanged.",
       "caveats": [
@@ -3000,20 +3009,20 @@
       ],
       "links": []
     },
-    "aws-managed-flink:snowflake-open-catalog:v2": {
+    "aws-managed-flink:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Amazon Managed Flink can connect to Snowflake Open Catalog via REST catalog when iceberg-flink-runtime JAR (1.6.0+) is bundled in the application.",
+      "notes": "Amazon Managed Flink can connect to Snowflake Horizon Catalog via REST catalog when iceberg-flink-runtime JAR (1.6.0+) is bundled in the application.",
       "caveats": [
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
       ],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "aws-managed-flink:snowflake-open-catalog:v3": {
+    "aws-managed-flink:snowflake-horizon-catalog:v3": {
       "level": "partial",
       "notes": "V3 support requires bundling iceberg-flink-runtime 1.7.0+. REST catalog connectivity unchanged.",
       "caveats": [
@@ -3022,18 +3031,18 @@
       ],
       "links": [
         {
-          "label": "Snowflake Open Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/open-catalog-overview"
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
     },
-    "aws-redshift-s3:snowflake-open-catalog:v2": {
+    "aws-redshift-s3:snowflake-horizon-catalog:v2": {
       "level": "none",
-      "notes": "Redshift with S3 Tables uses the S3 Tables built-in catalog and does not support connecting to external REST catalogs including Snowflake Open Catalog.",
+      "notes": "Redshift with S3 Tables uses the S3 Tables built-in catalog and does not support connecting to external REST catalogs including Snowflake Horizon Catalog.",
       "caveats": [],
       "links": []
     },
-    "aws-redshift-s3:snowflake-open-catalog:v3": {
+    "aws-redshift-s3:snowflake-horizon-catalog:v3": {
       "level": "none",
       "notes": "Redshift does not support Iceberg V3 with S3 Tables.",
       "caveats": [],
