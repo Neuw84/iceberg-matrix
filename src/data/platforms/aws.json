@@ -2944,11 +2944,10 @@
     },
     "aws-athena:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "Athena can access Snowflake Horizon Catalog via AWS Glue Catalog Federation, enabling read-only access to Snowflake-managed Iceberg V2 tables. Write operations are not supported. The V3 limitation is an Athena engine limitation, not a Catalog Federation limitation.",
+      "notes": "Athena can access Snowflake Horizon Catalog via AWS Glue Catalog Federation, enabling read-only access to Snowflake-managed Iceberg V2 tables. Write operations are not supported — this is an Athena engine limitation, not a Horizon Catalog or Glue Catalog Federation limitation.",
       "caveats": [
-        "Read-only — write operations not supported via Athena",
-        "Requires AWS Glue Catalog Federation configuration",
-        "V3 limitation is an Athena engine constraint, not a Horizon Catalog constraint"
+        "Read-only — write operations to external catalogs not supported by Athena",
+        "Requires AWS Glue Catalog Federation configuration"
       ],
       "links": [
         {
@@ -2959,14 +2958,17 @@
     },
     "aws-athena:snowflake-horizon-catalog:v3": {
       "level": "none",
-      "notes": "Athena does not support external REST catalogs.",
+      "notes": "Athena does not support Iceberg V3 tables. This is an Athena engine limitation, not a Glue Catalog Federation or Horizon Catalog limitation. Athena supports Horizon Catalog for reads on V2 tables via Glue Catalog Federation.",
       "caveats": [],
       "links": []
     },
     "aws-emr:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "EMR Spark natively supports REST catalog via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint.",
-      "caveats": [],
+      "notes": "EMR Spark natively supports the Iceberg REST catalog spec via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint. Direct REST catalog connections support both reads and writes. Note: when routing through AWS Glue Catalog Federation, writes are not supported — that is a Glue/EMR federation path limitation, not an OSS Spark or Horizon Catalog limitation.",
+      "caveats": [
+        "Write via direct REST catalog API is supported",
+        "Write via Glue Catalog Federation path is not supported (Glue engine limitation)"
+      ],
       "links": [
         {
           "label": "Snowflake Horizon Catalog docs",
@@ -2989,10 +2991,11 @@
     },
     "aws-glue:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "AWS Glue Spark jobs can connect to Snowflake Horizon Catalog as a REST catalog using the Iceberg REST catalog configuration. Requires additional connector setup.",
+      "notes": "AWS Glue Spark jobs can connect to Snowflake Horizon Catalog as an external REST catalog. Read access is supported. Write access to externally-managed tables is not supported — Glue Spark only supports writes to Glue Data Catalog natively. This is a Glue engine limitation and does not apply to OSS Spark.",
       "caveats": [
-        "Requires bundling Iceberg REST catalog dependency in Glue job",
-        "Not a native Glue catalog integration"
+        "Read-only — Glue Spark only supports writes to Glue Data Catalog natively",
+        "Write limitation is a Glue engine limitation, not a Horizon Catalog limitation",
+        "Requires bundling Iceberg REST catalog dependency in Glue job"
       ],
       "links": [
         {
@@ -3037,14 +3040,17 @@
       ]
     },
     "aws-redshift-s3:snowflake-horizon-catalog:v2": {
-      "level": "none",
-      "notes": "Redshift with S3 Tables uses the S3 Tables built-in catalog and does not support connecting to external REST catalogs including Snowflake Horizon Catalog.",
-      "caveats": [],
+      "level": "unknown",
+      "notes": "Redshift Spectrum may be able to read Snowflake-managed Iceberg V2 tables via AWS Glue Catalog Federation, similar to Athena. This has not been confirmed. Write access is not expected to be supported.",
+      "caveats": [
+        "Unconfirmed — based on Glue Catalog Federation pattern used by Athena",
+        "Write operations to external catalogs are not supported by Redshift Spectrum"
+      ],
       "links": []
     },
     "aws-redshift-s3:snowflake-horizon-catalog:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables.",
+      "notes": "Redshift does not support Iceberg V3 tables. This is a Redshift engine limitation.",
       "caveats": [],
       "links": []
     }
