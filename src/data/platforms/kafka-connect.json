@@ -439,7 +439,7 @@
       "level": "partial",
       "notes": "Kafka Connect Iceberg sink supports REST catalog type natively. Snowflake Horizon Catalog implements the same REST Catalog spec as Apache Polaris.",
       "caveats": [
-        "Not explicitly documented for Open Catalog specifically; works through REST Catalog compatibility"
+        "Not explicitly documented for Horizon Catalog specifically; works through REST Catalog compatibility"
       ],
       "links": [
         {
@@ -452,7 +452,7 @@
       "level": "partial",
       "notes": "REST catalog support unchanged for V3. V3 feature support depends on Iceberg library version bundled.",
       "caveats": [
-        "Not explicitly documented for Open Catalog specifically; works through REST Catalog compatibility"
+        "Not explicitly documented for Horizon Catalog specifically; works through REST Catalog compatibility"
       ],
       "links": [
         {

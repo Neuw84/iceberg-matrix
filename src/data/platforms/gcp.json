@@ -1188,7 +1188,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL \u2013 ALTER TABLE",
+          "label": "Spark DDL – ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
@@ -1199,7 +1199,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL \u2013 ALTER TABLE",
+          "label": "Spark DDL – ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
@@ -1218,7 +1218,7 @@
     },
     "google-dataproc:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Dataproc runs Spark and supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest pointing to the Open Catalog endpoint.",
+      "notes": "Dataproc runs Spark and supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint.",
       "caveats": [],
       "links": [
         {

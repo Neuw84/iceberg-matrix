@@ -160,7 +160,7 @@
       ],
       "links": [
         {
-          "label": "Manage Iceberg tables \u2013 Schema",
+          "label": "Manage Iceberg tables – Schema",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
         },
         {
@@ -1102,7 +1102,7 @@
     },
     "snowflake:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Native integration \u2014 Snowflake is the provider. Connect via CREATE CATALOG INTEGRATION TYPE=ICEBERG_REST with Snowflake Horizon Catalog as the REST endpoint.",
+      "notes": "Native integration — Snowflake is the provider. Connect via CREATE CATALOG INTEGRATION TYPE=ICEBERG_REST with Snowflake Horizon Catalog as the REST endpoint.",
       "caveats": [],
       "links": [
         {

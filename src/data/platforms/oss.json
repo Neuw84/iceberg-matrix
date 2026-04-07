@@ -825,7 +825,7 @@
     },
     "clickhouse:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Reading schema-evolved Iceberg tables is supported via the icebergS3/icebergLocal table functions (recommended approach): add/remove columns, reorder, nullable promotion, and limited type casting (int\u2192long, float\u2192double, decimal widening). Cannot change nested structures or array/map element types.",
+      "notes": "Reading schema-evolved Iceberg tables is supported via the icebergS3/icebergLocal table functions (recommended approach): add/remove columns, reorder, nullable promotion, and limited type casting (int→long, float→double, decimal widening). Cannot change nested structures or array/map element types.",
       "caveats": [
         "Read-only via table functions; cannot perform schema changes",
         "No nested structure or array/map element type evolution",
@@ -1429,7 +1429,7 @@
     },
     "spark:schema-evolution:v2": {
       "level": "full",
-      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int\u2192long, float\u2192double), and modify nullability",
+      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int→long, float→double), and modify nullability",
       "caveats": [],
       "links": [
         {
@@ -1977,7 +1977,7 @@
     },
     "flink:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column and partition changes are not supported via Flink DDL",
+      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes are not supported via Flink DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column additions, renames, drops, and reordering not supported via Flink SQL"
       ],
@@ -1985,7 +1985,7 @@
     },
     "flink:schema-evolution:v3": {
       "level": "partial",
-      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column and partition changes are not supported via Flink DDL",
+      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes are not supported via Flink DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column additions, renames, drops, and reordering not supported via Flink SQL"
       ],
@@ -2087,7 +2087,7 @@
     },
     "flink:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests \u2014 use Spark for full maintenance",
+      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests — use Spark for full maintenance",
       "caveats": [
         "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported"
       ],
@@ -3784,7 +3784,7 @@
     },
     "clickhouse:type-promotion:v2": {
       "level": "partial",
-      "notes": "ClickHouse can read Iceberg tables that have undergone type promotion (int\u2192long, float\u2192double, decimal precision widening) via the icebergS3/icebergLocal table functions (recommended approach). Cannot perform type promotion itself \u2014 that must be done by another engine (e.g. Spark). Nested structure and array/map element type changes are not supported.",
+      "notes": "ClickHouse can read Iceberg tables that have undergone type promotion (int→long, float→double, decimal precision widening) via the icebergS3/icebergLocal table functions (recommended approach). Cannot perform type promotion itself — that must be done by another engine (e.g. Spark). Nested structure and array/map element type changes are not supported.",
       "caveats": [
         "Read-only via table functions; cannot perform type promotion",
         "No nested structure or array/map element type evolution",
@@ -3838,7 +3838,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL \u2013 ALTER TABLE",
+          "label": "Spark DDL – ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         },
         {
@@ -3853,7 +3853,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL \u2013 ALTER TABLE",
+          "label": "Spark DDL – ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
@@ -3886,7 +3886,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "PyIceberg API \u2013 Schema evolution",
+          "label": "PyIceberg API – Schema evolution",
           "url": "https://py.iceberg.apache.org/api/"
         },
         {
@@ -3901,14 +3901,14 @@
       "caveats": [],
       "links": [
         {
-          "label": "PyIceberg API \u2013 Schema evolution",
+          "label": "PyIceberg API – Schema evolution",
           "url": "https://py.iceberg.apache.org/api/"
         }
       ]
     },
     "spark:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Spark Iceberg connector supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest and the Open Catalog endpoint URI.",
+      "notes": "Spark Iceberg connector supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest and the Horizon Catalog endpoint URI.",
       "caveats": [],
       "links": [
         {
@@ -3932,7 +3932,7 @@
     },
     "flink:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Flink Iceberg connector supports REST catalog. Configure with catalog-type=rest and the Open Catalog endpoint URI.",
+      "notes": "Flink Iceberg connector supports REST catalog. Configure with catalog-type=rest and the Horizon Catalog endpoint URI.",
       "caveats": [],
       "links": [
         {
@@ -3956,7 +3956,7 @@
     },
     "duckdb:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "DuckDB Iceberg extension supports REST catalog for reads and writes. Configure with ATTACH using the Open Catalog REST endpoint.",
+      "notes": "DuckDB Iceberg extension supports REST catalog for reads and writes. Configure with ATTACH using the Horizon Catalog REST endpoint.",
       "caveats": [],
       "links": [
         {
@@ -3967,7 +3967,7 @@
     },
     "duckdb:snowflake-horizon-catalog:v3": {
       "level": "unknown",
-      "notes": "DuckDB V3 Iceberg table support is partial; REST catalog connectivity to Open Catalog is not yet explicitly documented for V3.",
+      "notes": "DuckDB V3 Iceberg table support is partial; REST catalog connectivity to Horizon Catalog is not yet explicitly documented for V3.",
       "caveats": [
         "V3 catalog support via DuckDB not yet documented"
       ],
@@ -3997,7 +3997,7 @@
     },
     "daft:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Daft supports REST catalog natively via PyIceberg integration. Configure with type=rest and the Open Catalog endpoint.",
+      "notes": "Daft supports REST catalog natively via PyIceberg integration. Configure with type=rest and the Horizon Catalog endpoint.",
       "caveats": [],
       "links": [
         {
@@ -4016,7 +4016,7 @@
     },
     "pyiceberg:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "PyIceberg has first-class REST catalog support. Configure with type=rest and the Open Catalog endpoint in pyiceberg config.",
+      "notes": "PyIceberg has first-class REST catalog support. Configure with type=rest and the Horizon Catalog endpoint in pyiceberg config.",
       "caveats": [],
       "links": [
         {

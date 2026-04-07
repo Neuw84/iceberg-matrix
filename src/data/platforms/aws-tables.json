@@ -766,7 +766,7 @@
       "notes": "V3 support available when bundling iceberg-flink-runtime 1.7.0+ (which supports format-version 3). Managed Flink itself is not listed in AWS's V3 support matrix since it runs user-provided JARs",
       "caveats": [
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support",
-        "Not listed in AWS V3 support matrix \u2014 V3 depends entirely on the Iceberg library version bundled by the user"
+        "Not listed in AWS V3 support matrix — V3 depends entirely on the Iceberg library version bundled by the user"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/"
     },
@@ -820,7 +820,7 @@
     },
     "aws-managed-flink:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column additions, renames, drops, reordering, and partition changes are not supported via Flink SQL DDL",
+      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties — column additions, renames, drops, reordering, and partition changes are not supported via Flink SQL DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column and partition schema changes not supported via Flink SQL",
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
@@ -829,7 +829,7 @@
     },
     "aws-managed-flink:schema-evolution:v3": {
       "level": "partial",
-      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column and partition changes not supported via Flink SQL DDL",
+      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes not supported via Flink SQL DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column and partition schema changes not supported via Flink SQL",
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
@@ -935,7 +935,7 @@
     },
     "aws-managed-flink:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests \u2014 use Spark for full maintenance",
+      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests — use Spark for full maintenance",
       "caveats": [
         "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported",
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
@@ -2038,7 +2038,7 @@
       "level": "partial",
       "notes": "Athena can access Snowflake Horizon Catalog via AWS Glue Catalog Federation, enabling read-only access to Snowflake-managed Iceberg V2 tables. Write operations are not supported. The V3 limitation is an Athena engine limitation, not a Catalog Federation limitation.",
       "caveats": [
-        "Read-only \u2014 write operations not supported via Athena",
+        "Read-only — write operations not supported via Athena",
         "Requires AWS Glue Catalog Federation configuration",
         "V3 limitation is an Athena engine constraint, not a Horizon Catalog constraint"
       ],
@@ -2057,7 +2057,7 @@
     },
     "aws-emr:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "EMR Spark natively supports REST catalog via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Open Catalog endpoint.",
+      "notes": "EMR Spark natively supports REST catalog via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint.",
       "caveats": [],
       "links": [
         {

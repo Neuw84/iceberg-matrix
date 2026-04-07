@@ -320,7 +320,7 @@
       "name": "Snowflake Horizon Catalog",
       "category": "catalog-support",
       "introducedIn": "v2",
-      "description": "Snowflake Horizon Catalog \u2014 Snowflake's managed catalog service based on Apache Polaris, implementing the Iceberg REST Catalog API with cross-engine RBAC and fine-grained table governance"
+      "description": "Snowflake Horizon Catalog — Snowflake's managed catalog service based on Apache Polaris, implementing the Iceberg REST Catalog API with cross-engine RBAC and fine-grained table governance"
     },
     {
       "id": "hadoop-catalog",
@@ -7156,7 +7156,7 @@
       "level": "partial",
       "notes": "Athena can access Snowflake Horizon Catalog via AWS Glue Catalog Federation, enabling read-only access to Snowflake-managed Iceberg V2 tables. Write operations are not supported. The V3 limitation is an Athena engine limitation, not a Catalog Federation limitation.",
       "caveats": [
-        "Read-only \u2014 write operations not supported via Athena",
+        "Read-only — write operations not supported via Athena",
         "Requires AWS Glue Catalog Federation configuration",
         "V3 limitation is an Athena engine constraint, not a Horizon Catalog constraint"
       ],
@@ -7197,7 +7197,7 @@
     },
     "aws-emr:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "EMR Spark natively supports REST catalog via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Open Catalog endpoint.",
+      "notes": "EMR Spark natively supports REST catalog via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint.",
       "caveats": [],
       "links": [
         {
@@ -7272,7 +7272,7 @@
     },
     "google-dataproc:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Dataproc runs Spark and supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest pointing to the Open Catalog endpoint.",
+      "notes": "Dataproc runs Spark and supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint.",
       "caveats": [],
       "links": [
         {
@@ -7307,10 +7307,22 @@
       "links": []
     },
     "azure-fabric:snowflake-horizon-catalog:v2": {
-      "level": "none",
-      "notes": "Azure Fabric uses its own OneLake catalog and does not support connecting to external REST catalogs including Snowflake Horizon Catalog.",
-      "caveats": [],
-      "links": []
+      "level": "partial",
+      "notes": "Microsoft OneLake and Snowflake interoperability is generally available (Feb 2026). Fabric can bidirectionally read Iceberg data managed by Snowflake via Horizon Catalog, and Snowflake-managed Iceberg tables can be natively stored in OneLake. Write access from Fabric engines to Snowflake-managed Iceberg tables via Horizon Catalog is not supported.",
+      "caveats": [
+        "Read interop is GA; write from Fabric to Snowflake-managed Iceberg not supported via Horizon Catalog",
+        "Requires OneLake Snowflake item configuration"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        },
+        {
+          "label": "Microsoft OneLake and Snowflake interoperability (GA)",
+          "url": "https://blog.fabric.microsoft.com/en-GB/blog/microsoft-onelake-and-snowflake-interoperability-is-now-generally-available/"
+        }
+      ]
     },
     "azure-fabric:snowflake-horizon-catalog:v3": {
       "level": "none",
@@ -7320,9 +7332,9 @@
     },
     "databricks:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "Databricks can connect to Snowflake Horizon Catalog via ICEBERG_REST catalog integration for read access. Databricks does not support writes to externally managed Iceberg tables \u2014 this is a Databricks engine limitation, not a Horizon Catalog limitation. Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog.",
+      "notes": "Databricks can connect to Snowflake Horizon Catalog via ICEBERG_REST catalog integration for read access. Databricks does not support writes to externally managed Iceberg tables — this is a Databricks engine limitation, not a Horizon Catalog limitation. Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog.",
       "caveats": [
-        "Read-only \u2014 Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Read-only — Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
         "Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog",
         "Managed Iceberg tables in Databricks are in Public Preview (requires DBR 16.4 LTS+)"
       ],
@@ -7334,16 +7346,23 @@
       ]
     },
     "databricks:snowflake-horizon-catalog:v3": {
-      "level": "unknown",
-      "notes": "V3 support for Databricks connecting to Snowflake Horizon Catalog not yet documented.",
+      "level": "partial",
+      "notes": "Databricks can read Iceberg V3 tables via the Horizon Catalog REST API; however, Databricks does not support the full V3 spec. Tables using V3-only features such as nanosecond timestamps or deletion vectors may fail to read. Write support is not available — this is a Databricks engine limitation, not a Horizon Catalog limitation.",
       "caveats": [
-        "V3 cross-catalog support not yet documented"
+        "Read-only — Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Tables using V3-only features (nanosecond timestamps, deletion vectors) may fail to read",
+        "Databricks does not support the full Iceberg V3 spec"
       ],
-      "links": []
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
     },
     "snowflake:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Native integration \u2014 Snowflake is the provider. Connect via CREATE CATALOG INTEGRATION TYPE=ICEBERG_REST with Snowflake Horizon Catalog as the REST endpoint.",
+      "notes": "Native integration — Snowflake is the provider. Connect via CREATE CATALOG INTEGRATION TYPE=ICEBERG_REST with Snowflake Horizon Catalog as the REST endpoint.",
       "caveats": [],
       "links": [
         {
@@ -7367,7 +7386,7 @@
     },
     "duckdb:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "DuckDB Iceberg extension supports REST catalog for reads and writes. Configure with ATTACH using the Open Catalog REST endpoint.",
+      "notes": "DuckDB Iceberg extension supports REST catalog for reads and writes. Configure with ATTACH using the Horizon Catalog REST endpoint.",
       "caveats": [],
       "links": [
         {
@@ -7378,7 +7397,7 @@
     },
     "duckdb:snowflake-horizon-catalog:v3": {
       "level": "unknown",
-      "notes": "DuckDB V3 Iceberg table support is partial; REST catalog connectivity to Open Catalog is not yet explicitly documented for V3.",
+      "notes": "DuckDB V3 Iceberg table support is partial; REST catalog connectivity to Horizon Catalog is not yet explicitly documented for V3.",
       "caveats": [
         "V3 catalog support via DuckDB not yet documented"
       ],
@@ -7408,7 +7427,7 @@
     },
     "daft:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Daft supports REST catalog natively via PyIceberg integration. Configure with type=rest and the Open Catalog endpoint.",
+      "notes": "Daft supports REST catalog natively via PyIceberg integration. Configure with type=rest and the Horizon Catalog endpoint.",
       "caveats": [],
       "links": [
         {
@@ -7427,7 +7446,7 @@
     },
     "spark:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Spark Iceberg connector supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest and the Open Catalog endpoint URI.",
+      "notes": "Spark Iceberg connector supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest and the Horizon Catalog endpoint URI.",
       "caveats": [],
       "links": [
         {
@@ -7451,7 +7470,7 @@
     },
     "flink:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Flink Iceberg connector supports REST catalog. Configure with catalog-type=rest and the Open Catalog endpoint URI.",
+      "notes": "Flink Iceberg connector supports REST catalog. Configure with catalog-type=rest and the Horizon Catalog endpoint URI.",
       "caveats": [],
       "links": [
         {
@@ -7477,7 +7496,7 @@
       "level": "partial",
       "notes": "Kafka Connect Iceberg sink supports REST catalog type natively. Snowflake Horizon Catalog implements the same REST Catalog spec as Apache Polaris.",
       "caveats": [
-        "Not explicitly documented for Open Catalog specifically; works through REST Catalog compatibility"
+        "Not explicitly documented for Horizon Catalog specifically; works through REST Catalog compatibility"
       ],
       "links": [
         {
@@ -7490,7 +7509,7 @@
       "level": "partial",
       "notes": "REST catalog support unchanged for V3. V3 feature support depends on Iceberg library version bundled.",
       "caveats": [
-        "Not explicitly documented for Open Catalog specifically; works through REST Catalog compatibility"
+        "Not explicitly documented for Horizon Catalog specifically; works through REST Catalog compatibility"
       ],
       "links": [
         {
@@ -7501,7 +7520,7 @@
     },
     "pyiceberg:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "PyIceberg has first-class REST catalog support. Configure with type=rest and the Open Catalog endpoint in pyiceberg config.",
+      "notes": "PyIceberg has first-class REST catalog support. Configure with type=rest and the Horizon Catalog endpoint in pyiceberg config.",
       "caveats": [],
       "links": [
         {
