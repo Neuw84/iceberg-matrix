@@ -47,6 +47,14 @@
       "category": "open-source",
       "group": "3rd Party",
       "docUrl": "https://py.iceberg.apache.org/"
+    },
+    {
+      "id": "sail",
+      "name": "Sail (0.5.1)",
+      "vendor": "LakeSail Inc.",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://docs.lakesail.com/"
     }
   ],
   "support": {
@@ -4037,6 +4045,366 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
+    },
+    "sail:position-deletes:v2": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:position-deletes:v3": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:equality-deletes:v2": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:equality-deletes:v3": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:merge-on-read:v2": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:merge-on-read:v3": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:copy-on-write:v2": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:copy-on-write:v3": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:schema-evolution:v2": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:schema-evolution:v3": {
+      "level": "partial",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:type-promotion:v2": {
+      "level": "full",
+      "notes": "Supports int to long, float to double, and decimal precision expansion",
+      "caveats": []
+    },
+    "sail:type-promotion:v3": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:column-default-values:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:column-default-values:v3": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:table-creation:v2": {
+      "level": "full",
+      "notes": "Sail supports CREATE TABLE for Iceberg tables",
+      "caveats": []
+    },
+    "sail:table-creation:v3": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "On roadmap; partition transforms work in table creation",
+      "caveats": []
+    },
+    "sail:hidden-partitioning:v3": {
+      "level": "partial",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:partition-evolution:v2": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:partition-evolution:v3": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:time-travel:v2": {
+      "level": "full",
+      "notes": "Supports snapshot_id, ref, and timestamp-as-of options",
+      "caveats": []
+    },
+    "sail:time-travel:v3": {
+      "level": "partial",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:table-maintenance:v2": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:table-maintenance:v3": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:branching-tagging:v2": {
+      "level": "partial",
+      "notes": "Reading branches and tags works via time travel; creating is on roadmap",
+      "caveats": []
+    },
+    "sail:branching-tagging:v3": {
+      "level": "partial",
+      "notes": "On roadmap for creating; reading works via time travel",
+      "caveats": []
+    },
+    "sail:read-support:v2": {
+      "level": "full",
+      "notes": "Supports Iceberg read with predicate pushdown and column projection",
+      "caveats": []
+    },
+    "sail:read-support:v3": {
+      "level": "partial",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:write-insert:v2": {
+      "level": "full",
+      "notes": "Supports insert and overwrite operations",
+      "caveats": []
+    },
+    "sail:write-insert:v3": {
+      "level": "partial",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:write-merge-update-delete:v2": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:catalog-integration:v2": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:catalog-integration:v3": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:statistics:v2": {
+      "level": "full",
+      "notes": "Reads column-level statistics from manifest files for file pruning",
+      "caveats": []
+    },
+    "sail:statistics:v3": {
+      "level": "partial",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:bloom-filters:v2": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:bloom-filters:v3": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:hive-metastore:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:hive-metastore:v3": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:rest-catalog:v2": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:rest-catalog:v3": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:nessie:v2": {
+      "level": "unknown",
+      "notes": "May work via REST catalog",
+      "caveats": []
+    },
+    "sail:nessie:v3": {
+      "level": "unknown",
+      "notes": "May work via REST catalog",
+      "caveats": []
+    },
+    "sail:polaris:v2": {
+      "level": "unknown",
+      "notes": "May work via REST catalog",
+      "caveats": []
+    },
+    "sail:polaris:v3": {
+      "level": "unknown",
+      "notes": "May work via REST catalog",
+      "caveats": []
+    },
+    "sail:unity-catalog:v2": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:unity-catalog:v3": {
+      "level": "full",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:snowflake-horizon-catalog:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:variant-type:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:variant-type:v3": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:shredded-variant:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:shredded-variant:v3": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:geometry-type:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:geometry-type:v3": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
+    },
+    "sail:vector-type:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:vector-type:v3": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:nanosecond-timestamps:v3": {
+      "level": "full",
+      "notes": "TimestampNs and TimestamptzNs types are fully implemented",
+      "caveats": []
+    },
+    "sail:cdc-support:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:cdc-support:v3": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:lineage:v2": {
+      "level": "none",
+      "notes": "",
+      "caveats": []
+    },
+    "sail:lineage:v3": {
+      "level": "none",
+      "notes": "On roadmap",
+      "caveats": []
     }
   }
 }
