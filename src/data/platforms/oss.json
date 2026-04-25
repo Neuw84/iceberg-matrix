@@ -47,6 +47,14 @@
       "category": "open-source",
       "group": "3rd Party",
       "docUrl": "https://py.iceberg.apache.org/"
+    },
+    {
+      "id": "doris",
+      "name": "Doris (4.1)",
+      "vendor": "Apache",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
     }
   ],
   "support": {
@@ -4035,6 +4043,834 @@
         {
           "label": "Snowflake Horizon Catalog docs",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "doris:position-deletes:v2": {
+      "level": "full",
+      "notes": "Doris 4.x reads V2 tables with Position Delete files via its Iceberg catalog; position deletes are applied at scan time",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:position-deletes:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 reads V3 tables; V3 uses Puffin Deletion Vectors as the primary row-level delete mechanism, and Doris can still read legacy position deletes if present",
+      "caveats": [
+        "V3 tables primarily use Deletion Vectors rather than position delete files"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        },
+        {
+          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
+          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
+        }
+      ]
+    },
+    "doris:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Doris 4.x reads equality delete files on V2 tables via its Iceberg catalog connector",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 uses Puffin Deletion Vectors instead of equality deletes; Doris follows the V3 spec by not emitting or relying on equality deletes for V3 tables",
+      "caveats": [
+        "V3 replaces equality-delete semantics with Deletion Vectors"
+      ],
+      "links": [
+        {
+          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
+          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
+        }
+      ]
+    },
+    "doris:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Doris 4.x supports merge-on-read for V2 tables using Position Delete files; DML writes (UPDATE/DELETE/MERGE INTO) emit position deletes",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:merge-on-read:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports merge-on-read for V3 tables using Puffin-format Deletion Vectors; V3 DML writes Deletion Vectors rather than position delete files",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
+          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
+        },
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:copy-on-write:v2": {
+      "level": "none",
+      "notes": "Doris DML uses merge-on-read (Position Deletes on V2); copy-on-write is not implemented",
+      "caveats": [
+        "Doris writes Position Delete files, not rewritten data files, for UPDATE/DELETE/MERGE INTO"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Doris DML uses merge-on-read (Deletion Vectors on V3); copy-on-write is not implemented",
+      "caveats": [
+        "Doris writes Puffin Deletion Vectors, not rewritten data files, for V3 UPDATE/DELETE/MERGE INTO"
+      ],
+      "links": [
+        {
+          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
+          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
+        }
+      ]
+    },
+    "doris:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Doris supports ALTER TABLE schema changes (add/drop/rename/reorder columns) on Iceberg tables; schema evolution was added in Doris 3.1.0",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports ALTER TABLE schema changes on V3 Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:type-promotion:v2": {
+      "level": "full",
+      "notes": "Doris supports safe type promotions such as INT \u2192 BIGINT and FLOAT \u2192 DOUBLE on Iceberg tables, added in Doris 4.0.4",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:type-promotion:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports safe type promotions on V3 Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "doris:column-default-values:v3": {
+      "level": "partial",
+      "notes": "Doris supports default values in ADD COLUMN DDL on V3 Iceberg tables",
+      "caveats": [
+        "V3-specific default-value read semantics are not explicitly documented in Doris 4.x"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:table-creation:v2": {
+      "level": "full",
+      "notes": "Doris supports CREATE TABLE and CREATE TABLE AS SELECT (CTAS) against its Iceberg catalog",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:table-creation:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 can create V3 Iceberg tables via CREATE TABLE with the 'format-version' = '3' table property",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        },
+        {
+          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
+          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
+        }
+      ]
+    },
+    "doris:time-travel:v2": {
+      "level": "full",
+      "notes": "Doris supports time travel via FOR TIME AS OF and FOR VERSION AS OF SQL syntax on Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:time-travel:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports FOR TIME AS OF and FOR VERSION AS OF on V3 Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:table-maintenance:v2": {
+      "level": "full",
+      "notes": "Doris supports ALTER TABLE ... EXECUTE maintenance actions including rewrite_data_files, expire_snapshots, rewrite_manifests, rollback_to_snapshot, and fast_forward",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:table-maintenance:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports table maintenance actions on V3 Iceberg tables via ALTER TABLE ... EXECUTE",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Doris supports Branch and Tag management via ALTER TABLE ... CREATE BRANCH/TAG, added in Doris 3.1.0",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:branching-tagging:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports branch and tag management on V3 Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Doris supports Iceberg partition transforms: year, month, day, hour, bucket, truncate, and identity",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports the full set of Iceberg partition transforms on V3 tables: year, month, day, hour, bucket, truncate, and identity",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Doris supports ADD/DROP/REPLACE PARTITION KEY operations, added in Doris 4.0.2",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports partition evolution on V3 Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "doris:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Multi-argument transform support on V3 tables is not documented in Doris 4.x",
+      "caveats": [
+        "V3-only feature; Doris support not yet documented"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:read-support:v2": {
+      "level": "full",
+      "notes": "Doris 4.x provides full read support for Iceberg V1 and V2 tables via the Iceberg catalog",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:read-support:v3": {
+      "level": "full",
+      "notes": "Doris 4.1.0 adds full V3 read support including Puffin Deletion Vectors and Row Lineage hidden columns",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
+          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
+        },
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:write-insert:v2": {
+      "level": "full",
+      "notes": "Doris supports INSERT INTO, INSERT OVERWRITE, and CREATE TABLE AS SELECT (CTAS) against V2 Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:write-insert:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports INSERT INTO, INSERT OVERWRITE, and CTAS against V3 Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        },
+        {
+          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
+          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
+        }
+      ]
+    },
+    "doris:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "Doris 4.1.0 adds UPDATE, DELETE, and MERGE INTO against V2 Iceberg tables, writing Position Delete files",
+      "caveats": [
+        "UPDATE, DELETE, and MERGE INTO are experimental in Doris 4.1.0"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:write-merge-update-delete:v3": {
+      "level": "partial",
+      "notes": "Doris 4.1 UPDATE, DELETE, and MERGE INTO on V3 Iceberg tables write Puffin Deletion Vectors",
+      "caveats": [
+        "UPDATE, DELETE, and MERGE INTO on V3 are experimental in Doris 4.1.0"
+      ],
+      "links": [
+        {
+          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
+          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
+        },
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Doris supports the Iceberg catalog types hms, rest, hadoop, glue, dlf, jdbc, and s3tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports the same catalog types (hms, rest, hadoop, glue, dlf, jdbc, s3tables) for V3 Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:statistics:v2": {
+      "level": "full",
+      "notes": "Doris uses Iceberg manifest column metrics (min/max, null counts) for query planning and predicate pushdown",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:statistics:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 uses manifest column metrics for V3 Iceberg query planning and predicate pushdown",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:bloom-filters:v2": {
+      "level": "unknown",
+      "notes": "Puffin bloom-filter sidecars are not documented for Doris's Iceberg connector",
+      "caveats": [
+        "Puffin bloom-filter sidecar support for Iceberg is not documented in Doris 4.x"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:bloom-filters:v3": {
+      "level": "unknown",
+      "notes": "Puffin bloom-filter sidecars are not documented for Doris's Iceberg connector on V3 tables",
+      "caveats": [
+        "Puffin bloom-filter sidecar support for Iceberg is not documented in Doris 4.x"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Doris supports the Iceberg hms catalog type for Hive Metastore integration",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports Hive Metastore for V3 Iceberg tables via the hms catalog type",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:aws-glue-catalog:v2": {
+      "level": "partial",
+      "notes": "Doris supports AWS Glue as an Iceberg catalog via the glue catalog type",
+      "caveats": [
+        "AWS Glue integration is read-only; DDL and data write-back are not supported"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:aws-glue-catalog:v3": {
+      "level": "partial",
+      "notes": "Doris 4.1 supports AWS Glue for V3 Iceberg tables via the glue catalog type",
+      "caveats": [
+        "AWS Glue integration is read-only; DDL and data write-back are not supported"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:rest-catalog:v2": {
+      "level": "full",
+      "notes": "Doris supports the Iceberg REST Catalog via the rest catalog type",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:rest-catalog:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports the Iceberg REST Catalog for V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:nessie:v2": {
+      "level": "unknown",
+      "notes": "Doris has no documented Nessie catalog integration",
+      "caveats": [
+        "Nessie catalog support not documented in Doris 4.x"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:nessie:v3": {
+      "level": "unknown",
+      "notes": "Doris has no documented Nessie catalog integration for V3 tables",
+      "caveats": [
+        "Nessie catalog support not documented in Doris 4.x"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:polaris:v2": {
+      "level": "partial",
+      "notes": "Doris can access Polaris through the generic REST Catalog configuration; there is no dedicated Polaris integration",
+      "caveats": [
+        "No dedicated Polaris connector; access is via the generic Iceberg REST Catalog"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:polaris:v3": {
+      "level": "partial",
+      "notes": "Doris 4.1 can access Polaris for V3 Iceberg tables through the generic REST Catalog configuration",
+      "caveats": [
+        "No dedicated Polaris connector; access is via the generic Iceberg REST Catalog"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Doris can access Unity Catalog through the generic REST Catalog configuration; there is no dedicated Unity Catalog integration",
+      "caveats": [
+        "No dedicated Unity Catalog connector; access is via the generic Iceberg REST Catalog"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:unity-catalog:v3": {
+      "level": "partial",
+      "notes": "Doris 4.1 can access Unity Catalog for V3 Iceberg tables through the generic REST Catalog configuration",
+      "caveats": [
+        "No dedicated Unity Catalog connector; access is via the generic Iceberg REST Catalog"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Doris can access Snowflake Horizon Catalog through the generic REST Catalog configuration",
+      "caveats": [
+        "No dedicated Horizon connector; access is via the generic Iceberg REST Catalog"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "Doris 4.1 can access Snowflake Horizon Catalog for V3 Iceberg tables through the generic REST Catalog configuration",
+      "caveats": [
+        "No dedicated Horizon connector; access is via the generic Iceberg REST Catalog"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:hadoop-catalog:v2": {
+      "level": "full",
+      "notes": "Doris supports the Hadoop (FileSystem) catalog via the hadoop catalog type",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:hadoop-catalog:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 supports the Hadoop (FileSystem) catalog for V3 Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:jdbc-catalog:v2": {
+      "level": "partial",
+      "notes": "Doris supports a JDBC Iceberg catalog via the jdbc catalog type, introduced in Doris 4.1.0",
+      "caveats": [
+        "JDBC catalog is experimental and was introduced in Doris 4.1.0"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:jdbc-catalog:v3": {
+      "level": "partial",
+      "notes": "Doris 4.1 supports a JDBC Iceberg catalog for V3 tables via the jdbc catalog type",
+      "caveats": [
+        "JDBC catalog is experimental and was introduced in Doris 4.1.0"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "doris:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Iceberg Variant type support is not documented in Doris 4.x",
+      "caveats": [
+        "V3-only feature; Doris support not documented"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "doris:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Shredded Variant support is not documented in Doris 4.x",
+      "caveats": [
+        "V3-only feature; Doris support not documented"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "doris:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Iceberg Geometry type support is not documented in Doris 4.x",
+      "caveats": [
+        "V3-only feature; Doris support not documented"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector type is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "doris:vector-type:v3": {
+      "level": "unknown",
+      "notes": "Iceberg Vector/Embedding type support is not documented in Doris 4.x",
+      "caveats": [
+        "V3-only feature; Doris support not documented"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "doris:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Doris's Iceberg datetime precision is microsecond (precision 6), per the Doris 4.x Iceberg column-type mapping table; nanosecond precision is not supported",
+      "caveats": [
+        "Doris Iceberg datetime precision is microsecond only (precision 6)"
+      ],
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:cdc-support:v2": {
+      "level": "none",
+      "notes": "Native CDC from Iceberg tables is not supported on V2 in Doris",
+      "caveats": []
+    },
+    "doris:cdc-support:v3": {
+      "level": "partial",
+      "notes": "Doris 4.1 exposes Row Lineage (_last_updated_sequence_number) which can be used as a watermark for incremental synchronization of V3 Iceberg tables",
+      "caveats": [
+        "No native CDC stream is emitted; incremental sync must be driven externally via the lineage sequence number"
+      ],
+      "links": [
+        {
+          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
+          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
+        },
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "doris:lineage:v2": {
+      "level": "none",
+      "notes": "Row Lineage is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "doris:lineage:v3": {
+      "level": "partial",
+      "notes": "Doris 4.1.0 exposes experimental Row Lineage hidden columns _row_id and _last_updated_sequence_number on V3 Iceberg tables",
+      "caveats": [
+        "Row Lineage is experimental in Doris 4.1"
+      ],
+      "links": [
+        {
+          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
+          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
+        },
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
         }
       ]
     }
