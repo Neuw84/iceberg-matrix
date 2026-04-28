@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "duckdb",
-      "name": "DuckDB (1.5.0)",
+      "name": "DuckDB (1.5.2)",
       "vendor": "DuckDB Foundation",
       "category": "open-source",
       "group": "3rd Party",
@@ -178,11 +178,13 @@
     },
     "duckdb:schema-evolution:v2": {
       "level": "full",
-      "notes": "DuckDB supports reading schema-evolved Iceberg tables and follows schema changes",
-      "caveats": [
-        "ALTER TABLE not supported; schema evolution is read-side only"
-      ],
+      "notes": "DuckDB reads schema-evolved Iceberg tables; ALTER TABLE support added in the Iceberg extension shipped with v1.5.2",
+      "caveats": [],
       "links": [
+        {
+          "label": "Announcing DuckDB v1.5.2 (Iceberg ALTER TABLE)",
+          "url": "https://duckdb.org/2026/04/13/announcing-duckdb-152"
+        },
         {
           "label": "Iceberg Extension Overview",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
@@ -191,12 +193,15 @@
     },
     "duckdb:schema-evolution:v3": {
       "level": "partial",
-      "notes": "Schema evolution on V3 tables supported for V2-compatible data types only",
+      "notes": "Schema evolution on V3 tables supported for V2-compatible data types; ALTER TABLE added in v1.5.2",
       "caveats": [
-        "V3 reads supported only with V2-compatible data types",
-        "ALTER TABLE not supported"
+        "V3 reads supported only with V2-compatible data types"
       ],
       "links": [
+        {
+          "label": "Announcing DuckDB v1.5.2 (Iceberg ALTER TABLE)",
+          "url": "https://duckdb.org/2026/04/13/announcing-duckdb-152"
+        },
         {
           "label": "Iceberg Extension Overview",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
@@ -243,9 +248,13 @@
     },
     "duckdb:hidden-partitioning:v2": {
       "level": "full",
-      "notes": "DuckDB supports reading hidden-partitioned Iceberg tables",
+      "notes": "DuckDB reads hidden-partitioned Iceberg tables; truncate and bucket partition transforms for writes added in v1.5.2",
       "caveats": [],
       "links": [
+        {
+          "label": "Announcing DuckDB v1.5.2 (truncate and bucket partitions)",
+          "url": "https://duckdb.org/2026/04/13/announcing-duckdb-152"
+        },
         {
           "label": "Iceberg Extension Overview",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
@@ -448,15 +457,17 @@
     },
     "duckdb:write-merge-update-delete:v2": {
       "level": "partial",
-      "notes": "UPDATE and DELETE supported since v1.4.2, but MERGE INTO and ALTER TABLE are not supported",
+      "notes": "UPDATE and DELETE supported since v1.4.2; v1.5.2 adds UPDATE/DELETE on partitioned tables and ALTER TABLE. MERGE INTO is still not supported.",
       "caveats": [
         "MERGE INTO is not supported",
-        "ALTER TABLE is not supported",
-        "UPDATE/DELETE limited to non-partitioned and non-sorted tables",
         "Only writes positional deletes (no copy-on-write mode for deletes)",
         "Only merge-on-read semantics supported"
       ],
       "links": [
+        {
+          "label": "Announcing DuckDB v1.5.2 (partitioned UPDATE/DELETE, ALTER TABLE)",
+          "url": "https://duckdb.org/2026/04/13/announcing-duckdb-152"
+        },
         {
           "label": "Writes in DuckDB-Iceberg (blog)",
           "url": "https://duckdb.org/2025/11/28/iceberg-writes-in-duckdb"
@@ -3156,12 +3167,14 @@
       "links": []
     },
     "duckdb:geometry-type:v3": {
-      "level": "none",
-      "notes": "Geometry type is explicitly listed as unsupported in DuckDB Iceberg extension limitations",
-      "caveats": [
-        "Explicitly listed as unsupported in DuckDB docs"
-      ],
+      "level": "full",
+      "notes": "GEOMETRY type support added to the DuckDB Iceberg extension in v1.5.2",
+      "caveats": [],
       "links": [
+        {
+          "label": "Announcing DuckDB v1.5.2 (GEOMETRY type)",
+          "url": "https://duckdb.org/2026/04/13/announcing-duckdb-152"
+        },
         {
           "label": "Iceberg Extension Overview",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
