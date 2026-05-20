@@ -55,6 +55,14 @@
       "category": "open-source",
       "group": "3rd Party",
       "docUrl": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+    },
+    {
+      "id": "databend",
+      "name": "Databend (1.2.725)",
+      "vendor": "Databend Labs",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
     }
   ],
   "support": {
@@ -4884,6 +4892,655 @@
         {
           "label": "Doris 4.x Iceberg Catalog",
           "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        }
+      ]
+    },
+    "databend:position-deletes:v2": {
+      "level": "unknown",
+      "notes": "Databend's handling of V2 positional delete files is not documented on the Iceberg engine page; only the aggregate field total-position-deletes is exposed in the ICEBERG_SNAPSHOT table function output, with no description of how (or whether) deletes are applied at scan time",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Databend Iceberg Engine",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        },
+        {
+          "label": "Databend ICEBERG_SNAPSHOT Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-snapshot"
+        }
+      ]
+    },
+    "databend:position-deletes:v3": {
+      "level": "unknown",
+      "notes": "V3 positional delete handling is not documented in the Databend Iceberg engine docs",
+      "caveats": []
+    },
+    "databend:equality-deletes:v2": {
+      "level": "unknown",
+      "notes": "Read support for V2 equality delete files is not documented on the Databend Iceberg engine page; the docs do not describe whether or how Databend applies equality deletes at scan time",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Databend Iceberg Engine",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 replaces equality deletes with Deletion Vectors, and Databend does not document V3 format support on its Iceberg engine page, so equality deletes do not apply on V3",
+      "caveats": []
+    },
+    "databend:merge-on-read:v2": {
+      "level": "unknown",
+      "notes": "V2 merge-on-read read semantics (applying positional and equality delete files at scan time) are not documented for Databend's Iceberg engine; the engine page does not describe how Databend reconciles delete files when reading V2 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Databend Iceberg Engine",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:merge-on-read:v3": {
+      "level": "none",
+      "notes": "V3 Deletion Vector reads are not documented for Databend; the Iceberg engine page does not document V3 format support or Deletion Vector handling, so V3 merge-on-read does not apply",
+      "caveats": []
+    },
+    "databend:copy-on-write:v2": {
+      "level": "none",
+      "notes": "Databend's Iceberg engine documents only INSERT INTO for writing data; UPDATE and DELETE on Iceberg tables (which would use copy-on-write to rewrite data files) are not documented, so copy-on-write DML semantics do not apply",
+      "caveats": [
+        "No UPDATE or DELETE statements documented for ENGINE = ICEBERG tables",
+        "INSERT INTO is append-only and does not exercise copy-on-write rewrite semantics"
+      ],
+      "links": [
+        {
+          "label": "Databend Iceberg Engine",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Databend's Iceberg engine documents only INSERT INTO and does not document V3 writes or any UPDATE/DELETE that would use copy-on-write to rewrite data files",
+      "caveats": [
+        "No UPDATE or DELETE statements documented for ENGINE = ICEBERG tables",
+        "V3 format-version writes are not documented for Databend"
+      ]
+    },
+    "databend:schema-evolution:v2": {
+      "level": "none",
+      "notes": "Databend's Iceberg engine does not document ALTER TABLE schema-evolution operations (ADD/DROP/RENAME/REORDER COLUMN, type widening) on Iceberg tables; the documented ENGINE = ICEBERG surface covers only CREATE TABLE, INSERT INTO, and SELECT",
+      "caveats": []
+    },
+    "databend:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Databend's Iceberg engine does not document ALTER TABLE schema-evolution operations on Iceberg tables for V3, and V3 format support is not documented at all on the Iceberg engine page",
+      "caveats": []
+    },
+    "databend:type-promotion:v2": {
+      "level": "none",
+      "notes": "Type-promotion semantics on Iceberg tables (int\u2192long, float\u2192double, decimal precision widening) are not documented for Databend's Iceberg engine; the documented ENGINE = ICEBERG surface does not include ALTER TABLE ALTER COLUMN TYPE operations and the column-type mapping table only describes initial column types at CREATE TABLE time",
+      "caveats": []
+    },
+    "databend:type-promotion:v3": {
+      "level": "none",
+      "notes": "Type-promotion semantics on Iceberg tables are not documented for Databend, and Iceberg V3 format support is not documented on the Databend Iceberg engine page",
+      "caveats": []
+    },
+    "databend:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values (initial-default, write-default) are an Iceberg V3 feature and are not defined in the V2 spec, so they do not apply to Databend on V2",
+      "caveats": []
+    },
+    "databend:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 column-default-value semantics (initial-default and write-default field properties) are not documented for Databend; the Iceberg engine docs do not describe how the ENGINE = ICEBERG CREATE TABLE syntax interacts with V3 column defaults, and V3 format support itself is not documented",
+      "caveats": []
+    },
+    "databend:table-creation:v2": {
+      "level": "partial",
+      "notes": "Databend documents CREATE TABLE ... ENGINE = ICEBERG with an optional PARTITION BY clause for identity-only partition columns; the documented surface covers initial table creation against an attached Iceberg catalog but does not extend to advanced table options",
+      "caveats": [
+        "The documented CREATE TABLE ... ENGINE = ICEBERG syntax does not document a 'format-version' table property, so explicitly targeting a specific Iceberg format version on creation is not supported",
+        "Column types on creation are restricted to the narrow Databend set documented in the supported-data-types table: BOOLEAN, INT, BIGINT, FLOAT, DOUBLE, STRING, DATE, TIMESTAMP"
+      ],
+      "links": [
+        {
+          "label": "Databend Iceberg Engine",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:table-creation:v3": {
+      "level": "unknown",
+      "notes": "Targeting Iceberg V3 format on CREATE TABLE is not documented for Databend; the ENGINE = ICEBERG CREATE TABLE syntax does not document a 'format-version' table property and V3 format support itself is not documented on the Iceberg engine page",
+      "caveats": []
+    },
+    "databend:time-travel:v2": {
+      "level": "none",
+      "notes": "The Databend Iceberg engine docs do not document time-travel syntax for Iceberg tables; the AT (SNAPSHOT => ...) clause is documented only for the Fuse engine and not for ENGINE = ICEBERG tables, and the only documented way to access Iceberg snapshot or manifest metadata is via the ICEBERG_SNAPSHOT and ICEBERG_MANIFEST table functions, which inspect metadata rather than read prior table states",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Databend ICEBERG_SNAPSHOT Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-snapshot"
+        },
+        {
+          "label": "Databend ICEBERG_MANIFEST Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-manifest"
+        }
+      ]
+    },
+    "databend:time-travel:v3": {
+      "level": "none",
+      "notes": "Time-travel on Iceberg tables is not documented for Databend on V3; the AT (SNAPSHOT => ...) clause is documented only for the Fuse engine, the ICEBERG_SNAPSHOT and ICEBERG_MANIFEST table functions only expose metadata inspection, and Iceberg V3 format support itself is not documented on the Databend Iceberg engine page",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Databend ICEBERG_SNAPSHOT Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-snapshot"
+        },
+        {
+          "label": "Databend ICEBERG_MANIFEST Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-manifest"
+        }
+      ]
+    },
+    "databend:table-maintenance:v2": {
+      "level": "none",
+      "notes": "The Databend Iceberg engine docs do not document maintenance actions on Iceberg tables: there is no documented compaction, snapshot expiry, manifest rewrite, or rollback procedure exposed through ENGINE = ICEBERG, and the ICEBERG_SNAPSHOT and ICEBERG_MANIFEST table functions only inspect metadata without rewriting it",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Databend ICEBERG_SNAPSHOT Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-snapshot"
+        },
+        {
+          "label": "Databend ICEBERG_MANIFEST Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-manifest"
+        }
+      ]
+    },
+    "databend:table-maintenance:v3": {
+      "level": "none",
+      "notes": "The Databend Iceberg engine docs do not document maintenance actions on Iceberg V3 tables (compaction, snapshot expiry, manifest rewrite, rollback are all absent from the documented surface), and Iceberg V3 format support itself is not documented on the Databend Iceberg engine page",
+      "caveats": []
+    },
+    "databend:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Branch and tag management on Iceberg tables is not documented for Databend; the experimental ALTER TABLE ... CREATE TAG syntax in the Databend docs applies to Fuse engine tables, and the Iceberg engine page (ENGINE = ICEBERG) documents no CREATE/REPLACE/DROP BRANCH or TAG operations",
+      "caveats": [
+        "No documented way to create, list, or drop Iceberg branches or tags from Databend",
+        "Reading or writing to a specific branch or tag of an Iceberg table is not documented"
+      ]
+    },
+    "databend:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Branch and tag management on Iceberg V3 tables is not documented for Databend; the experimental ALTER TABLE ... CREATE TAG syntax is documented only for Fuse engine tables, and the Databend Iceberg engine docs do not document V3 format support or any branch/tag DDL on ENGINE = ICEBERG",
+      "caveats": [
+        "No documented way to create, list, or drop Iceberg V3 branches or tags from Databend",
+        "Reading or writing to a specific branch or tag of an Iceberg V3 table is not documented"
+      ]
+    },
+    "databend:hidden-partitioning:v2": {
+      "level": "unknown",
+      "notes": "Databend's CREATE TABLE ... ENGINE = ICEBERG syntax documents a PARTITION BY (col, ...) clause that takes column references only and does not document Iceberg partition transforms (year, month, day, hour, bucket, truncate); whether Databend can read or write hidden-partitioned tables created with transforms by other engines is not documented on the Iceberg engine page",
+      "caveats": [
+        "PARTITION BY clause documented for identity column references only; no transform syntax documented",
+        "Behavior on tables that already use hidden partitioning (year/month/day/hour/bucket/truncate) is not documented"
+      ]
+    },
+    "databend:hidden-partitioning:v3": {
+      "level": "unknown",
+      "notes": "Hidden partitioning on Iceberg V3 tables is not documented for Databend; the PARTITION BY clause in CREATE TABLE ... ENGINE = ICEBERG documents only column references with no Iceberg partition transforms (year, month, day, hour, bucket, truncate), and V3 format support itself is not documented on the Databend Iceberg engine page",
+      "caveats": [
+        "PARTITION BY clause documented for identity column references only; no transform syntax documented",
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:partition-evolution:v2": {
+      "level": "none",
+      "notes": "Partition evolution on Iceberg tables is not documented for Databend; the Iceberg engine page (ENGINE = ICEBERG) does not document ALTER TABLE ... ADD PARTITION FIELD, DROP PARTITION FIELD, or REPLACE PARTITION FIELD operations, and no other syntax for evolving an Iceberg table's partition spec is described",
+      "caveats": [
+        "No documented ADD/DROP/REPLACE PARTITION FIELD syntax for Iceberg tables",
+        "Behavior on tables whose partition spec was evolved by another engine is not documented"
+      ]
+    },
+    "databend:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Partition evolution on Iceberg V3 tables is not documented for Databend; the Iceberg engine docs do not document ADD/DROP/REPLACE PARTITION FIELD operations on ENGINE = ICEBERG tables, and V3 format support itself is not documented on the Databend Iceberg engine page",
+      "caveats": [
+        "No documented ADD/DROP/REPLACE PARTITION FIELD syntax for Iceberg V3 tables",
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument partition transforms are an Iceberg V3 feature and are not defined in V2",
+      "caveats": [
+        "V3-only feature; not applicable to V2 tables"
+      ]
+    },
+    "databend:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Multi-argument transform support on Iceberg V3 tables is not documented for Databend; the Iceberg engine docs do not document multi-argument partition transforms, and V3 format support itself is not documented on the Databend Iceberg engine page",
+      "caveats": [
+        "No multi-argument partition transform syntax documented for Iceberg tables",
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:read-support:v2": {
+      "level": "full",
+      "notes": "Databend can scan Iceberg V2 tables through external catalogs attached with CREATE CATALOG ... TYPE = 'iceberg', covering all four documented connection types: REST (TYPE = 'rest'), AWS Glue (TYPE = 'glue'), Storage / S3Tables (TYPE = 'storage'), and Hive Metastore (TYPE = 'hive'); once a catalog is attached, standard SELECT queries against ENGINE = ICEBERG tables read V2 data files",
+      "caveats": [
+        "Read column types are constrained to the documented Databend Iceberg type mapping (BOOLEAN, INT, BIGINT, FLOAT, DOUBLE, STRING, DATE, TIMESTAMP, plus DECIMAL and ARRAY/MAP/STRUCT per the column-type table)"
+      ],
+      "links": [
+        {
+          "label": "Databend - Iceberg table engine",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:read-support:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 read support is not documented in the Databend Iceberg engine docs; the page does not call out V3 format-version reads or any V3-specific behavior (Deletion Vectors, Variant, Geometry, Row Lineage), so whether Databend can scan V3 tables created by other engines is unspecified",
+      "caveats": [
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:write-insert:v2": {
+      "level": "partial",
+      "notes": "Databend supports writing to Iceberg V2 tables through CREATE TABLE ... ENGINE = ICEBERG followed by INSERT INTO; the Iceberg engine docs document INSERT INTO for both non-partitioned tables and tables created with a PARTITION BY (col, ...) clause, but the surface is restricted to INSERT (no documented UPDATE, DELETE, or MERGE INTO)",
+      "caveats": [
+        "Writes are restricted to the narrow Databend column-type set documented in the supported-data-types table on the Iceberg engine docs (BOOLEAN, INT, BIGINT, FLOAT, DOUBLE, STRING, DATE, TIMESTAMP)",
+        "Only INSERT INTO is documented; UPDATE, DELETE, and MERGE INTO on ENGINE = ICEBERG tables are not described"
+      ],
+      "links": [
+        {
+          "label": "Databend - Iceberg table engine",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:write-insert:v3": {
+      "level": "unknown",
+      "notes": "Writes targeting Iceberg V3 format-version tables are not documented in the Databend Iceberg engine docs; the CREATE TABLE ... ENGINE = ICEBERG syntax does not document a 'format-version' table property, and V3 format support itself is not documented on the Iceberg engine page, so INSERT INTO behavior on V3 tables is unspecified",
+      "caveats": [
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:write-merge-update-delete:v2": {
+      "level": "none",
+      "notes": "UPDATE, DELETE, and MERGE INTO are not documented for the Databend Iceberg engine; the Iceberg table engine docs describe only CREATE TABLE ... ENGINE = ICEBERG and INSERT INTO as the supported write surface, with no documented row-level DML on Iceberg tables",
+      "caveats": [
+        "Only INSERT INTO is documented for ENGINE = ICEBERG tables; row-level DML (UPDATE, DELETE, MERGE INTO) is not described"
+      ]
+    },
+    "databend:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "UPDATE, DELETE, and MERGE INTO are not documented for the Databend Iceberg engine on any format version; V3 writes themselves are not documented, so V3 row-level DML is also not documented",
+      "caveats": [
+        "Row-level DML (UPDATE, DELETE, MERGE INTO) on Iceberg tables is not documented for Databend",
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Databend's Iceberg integration is built around external catalogs attached with CREATE CATALOG ... TYPE = 'iceberg', and the docs document four catalog connection types covering the major catalog ecosystems for V2 tables: REST (TYPE = 'rest', with ADDRESS and WAREHOUSE parameters), AWS Glue (TYPE = 'glue', with aws_access_key_id, aws_secret_access_key, and region_name), Storage (TYPE = 'storage', backed by S3Tables-compatible object storage), and Hive Metastore (TYPE = 'hive', with a Thrift ADDRESS); once attached, ENGINE = ICEBERG tables under the catalog are queryable via standard SELECT",
+      "caveats": [
+        "Catalog integration is documented for V2 tables; V3-specific catalog behavior is not separately called out in the Databend Iceberg engine docs"
+      ],
+      "links": [
+        {
+          "label": "Databend - Iceberg table engine",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:catalog-integration:v3": {
+      "level": "unknown",
+      "notes": "V3-spec catalog behavior is not separately documented for Databend; the Iceberg engine docs describe the four catalog connection types (REST, Glue, Storage / S3Tables, Hive) without distinguishing V2 versus V3 format-version behavior, and V3 itself is not called out on the page, so whether Databend can attach to and query V3 tables through these catalogs is unspecified",
+      "caveats": [
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:statistics:v2": {
+      "level": "partial",
+      "notes": "Databend exposes Iceberg manifest summary statistics through the ICEBERG_SNAPSHOT and ICEBERG_MANIFEST table functions, which surface manifest-level counters such as added/total records, added/existing/deleted file counts, and total file size for query-side inspection of V2 tables",
+      "caveats": [
+        "The Databend Iceberg engine docs do not explicitly describe how Databend uses Iceberg manifest column metrics (min/max, null counts) for predicate pushdown or scan planning"
+      ],
+      "links": [
+        {
+          "label": "Databend Iceberg Engine",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        },
+        {
+          "label": "Databend ICEBERG_SNAPSHOT Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-snapshot"
+        },
+        {
+          "label": "Databend ICEBERG_MANIFEST Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-manifest"
+        }
+      ]
+    },
+    "databend:statistics:v3": {
+      "level": "unknown",
+      "notes": "Statistics handling for Iceberg V3 tables is not documented on the Databend Iceberg engine page; V3 format support itself is not called out, so whether the ICEBERG_SNAPSHOT / ICEBERG_MANIFEST table functions or any predicate-pushdown path operate over V3 manifests is unspecified",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Databend ICEBERG_SNAPSHOT Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-snapshot"
+        },
+        {
+          "label": "Databend ICEBERG_MANIFEST Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-manifest"
+        }
+      ]
+    },
+    "databend:bloom-filters:v2": {
+      "level": "unknown",
+      "notes": "Puffin bloom-filter sidecars are not documented for Databend's Iceberg engine; the Iceberg engine docs do not mention reading or writing Puffin bloom-filter blobs, and no bloom-filter-related option appears in the supported `CREATE TABLE ... ENGINE = ICEBERG` syntax or in the ICEBERG_SNAPSHOT / ICEBERG_MANIFEST table-function output",
+      "caveats": [
+        "The Databend Iceberg engine docs do not describe whether bloom filters from Puffin sidecars are consulted during scan planning"
+      ],
+      "links": [
+        {
+          "label": "Databend ICEBERG_SNAPSHOT Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-snapshot"
+        },
+        {
+          "label": "Databend ICEBERG_MANIFEST Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-manifest"
+        }
+      ]
+    },
+    "databend:bloom-filters:v3": {
+      "level": "unknown",
+      "notes": "Puffin bloom-filter sidecars are not documented for Databend's Iceberg engine on V3 tables; V3 format-version support itself is not called out on the Databend Iceberg engine page, so whether Puffin bloom-filter blobs are read or written for V3 tables is unspecified",
+      "caveats": [
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Databend documents attaching a Hive Metastore-backed Iceberg catalog with CREATE CATALOG ... TYPE = 'iceberg' CONNECTION = (TYPE = 'hive', ADDRESS = '<thrift-host:port>'), where ADDRESS points at the Hive Metastore Thrift endpoint; once attached, V2 Iceberg tables tracked by the metastore are queryable through standard SELECT against the catalog",
+      "caveats": [
+        "The Databend Iceberg engine docs describe the Hive Metastore connection at the catalog level only; per-table authentication (e.g. Kerberos) and storage credential propagation for tables under the metastore are not documented on the Iceberg engine page"
+      ],
+      "links": [
+        {
+          "label": "Databend - Iceberg table engine (Hive Metastore catalog)",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:hive-metastore:v3": {
+      "level": "unknown",
+      "notes": "Hive Metastore catalog behavior on Iceberg V3 tables is not separately documented for Databend; the Iceberg engine docs describe the TYPE = 'hive' connection without distinguishing V2 versus V3 format-version handling, and V3 format support itself is not called out on the page, so reading V3 tables through a Hive Metastore catalog is unspecified",
+      "caveats": [
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Databend documents attaching an AWS Glue Data Catalog as an Iceberg catalog with CREATE CATALOG ... TYPE = 'iceberg' CONNECTION = (TYPE = 'glue', aws_access_key_id = '<key>', aws_secret_access_key = '<secret>', region_name = '<region>'); once attached, V2 Iceberg tables registered in Glue are queryable through standard SELECT against the catalog",
+      "caveats": [
+        "The Databend Iceberg engine docs describe the Glue connection at the catalog level only; per-table credential scoping, role-assumption (e.g. AssumeRole / instance profiles), and lake-formation-style fine-grained access controls are not documented on the Iceberg engine page",
+        "Storage credentials for the underlying S3 data files are not described separately from the Glue connection parameters on the Iceberg engine page"
+      ],
+      "links": [
+        {
+          "label": "Databend - Iceberg table engine (AWS Glue catalog)",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:aws-glue-catalog:v3": {
+      "level": "unknown",
+      "notes": "AWS Glue catalog behavior on Iceberg V3 tables is not separately documented for Databend; the Iceberg engine docs describe the TYPE = 'glue' connection without distinguishing V2 versus V3 format-version handling, and V3 format support itself is not called out on the page, so reading V3 tables through a Glue-backed Iceberg catalog is unspecified",
+      "caveats": [
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:rest-catalog:v2": {
+      "level": "full",
+      "notes": "Databend documents attaching a REST-backed Iceberg catalog with CREATE CATALOG ... TYPE = 'iceberg' CONNECTION = (TYPE = 'rest', ADDRESS = '<rest-endpoint>', WAREHOUSE = '<warehouse-id>'), where ADDRESS points at the REST catalog endpoint and WAREHOUSE selects the target warehouse; once attached, V2 Iceberg tables exposed by the REST catalog are queryable through standard SELECT against the catalog",
+      "caveats": [
+        "The Databend Iceberg engine docs describe the REST catalog connection at the catalog level only; OAuth2 / SigV4 / bearer-token authentication flows, vended credentials, and per-table credential scoping are not detailed on the Iceberg engine page",
+        "Storage credentials for the underlying object-store data files are not described separately from the REST connection parameters on the Iceberg engine page"
+      ],
+      "links": [
+        {
+          "label": "Databend - Iceberg table engine (REST catalog)",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:rest-catalog:v3": {
+      "level": "unknown",
+      "notes": "REST catalog behavior on Iceberg V3 tables is not separately documented for Databend; the Iceberg engine docs describe the TYPE = 'rest' connection with ADDRESS and WAREHOUSE parameters without distinguishing V2 versus V3 format-version handling, and V3 format support itself is not called out on the page, so reading V3 tables through a REST-backed Iceberg catalog is unspecified",
+      "caveats": [
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:nessie:v2": {
+      "level": "unknown",
+      "notes": "Databend has no documented Nessie catalog integration; the Iceberg engine docs list only REST, AWS Glue, Storage (S3Tables), and Hive Metastore as supported catalog connection TYPE values, and Nessie is neither named as a dedicated TYPE nor mentioned as reachable through the generic REST connection",
+      "caveats": [
+        "Nessie catalog support not documented in the Databend Iceberg engine docs",
+        "No dedicated TYPE = 'nessie' connection type is listed"
+      ]
+    },
+    "databend:nessie:v3": {
+      "level": "unknown",
+      "notes": "Databend has no documented Nessie catalog integration for Iceberg V3 tables; Nessie is not mentioned in the Databend Iceberg engine docs at all, and V3 format-version behavior is itself not separately documented, so V3 reads through a Nessie-backed catalog are unspecified",
+      "caveats": [
+        "Nessie catalog support not documented in the Databend Iceberg engine docs",
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:polaris:v2": {
+      "level": "partial",
+      "notes": "Databend can reach Apache Polaris through its generic Iceberg REST Catalog connection (CREATE CATALOG ... TYPE = 'iceberg' CONNECTION = (TYPE = 'rest', ADDRESS = '<polaris-rest-endpoint>', WAREHOUSE = '<warehouse-id>')) since Polaris implements the Iceberg REST Catalog spec; the Databend Iceberg engine docs do not name a dedicated Polaris connection TYPE, so usage is via the generic REST integration only",
+      "caveats": [
+        "No dedicated Polaris connection TYPE is documented; access is via the generic Iceberg REST Catalog (TYPE = 'rest')",
+        "Polaris-specific authentication, OAuth client flows, and principal mappings are not documented on the Databend Iceberg engine page"
+      ],
+      "links": [
+        {
+          "label": "Databend - Iceberg table engine (REST catalog)",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:polaris:v3": {
+      "level": "unknown",
+      "notes": "Polaris support on Iceberg V3 tables is not separately documented for Databend; while Polaris is reachable through the generic REST Catalog (TYPE = 'rest') configuration, the Databend Iceberg engine docs do not address V3 format-version behavior, so reading V3 Polaris-managed tables through a REST-backed catalog is unspecified",
+      "caveats": [
+        "No dedicated Polaris connection TYPE is documented; access would be via the generic Iceberg REST Catalog (TYPE = 'rest')",
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Databend can reach Databricks Unity Catalog through its generic Iceberg REST Catalog connection (CREATE CATALOG ... TYPE = 'iceberg' CONNECTION = (TYPE = 'rest', ADDRESS = '<unity-rest-endpoint>', WAREHOUSE = '<warehouse-id>')) because Unity Catalog exposes the Iceberg REST Catalog API; the Databend Iceberg engine docs do not name a dedicated Unity Catalog connection TYPE, so access is via the generic REST integration only",
+      "caveats": [
+        "No dedicated Unity Catalog connection TYPE is documented; access is via the generic Iceberg REST Catalog (TYPE = 'rest')",
+        "Unity-specific authentication (Databricks personal access tokens, OAuth client credentials, workspace identifiers) and three-level namespace handling are not documented on the Databend Iceberg engine page"
+      ],
+      "links": [
+        {
+          "label": "Databend - Iceberg table engine (REST catalog)",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:unity-catalog:v3": {
+      "level": "unknown",
+      "notes": "Unity Catalog support on Iceberg V3 tables is not separately documented for Databend; while Unity Catalog is reachable through the generic REST Catalog (TYPE = 'rest') configuration, the Databend Iceberg engine docs do not address V3 format-version behavior, so reading V3 Unity-managed tables through a REST-backed catalog is unspecified",
+      "caveats": [
+        "No dedicated Unity Catalog connection TYPE is documented; access would be via the generic Iceberg REST Catalog (TYPE = 'rest')",
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Databend can reach Snowflake's Horizon-managed Iceberg catalog through its generic Iceberg REST Catalog connection (CREATE CATALOG ... TYPE = 'iceberg' CONNECTION = (TYPE = 'rest', ADDRESS = '<snowflake-rest-endpoint>', WAREHOUSE = '<warehouse-id>')) because Snowflake exposes Horizon-managed Iceberg tables via the Iceberg REST Catalog API; the Databend Iceberg engine docs do not name a dedicated Snowflake / Horizon connection TYPE, so access is via the generic REST integration only",
+      "caveats": [
+        "No dedicated Snowflake / Horizon connection TYPE is documented; access is via the generic Iceberg REST Catalog (TYPE = 'rest')",
+        "Snowflake-specific authentication (PAT, key-pair, OAuth) and Horizon-managed table semantics are not documented on the Databend Iceberg engine page"
+      ],
+      "links": [
+        {
+          "label": "Databend - Iceberg table engine (REST catalog)",
+          "url": "https://docs.databend.com/sql/sql-reference/table-engines/iceberg"
+        }
+      ]
+    },
+    "databend:snowflake-horizon-catalog:v3": {
+      "level": "unknown",
+      "notes": "Snowflake Horizon catalog support on Iceberg V3 tables is not separately documented for Databend; while Horizon is reachable through the generic REST Catalog (TYPE = 'rest') configuration, the Databend Iceberg engine docs do not address V3 format-version behavior, so reading V3 Horizon-managed tables through a REST-backed catalog is unspecified",
+      "caveats": [
+        "No dedicated Snowflake / Horizon connection TYPE is documented; access would be via the generic Iceberg REST Catalog (TYPE = 'rest')",
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Databend does not document a Hadoop / FileSystem catalog type for its Iceberg engine; the documented Iceberg catalog connection TYPE values are limited to 'rest', 'glue', 'storage' (S3Tables), and 'hive', so a Hadoop-style filesystem catalog cannot be configured through CREATE CATALOG ... TYPE = 'iceberg'",
+      "caveats": [
+        "No 'hadoop' (or filesystem-based) connection TYPE is listed on the Databend Iceberg engine docs",
+        "Tables stored in a Hadoop catalog layout would need to be exposed through one of the documented catalog types (REST, Glue, Storage / S3Tables, or Hive) instead"
+      ]
+    },
+    "databend:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Databend does not document a Hadoop / FileSystem catalog type for its Iceberg engine on V3 tables either; the documented catalog connection TYPE values remain limited to 'rest', 'glue', 'storage' (S3Tables), and 'hive', and V3 format-version behavior is not separately documented",
+      "caveats": [
+        "No 'hadoop' (or filesystem-based) connection TYPE is listed on the Databend Iceberg engine docs",
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "Databend does not document a JDBC catalog type for Iceberg; the Databend Iceberg engine docs list only 'rest', 'glue', 'storage' (S3Tables), and 'hive' as Iceberg catalog connection TYPE values, so a JDBC-backed Iceberg catalog cannot be configured through CREATE CATALOG ... TYPE = 'iceberg'",
+      "caveats": [
+        "No 'jdbc' connection TYPE is listed on the Databend Iceberg engine docs",
+        "Iceberg metadata stored via a JDBC catalog would need to be exposed through one of the documented catalog types (REST, Glue, Storage / S3Tables, or Hive) for Databend to read it"
+      ]
+    },
+    "databend:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Databend does not document a JDBC catalog type for Iceberg on V3 tables either; the documented Iceberg catalog connection TYPE values remain limited to 'rest', 'glue', 'storage' (S3Tables), and 'hive', and V3 format-version behavior is not separately documented",
+      "caveats": [
+        "No 'jdbc' connection TYPE is listed on the Databend Iceberg engine docs",
+        "V3 format support is not documented on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "databend:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Iceberg Variant type support is not documented for Databend; the column-type mapping table on the Databend Iceberg engine docs does not list Variant among the Iceberg-to-Databend column type mappings",
+      "caveats": [
+        "Variant is not listed in the supported-data-types / column-type mapping table on the Databend Iceberg engine page",
+        "V3 format-version behavior is not separately documented for Databend's Iceberg engine"
+      ]
+    },
+    "databend:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3-only Iceberg feature; not applicable to V2 tables",
+      "caveats": []
+    },
+    "databend:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Shredded Variant encoding is not documented for Databend's Iceberg engine; the column-type mapping table on the Databend Iceberg engine docs does not list Variant, so shredded-variant Parquet layout support is also undocumented",
+      "caveats": [
+        "Variant (and therefore shredded Variant) is not listed in the supported-data-types / column-type mapping table on the Databend Iceberg engine page",
+        "V3 format-version behavior is not separately documented for Databend's Iceberg engine"
+      ]
+    },
+    "databend:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "databend:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Iceberg Geometry type support is not documented for Databend; the column-type mapping table on the Databend Iceberg engine docs does not list Geometry among the Iceberg-to-Databend column type mappings",
+      "caveats": [
+        "Geometry is not listed in the supported-data-types / column-type mapping table on the Databend Iceberg engine page",
+        "V3 format-version behavior is not separately documented for Databend's Iceberg engine"
+      ]
+    },
+    "databend:vector-type:v2": {
+      "level": "none",
+      "notes": "Vector type is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "databend:vector-type:v3": {
+      "level": "unknown",
+      "notes": "Iceberg Vector type support is not documented for Databend; the column-type mapping table on the Databend Iceberg engine docs does not list Vector among the Iceberg-to-Databend column type mappings",
+      "caveats": [
+        "Vector is not listed in the supported-data-types / column-type mapping table on the Databend Iceberg engine page",
+        "V3 format-version behavior is not separately documented for Databend's Iceberg engine"
+      ]
+    },
+    "databend:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "databend:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Databend's documented Iceberg TIMESTAMP / TIMESTAMPZ mapping is to its native microsecond TIMESTAMP, and the column-type mapping table on the Databend Iceberg engine docs does not include nanosecond timestamps (timestamp_ns / timestamptz_ns)",
+      "caveats": [
+        "Databend's native TIMESTAMP precision is microsecond; nanosecond precision is not represented in the Iceberg-to-Databend column-type mapping",
+        "Iceberg V3 nanosecond timestamp types (timestamp_ns, timestamptz_ns) are not listed in the supported-data-types table on the Databend Iceberg engine page"
+      ]
+    },
+    "databend:cdc-support:v2": {
+      "level": "none",
+      "notes": "CDC support is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "databend:cdc-support:v3": {
+      "level": "none",
+      "notes": "Native Iceberg CDC streaming is not documented for Databend; the Databend STREAM feature documented in the AT clause applies to Fuse engine tables, not Iceberg tables",
+      "caveats": [
+        "Databend's STREAM / CHANGES feature (AT (STREAM => ...)) is documented for the native Fuse engine, not for Iceberg-engine tables",
+        "No incremental-read or row-lineage-based CDC is documented for Databend's Iceberg engine"
+      ]
+    },
+    "databend:lineage:v2": {
+      "level": "none",
+      "notes": "Row Lineage is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "databend:lineage:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 Row Lineage hidden columns (_row_id, _last_updated_sequence_number) are not documented for Databend; the Databend Iceberg engine column-type mapping and ICEBERG_SNAPSHOT / ICEBERG_MANIFEST table-function outputs do not surface row-lineage metadata",
+      "caveats": [
+        "The hidden _row_id and _last_updated_sequence_number columns introduced by Iceberg V3 Row Lineage are not mentioned in the Databend Iceberg engine docs",
+        "Querying or propagating row-lineage metadata through Databend's Iceberg engine is not documented"
+      ],
+      "links": [
+        {
+          "label": "Databend ICEBERG_SNAPSHOT Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-snapshot"
+        },
+        {
+          "label": "Databend ICEBERG_MANIFEST Table Function",
+          "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-manifest"
         }
       ]
     }
