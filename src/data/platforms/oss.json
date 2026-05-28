@@ -852,7 +852,7 @@
     },
     "clickhouse:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Reading schema-evolved Iceberg tables is supported via the icebergS3/icebergLocal table functions (recommended approach): add/remove columns, reorder, nullable promotion, and limited type casting (int→long, float→double, decimal widening). Cannot change nested structures or array/map element types.",
+      "notes": "Reading schema-evolved Iceberg tables is supported via the icebergS3/icebergLocal table functions (recommended approach): add/remove columns, reorder, nullable promotion, and limited type casting (int\u2192long, float\u2192double, decimal widening). Cannot change nested structures or array/map element types.",
       "caveats": [
         "Read-only via table functions; cannot perform schema changes",
         "No nested structure or array/map element type evolution",
@@ -1456,7 +1456,7 @@
     },
     "spark:schema-evolution:v2": {
       "level": "full",
-      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int→long, float→double), and modify nullability",
+      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int\u2192long, float\u2192double), and modify nullability",
       "caveats": [],
       "links": [
         {
@@ -2004,7 +2004,7 @@
     },
     "flink:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes are not supported via Flink DDL",
+      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column and partition changes are not supported via Flink DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column additions, renames, drops, and reordering not supported via Flink SQL"
       ],
@@ -2012,7 +2012,7 @@
     },
     "flink:schema-evolution:v3": {
       "level": "partial",
-      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes are not supported via Flink DDL",
+      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column and partition changes are not supported via Flink DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column additions, renames, drops, and reordering not supported via Flink SQL"
       ],
@@ -2114,7 +2114,7 @@
     },
     "flink:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests — use Spark for full maintenance",
+      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests \u2014 use Spark for full maintenance",
       "caveats": [
         "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported"
       ],
@@ -2988,18 +2988,6 @@
         "Not yet implemented"
       ]
     },
-    "pyiceberg:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a proposed V3 feature not applicable to V2",
-      "caveats": []
-    },
-    "pyiceberg:vector-type:v3": {
-      "level": "none",
-      "notes": "PyIceberg does not yet support the vector type (proposed V3 feature)",
-      "caveats": [
-        "Not yet implemented; feature still under proposal"
-      ]
-    },
     "pyiceberg:nanosecond-timestamps:v2": {
       "level": "none",
       "notes": "Nanosecond timestamps are a V3 feature not applicable to V2",
@@ -3014,18 +3002,6 @@
           "label": "PyIceberg v0.10.0 Release Notes",
           "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.10.0"
         }
-      ]
-    },
-    "pyiceberg:cdc-support:v2": {
-      "level": "none",
-      "notes": "CDC/changelog views are not supported by PyIceberg",
-      "caveats": []
-    },
-    "pyiceberg:cdc-support:v3": {
-      "level": "none",
-      "notes": "PyIceberg does not support CDC or incremental changelog views",
-      "caveats": [
-        "Not yet implemented"
       ]
     },
     "pyiceberg:lineage:v2": {
@@ -3189,44 +3165,6 @@
         }
       ]
     },
-    "duckdb:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a V3 feature; not applicable to V2",
-      "caveats": [],
-      "links": []
-    },
-    "duckdb:vector-type:v3": {
-      "level": "none",
-      "notes": "Vector type is a V3-only data type not supported by DuckDB's Iceberg extension",
-      "caveats": [
-        "V3-only feature; DuckDB V3 support limited to V2-compatible data types"
-      ],
-      "links": [
-        {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
-        }
-      ]
-    },
-    "duckdb:cdc-support:v2": {
-      "level": "none",
-      "notes": "CDC support is a V3 feature; not applicable to V2",
-      "caveats": [],
-      "links": []
-    },
-    "duckdb:cdc-support:v3": {
-      "level": "none",
-      "notes": "CDC support not available in DuckDB's Iceberg extension",
-      "caveats": [
-        "V3-only feature; not supported"
-      ],
-      "links": [
-        {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
-        }
-      ]
-    },
     "duckdb:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature; not applicable to V2",
@@ -3276,26 +3214,6 @@
       "notes": "ClickHouse V3 geometry type support is not yet documented",
       "caveats": []
     },
-    "clickhouse:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "clickhouse:vector-type:v3": {
-      "level": "unknown",
-      "notes": "ClickHouse V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "clickhouse:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "clickhouse:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "ClickHouse V3 cdc support support is not yet documented",
-      "caveats": []
-    },
     "clickhouse:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature",
@@ -3338,30 +3256,6 @@
     "daft:geometry-type:v3": {
       "level": "none",
       "notes": "Daft has not announced Iceberg V3 support; geometry type is a V3 feature",
-      "caveats": [
-        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
-      ]
-    },
-    "daft:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "daft:vector-type:v3": {
-      "level": "none",
-      "notes": "Daft has not announced Iceberg V3 support; vector type is a V3 feature",
-      "caveats": [
-        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
-      ]
-    },
-    "daft:cdc-support:v2": {
-      "level": "none",
-      "notes": "CDC support is not available in Daft",
-      "caveats": []
-    },
-    "daft:cdc-support:v3": {
-      "level": "none",
-      "notes": "Daft has not announced Iceberg V3 support; cdc support is a V3 feature",
       "caveats": [
         "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
       ]
@@ -3410,28 +3304,6 @@
       "notes": "OSS Spark V3 geometry type support is not yet documented",
       "caveats": []
     },
-    "spark:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "spark:vector-type:v3": {
-      "level": "unknown",
-      "notes": "OSS Spark V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "spark:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "spark:cdc-support:v3": {
-      "level": "partial",
-      "notes": "CDC support available via Spark structured streaming on Iceberg",
-      "caveats": [
-        "Requires streaming configuration"
-      ]
-    },
     "spark:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature",
@@ -3471,28 +3343,6 @@
       "level": "unknown",
       "notes": "OSS Flink V3 geometry type support is not yet documented",
       "caveats": []
-    },
-    "flink:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "flink:vector-type:v3": {
-      "level": "unknown",
-      "notes": "OSS Flink V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "flink:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "flink:cdc-support:v3": {
-      "level": "partial",
-      "notes": "Flink supports CDC ingestion into Iceberg tables via streaming",
-      "caveats": [
-        "Requires streaming upsert configuration"
-      ]
     },
     "flink:lineage:v2": {
       "level": "none",
@@ -3813,7 +3663,7 @@
     },
     "clickhouse:type-promotion:v2": {
       "level": "partial",
-      "notes": "ClickHouse can read Iceberg tables that have undergone type promotion (int→long, float→double, decimal precision widening) via the icebergS3/icebergLocal table functions (recommended approach). Cannot perform type promotion itself — that must be done by another engine (e.g. Spark). Nested structure and array/map element type changes are not supported.",
+      "notes": "ClickHouse can read Iceberg tables that have undergone type promotion (int\u2192long, float\u2192double, decimal precision widening) via the icebergS3/icebergLocal table functions (recommended approach). Cannot perform type promotion itself \u2014 that must be done by another engine (e.g. Spark). Nested structure and array/map element type changes are not supported.",
       "caveats": [
         "Read-only via table functions; cannot perform type promotion",
         "No nested structure or array/map element type evolution",
@@ -3867,7 +3717,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         },
         {
@@ -3882,7 +3732,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
@@ -3915,7 +3765,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "PyIceberg API – Schema evolution",
+          "label": "PyIceberg API \u2013 Schema evolution",
           "url": "https://py.iceberg.apache.org/api/"
         },
         {
@@ -3930,7 +3780,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "PyIceberg API – Schema evolution",
+          "label": "PyIceberg API \u2013 Schema evolution",
           "url": "https://py.iceberg.apache.org/api/"
         }
       ]
@@ -4815,24 +4665,6 @@
         }
       ]
     },
-    "doris:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a V3 feature; not applicable to V2",
-      "caveats": []
-    },
-    "doris:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Iceberg Vector/Embedding type support is not documented in Doris 4.x",
-      "caveats": [
-        "V3-only feature; Doris support not documented"
-      ],
-      "links": [
-        {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        }
-      ]
-    },
     "doris:nanosecond-timestamps:v2": {
       "level": "none",
       "notes": "Nanosecond timestamps are a V3 feature; not applicable to V2",
@@ -4845,28 +4677,6 @@
         "Doris Iceberg datetime precision is microsecond only (precision 6)"
       ],
       "links": [
-        {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        }
-      ]
-    },
-    "doris:cdc-support:v2": {
-      "level": "none",
-      "notes": "Native CDC from Iceberg tables is not supported on V2 in Doris",
-      "caveats": []
-    },
-    "doris:cdc-support:v3": {
-      "level": "partial",
-      "notes": "Doris 4.1 exposes Row Lineage (_last_updated_sequence_number) which can be used as a watermark for incremental synchronization of V3 Iceberg tables",
-      "caveats": [
-        "No native CDC stream is emitted; incremental sync must be driven externally via the lineage sequence number"
-      ],
-      "links": [
-        {
-          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
-          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
-        },
         {
           "label": "Doris 4.x Iceberg Catalog",
           "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
@@ -5482,19 +5292,6 @@
         "V3 format-version behavior is not separately documented for Databend's Iceberg engine"
       ]
     },
-    "databend:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a V3 feature; not applicable to V2",
-      "caveats": []
-    },
-    "databend:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Iceberg Vector type support is not documented for Databend; the column-type mapping table on the Databend Iceberg engine docs does not list Vector among the Iceberg-to-Databend column type mappings",
-      "caveats": [
-        "Vector is not listed in the supported-data-types / column-type mapping table on the Databend Iceberg engine page",
-        "V3 format-version behavior is not separately documented for Databend's Iceberg engine"
-      ]
-    },
     "databend:nanosecond-timestamps:v2": {
       "level": "none",
       "notes": "Nanosecond timestamps are a V3 feature; not applicable to V2",
@@ -5506,19 +5303,6 @@
       "caveats": [
         "Databend's native TIMESTAMP precision is microsecond; nanosecond precision is not represented in the Iceberg-to-Databend column-type mapping",
         "Iceberg V3 nanosecond timestamp types (timestamp_ns, timestamptz_ns) are not listed in the supported-data-types table on the Databend Iceberg engine page"
-      ]
-    },
-    "databend:cdc-support:v2": {
-      "level": "none",
-      "notes": "CDC support is a V3 feature; not applicable to V2",
-      "caveats": []
-    },
-    "databend:cdc-support:v3": {
-      "level": "none",
-      "notes": "Native Iceberg CDC streaming is not documented for Databend; the Databend STREAM feature documented in the AT clause applies to Fuse engine tables, not Iceberg tables",
-      "caveats": [
-        "Databend's STREAM / CHANGES feature (AT (STREAM => ...)) is documented for the native Fuse engine, not for Iceberg-engine tables",
-        "No incremental-read or row-lineage-based CDC is documented for Databend's Iceberg engine"
       ]
     },
     "databend:lineage:v2": {

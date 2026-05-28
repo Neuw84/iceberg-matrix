@@ -583,26 +583,11 @@ def test_geometry_type() -> TestResult:
     return r
 
 
-def test_vector_type() -> TestResult:
-    r = TestResult("vector-type", "Vector / Embedding Type")
-    r.version_tested = "v3"
-    r.result = "fail"
-    r.details = "Vector type is a V3 feature; Daft has not announced V3 support"
-    return r
-
-
 def test_nanosecond_timestamps() -> TestResult:
     r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps")
     r.version_tested = "v3"
     r.result = "fail"
     r.details = "Nanosecond timestamps are a V3 feature; Daft has not announced V3 support"
-    return r
-
-
-def test_cdc_support() -> TestResult:
-    r = TestResult("cdc-support", "Change Data Capture (CDC)")
-    r.result = "fail"
-    r.details = "CDC not supported in Daft"
     return r
 
 
@@ -649,9 +634,7 @@ ALL_TESTS = [
     test_variant_type,
     test_shredded_variant,
     test_geometry_type,
-    test_vector_type,
     test_nanosecond_timestamps,
-    test_cdc_support,
     test_lineage,
 ]
 

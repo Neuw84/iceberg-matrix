@@ -307,26 +307,6 @@
       "notes": "Firehose does not support Iceberg V3",
       "caveats": []
     },
-    "aws-firehose:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "aws-firehose:vector-type:v3": {
-      "level": "none",
-      "notes": "Firehose does not support Iceberg V3",
-      "caveats": []
-    },
-    "aws-firehose:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "aws-firehose:cdc-support:v3": {
-      "level": "none",
-      "notes": "Firehose does not support Iceberg V3",
-      "caveats": []
-    },
     "aws-firehose:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature",

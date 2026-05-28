@@ -320,7 +320,7 @@
       "name": "Snowflake Horizon Catalog",
       "category": "catalog-support",
       "introducedIn": "v2",
-      "description": "Snowflake Horizon Catalog — Snowflake's managed catalog service based on Apache Polaris, implementing the Iceberg REST Catalog API with cross-engine RBAC and fine-grained table governance"
+      "description": "Snowflake Horizon Catalog \u2014 Snowflake's managed catalog service based on Apache Polaris, implementing the Iceberg REST Catalog API with cross-engine RBAC and fine-grained table governance"
     },
     {
       "id": "hadoop-catalog",
@@ -358,25 +358,11 @@
       "description": "Geospatial data types for storing points, lines, polygons and other geometry objects natively in Iceberg tables"
     },
     {
-      "id": "vector-type",
-      "name": "Vector / Embedding Type",
-      "category": "v3-data-types",
-      "introducedIn": "v3",
-      "description": "Fixed-length float array type for storing ML embeddings and vectors, enabling similarity search and AI workloads on Iceberg tables"
-    },
-    {
       "id": "nanosecond-timestamps",
       "name": "Nanosecond Timestamps",
       "category": "v3-data-types",
       "introducedIn": "v3",
       "description": "Support for nanosecond-precision timestamp and timestamptz types, enabling higher precision time tracking"
-    },
-    {
-      "id": "cdc-support",
-      "name": "Change Data Capture (CDC)",
-      "category": "v3-advanced",
-      "introducedIn": "v3",
-      "description": "Native support for capturing and replaying row-level changes (inserts, updates, deletes) as a stream from Iceberg tables"
     },
     {
       "id": "lineage",
@@ -5509,16 +5495,6 @@
       "notes": "PyIceberg V3 geometry type support is not yet documented",
       "caveats": []
     },
-    "pyiceberg:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a V3 feature",
-      "caveats": []
-    },
-    "pyiceberg:vector-type:v3": {
-      "level": "unknown",
-      "notes": "PyIceberg V3 vector type support is not yet documented",
-      "caveats": []
-    },
     "pyiceberg:nanosecond-timestamps:v2": {
       "level": "none",
       "notes": "Nanosecond timestamps are a V3 feature",
@@ -5530,16 +5506,6 @@
       "caveats": [
         "V3 support is experimental"
       ]
-    },
-    "pyiceberg:cdc-support:v2": {
-      "level": "none",
-      "notes": "CDC is a V3 feature",
-      "caveats": []
-    },
-    "pyiceberg:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "PyIceberg V3 CDC support is not yet documented",
-      "caveats": []
     },
     "pyiceberg:lineage:v2": {
       "level": "none",
@@ -5877,36 +5843,12 @@
         "V3 support not yet announced"
       ]
     },
-    "aws-redshift:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a V3 feature",
-      "caveats": []
-    },
-    "aws-redshift:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
-    },
     "aws-redshift:nanosecond-timestamps:v2": {
       "level": "none",
       "notes": "Nanosecond timestamps are a V3 feature",
       "caveats": []
     },
     "aws-redshift:nanosecond-timestamps:v3": {
-      "level": "unknown",
-      "notes": "Redshift has not yet announced Iceberg V3 support",
-      "caveats": [
-        "V3 support not yet announced"
-      ]
-    },
-    "aws-redshift:cdc-support:v2": {
-      "level": "none",
-      "notes": "CDC is a V3 feature",
-      "caveats": []
-    },
-    "aws-redshift:cdc-support:v3": {
       "level": "unknown",
       "notes": "Redshift has not yet announced Iceberg V3 support",
       "caveats": [
@@ -6152,26 +6094,6 @@
       "notes": "AWS Athena V3 geometry type support is not yet documented",
       "caveats": []
     },
-    "aws-athena:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "aws-athena:vector-type:v3": {
-      "level": "unknown",
-      "notes": "AWS Athena V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "aws-athena:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "aws-athena:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "AWS Athena V3 cdc support support is not yet documented",
-      "caveats": []
-    },
     "aws-athena:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature",
@@ -6211,28 +6133,6 @@
       "level": "unknown",
       "notes": "AWS Glue V3 geometry type support is not yet documented",
       "caveats": []
-    },
-    "aws-glue:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "aws-glue:vector-type:v3": {
-      "level": "unknown",
-      "notes": "AWS Glue V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "aws-glue:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "aws-glue:cdc-support:v3": {
-      "level": "partial",
-      "notes": "CDC support available via Spark streaming on AWS Glue",
-      "caveats": [
-        "Requires streaming configuration"
-      ]
     },
     "aws-glue:lineage:v2": {
       "level": "none",
@@ -6274,28 +6174,6 @@
       "notes": "AWS EMR V3 geometry type support is not yet documented",
       "caveats": []
     },
-    "aws-emr:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "aws-emr:vector-type:v3": {
-      "level": "unknown",
-      "notes": "AWS EMR V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "aws-emr:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "aws-emr:cdc-support:v3": {
-      "level": "partial",
-      "notes": "CDC support available via Spark streaming on AWS EMR",
-      "caveats": [
-        "Requires streaming configuration"
-      ]
-    },
     "aws-emr:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature",
@@ -6334,26 +6212,6 @@
     "aws-firehose:geometry-type:v3": {
       "level": "unknown",
       "notes": "Amazon Data Firehose V3 geometry type support is not yet documented",
-      "caveats": []
-    },
-    "aws-firehose:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "aws-firehose:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Amazon Data Firehose V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "aws-firehose:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "aws-firehose:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Amazon Data Firehose V3 cdc support support is not yet documented",
       "caveats": []
     },
     "aws-firehose:lineage:v2": {
@@ -6396,26 +6254,6 @@
       "notes": "Amazon Managed Flink V3 geometry type support is not yet documented",
       "caveats": []
     },
-    "aws-managed-flink:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "aws-managed-flink:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "aws-managed-flink:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "aws-managed-flink:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Amazon Managed Flink V3 cdc support support is not yet documented",
-      "caveats": []
-    },
     "aws-managed-flink:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature",
@@ -6454,26 +6292,6 @@
     "google-bigquery:geometry-type:v3": {
       "level": "unknown",
       "notes": "Google BigQuery V3 geometry type support is not yet documented",
-      "caveats": []
-    },
-    "google-bigquery:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "google-bigquery:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Google BigQuery V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "google-bigquery:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "google-bigquery:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Google BigQuery V3 cdc support support is not yet documented",
       "caveats": []
     },
     "google-bigquery:lineage:v2": {
@@ -6516,26 +6334,6 @@
       "notes": "Google Dataproc V3 geometry type support is not yet documented",
       "caveats": []
     },
-    "google-dataproc:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "google-dataproc:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Google Dataproc V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "google-dataproc:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "google-dataproc:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Google Dataproc V3 cdc support support is not yet documented",
-      "caveats": []
-    },
     "google-dataproc:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature",
@@ -6574,26 +6372,6 @@
     "azure-synapse:geometry-type:v3": {
       "level": "unknown",
       "notes": "Azure Synapse V3 geometry type support is not yet documented",
-      "caveats": []
-    },
-    "azure-synapse:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "azure-synapse:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Azure Synapse V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "azure-synapse:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "azure-synapse:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Azure Synapse V3 cdc support support is not yet documented",
       "caveats": []
     },
     "azure-synapse:lineage:v2": {
@@ -6636,26 +6414,6 @@
       "notes": "Azure Fabric V3 geometry type support is not yet documented",
       "caveats": []
     },
-    "azure-fabric:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "azure-fabric:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "azure-fabric:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "azure-fabric:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Azure Fabric V3 cdc support support is not yet documented",
-      "caveats": []
-    },
     "azure-fabric:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature",
@@ -6694,26 +6452,6 @@
     "databricks:geometry-type:v3": {
       "level": "unknown",
       "notes": "Databricks V3 geometry type support is not yet documented",
-      "caveats": []
-    },
-    "databricks:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "databricks:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Databricks V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "databricks:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "databricks:cdc-support:v3": {
-      "level": "full",
-      "notes": "Databricks supports CDC via Delta Live Tables and structured streaming",
       "caveats": []
     },
     "databricks:lineage:v2": {
@@ -6756,26 +6494,6 @@
       "notes": "Snowflake V3 geometry type support is not yet documented",
       "caveats": []
     },
-    "snowflake:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "snowflake:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Snowflake V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "snowflake:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "snowflake:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Snowflake V3 cdc support support is not yet documented",
-      "caveats": []
-    },
     "snowflake:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature",
@@ -6814,26 +6532,6 @@
     "duckdb:geometry-type:v3": {
       "level": "unknown",
       "notes": "DuckDB V3 geometry type support is not yet documented",
-      "caveats": []
-    },
-    "duckdb:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "duckdb:vector-type:v3": {
-      "level": "unknown",
-      "notes": "DuckDB V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "duckdb:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "duckdb:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "DuckDB V3 cdc support support is not yet documented",
       "caveats": []
     },
     "duckdb:lineage:v2": {
@@ -6876,26 +6574,6 @@
       "notes": "ClickHouse V3 geometry type support is not yet documented",
       "caveats": []
     },
-    "clickhouse:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "clickhouse:vector-type:v3": {
-      "level": "unknown",
-      "notes": "ClickHouse V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "clickhouse:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "clickhouse:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "ClickHouse V3 cdc support support is not yet documented",
-      "caveats": []
-    },
     "clickhouse:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature",
@@ -6934,26 +6612,6 @@
     "daft:geometry-type:v3": {
       "level": "unknown",
       "notes": "Daft V3 geometry type support is not yet documented",
-      "caveats": []
-    },
-    "daft:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "daft:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Daft V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "daft:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "daft:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Daft V3 cdc support support is not yet documented",
       "caveats": []
     },
     "daft:lineage:v2": {
@@ -6998,28 +6656,6 @@
       "notes": "OSS Spark V3 geometry type support is not yet documented",
       "caveats": []
     },
-    "spark:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "spark:vector-type:v3": {
-      "level": "unknown",
-      "notes": "OSS Spark V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "spark:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "spark:cdc-support:v3": {
-      "level": "partial",
-      "notes": "CDC support available via Spark structured streaming on Iceberg",
-      "caveats": [
-        "Requires streaming configuration"
-      ]
-    },
     "spark:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature",
@@ -7059,28 +6695,6 @@
       "level": "unknown",
       "notes": "OSS Flink V3 geometry type support is not yet documented",
       "caveats": []
-    },
-    "flink:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "flink:vector-type:v3": {
-      "level": "unknown",
-      "notes": "OSS Flink V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "flink:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "flink:cdc-support:v3": {
-      "level": "partial",
-      "notes": "Flink supports CDC ingestion into Iceberg tables via streaming",
-      "caveats": [
-        "Requires streaming upsert configuration"
-      ]
     },
     "flink:lineage:v2": {
       "level": "none",
@@ -7122,26 +6736,6 @@
       "notes": "Kafka Connect V3 geometry type support is not yet documented",
       "caveats": []
     },
-    "kafka-connect:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "kafka-connect:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Kafka Connect V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "kafka-connect:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "kafka-connect:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Kafka Connect V3 cdc support support is not yet documented",
-      "caveats": []
-    },
     "kafka-connect:lineage:v2": {
       "level": "none",
       "notes": "Lineage is a V3 feature",
@@ -7154,9 +6748,9 @@
     },
     "aws-athena:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "Athena can access Snowflake Horizon Catalog via AWS Glue Catalog Federation, enabling read-only access to Snowflake-managed Iceberg V2 tables. Write operations are not supported — this is an Athena engine limitation, not a Horizon Catalog or Glue Catalog Federation limitation.",
+      "notes": "Athena can access Snowflake Horizon Catalog via AWS Glue Catalog Federation, enabling read-only access to Snowflake-managed Iceberg V2 tables. Write operations are not supported \u2014 this is an Athena engine limitation, not a Horizon Catalog or Glue Catalog Federation limitation.",
       "caveats": [
-        "Read-only — write operations to external catalogs not supported by Athena",
+        "Read-only \u2014 write operations to external catalogs not supported by Athena",
         "Requires AWS Glue Catalog Federation configuration"
       ],
       "links": [
@@ -7174,9 +6768,9 @@
     },
     "aws-glue:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "AWS Glue Spark jobs can connect to Snowflake Horizon Catalog as an external REST catalog. Read access is supported. Write access to externally-managed tables is not supported — Glue Spark only supports writes to Glue Data Catalog natively. This is a Glue engine limitation and does not apply to OSS Spark.",
+      "notes": "AWS Glue Spark jobs can connect to Snowflake Horizon Catalog as an external REST catalog. Read access is supported. Write access to externally-managed tables is not supported \u2014 Glue Spark only supports writes to Glue Data Catalog natively. This is a Glue engine limitation and does not apply to OSS Spark.",
       "caveats": [
-        "Read-only — Glue Spark only supports writes to Glue Data Catalog natively",
+        "Read-only \u2014 Glue Spark only supports writes to Glue Data Catalog natively",
         "Write limitation is a Glue engine limitation, not a Horizon Catalog limitation",
         "Requires bundling Iceberg REST catalog dependency in Glue job"
       ],
@@ -7197,7 +6791,7 @@
     },
     "aws-emr:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "EMR Spark natively supports the Iceberg REST catalog spec via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint. Direct REST catalog connections support both reads and writes. Note: when routing through AWS Glue Catalog Federation, writes are not supported — that is a Glue/EMR federation path limitation, not an OSS Spark or Horizon Catalog limitation.",
+      "notes": "EMR Spark natively supports the Iceberg REST catalog spec via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint. Direct REST catalog connections support both reads and writes. Note: when routing through AWS Glue Catalog Federation, writes are not supported \u2014 that is a Glue/EMR federation path limitation, not an OSS Spark or Horizon Catalog limitation.",
       "caveats": [
         "Write via direct REST catalog API is supported",
         "Write via Glue Catalog Federation path is not supported (Glue engine limitation)"
@@ -7335,9 +6929,9 @@
     },
     "databricks:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "Databricks can connect to Snowflake Horizon Catalog via ICEBERG_REST catalog integration for read access. Databricks does not support writes to externally managed Iceberg tables — this is a Databricks engine limitation, not a Horizon Catalog limitation. Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog.",
+      "notes": "Databricks can connect to Snowflake Horizon Catalog via ICEBERG_REST catalog integration for read access. Databricks does not support writes to externally managed Iceberg tables \u2014 this is a Databricks engine limitation, not a Horizon Catalog limitation. Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog.",
       "caveats": [
-        "Read-only — Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Read-only \u2014 Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
         "Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog",
         "Managed Iceberg tables in Databricks are in Public Preview (requires DBR 16.4 LTS+)"
       ],
@@ -7350,9 +6944,9 @@
     },
     "databricks:snowflake-horizon-catalog:v3": {
       "level": "partial",
-      "notes": "Databricks can read Iceberg V3 tables via the Horizon Catalog REST API; however, Databricks does not support the full V3 spec. Tables using V3-only features such as nanosecond timestamps or deletion vectors may fail to read. Write support is not available — this is a Databricks engine limitation, not a Horizon Catalog limitation.",
+      "notes": "Databricks can read Iceberg V3 tables via the Horizon Catalog REST API; however, Databricks does not support the full V3 spec. Tables using V3-only features such as nanosecond timestamps or deletion vectors may fail to read. Write support is not available \u2014 this is a Databricks engine limitation, not a Horizon Catalog limitation.",
       "caveats": [
-        "Read-only — Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Read-only \u2014 Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
         "Tables using V3-only features (nanosecond timestamps, deletion vectors) may fail to read",
         "Databricks does not support the full Iceberg V3 spec"
       ],
@@ -7365,7 +6959,7 @@
     },
     "snowflake:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Native integration — Snowflake is the provider. Connect via CREATE CATALOG INTEGRATION TYPE=ICEBERG_REST with Snowflake Horizon Catalog as the REST endpoint.",
+      "notes": "Native integration \u2014 Snowflake is the provider. Connect via CREATE CATALOG INTEGRATION TYPE=ICEBERG_REST with Snowflake Horizon Catalog as the REST endpoint.",
       "caveats": [],
       "links": [
         {
@@ -7549,7 +7143,7 @@
       "level": "unknown",
       "notes": "Redshift Spectrum may be able to read Snowflake-managed Iceberg V2 tables via AWS Glue Catalog Federation, similar to Athena. This has not been confirmed. Write access is not expected to be supported.",
       "caveats": [
-        "Unconfirmed — based on Glue Catalog Federation pattern used by Athena",
+        "Unconfirmed \u2014 based on Glue Catalog Federation pattern used by Athena",
         "Write operations to external catalogs are not supported by Redshift Spectrum"
       ],
       "links": []

@@ -10,7 +10,7 @@
     },
     {
       "id": "aws-emr",
-      "name": "EMR (7.12.0 Spark)",
+      "name": "EMR (8.0 Spark)",
       "vendor": "AWS",
       "category": "cloud",
       "group": "AWS",
@@ -359,32 +359,12 @@
       "notes": "Athena does not support Iceberg V3 with S3 Tables",
       "caveats": []
     },
-    "aws-athena:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a V3 feature",
-      "caveats": []
-    },
-    "aws-athena:vector-type:v3": {
-      "level": "none",
-      "notes": "Athena does not support Iceberg V3 with S3 Tables",
-      "caveats": []
-    },
     "aws-athena:nanosecond-timestamps:v2": {
       "level": "none",
       "notes": "Nanosecond timestamps are a V3 feature",
       "caveats": []
     },
     "aws-athena:nanosecond-timestamps:v3": {
-      "level": "none",
-      "notes": "Athena does not support Iceberg V3 with S3 Tables",
-      "caveats": []
-    },
-    "aws-athena:cdc-support:v2": {
-      "level": "none",
-      "notes": "CDC is a V3 feature",
-      "caveats": []
-    },
-    "aws-athena:cdc-support:v3": {
       "level": "none",
       "notes": "Athena does not support Iceberg V3 with S3 Tables",
       "caveats": []
@@ -713,32 +693,12 @@
       "notes": "Redshift does not support Iceberg V3 with S3 Tables",
       "caveats": []
     },
-    "aws-redshift-s3:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a V3 feature",
-      "caveats": []
-    },
-    "aws-redshift-s3:vector-type:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
-    },
     "aws-redshift-s3:nanosecond-timestamps:v2": {
       "level": "none",
       "notes": "Nanosecond timestamps are a V3 feature",
       "caveats": []
     },
     "aws-redshift-s3:nanosecond-timestamps:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
-    },
-    "aws-redshift-s3:cdc-support:v2": {
-      "level": "none",
-      "notes": "CDC is a V3 feature",
-      "caveats": []
-    },
-    "aws-redshift-s3:cdc-support:v3": {
       "level": "none",
       "notes": "Redshift does not support Iceberg V3 with S3 Tables",
       "caveats": []
@@ -766,7 +726,7 @@
       "notes": "V3 support available when bundling iceberg-flink-runtime 1.7.0+ (which supports format-version 3). Managed Flink itself is not listed in AWS's V3 support matrix since it runs user-provided JARs",
       "caveats": [
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support",
-        "Not listed in AWS V3 support matrix — V3 depends entirely on the Iceberg library version bundled by the user"
+        "Not listed in AWS V3 support matrix \u2014 V3 depends entirely on the Iceberg library version bundled by the user"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/"
     },
@@ -820,7 +780,7 @@
     },
     "aws-managed-flink:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties — column additions, renames, drops, reordering, and partition changes are not supported via Flink SQL DDL",
+      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column additions, renames, drops, reordering, and partition changes are not supported via Flink SQL DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column and partition schema changes not supported via Flink SQL",
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
@@ -829,7 +789,7 @@
     },
     "aws-managed-flink:schema-evolution:v3": {
       "level": "partial",
-      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes not supported via Flink SQL DDL",
+      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties \u2014 column and partition changes not supported via Flink SQL DDL",
       "caveats": [
         "ALTER TABLE only supports changing table properties; column and partition schema changes not supported via Flink SQL",
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
@@ -935,7 +895,7 @@
     },
     "aws-managed-flink:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests — use Spark for full maintenance",
+      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests \u2014 use Spark for full maintenance",
       "caveats": [
         "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported",
         "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
@@ -1220,36 +1180,6 @@
       "caveats": [
         "No explicit documentation for Flink support of V3 geometry type"
       ]
-    },
-    "aws-managed-flink:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a V3 feature; not applicable to V2 tables",
-      "caveats": []
-    },
-    "aws-managed-flink:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Vector type is a V3 feature; Flink Iceberg integration has not explicitly documented support",
-      "caveats": [
-        "No explicit documentation for Flink support of V3 vector type"
-      ]
-    },
-    "aws-managed-flink:cdc-support:v2": {
-      "level": "full",
-      "notes": "Flink Iceberg connector supports CDC via UPSERT mode with equality deletes on V2 tables; requires primary key and write.upsert.enabled=true",
-      "caveats": [
-        "Requires V2 format and PRIMARY KEY defined on the table",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
-      ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
-    },
-    "aws-managed-flink:cdc-support:v3": {
-      "level": "full",
-      "notes": "CDC via UPSERT mode supported on V3 tables with deletion vectors when bundling iceberg-flink-runtime 1.7.0+",
-      "caveats": [
-        "Requires PRIMARY KEY defined on the table",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
-      ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:lineage:v2": {
       "level": "none",
@@ -1640,16 +1570,6 @@
       "notes": "Geometry type is a V3 feature",
       "caveats": []
     },
-    "aws-emr:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a V3 feature",
-      "caveats": []
-    },
-    "aws-glue:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a V3 feature",
-      "caveats": []
-    },
     "aws-emr:nanosecond-timestamps:v2": {
       "level": "none",
       "notes": "Nanosecond timestamps are a V3 feature",
@@ -1658,16 +1578,6 @@
     "aws-glue:nanosecond-timestamps:v2": {
       "level": "none",
       "notes": "Nanosecond timestamps are a V3 feature",
-      "caveats": []
-    },
-    "aws-emr:cdc-support:v2": {
-      "level": "none",
-      "notes": "CDC is a V3 feature",
-      "caveats": []
-    },
-    "aws-glue:cdc-support:v2": {
-      "level": "none",
-      "notes": "CDC is a V3 feature",
       "caveats": []
     },
     "aws-emr:lineage:v2": {
@@ -1965,9 +1875,11 @@
       "caveats": []
     },
     "aws-emr:variant-type:v3": {
-      "level": "unknown",
-      "notes": "Variant type support with S3 Tables not explicitly documented",
-      "caveats": []
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 introduces native VARIANT data type support on Iceberg V3 tables; the engine-side capability applies regardless of catalog. (Per AWS EMR 8.0 GA announcement, May 27, 2026.)",
+      "caveats": [
+        "S3 Tables-side documentation does not yet explicitly document VARIANT type support"
+      ]
     },
     "aws-glue:variant-type:v3": {
       "level": "unknown",
@@ -1975,9 +1887,11 @@
       "caveats": []
     },
     "aws-emr:shredded-variant:v3": {
-      "level": "unknown",
-      "notes": "Shredded variant support with S3 Tables not explicitly documented",
-      "caveats": []
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 supports shredded VARIANT using the standard Apache Parquet shredded implementation; the engine-side capability applies regardless of catalog.",
+      "caveats": [
+        "S3 Tables-side documentation does not yet explicitly document shredded VARIANT support"
+      ]
     },
     "aws-glue:shredded-variant:v3": {
       "level": "unknown",
@@ -1994,16 +1908,6 @@
       "notes": "Geometry type support with S3 Tables not explicitly documented",
       "caveats": []
     },
-    "aws-emr:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Vector type support with S3 Tables not explicitly documented",
-      "caveats": []
-    },
-    "aws-glue:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Vector type support with S3 Tables not explicitly documented",
-      "caveats": []
-    },
     "aws-emr:nanosecond-timestamps:v3": {
       "level": "unknown",
       "notes": "Nanosecond timestamp support with S3 Tables not explicitly documented",
@@ -2014,20 +1918,12 @@
       "notes": "Nanosecond timestamp support with S3 Tables not explicitly documented",
       "caveats": []
     },
-    "aws-emr:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "CDC support with S3 Tables not explicitly documented",
-      "caveats": []
-    },
-    "aws-glue:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "CDC support with S3 Tables not explicitly documented",
-      "caveats": []
-    },
     "aws-emr:lineage:v3": {
-      "level": "unknown",
-      "notes": "Lineage tracking support with S3 Tables not explicitly documented",
-      "caveats": []
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 supports Iceberg V3 row lineage with `_row_id` and `_last_updated_sequence_number` metadata fields for row-level change tracking; the engine-side capability applies regardless of catalog.",
+      "caveats": [
+        "S3 Tables-side documentation does not yet explicitly document lineage support"
+      ]
     },
     "aws-glue:lineage:v3": {
       "level": "unknown",
@@ -2036,9 +1932,9 @@
     },
     "aws-athena:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "Athena can access Snowflake Horizon Catalog via AWS Glue Catalog Federation, enabling read-only access to Snowflake-managed Iceberg V2 tables. Write operations are not supported — this is an Athena engine limitation, not a Horizon Catalog or Glue Catalog Federation limitation.",
+      "notes": "Athena can access Snowflake Horizon Catalog via AWS Glue Catalog Federation, enabling read-only access to Snowflake-managed Iceberg V2 tables. Write operations are not supported \u2014 this is an Athena engine limitation, not a Horizon Catalog or Glue Catalog Federation limitation.",
       "caveats": [
-        "Read-only — write operations to external catalogs not supported by Athena",
+        "Read-only \u2014 write operations to external catalogs not supported by Athena",
         "Requires AWS Glue Catalog Federation configuration"
       ],
       "links": [
@@ -2056,7 +1952,7 @@
     },
     "aws-emr:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "EMR Spark natively supports the Iceberg REST catalog spec via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint. Direct REST catalog connections support both reads and writes. Note: when routing through AWS Glue Catalog Federation, writes are not supported — that is a Glue/EMR federation path limitation, not an OSS Spark or Horizon Catalog limitation.",
+      "notes": "EMR Spark natively supports the Iceberg REST catalog spec via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint. Direct REST catalog connections support both reads and writes. Note: when routing through AWS Glue Catalog Federation, writes are not supported \u2014 that is a Glue/EMR federation path limitation, not an OSS Spark or Horizon Catalog limitation.",
       "caveats": [
         "Write via direct REST catalog API is supported",
         "Write via Glue Catalog Federation path is not supported (Glue engine limitation)"
@@ -2083,9 +1979,9 @@
     },
     "aws-glue:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "AWS Glue Spark jobs can connect to Snowflake Horizon Catalog as an external REST catalog. Read access is supported. Write access to externally-managed tables is not supported — Glue Spark only supports writes to Glue Data Catalog natively. This is a Glue engine limitation and does not apply to OSS Spark.",
+      "notes": "AWS Glue Spark jobs can connect to Snowflake Horizon Catalog as an external REST catalog. Read access is supported. Write access to externally-managed tables is not supported \u2014 Glue Spark only supports writes to Glue Data Catalog natively. This is a Glue engine limitation and does not apply to OSS Spark.",
       "caveats": [
-        "Read-only — Glue Spark only supports writes to Glue Data Catalog natively",
+        "Read-only \u2014 Glue Spark only supports writes to Glue Data Catalog natively",
         "Write limitation is a Glue engine limitation, not a Horizon Catalog limitation",
         "Requires bundling Iceberg REST catalog dependency in Glue job"
       ],
@@ -2135,7 +2031,7 @@
       "level": "unknown",
       "notes": "Redshift Spectrum may be able to read Snowflake-managed Iceberg V2 tables via AWS Glue Catalog Federation, similar to Athena. This has not been confirmed. Write access is not expected to be supported.",
       "caveats": [
-        "Unconfirmed — based on Glue Catalog Federation pattern used by Athena",
+        "Unconfirmed \u2014 based on Glue Catalog Federation pattern used by Athena",
         "Write operations to external catalogs are not supported by Redshift Spectrum"
       ],
       "links": []

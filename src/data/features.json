@@ -187,7 +187,7 @@
       "name": "Snowflake Horizon Catalog",
       "category": "catalog-support",
       "introducedIn": "v2",
-      "description": "Snowflake Horizon Catalog — Snowflake's managed catalog service based on Apache Polaris, implementing the Iceberg REST Catalog API with cross-engine RBAC and fine-grained table governance"
+      "description": "Snowflake Horizon Catalog \u2014 Snowflake's managed catalog service based on Apache Polaris, implementing the Iceberg REST Catalog API with cross-engine RBAC and fine-grained table governance"
     },
     {
       "id": "hadoop-catalog",
@@ -225,25 +225,11 @@
       "description": "Geospatial data types for storing points, lines, polygons and other geometry objects natively in Iceberg tables"
     },
     {
-      "id": "vector-type",
-      "name": "Vector / Embedding Type",
-      "category": "v3-data-types",
-      "introducedIn": "v3",
-      "description": "Fixed-length float array type for storing ML embeddings and vectors, enabling similarity search and AI workloads on Iceberg tables"
-    },
-    {
       "id": "nanosecond-timestamps",
       "name": "Nanosecond Timestamps",
       "category": "v3-data-types",
       "introducedIn": "v3",
       "description": "Support for nanosecond-precision timestamp and timestamptz types, enabling higher precision time tracking"
-    },
-    {
-      "id": "cdc-support",
-      "name": "Change Data Capture (CDC)",
-      "category": "v3-advanced",
-      "introducedIn": "v3",
-      "description": "Native support for capturing and replaying row-level changes (inserts, updates, deletes) as a stream from Iceberg tables"
     },
     {
       "id": "lineage",

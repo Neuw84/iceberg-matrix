@@ -950,50 +950,6 @@
         }
       ]
     },
-    "google-bigquery:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is an Iceberg V3 feature; not applicable to V2",
-      "caveats": []
-    },
-    "google-bigquery:vector-type:v3": {
-      "level": "none",
-      "notes": "BigQuery only supports Iceberg V2; V3 vector type is not supported",
-      "caveats": [
-        "Only Iceberg V2 format is supported for snapshot export"
-      ],
-      "links": [
-        {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
-        }
-      ]
-    },
-    "google-bigquery:cdc-support:v2": {
-      "level": "none",
-      "notes": "BigLake Iceberg tables in BigQuery do not support change data capture (CDC) updates",
-      "caveats": [
-        "CDC updates explicitly listed as unsupported"
-      ],
-      "links": [
-        {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
-        }
-      ]
-    },
-    "google-bigquery:cdc-support:v3": {
-      "level": "none",
-      "notes": "BigQuery only supports Iceberg V2; V3 CDC support is not supported",
-      "caveats": [
-        "Only Iceberg V2 format is supported for snapshot export"
-      ],
-      "links": [
-        {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
-        }
-      ]
-    },
     "google-bigquery:lineage:v2": {
       "level": "none",
       "notes": "Iceberg-level lineage is a V3 feature; not applicable to V2",
@@ -1040,26 +996,6 @@
     "google-dataproc:geometry-type:v3": {
       "level": "unknown",
       "notes": "Google Dataproc V3 geometry type support is not yet documented",
-      "caveats": []
-    },
-    "google-dataproc:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector Type is a V3 feature",
-      "caveats": []
-    },
-    "google-dataproc:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Google Dataproc V3 vector type support is not yet documented",
-      "caveats": []
-    },
-    "google-dataproc:cdc-support:v2": {
-      "level": "none",
-      "notes": "Cdc Support is a V3 feature",
-      "caveats": []
-    },
-    "google-dataproc:cdc-support:v3": {
-      "level": "unknown",
-      "notes": "Google Dataproc V3 cdc support support is not yet documented",
       "caveats": []
     },
     "google-dataproc:lineage:v2": {
@@ -1188,7 +1124,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
@@ -1199,7 +1135,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]

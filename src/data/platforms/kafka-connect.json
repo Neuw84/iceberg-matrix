@@ -340,30 +340,6 @@
       "notes": "No documented support for geometry type in the sink connector",
       "caveats": []
     },
-    "kafka-connect:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a V3 feature; not applicable to V2 tables",
-      "caveats": []
-    },
-    "kafka-connect:vector-type:v3": {
-      "level": "none",
-      "notes": "No documented support for vector type in the sink connector",
-      "caveats": []
-    },
-    "kafka-connect:cdc-support:v2": {
-      "level": "none",
-      "notes": "Apache Iceberg OSS Kafka Connect sink is append-only; CDC/upsert modes are only available in the Tabular/Confluent commercial connector",
-      "caveats": [
-        "OSS connector only supports appends; CDC requires Tabular/Confluent commercial connector"
-      ]
-    },
-    "kafka-connect:cdc-support:v3": {
-      "level": "none",
-      "notes": "Apache Iceberg OSS Kafka Connect sink is append-only; CDC/upsert modes are only available in the Tabular/Confluent commercial connector",
-      "caveats": [
-        "OSS connector only supports appends; CDC requires Tabular/Confluent commercial connector"
-      ]
-    },
     "kafka-connect:lineage:v2": {
       "level": "none",
       "notes": "Sink connector does not provide lineage tracking capabilities",

@@ -792,15 +792,6 @@ def test_geometry_type() -> TestResult:
     return r
 
 
-def test_vector_type() -> TestResult:
-    """Test vector type (V3 feature)."""
-    r = TestResult("vector-type", "Vector / Embedding Type")
-    r.version_tested = "v3"
-    r.result = "fail"
-    r.details = "Vector type not supported in DuckDB Iceberg"
-    return r
-
-
 def test_nanosecond_timestamps() -> TestResult:
     """Test nanosecond timestamps (V3 feature)."""
     r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps")
@@ -816,14 +807,6 @@ def test_multi_arg_transforms() -> TestResult:
     r.version_tested = "v3"
     r.result = "fail"
     r.details = "Multi-argument transforms not supported in DuckDB Iceberg"
-    return r
-
-
-def test_cdc_support() -> TestResult:
-    """Test CDC support."""
-    r = TestResult("cdc-support", "Change Data Capture (CDC)")
-    r.result = "fail"
-    r.details = "CDC not supported in DuckDB Iceberg"
     return r
 
 
@@ -871,9 +854,7 @@ ALL_TESTS = [
     test_variant_type,
     test_shredded_variant,
     test_geometry_type,
-    test_vector_type,
     test_nanosecond_timestamps,
-    test_cdc_support,
     test_lineage,
 ]
 

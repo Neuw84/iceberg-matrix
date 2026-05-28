@@ -356,7 +356,7 @@
     },
     "databricks:read-support:v2": {
       "level": "full",
-      "notes": "Full read support for native managed Iceberg v2 tables via Unity Catalog (Public Preview, DBR 16.4 LTS+). Also supports read-only access to foreign Iceberg tables via Lakehouse Federation. Note: UniForm is a separate Delta Lake feature that exposes Delta tables as Iceberg — it is not native Iceberg.",
+      "notes": "Full read support for native managed Iceberg v2 tables via Unity Catalog (Public Preview, DBR 16.4 LTS+). Also supports read-only access to foreign Iceberg tables via Lakehouse Federation. Note: UniForm is a separate Delta Lake feature that exposes Delta tables as Iceberg \u2014 it is not native Iceberg.",
       "caveats": [
         "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)",
         "Some data types not supported: UUID, Fixed(L), TIME, nested STRUCT with required fields",
@@ -392,7 +392,7 @@
       "notes": "INSERT INTO fully supported for native managed Iceberg tables in Unity Catalog. External engines can also write via the Iceberg REST Catalog API. Note: UniForm tables are read-only for Iceberg clients.",
       "caveats": [
         "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)",
-        "UniForm (Delta + Iceberg reads) tables are read-only for Iceberg clients — this is not native Iceberg"
+        "UniForm (Delta + Iceberg reads) tables are read-only for Iceberg clients \u2014 this is not native Iceberg"
       ],
       "links": [
         {
@@ -671,7 +671,7 @@
     },
     "databricks:table-creation:v2": {
       "level": "full",
-      "notes": "Supports CREATE TABLE ... USING iceberg for native managed Iceberg tables in Unity Catalog. External engines can also create tables via the REST Catalog API. Note: UniForm (TBLPROPERTIES delta.universalFormat.enabledFormats = 'iceberg') creates Delta tables with Iceberg reads — not native Iceberg.",
+      "notes": "Supports CREATE TABLE ... USING iceberg for native managed Iceberg tables in Unity Catalog. External engines can also create tables via the REST Catalog API. Note: UniForm (TBLPROPERTIES delta.universalFormat.enabledFormats = 'iceberg') creates Delta tables with Iceberg reads \u2014 not native Iceberg.",
       "caveats": [
         "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)",
         "Predictive optimization must be enabled for managed Iceberg table creation",
@@ -764,58 +764,6 @@
         }
       ]
     },
-    "databricks:vector-type:v2": {
-      "level": "none",
-      "notes": "Vector type is a v3 feature not available in v2.",
-      "caveats": [],
-      "links": []
-    },
-    "databricks:vector-type:v3": {
-      "level": "unknown",
-      "notes": "Vector type support for Iceberg v3 tables is not documented in Databricks. Vector search is explicitly not supported on managed Iceberg tables.",
-      "caveats": [
-        "Vector search is not supported on managed Iceberg tables"
-      ],
-      "links": [
-        {
-          "label": "Iceberg table limitations",
-          "url": "https://docs.databricks.com/aws/en/iceberg/"
-        }
-      ]
-    },
-    "databricks:cdc-support:v2": {
-      "level": "none",
-      "notes": "Change Data Feed (CDF) is not supported on Iceberg tables in Databricks. CDF is a Delta Lake-only feature. Incremental processing (materialized views, streaming tables) is not supported when reading managed Iceberg tables as a source.",
-      "caveats": [
-        "Iceberg does not support change data feed",
-        "Incremental processing not supported for managed Iceberg tables as source"
-      ],
-      "links": [
-        {
-          "label": "Iceberg table limitations",
-          "url": "https://docs.databricks.com/aws/en/iceberg/"
-        }
-      ]
-    },
-    "databricks:cdc-support:v3": {
-      "level": "none",
-      "notes": "Change Data Feed is not supported on Iceberg tables. Iceberg v3 row lineage provides CDC building blocks (row IDs, last-modified sequence numbers) but Databricks does not expose a CDC stream from Iceberg tables.",
-      "caveats": [
-        "Row lineage provides CDC building blocks but change data feed is not supported on Iceberg tables",
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)",
-        "Materialized views and streaming tables cannot use Iceberg as incremental source"
-      ],
-      "links": [
-        {
-          "label": "Iceberg v3 features (row lineage)",
-          "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"
-        },
-        {
-          "label": "Iceberg table limitations",
-          "url": "https://docs.databricks.com/aws/en/iceberg/"
-        }
-      ]
-    },
     "databricks:lineage:v2": {
       "level": "none",
       "notes": "Row lineage (row IDs and last-modified sequence numbers) is an Iceberg v3-only feature. Not available in v2.",
@@ -826,7 +774,7 @@
       "level": "full",
       "notes": "Row lineage is required and automatically enabled on all native Iceberg v3 tables. Tracks incremental changes with unique row IDs and last-modified sequence numbers. Requires DBR 17.3+ (Beta).",
       "caveats": [
-        "Row lineage is required for all v3 tables — cannot be disabled",
+        "Row lineage is required for all v3 tables \u2014 cannot be disabled",
         "Iceberg v3 features are in Beta (requires DBR 17.3+)"
       ],
       "links": [
@@ -916,9 +864,9 @@
     },
     "databricks:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "Databricks can connect to Snowflake Horizon Catalog via ICEBERG_REST catalog integration for read access. Databricks does not support writes to externally managed Iceberg tables — this is a Databricks engine limitation, not a Horizon Catalog limitation. Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog.",
+      "notes": "Databricks can connect to Snowflake Horizon Catalog via ICEBERG_REST catalog integration for read access. Databricks does not support writes to externally managed Iceberg tables \u2014 this is a Databricks engine limitation, not a Horizon Catalog limitation. Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog.",
       "caveats": [
-        "Read-only — Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Read-only \u2014 Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
         "Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog",
         "Managed Iceberg tables in Databricks are in Public Preview (requires DBR 16.4 LTS+)"
       ],
@@ -931,9 +879,9 @@
     },
     "databricks:snowflake-horizon-catalog:v3": {
       "level": "partial",
-      "notes": "Databricks can read Iceberg V3 tables via the Horizon Catalog REST API; however, Databricks does not support the full V3 spec. Tables using V3-only features such as nanosecond timestamps or deletion vectors may fail to read. Write support is not available — this is a Databricks engine limitation, not a Horizon Catalog limitation.",
+      "notes": "Databricks can read Iceberg V3 tables via the Horizon Catalog REST API; however, Databricks does not support the full V3 spec. Tables using V3-only features such as nanosecond timestamps or deletion vectors may fail to read. Write support is not available \u2014 this is a Databricks engine limitation, not a Horizon Catalog limitation.",
       "caveats": [
-        "Read-only — Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Read-only \u2014 Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
         "Tables using V3-only features (nanosecond timestamps, deletion vectors) may fail to read",
         "Databricks does not support the full Iceberg V3 spec"
       ],

@@ -662,14 +662,6 @@ def test_geometry_type() -> TestResult:
     return r
 
 
-def test_vector_type() -> TestResult:
-    r = TestResult("vector-type", "Vector / Embedding Type")
-    r.version_tested = "v3"
-    r.result = "fail"
-    r.details = "PyIceberg does not yet support the vector type"
-    return r
-
-
 def test_nanosecond_timestamps() -> TestResult:
     r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps")
     r.version_tested = "v3"
@@ -698,13 +690,6 @@ def test_nanosecond_timestamps() -> TestResult:
         else:
             r.result = "error"
             r.details = str(e)
-    return r
-
-
-def test_cdc_support() -> TestResult:
-    r = TestResult("cdc-support", "Change Data Capture (CDC)")
-    r.result = "fail"
-    r.details = "PyIceberg does not support CDC or incremental changelog views"
     return r
 
 
@@ -751,9 +736,7 @@ ALL_TESTS = [
     test_variant_type,
     test_shredded_variant,
     test_geometry_type,
-    test_vector_type,
     test_nanosecond_timestamps,
-    test_cdc_support,
     test_lineage,
 ]
 

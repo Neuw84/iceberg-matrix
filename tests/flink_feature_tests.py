@@ -550,45 +550,11 @@ def test_geometry_type() -> TestResult:
     return r
 
 
-def test_vector_type() -> TestResult:
-    r = TestResult("vector-type", "Vector / Embedding Type")
-    r.version_tested = "v3"
-    r.result = "fail"
-    r.details = "Flink V3 vector type support not yet documented"
-    return r
-
-
 def test_nanosecond_timestamps() -> TestResult:
     r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps")
     r.version_tested = "v3"
     r.result = "fail"
     r.details = "Flink V3 nanosecond timestamp support not yet documented"
-    return r
-
-
-def test_cdc_support() -> TestResult:
-    r = TestResult("cdc-support", "Change Data Capture (CDC)")
-    r.version_tested = "v3"
-    tbl = _unique("cdc")
-    setup = _catalog_setup_sql()
-    ok, out = _run_sql(setup + [
-        f"""CREATE TABLE {tbl} (
-            id BIGINT,
-            name STRING,
-            PRIMARY KEY (id) NOT ENFORCED
-        ) WITH (
-            'format-version'='2',
-            'write.upsert.enabled'='true'
-        )""",
-        f"INSERT INTO {tbl} VALUES (1, 'original')",
-        f"INSERT INTO {tbl} VALUES (1, 'updated')",
-    ], timeout=120)
-    if ok:
-        r.result = "pass"
-        r.details = "CDC ingestion via streaming UPSERT mode works"
-    else:
-        r.result = "error"
-        r.details = out[:300]
     return r
 
 
@@ -636,9 +602,7 @@ ALL_TESTS = [
     test_variant_type,
     test_shredded_variant,
     test_geometry_type,
-    test_vector_type,
     test_nanosecond_timestamps,
-    test_cdc_support,
     test_lineage,
 ]
 
