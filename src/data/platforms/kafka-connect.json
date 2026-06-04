@@ -436,6 +436,16 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
+    },
+    "kafka-connect:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": []
+    },
+    "kafka-connect:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "The Apache Iceberg OSS Kafka Connect sink is append-only and does not write delete files or deletion vectors.",
+      "caveats": []
     }
   }
 }

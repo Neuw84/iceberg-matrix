@@ -2036,10 +2036,14 @@
       "caveats": []
     },
     "flink:nanosecond-timestamps:v3": {
-      "level": "unknown",
-      "notes": "Nanosecond timestamps are a V3 feature; Flink Iceberg integration has not explicitly documented support",
-      "caveats": [
-        "No explicit documentation for Flink support of V3 nanosecond timestamps"
+      "level": "full",
+      "notes": "Flink supports nanosecond timestamp precision, matching the full range of Iceberg's timestamp spec (Iceberg 1.11.0, Flink 2.1).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
       ]
     },
     "flink:hidden-partitioning:v2": {
@@ -3288,10 +3292,14 @@
       "caveats": []
     },
     "spark:shredded-variant:v3": {
-      "level": "partial",
-      "notes": "Shredded variant support is being added to Spark",
-      "caveats": [
-        "Support may vary by Spark version"
+      "level": "full",
+      "notes": "OSS Spark supports writing shredded Variant data in Iceberg-Spark (Spark 4.0/4.1), with reading backed by ArrayData.getVariant for row-based Parquet readers (Iceberg 1.11.0).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
       ]
     },
     "spark:geometry-type:v2": {
@@ -3310,9 +3318,15 @@
       "caveats": []
     },
     "spark:lineage:v3": {
-      "level": "unknown",
-      "notes": "Spark Iceberg lineage tracking support is not yet documented",
-      "caveats": []
+      "level": "full",
+      "notes": "OSS Spark supports Iceberg V3 row lineage tracking (_row_id and _last_updated_sequence_number), with row lineage preserved through RewriteDataFiles compaction (Iceberg 1.11.0).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
     },
     "flink:variant-type:v2": {
       "level": "none",
@@ -3320,9 +3334,17 @@
       "caveats": []
     },
     "flink:variant-type:v3": {
-      "level": "unknown",
-      "notes": "OSS Flink V3 variant type support is not yet documented",
-      "caveats": []
+      "level": "partial",
+      "notes": "Variant type is supported in Flink 2.1 (Iceberg 1.11.0), enabling semi-structured data ingestion and processing in Flink pipelines. Shredded Variant reads/writes are not yet documented.",
+      "caveats": [
+        "Shredded Variant support is not yet documented for Flink"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
     },
     "flink:shredded-variant:v2": {
       "level": "none",
@@ -3350,9 +3372,15 @@
       "caveats": []
     },
     "flink:lineage:v3": {
-      "level": "unknown",
-      "notes": "OSS Flink V3 lineage support is not yet documented",
-      "caveats": []
+      "level": "full",
+      "notes": "Flink provides row lineage readers for _row_id and _last_updated_sequence_number, with row lineage preserved through RewriteDataFiles compaction (Iceberg 1.11.0).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
     },
     "duckdb:statistics:v2": {
       "level": "full",
@@ -5327,6 +5355,118 @@
           "url": "https://docs.databend.com/sql/sql-functions/table-functions/iceberg-manifest"
         }
       ]
+    },
+    "duckdb:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "duckdb:deletion-vectors:v3": {
+      "level": "partial",
+      "notes": "DuckDB's Iceberg extension can read V3 tables with deletion vectors when only V2-compatible data types are used; writing deletion vectors is not supported.",
+      "caveats": [
+        "Read-only; limited to V2-compatible data types"
+      ],
+      "links": []
+    },
+    "clickhouse:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "clickhouse:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 deletion vectors are not supported.",
+      "caveats": [],
+      "links": []
+    },
+    "daft:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "daft:deletion-vectors:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support; deletion vector support is undocumented.",
+      "caveats": [
+        "No Iceberg V3 support announced"
+      ],
+      "links": []
+    },
+    "spark:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "spark:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "OSS Spark fully supports Iceberg V3 binary deletion vectors for efficient row-level deletes without rewriting data files.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
+    },
+    "flink:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "flink:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "The Flink Dynamic Sink supports Iceberg V3 deletion vectors, enabling efficient row-level deletes without rewriting data files (Iceberg 1.11.0).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
+    },
+    "pyiceberg:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "pyiceberg:deletion-vectors:v3": {
+      "level": "partial",
+      "notes": "PyIceberg can read V3 deletion vectors (added in v0.10.0) but does not write deletion vectors.",
+      "caveats": [
+        "Read-only; cannot write deletion vectors"
+      ],
+      "links": []
+    },
+    "doris:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "doris:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "Doris 4.1 reads V3 tables that use Puffin deletion vectors as the primary row-level delete mechanism.",
+      "caveats": [],
+      "links": []
+    },
+    "databend:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "databend:deletion-vectors:v3": {
+      "level": "unknown",
+      "notes": "V3 deletion vector handling is not documented in the Databend Iceberg engine docs.",
+      "caveats": [],
+      "links": []
     }
   }
 }

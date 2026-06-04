@@ -1419,6 +1419,35 @@
       "notes": "Azure Fabric does not support external REST catalogs.",
       "caveats": [],
       "links": []
+    },
+    "azure-synapse:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:deletion-vectors:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support.",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-fabric:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:deletion-vectors:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric; deletion vector support is undocumented.",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
     }
   }
 }

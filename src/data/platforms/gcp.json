@@ -1175,6 +1175,37 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
+    },
+    "google-bigquery:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:deletion-vectors:v3": {
+      "level": "partial",
+      "notes": "BigQuery Iceberg external tables support reading Iceberg V3, including binary deletion vectors, in Preview (read-only). Writing is not supported.",
+      "caveats": [
+        "Read-only; V3 support is in Preview"
+      ],
+      "links": [
+        {
+          "label": "Create Apache Iceberg external tables (BigQuery)",
+          "url": "https://docs.cloud.google.com/bigquery/docs/iceberg-external-tables"
+        }
+      ]
+    },
+    "google-dataproc:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "google-dataproc:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "Supported via Spark on Dataproc with Iceberg V3 deletion vectors (Puffin files) for efficient row-level deletes.",
+      "caveats": [],
+      "links": []
     }
   }
 }

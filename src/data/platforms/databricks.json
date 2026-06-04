@@ -891,6 +891,25 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
+    },
+    "databricks:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "databricks:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "Deletion vectors are enabled by default on native managed Iceberg v3 tables, providing efficient row-level deletes without rewriting data files. Requires DBR 17.3+ (Beta).",
+      "caveats": [
+        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+      ],
+      "links": [
+        {
+          "label": "Use Apache Iceberg v3 features (Databricks)",
+          "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"
+        }
+      ]
     }
   }
 }

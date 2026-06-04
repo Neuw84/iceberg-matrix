@@ -529,8 +529,8 @@ def test_bloom_filters() -> TestResult:
 def test_variant_type() -> TestResult:
     r = TestResult("variant-type", "Variant Type")
     r.version_tested = "v3"
-    r.result = "fail"
-    r.details = "Flink V3 variant type support not yet documented"
+    r.result = "skip"
+    r.details = "Variant type is supported in Flink 2.1 (Iceberg 1.11.0); not verified in this harness"
     return r
 
 
@@ -553,16 +553,16 @@ def test_geometry_type() -> TestResult:
 def test_nanosecond_timestamps() -> TestResult:
     r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps")
     r.version_tested = "v3"
-    r.result = "fail"
-    r.details = "Flink V3 nanosecond timestamp support not yet documented"
+    r.result = "skip"
+    r.details = "Nanosecond timestamp precision is supported in Flink 2.1 (Iceberg 1.11.0); not verified in this harness"
     return r
 
 
 def test_lineage() -> TestResult:
     r = TestResult("lineage", "Lineage Tracking")
     r.version_tested = "v3"
-    r.result = "fail"
-    r.details = "Flink V3 lineage support not yet documented"
+    r.result = "skip"
+    r.details = "Row lineage readers (_row_id, _last_updated_sequence_number) are available in Flink (Iceberg 1.11.0); not verified in this harness"
     return r
 
 

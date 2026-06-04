@@ -237,6 +237,13 @@
       "category": "v3-advanced",
       "introducedIn": "v3",
       "description": "Metadata-level tracking of data provenance and transformations, enabling end-to-end data lineage across Iceberg tables"
+    },
+    {
+      "id": "deletion-vectors",
+      "name": "Deletion Vectors",
+      "category": "v3-advanced",
+      "introducedIn": "v3",
+      "description": "Puffin-based binary deletion vectors that replace V2 position delete files, enabling efficient row-level deletes in merge-on-read tables without rewriting data files"
     }
   ],
   "versions": [

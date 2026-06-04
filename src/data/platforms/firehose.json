@@ -375,6 +375,16 @@
       "notes": "Firehose does not support Iceberg V3.",
       "caveats": [],
       "links": []
+    },
+    "aws-firehose:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": []
+    },
+    "aws-firehose:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3, so V3 deletion vectors are unavailable.",
+      "caveats": []
     }
   }
 }

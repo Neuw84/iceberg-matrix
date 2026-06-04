@@ -30,19 +30,19 @@
     },
     "snowflake:position-deletes:v3": {
       "level": "full",
-      "notes": "Deletion vectors replace position deletes in V3, providing improved write performance. Public Preview (as of March 2026).",
+      "notes": "Deletion vectors replace position deletes in V3, providing improved write performance. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)",
+        "Generally available (as of May 7, 2026)",
         "V3 uses deletion vectors instead of position delete files"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -67,12 +67,12 @@
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -97,9 +97,9 @@
     },
     "snowflake:merge-on-read:v3": {
       "level": "full",
-      "notes": "Deletion vectors supported for improved write performance in Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Deletion vectors supported for improved write performance in Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
@@ -107,12 +107,12 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#tables-iceberg-deletion-vectors"
         },
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -136,18 +136,18 @@
     },
     "snowflake:copy-on-write:v3": {
       "level": "full",
-      "notes": "Copy-on-write continues to be supported for Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Copy-on-write continues to be supported for Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -171,18 +171,18 @@
     },
     "snowflake:schema-evolution:v3": {
       "level": "full",
-      "notes": "Full schema evolution supported for Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Full schema evolution supported for Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -194,9 +194,9 @@
     },
     "snowflake:column-default-values:v3": {
       "level": "full",
-      "notes": "Column default values supported for Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Column default values supported for Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
@@ -204,12 +204,12 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#label-tables-iceberg-default-values"
         },
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -221,18 +221,18 @@
     },
     "snowflake:nanosecond-timestamps:v3": {
       "level": "full",
-      "notes": "Nanosecond-precision timestamps supported in Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Nanosecond-precision timestamps supported in Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -256,19 +256,19 @@
     },
     "snowflake:hidden-partitioning:v3": {
       "level": "full",
-      "notes": "Hidden partitioning supported for Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Hidden partitioning supported for Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)",
+        "Generally available (as of May 7, 2026)",
         "Bucket partition transform may still impact performance"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -291,19 +291,19 @@
     },
     "snowflake:partition-evolution:v3": {
       "level": "partial",
-      "notes": "Partition evolution support via Snowflake clustering mechanisms for V3 tables. Public Preview (as of March 2026).",
+      "notes": "Partition evolution support via Snowflake clustering mechanisms for V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)",
+        "Generally available (as of May 7, 2026)",
         "Partition evolution managed through Snowflake clustering"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -315,19 +315,19 @@
     },
     "snowflake:multi-arg-transforms:v3": {
       "level": "unknown",
-      "notes": "Multi-argument transforms support not explicitly mentioned in V3 preview. Public Preview (as of March 2026).",
+      "notes": "Multi-argument transforms support not explicitly mentioned in the V3 GA announcement. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)",
+        "Generally available (as of May 7, 2026)",
         "Not explicitly mentioned in announcement"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -351,18 +351,18 @@
     },
     "snowflake:time-travel:v3": {
       "level": "full",
-      "notes": "Time travel fully supported for Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Time travel fully supported for Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -388,19 +388,19 @@
     },
     "snowflake:table-maintenance:v3": {
       "level": "full",
-      "notes": "Automatic table maintenance supported for Iceberg V3 tables including compaction, manifest compaction, and snapshot expiry. Public Preview (as of March 2026).",
+      "notes": "Automatic table maintenance supported for Iceberg V3 tables including compaction, manifest compaction, and snapshot expiry. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)",
+        "Generally available (as of May 7, 2026)",
         "Orphan file deletion is NOT supported"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -421,16 +421,16 @@
       "level": "none",
       "notes": "Snowflake does not support Iceberg branching and tagging for V3 tables.",
       "caveats": [
-        "Not mentioned in V3 preview announcement"
+        "Not mentioned in V3 GA announcement"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -454,18 +454,18 @@
     },
     "snowflake:read-support:v3": {
       "level": "full",
-      "notes": "Full read support for Iceberg V3 tables, both Snowflake-managed and externally managed. Public Preview (as of March 2026).",
+      "notes": "Full read support for Iceberg V3 tables, both Snowflake-managed and externally managed. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -489,18 +489,18 @@
     },
     "snowflake:write-insert:v3": {
       "level": "full",
-      "notes": "Full write (INSERT) support for Iceberg V3 tables, including streaming and batch ingestion. Public Preview (as of March 2026).",
+      "notes": "Full write (INSERT) support for Iceberg V3 tables, including streaming and batch ingestion. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -524,18 +524,18 @@
     },
     "snowflake:write-merge-update-delete:v3": {
       "level": "full",
-      "notes": "Full MERGE/UPDATE/DELETE support for Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Full MERGE/UPDATE/DELETE support for Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -559,18 +559,18 @@
     },
     "snowflake:catalog-integration:v3": {
       "level": "full",
-      "notes": "V3 support integrated with external catalog integrations. Public Preview (as of March 2026).",
+      "notes": "V3 support integrated with external catalog integrations. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -620,18 +620,18 @@
     },
     "snowflake:aws-glue-catalog:v3": {
       "level": "full",
-      "notes": "AWS Glue Catalog supported for Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "AWS Glue Catalog supported for Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -654,18 +654,18 @@
     },
     "snowflake:rest-catalog:v3": {
       "level": "full",
-      "notes": "REST Catalog supported for Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "REST Catalog supported for Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -715,18 +715,18 @@
     },
     "snowflake:polaris:v3": {
       "level": "full",
-      "notes": "Snowflake Horizon Catalog (Polaris) supported for Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Snowflake Horizon Catalog (Polaris) supported for Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -749,19 +749,19 @@
     },
     "snowflake:unity-catalog:v3": {
       "level": "partial",
-      "notes": "Unity Catalog accessible via REST Catalog API for V3 tables. Read-only access. Public Preview (as of March 2026).",
+      "notes": "Unity Catalog accessible via REST Catalog API for V3 tables. Read-only access. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)",
+        "Generally available (as of May 7, 2026)",
         "Read-only access via REST Catalog API"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -837,18 +837,18 @@
     },
     "snowflake:table-creation:v3": {
       "level": "full",
-      "notes": "Full table creation support for Iceberg V3 tables, both Snowflake-managed and externally managed. Public Preview (as of March 2026).",
+      "notes": "Full table creation support for Iceberg V3 tables, both Snowflake-managed and externally managed. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -860,18 +860,18 @@
     },
     "snowflake:variant-type:v3": {
       "level": "full",
-      "notes": "Variant data type supported in Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Variant data type supported in Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -883,19 +883,19 @@
     },
     "snowflake:shredded-variant:v3": {
       "level": "unknown",
-      "notes": "Shredded variant support not explicitly mentioned in V3 preview. Variant type is supported. Public Preview (as of March 2026).",
+      "notes": "Shredded variant support not explicitly mentioned in the V3 GA announcement. Variant type is supported. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)",
+        "Generally available (as of May 7, 2026)",
         "Not explicitly mentioned in announcement"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -907,18 +907,18 @@
     },
     "snowflake:geometry-type:v3": {
       "level": "full",
-      "notes": "Geography and Geometry types supported in Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Geography and Geometry types supported in Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -930,9 +930,9 @@
     },
     "snowflake:lineage:v3": {
       "level": "full",
-      "notes": "Row-level lineage tracking supported for data governance and auditing in Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Row-level lineage tracking supported for data governance and auditing in Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
@@ -940,12 +940,12 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#label-tables-iceberg-row-lineage"
         },
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -969,18 +969,18 @@
     },
     "snowflake:statistics:v3": {
       "level": "full",
-      "notes": "Column-level statistics supported for Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Column-level statistics supported for Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -1005,12 +1005,12 @@
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -1034,18 +1034,18 @@
     },
     "snowflake:type-promotion:v3": {
       "level": "full",
-      "notes": "Type promotion supported for Iceberg V3 tables. Public Preview (as of March 2026).",
+      "notes": "Type promotion supported for Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
-        "Public Preview (as of March 2026)"
+        "Generally available (as of May 7, 2026)"
       ],
       "links": [
         {
-          "label": "Iceberg V3 Support (Preview)",
+          "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
           "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-04-iceberg-v3-support-preview"
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -1062,9 +1062,9 @@
     },
     "snowflake:snowflake-horizon-catalog:v3": {
       "level": "full",
-      "notes": "Full support for Iceberg V3 tables via Snowflake Horizon Catalog. Public Preview as of March 2026.",
+      "notes": "Full support for Iceberg V3 tables via Snowflake Horizon Catalog. Generally available as of May 7, 2026.",
       "caveats": [
-        "Public Preview as of March 2026"
+        "Generally available as of May 7, 2026"
       ],
       "links": [
         {
@@ -1072,6 +1072,18 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
         }
       ]
+    },
+    "snowflake:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "snowflake:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "Deletion vectors replace position deletes in V3, providing improved write performance for row-level deletes. Generally available (as of May 7, 2026).",
+      "caveats": [],
+      "links": []
     }
   }
 }

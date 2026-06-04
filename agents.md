@@ -52,7 +52,7 @@ A React single-page application that displays an interactive compatibility matri
 ## Tech Stack
 
 - React 19 + TypeScript 5.9
-- Vite 7 (build + dev server)
+- Vite 8 (build + dev server)
 - Tailwind CSS 3
 - Vitest 4 + Testing Library + fast-check (property-based tests)
 - ESLint 9 (flat config)
@@ -95,6 +95,7 @@ Features are categorized into: row-level-operations, schema-management, partitio
 
 1. Add the feature definition to `src/data/features.json`.
 2. Add support entries for the new feature across all existing platforms in each `src/data/platforms/{vendor}.json` file.
+3. Remember about adding caveats or links where relevant ( official docs).
 
 ### Code Conventions
 

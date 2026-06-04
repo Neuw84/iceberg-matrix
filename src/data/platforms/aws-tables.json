@@ -2041,6 +2041,68 @@
       "notes": "Redshift does not support Iceberg V3 tables. This is a Redshift engine limitation.",
       "caveats": [],
       "links": []
+    },
+    "aws-athena:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": []
+    },
+    "aws-athena:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3, so V3 deletion vectors are unavailable.",
+      "caveats": []
+    },
+    "aws-emr:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": []
+    },
+    "aws-emr:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 supports Iceberg V3 deletion vectors (Puffin files), replacing positional delete files for efficient merge-on-read row-level deletes.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 deletion vectors on Amazon EMR",
+          "url": "https://aws.amazon.com/blogs/big-data/unlock-the-power-of-apache-iceberg-v3-deletion-vectors-on-amazon-emr/"
+        }
+      ]
+    },
+    "aws-glue:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": []
+    },
+    "aws-glue:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "Glue 5.1 (Iceberg 1.10.0) supports Iceberg V3 deletion vectors (Puffin files) for efficient row-level deletes without rewriting data files.",
+      "caveats": []
+    },
+    "aws-managed-flink:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": []
+    },
+    "aws-managed-flink:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "V3 deletion vectors are supported when bundling iceberg-flink-runtime that supports format-version 3; the Flink Dynamic Sink writes deletion vectors for efficient row-level deletes.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
+    },
+    "aws-redshift-s3:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": []
+    },
+    "aws-redshift-s3:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3, so V3 deletion vectors are unavailable.",
+      "caveats": []
     }
   }
 }
