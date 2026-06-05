@@ -153,11 +153,11 @@
       "caveats": []
     },
     "spark:nanosecond-timestamps:v3": {
-      "level": "none",
-      "notes": "Spark does not support Iceberg nanosecond timestamp types (timestamp_ns, timestamptz_ns). The Iceberg-to-Spark type conversion table lists these as 'Not supported'. Creating or reading V3 tables with nanosecond timestamp columns will fail",
+      "level": "full",
+      "notes": "OSS Spark with Iceberg V3 supports the nanosecond timestamp types (timestamp_ns, timestamptz_ns), allowing ingestion from sources that emit nanosecond-precision timestamps without truncating at the storage boundary. The microsecond TIMESTAMP type remains the default.",
       "caveats": [
-        "Spark has no native nanosecond timestamp type",
-        "See GitHub issue apache/iceberg#13681"
+        "Microsecond TIMESTAMP remains the default; only switch when nanosecond precision is required",
+        "Requires format-version 3"
       ],
       "links": [
         {
@@ -165,8 +165,8 @@
           "url": "https://iceberg.apache.org/docs/latest/spark-getting-started/#iceberg-type-to-spark-type"
         },
         {
-          "label": "GitHub Issue #13681",
-          "url": "https://github.com/apache/iceberg/issues/13681"
+          "label": "Iceberg V3 Spec",
+          "url": "https://iceberg.apache.org/spec/#primitive-types"
         }
       ]
     },
@@ -644,9 +644,22 @@
       "caveats": []
     },
     "spark:geometry-type:v3": {
-      "level": "unknown",
-      "notes": "OSS Spark V3 geometry type support is not yet documented",
-      "caveats": []
+      "level": "full",
+      "notes": "OSS Spark with Iceberg V3 supports the geospatial GEOMETRY (planar) and GEOGRAPHY (spheroidal) types as the standardized storage layer; spatial query operators are provided by engine-side libraries such as Apache Sedona.",
+      "caveats": [
+        "Spatial query operators come from engine-side libraries (e.g. Apache Sedona), not Spark core",
+        "Requires format-version 3"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 Spec",
+          "url": "https://iceberg.apache.org/spec/#geometry"
+        },
+        {
+          "label": "Apache Sedona",
+          "url": "https://sedona.apache.org/"
+        }
+      ]
     },
     "spark:lineage:v2": {
       "level": "none",

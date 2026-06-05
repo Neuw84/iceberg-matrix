@@ -2,94 +2,93 @@
   "platforms": [
     {
       "id": "aws-managed-flink",
-      "name": "Managed Flink (1.20)",
+      "name": "Managed Flink (2.2)",
       "vendor": "AWS",
       "category": "cloud",
       "group": "AWS",
-      "docUrl": "https://docs.aws.amazon.com/managed-flink/"
+      "docUrl": "https://docs.aws.amazon.com/managed-flink/latest/java/flink-2-2.html"
     }
   ],
   "support": {
     "aws-managed-flink:position-deletes:v2": {
       "level": "full",
-      "notes": "Supported via user-provided iceberg-flink-runtime JAR on Amazon Managed Flink (Flink 1.19/1.20 with Iceberg 1.6.0+)",
+      "notes": "Flink supports reading and writing position deletes in both batch and streaming modes",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR in their application"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/"
     },
     "aws-managed-flink:position-deletes:v3": {
       "level": "full",
-      "notes": "V3 support available when bundling iceberg-flink-runtime 1.7.0+ (which supports format-version 3). Managed Flink itself is not listed in AWS's V3 support matrix since it runs user-provided JARs",
+      "notes": "Position deletes supported via Iceberg library V3 support (iceberg-flink-runtime 1.10.x+)",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support",
-        "Not listed in AWS V3 support matrix — V3 depends entirely on the Iceberg library version bundled by the user"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/"
     },
     "aws-managed-flink:equality-deletes:v2": {
       "level": "full",
-      "notes": "Supported via UPSERT mode with equality deletes in the Flink Iceberg connector; requires V2 format and primary key",
+      "notes": "Flink supports equality deletes via UPSERT mode with primary keys; used for streaming CDC and upsert workloads",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:equality-deletes:v3": {
       "level": "full",
-      "notes": "Equality deletes supported with V3 format when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Equality deletes supported via Iceberg library V3 support (iceberg-flink-runtime 1.10.x+)",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:merge-on-read:v2": {
       "level": "full",
-      "notes": "Merge-on-read supported via streaming upsert mode using equality deletes in the Flink Iceberg connector",
+      "notes": "Flink supports merge-on-read via streaming upsert mode using equality deletes",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:merge-on-read:v3": {
       "level": "full",
-      "notes": "Merge-on-read supported with V3 format including deletion vectors when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Merge-on-read supported via Iceberg library V3 support including deletion vectors",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:copy-on-write:v2": {
       "level": "full",
-      "notes": "Copy-on-write supported via INSERT INTO and INSERT OVERWRITE in the Flink Iceberg connector",
+      "notes": "Copy-on-write supported via INSERT INTO and INSERT OVERWRITE",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
     },
     "aws-managed-flink:copy-on-write:v3": {
       "level": "full",
-      "notes": "Copy-on-write supported with V3 format when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Copy-on-write supported via INSERT INTO and INSERT OVERWRITE with V3 format",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
     },
     "aws-managed-flink:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties — column additions, renames, drops, reordering, and partition changes are not supported via Flink SQL DDL",
+      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes are not supported via Flink DDL",
       "caveats": [
-        "ALTER TABLE only supports changing table properties; column and partition schema changes not supported via Flink SQL",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "ALTER TABLE only supports changing table properties; column additions, renames, drops, and reordering not supported via Flink SQL"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table"
     },
     "aws-managed-flink:schema-evolution:v3": {
       "level": "partial",
-      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes not supported via Flink SQL DDL",
+      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes are not supported via Flink DDL",
       "caveats": [
-        "ALTER TABLE only supports changing table properties; column and partition schema changes not supported via Flink SQL",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "ALTER TABLE only supports changing table properties; column additions, renames, drops, and reordering not supported via Flink SQL"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table"
     },
@@ -111,27 +110,33 @@
       "caveats": []
     },
     "aws-managed-flink:nanosecond-timestamps:v3": {
-      "level": "unknown",
-      "notes": "Nanosecond timestamps are a V3 feature; Flink Iceberg integration has not explicitly documented support",
+      "level": "full",
+      "notes": "Flink supports nanosecond timestamp precision, matching the full range of Iceberg's timestamp spec (Iceberg 1.11.0, Flink 2.1).",
       "caveats": [
-        "No explicit documentation for Flink support of V3 nanosecond timestamps"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
       ]
     },
     "aws-managed-flink:hidden-partitioning:v2": {
       "level": "partial",
-      "notes": "Flink can read and write to tables with hidden partitions created by other engines, but Flink DDL PARTITION BY does not support transform functions (e.g., days(), hours(), bucket())",
+      "notes": "Flink can read and write to tables with hidden partitions created by other engines, but Flink DDL does not support creating tables with transform-based (hidden) partitioning",
       "caveats": [
-        "Flink DDL PARTITION BY does not support transform functions; use Spark or another engine to create hidden-partitioned tables",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "Flink DDL PARTITION BY does not support transform functions (e.g., days(), hours(), bucket()); use Spark or another engine to create hidden-partitioned tables"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#partitioned-by"
     },
     "aws-managed-flink:hidden-partitioning:v3": {
       "level": "partial",
-      "notes": "Flink can read and write to V3 tables with hidden partitions created by other engines, but Flink DDL does not support creating tables with transform-based partitioning",
+      "notes": "Flink can read and write to V3 tables with hidden partitions created by other engines, but Flink DDL does not support creating tables with transform-based (hidden) partitioning",
       "caveats": [
-        "Flink DDL PARTITION BY does not support transform functions; use Spark or another engine to create hidden-partitioned tables",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "Flink DDL PARTITION BY does not support transform functions (e.g., days(), hours(), bucket()); use Spark or another engine to create hidden-partitioned tables"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#partitioned-by"
     },
@@ -139,6 +144,7 @@
       "level": "partial",
       "notes": "Partition evolution supported via the Dynamic Sink (Sink V2-based implementation)",
       "caveats": [
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
         "Requires Dynamic Sink (Sink V2-based implementation)"
       ],
       "links": [
@@ -152,6 +158,7 @@
       "level": "partial",
       "notes": "Partition evolution supported via the Dynamic Sink (Sink V2-based implementation) for V3 tables",
       "caveats": [
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
         "Requires Dynamic Sink (Sink V2-based implementation)"
       ],
       "links": [
@@ -177,16 +184,17 @@
       "level": "full",
       "notes": "Flink supports time travel via snapshot-id and as-of-timestamp read options in batch mode, plus branch and tag reads via SQL hints",
       "caveats": [
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
         "Uses SQL hint syntax (/*+ OPTIONS('snapshot-id'='...') */) rather than native SQL time travel syntax"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/#reading-branches-and-tags-with-sql"
     },
     "aws-managed-flink:time-travel:v3": {
       "level": "full",
-      "notes": "Time travel supported for V3 tables via snapshot-id, as-of-timestamp, branch, and tag read options when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Time travel supported for V3 tables via snapshot-id, as-of-timestamp, branch, and tag read options",
       "caveats": [
-        "Uses SQL hint syntax (/*+ OPTIONS('snapshot-id'='...') */) rather than native SQL time travel syntax",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "Uses SQL hint syntax (/*+ OPTIONS('snapshot-id'='...') */) rather than native SQL time travel syntax"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/#reading-branches-and-tags-with-sql"
     },
@@ -194,8 +202,8 @@
       "level": "partial",
       "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests — use Spark for full maintenance",
       "caveats": [
-        "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink/"
     },
@@ -203,59 +211,60 @@
       "level": "partial",
       "notes": "Flink supports the rewrite files action (compaction) for V3 tables but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests",
       "caveats": [
-        "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink/"
     },
     "aws-managed-flink:branching-tagging:v2": {
       "level": "partial",
-      "notes": "Flink can write to branches via FlinkSink.toBranch() and read from branches/tags via SQL hints. Cannot create or manage branches/tags via DDL",
+      "notes": "Flink can write to branches via FlinkSink.toBranch() and read from branches/tags via SQL hints, including incremental scan between tags. Cannot create or manage branches/tags via DDL",
       "caveats": [
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
         "Cannot create or manage branches/tags; read and write to existing branches/tags only"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/#reading-branches-and-tags-with-sql"
     },
     "aws-managed-flink:branching-tagging:v3": {
       "level": "partial",
-      "notes": "Flink can write to branches and read from branches/tags for V3 tables when bundling iceberg-flink-runtime 1.7.0+. Cannot create or manage branches/tags via DDL",
+      "notes": "Flink can write to branches via FlinkSink.toBranch() and read from branches/tags via SQL hints for V3 tables. Cannot create or manage branches/tags via DDL",
       "caveats": [
-        "Cannot create or manage branches/tags; read and write to existing branches/tags only",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "Cannot create or manage branches/tags; read and write to existing branches/tags only"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/#reading-branches-and-tags-with-sql"
     },
     "aws-managed-flink:read-support:v2": {
       "level": "full",
-      "notes": "Full read support in both batch and streaming modes, including incremental reads from snapshots via Flink Iceberg connector",
+      "notes": "Full read support in both batch and streaming modes, including incremental reads from snapshots and FLIP-27 source",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/"
     },
     "aws-managed-flink:read-support:v3": {
       "level": "full",
-      "notes": "Full read support for V3 tables in both batch and streaming modes when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Full read support for V3 tables in both batch and streaming modes via Iceberg library V3 support",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/"
     },
     "aws-managed-flink:write-insert:v2": {
       "level": "full",
-      "notes": "INSERT INTO supported in both batch and streaming modes; INSERT OVERWRITE supported in batch mode only",
+      "notes": "INSERT INTO supported for both batch and streaming modes; INSERT OVERWRITE supported in batch mode only",
       "caveats": [
-        "INSERT OVERWRITE is not supported in streaming mode",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "INSERT OVERWRITE is not supported in streaming mode"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
     },
     "aws-managed-flink:write-insert:v3": {
       "level": "full",
-      "notes": "INSERT INTO and INSERT OVERWRITE supported with V3 format when bundling iceberg-flink-runtime 1.7.0+; INSERT OVERWRITE is batch-only",
+      "notes": "INSERT INTO and INSERT OVERWRITE supported with V3 format; INSERT OVERWRITE is batch-only",
       "caveats": [
-        "INSERT OVERWRITE is not supported in streaming mode",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "INSERT OVERWRITE is not supported in streaming mode"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
     },
@@ -263,6 +272,7 @@
       "level": "partial",
       "notes": "Flink supports UPSERT mode via equality deletes (requires V2 format and primary key) but does not support SQL MERGE INTO, UPDATE, or DELETE statements",
       "caveats": [
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
         "No SQL MERGE INTO, UPDATE, or DELETE syntax; uses streaming upsert mode with equality deletes instead",
         "UPSERT requires V2+ format and a PRIMARY KEY defined on the table"
       ],
@@ -270,245 +280,257 @@
     },
     "aws-managed-flink:write-merge-update-delete:v3": {
       "level": "partial",
-      "notes": "Flink supports UPSERT mode via equality deletes for V3 tables but does not support SQL MERGE INTO, UPDATE, or DELETE statements",
+      "notes": "Flink supports UPSERT mode via equality deletes (requires primary key) but does not support SQL MERGE INTO, UPDATE, or DELETE statements",
       "caveats": [
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
         "No SQL MERGE INTO, UPDATE, or DELETE syntax; uses streaming upsert mode with equality deletes instead",
-        "UPSERT requires a PRIMARY KEY defined on the table",
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "UPSERT requires a PRIMARY KEY defined on the table"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "aws-managed-flink:catalog-integration:v2": {
       "level": "full",
-      "notes": "Supports built-in Iceberg catalog types (hive, hadoop, rest, glue, jdbc, nessie) plus custom catalog implementations via catalog-impl",
+      "notes": "Supports built-in catalog types: hive, hadoop, rest, glue, jdbc, nessie, plus custom catalog implementations via catalog-impl",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR and iceberg-aws-bundle for AWS integrations"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:catalog-integration:v3": {
       "level": "full",
-      "notes": "Supports built-in Iceberg catalog types for V3 tables when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Supports built-in catalog types: hive, hadoop, rest, glue, jdbc, nessie, plus custom catalog implementations via catalog-impl",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) and iceberg-aws-bundle for AWS integrations"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:hive-metastore:v2": {
       "level": "full",
-      "notes": "Hive Metastore supported via Iceberg's built-in catalog-type='hive'; requires bundling Hive connector JARs alongside iceberg-flink-runtime",
+      "notes": "Built-in Hive Metastore catalog support via catalog-type='hive'",
       "caveats": [
-        "Requires bundling Hive connector JARs (e.g., flink-sql-connector-hive) in addition to iceberg-flink-runtime"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#hive-catalog"
     },
     "aws-managed-flink:hive-metastore:v3": {
       "level": "full",
-      "notes": "Hive Metastore supported for V3 tables via Iceberg's built-in catalog-type='hive' when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Built-in Hive Metastore catalog support via catalog-type='hive'",
       "caveats": [
-        "Requires bundling Hive connector JARs and iceberg-flink-runtime 1.7.0+ for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#hive-catalog"
     },
     "aws-managed-flink:aws-glue-catalog:v2": {
       "level": "full",
-      "notes": "AWS Glue Data Catalog supported via Iceberg's built-in catalog-type='glue'; requires bundling iceberg-aws-bundle alongside iceberg-flink-runtime",
+      "notes": "Built-in AWS Glue Catalog support via catalog-type='glue'",
       "caveats": [
-        "Requires bundling iceberg-aws-bundle JAR for Glue and S3 integration"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/aws/#glue-catalog"
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:aws-glue-catalog:v3": {
       "level": "full",
-      "notes": "AWS Glue Data Catalog supported for V3 tables when bundling iceberg-flink-runtime 1.7.0+ and iceberg-aws-bundle",
+      "notes": "Built-in AWS Glue Catalog support via catalog-type='glue'",
       "caveats": [
-        "Requires bundling iceberg-aws-bundle JAR for Glue and S3 integration",
-        "Requires iceberg-flink-runtime 1.7.0+ for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/aws/#glue-catalog"
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:rest-catalog:v2": {
       "level": "full",
-      "notes": "REST Catalog supported via Iceberg's built-in catalog-type='rest'",
+      "notes": "Built-in REST Catalog support via catalog-type='rest'",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
     "aws-managed-flink:rest-catalog:v3": {
       "level": "full",
-      "notes": "REST Catalog supported for V3 tables when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Built-in REST Catalog support via catalog-type='rest'",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
     "aws-managed-flink:nessie:v2": {
       "level": "full",
-      "notes": "Nessie supported via Iceberg's built-in catalog-type='nessie'",
+      "notes": "Built-in Nessie catalog support via catalog-type='nessie'",
       "caveats": [
-        "Requires Nessie endpoint configuration and bundling iceberg-flink-runtime JAR"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:nessie:v3": {
       "level": "full",
-      "notes": "Nessie supported for V3 tables when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Built-in Nessie catalog support via catalog-type='nessie'",
       "caveats": [
-        "Requires Nessie endpoint configuration and iceberg-flink-runtime 1.7.0+ for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:polaris:v2": {
       "level": "full",
-      "notes": "Polaris supported via REST Catalog API (catalog-type='rest') with Polaris endpoint",
+      "notes": "Polaris supported via REST Catalog API (catalog-type='rest')",
       "caveats": [
-        "Requires REST Catalog endpoint configuration pointing to Polaris"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
     "aws-managed-flink:polaris:v3": {
       "level": "full",
-      "notes": "Polaris supported via REST Catalog API for V3 tables when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Polaris supported via REST Catalog API (catalog-type='rest')",
       "caveats": [
-        "Requires REST Catalog endpoint configuration pointing to Polaris",
-        "Requires iceberg-flink-runtime 1.7.0+ for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
     "aws-managed-flink:unity-catalog:v2": {
       "level": "partial",
-      "notes": "Can connect to Unity Catalog via REST Catalog API (catalog-type='rest') but not a natural fit for the AWS ecosystem",
+      "notes": "Can connect to Unity Catalog via REST Catalog API (catalog-type='rest')",
       "caveats": [
-        "Requires REST Catalog endpoint configuration pointing to Unity Catalog",
-        "Not a typical integration for AWS Managed Flink"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "Requires REST Catalog endpoint configuration pointing to Unity Catalog"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
     "aws-managed-flink:unity-catalog:v3": {
       "level": "partial",
-      "notes": "Can connect to Unity Catalog via REST Catalog API for V3 tables but not a natural fit for the AWS ecosystem",
+      "notes": "Can connect to Unity Catalog via REST Catalog API (catalog-type='rest')",
       "caveats": [
-        "Requires REST Catalog endpoint configuration pointing to Unity Catalog",
-        "Not a typical integration for AWS Managed Flink"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "Requires REST Catalog endpoint configuration pointing to Unity Catalog"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
     "aws-managed-flink:hadoop-catalog:v2": {
       "level": "full",
-      "notes": "Hadoop catalog supported via Iceberg's built-in catalog-type='hadoop'; ships with Hadoop jars by default in iceberg-flink-runtime",
-      "caveats": [],
+      "notes": "Built-in Hadoop catalog support via catalog-type='hadoop'; ships with Hadoop jars by default",
+      "caveats": [
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
+      ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#hadoop-catalog"
     },
     "aws-managed-flink:hadoop-catalog:v3": {
       "level": "full",
-      "notes": "Hadoop catalog supported for V3 tables when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Built-in Hadoop catalog support via catalog-type='hadoop'",
       "caveats": [
-        "Requires iceberg-flink-runtime 1.7.0+ for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#hadoop-catalog"
     },
     "aws-managed-flink:jdbc-catalog:v2": {
       "level": "full",
-      "notes": "JDBC catalog supported via Iceberg's built-in catalog-type='jdbc'; requires bundling JDBC driver JAR",
+      "notes": "Built-in JDBC catalog support via catalog-type='jdbc'",
       "caveats": [
-        "Requires bundling JDBC driver JAR and endpoint configuration"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:jdbc-catalog:v3": {
       "level": "full",
-      "notes": "JDBC catalog supported for V3 tables when bundling iceberg-flink-runtime 1.7.0+ and JDBC driver",
+      "notes": "Built-in JDBC catalog support via catalog-type='jdbc'",
       "caveats": [
-        "Requires bundling JDBC driver JAR and iceberg-flink-runtime 1.7.0+ for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
     },
     "aws-managed-flink:table-creation:v2": {
       "level": "full",
-      "notes": "Flink Iceberg connector supports CREATE TABLE via Flink SQL DDL; partitioning limited to identity transforms only",
+      "notes": "Flink supports creating Iceberg tables via Flink SQL DDL with CREATE TABLE, CREATE TABLE LIKE, and PARTITIONED BY (identity columns only)",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR",
-        "PARTITION BY does not support transform functions (days, hours, bucket, truncate)"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "Hidden partitioning (transform functions) not supported in DDL; only identity partition columns"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#create-table"
     },
     "aws-managed-flink:table-creation:v3": {
       "level": "full",
-      "notes": "V3 table creation supported via Flink SQL DDL with 'format-version'='3' table property when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Flink supports creating V3 Iceberg tables via Flink SQL DDL (set format-version='3' in WITH clause)",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support",
-        "PARTITION BY does not support transform functions (days, hours, bucket, truncate)"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "Hidden partitioning (transform functions) not supported in DDL; only identity partition columns"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#create-table"
     },
     "aws-managed-flink:variant-type:v2": {
       "level": "none",
-      "notes": "Variant type is a V3 feature; not applicable to V2 tables",
+      "notes": "Variant Type is a V3 feature",
       "caveats": []
     },
     "aws-managed-flink:variant-type:v3": {
-      "level": "unknown",
-      "notes": "Variant type is a V3 feature; Flink Iceberg integration has not explicitly documented support for the variant type",
+      "level": "partial",
+      "notes": "Variant type is supported in Flink 2.1 (Iceberg 1.11.0), enabling semi-structured data ingestion and processing in Flink pipelines. Shredded Variant reads/writes are not yet documented.",
       "caveats": [
-        "No explicit documentation for Flink support of V3 variant type"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "Shredded Variant support is not yet documented for Flink"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
       ]
     },
     "aws-managed-flink:shredded-variant:v2": {
       "level": "none",
-      "notes": "Shredded variant is a V3 feature; not applicable to V2 tables",
+      "notes": "Shredded Variant is a V3 feature",
       "caveats": []
     },
     "aws-managed-flink:shredded-variant:v3": {
       "level": "unknown",
-      "notes": "Shredded variant is a V3 feature; Flink Iceberg integration has not explicitly documented support",
-      "caveats": [
-        "No explicit documentation for Flink support of V3 shredded variant"
-      ]
+      "notes": "OSS Flink V3 shredded variant support is not yet documented",
+      "caveats": []
     },
     "aws-managed-flink:geometry-type:v2": {
       "level": "none",
-      "notes": "Geometry type is a V3 feature; not applicable to V2 tables",
+      "notes": "Geometry Type is a V3 feature",
       "caveats": []
     },
     "aws-managed-flink:geometry-type:v3": {
       "level": "unknown",
-      "notes": "Geometry type is a V3 feature; Flink Iceberg integration has not explicitly documented support",
-      "caveats": [
-        "No explicit documentation for Flink support of V3 geometry type"
-      ]
+      "notes": "OSS Flink V3 geometry type support is not yet documented",
+      "caveats": []
     },
     "aws-managed-flink:lineage:v2": {
       "level": "none",
-      "notes": "Row lineage is a V3 feature; not applicable to V2 tables",
+      "notes": "Lineage is a V3 feature",
       "caveats": []
     },
     "aws-managed-flink:lineage:v3": {
-      "level": "unknown",
-      "notes": "Row lineage is a V3 feature introduced with deletion vectors; Flink Iceberg integration has not explicitly documented support for querying row lineage metadata fields",
+      "level": "full",
+      "notes": "Flink provides row lineage readers for _row_id and _last_updated_sequence_number, with row lineage preserved through RewriteDataFiles compaction (Iceberg 1.11.0).",
       "caveats": [
-        "No explicit documentation for Flink support of V3 row lineage metadata fields (_row_id, _last_updated_sequence_number)"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
-      "docUrl": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
     },
     "aws-managed-flink:statistics:v2": {
       "level": "full",
-      "notes": "Flink Iceberg connector writes column statistics to manifest files by default via the standard Iceberg write path. Uses statistics for scan planning during reads.",
+      "notes": "Flink Iceberg connector writes column statistics to manifest files by default via the standard Iceberg write path. Uses statistics for scan planning during reads in both batch and streaming modes.",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "links": [
         {
           "label": "Flink Writes",
           "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
+        },
+        {
+          "label": "Flink Queries",
+          "url": "https://iceberg.apache.org/docs/latest/flink-queries/"
         }
       ]
     },
     "aws-managed-flink:statistics:v3": {
       "level": "full",
-      "notes": "Column statistics supported for V3 tables when bundling iceberg-flink-runtime 1.7.0+",
+      "notes": "Column statistics supported for V3 tables via iceberg-flink-runtime",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR (1.7.0+) for V3 support"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "links": [
         {
@@ -534,30 +556,34 @@
     "aws-managed-flink:type-promotion:v2": {
       "level": "full",
       "notes": "Flink supports type widening for Iceberg tables",
-      "caveats": [],
+      "caveats": [
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
+      ],
       "links": [
         {
           "label": "Flink writes - type widening",
-          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#schema-evolution"
+          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#dynamic-routing-configuration"
         }
       ]
     },
     "aws-managed-flink:type-promotion:v3": {
       "level": "full",
       "notes": "Flink supports type widening for Iceberg V3 tables",
-      "caveats": [],
+      "caveats": [
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
+      ],
       "links": [
         {
           "label": "Flink writes - type widening",
-          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#schema-evolution"
+          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#dynamic-routing-configuration"
         }
       ]
     },
     "aws-managed-flink:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Amazon Managed Flink can connect to Snowflake Horizon Catalog via REST catalog when iceberg-flink-runtime JAR (1.6.0+) is bundled in the application.",
+      "notes": "Flink Iceberg connector supports REST catalog. Configure with catalog-type=rest and the Horizon Catalog endpoint URI.",
       "caveats": [
-        "Iceberg is not a pre-built connector; users must bundle iceberg-flink-runtime JAR"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
       ],
       "links": [
         {
@@ -568,10 +594,10 @@
     },
     "aws-managed-flink:snowflake-horizon-catalog:v3": {
       "level": "partial",
-      "notes": "V3 support requires bundling iceberg-flink-runtime 1.7.0+. REST catalog connectivity unchanged.",
+      "notes": "V3 support depends on iceberg-flink-runtime version (1.7.0+ recommended). REST catalog connectivity unchanged.",
       "caveats": [
-        "Requires iceberg-flink-runtime 1.7.0+ for V3 table support",
-        "Iceberg is not a pre-built connector"
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application",
+        "Requires iceberg-flink-runtime 1.7.0+ for V3 table support"
       ],
       "links": [
         {
@@ -588,8 +614,10 @@
     },
     "aws-managed-flink:deletion-vectors:v3": {
       "level": "full",
-      "notes": "V3 deletion vectors are supported when bundling iceberg-flink-runtime that supports format-version 3; the Flink Dynamic Sink writes deletion vectors for efficient row-level deletes.",
-      "caveats": [],
+      "notes": "The Flink Dynamic Sink supports Iceberg V3 deletion vectors, enabling efficient row-level deletes without rewriting data files (Iceberg 1.11.0).",
+      "caveats": [
+        "On Amazon Managed Flink, Iceberg is not a pre-built connector; you must bundle the iceberg-flink-runtime JAR in your application"
+      ],
       "links": [
         {
           "label": "Apache Iceberg 1.11.0 release notes",
