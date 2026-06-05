@@ -1,4 +1,4 @@
-name: Spark Iceberg Feature Tests
+name: Spark Iceberg Feature Tests (V2 + V3)
 
 on:
   pull_request:
@@ -10,8 +10,8 @@ permissions:
   pull-requests: write
 
 env:
-  SPARK_VERSION: "4.0"
-  ICEBERG_VERSION: "1.10.1"
+  SPARK_VERSION: "4.1"
+  ICEBERG_VERSION: "1.11.0"
 
 jobs:
   iceberg-tests:
