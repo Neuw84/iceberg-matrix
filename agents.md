@@ -147,7 +147,7 @@ Firehose (`aws/s3buckets/firehose` and `aws/s3tables/firehose`) and Kafka Connec
 
 1. Create the engine subfolder under its vendor folder using the prefix-less name (e.g. platform `google-bigquery` → `src/data/platforms/gcp/bigquery/`). For AWS, create it under both `aws/s3buckets/<engine>/` and `aws/s3tables/<engine>/`.
 2. Add the engine's JSON file named after the subfolder (e.g. `bigquery/bigquery.json`) containing a single platform object under `"platforms"` and a support entry for every feature × version combination under `"support"`.
-3. Wire an explicit static import for the new engine file into `src/data/load-data.ts`, placing it at the correct position in the merge order (AWS engines first in the order athena, emr, glue, managed-flink, redshift-s3; then gcp, azure, databricks, snowflake, oss).
+3. Wire the new engine into `src/data/load-data.ts`: add an explicit static `import` for the engine JSON file and append it to the correct ordered array — `awsBucketsEngines` and `awsTablesEngines` for an AWS engine (both S3 modes), or `nonAwsEngines` for the other vendors — at the right position in the merge order (AWS engines first in the order athena, emr, glue, managed-flink, redshift-s3; then gcp, azure, databricks, snowflake, oss).
 4. If the platform needs a logo, add an SVG to `public/logos/`.
 5. Run `npm run build` and `npm test` to verify nothing breaks.
 
