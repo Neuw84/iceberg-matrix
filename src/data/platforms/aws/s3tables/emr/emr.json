@@ -1,0 +1,397 @@
+{
+  "platforms": [
+    {
+      "id": "aws-emr",
+      "name": "EMR (8.0 Spark)",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/emr/"
+    }
+  ],
+  "support": {
+    "aws-emr:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR with S3 Tables integration",
+      "caveats": []
+    },
+    "aws-emr:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR with S3 Tables integration",
+      "caveats": []
+    },
+    "aws-emr:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Merge-on-read supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:type-promotion:v2": {
+      "level": "full",
+      "notes": "Type promotion supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:table-creation:v2": {
+      "level": "full",
+      "notes": "CREATE TABLE supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "All partition transforms supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Partition evolution supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel via snapshot ID and timestamp supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:table-maintenance:v2": {
+      "level": "full",
+      "notes": "S3 Tables provides automatic compaction; Spark procedures also available for manual maintenance",
+      "caveats": [
+        "S3 Tables handles compaction automatically"
+      ]
+    },
+    "aws-emr:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Full branching and tagging support via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO, INSERT OVERWRITE, and CTAS supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE INTO, UPDATE, DELETE supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Integrated with S3 Tables catalog via EMR",
+      "caveats": []
+    },
+    "aws-emr:statistics:v2": {
+      "level": "full",
+      "notes": "Column statistics supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:bloom-filters:v2": {
+      "level": "full",
+      "notes": "Bloom filters and Puffin files supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:hive-metastore:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
+      "caveats": []
+    },
+    "aws-emr:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
+      "caveats": []
+    },
+    "aws-emr:rest-catalog:v2": {
+      "level": "full",
+      "notes": "S3 Tables exposes a REST-compatible catalog API used by EMR",
+      "caveats": []
+    },
+    "aws-emr:nessie:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-emr:polaris:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-emr:unity-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-emr:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-emr:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-emr:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage tracking is a V3 feature",
+      "caveats": []
+    },
+    "aws-emr:position-deletes:v3": {
+      "level": "full",
+      "notes": "V3 position deletes supported via Spark 3.5+ on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:equality-deletes:v3": {
+      "level": "full",
+      "notes": "V3 equality deletes supported via Spark 3.5+ on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:merge-on-read:v3": {
+      "level": "full",
+      "notes": "V3 merge-on-read with deletion vectors supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:copy-on-write:v3": {
+      "level": "full",
+      "notes": "V3 copy-on-write supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:schema-evolution:v3": {
+      "level": "full",
+      "notes": "V3 schema evolution supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:type-promotion:v3": {
+      "level": "full",
+      "notes": "V3 type promotion supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:column-default-values:v3": {
+      "level": "full",
+      "notes": "V3 column default values supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:table-creation:v3": {
+      "level": "full",
+      "notes": "V3 table creation supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "V3 hidden partitioning supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:partition-evolution:v3": {
+      "level": "full",
+      "notes": "V3 partition evolution supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Multi-argument transforms support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-emr:time-travel:v3": {
+      "level": "full",
+      "notes": "V3 time travel supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:table-maintenance:v3": {
+      "level": "full",
+      "notes": "S3 Tables provides automatic compaction; Spark procedures also available for V3 tables",
+      "caveats": [
+        "S3 Tables handles compaction automatically"
+      ]
+    },
+    "aws-emr:branching-tagging:v3": {
+      "level": "full",
+      "notes": "V3 branching and tagging supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:read-support:v3": {
+      "level": "full",
+      "notes": "Full V3 read support via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:write-insert:v3": {
+      "level": "full",
+      "notes": "V3 INSERT INTO, INSERT OVERWRITE, and CTAS supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:write-merge-update-delete:v3": {
+      "level": "full",
+      "notes": "V3 MERGE INTO, UPDATE, DELETE supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Integrated with S3 Tables catalog via EMR for V3",
+      "caveats": []
+    },
+    "aws-emr:statistics:v3": {
+      "level": "full",
+      "notes": "V3 column statistics supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:bloom-filters:v3": {
+      "level": "full",
+      "notes": "V3 bloom filters supported via Spark on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-emr:hive-metastore:v3": {
+      "level": "none",
+      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
+      "caveats": []
+    },
+    "aws-emr:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
+      "caveats": []
+    },
+    "aws-emr:rest-catalog:v3": {
+      "level": "full",
+      "notes": "S3 Tables exposes a REST-compatible catalog API used by EMR for V3",
+      "caveats": []
+    },
+    "aws-emr:nessie:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-emr:polaris:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-emr:unity-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-emr:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-emr:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-emr:variant-type:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 introduces native VARIANT data type support on Iceberg V3 tables; the engine-side capability applies regardless of catalog. (Per AWS EMR 8.0 GA announcement, May 27, 2026.)",
+      "caveats": [
+        "S3 Tables-side documentation does not yet explicitly document VARIANT type support"
+      ]
+    },
+    "aws-emr:shredded-variant:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 supports shredded VARIANT using the standard Apache Parquet shredded implementation; the engine-side capability applies regardless of catalog.",
+      "caveats": [
+        "S3 Tables-side documentation does not yet explicitly document shredded VARIANT support"
+      ]
+    },
+    "aws-emr:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Geometry type support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-emr:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "Nanosecond timestamp support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-emr:lineage:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 supports Iceberg V3 row lineage with `_row_id` and `_last_updated_sequence_number` metadata fields for row-level change tracking; the engine-side capability applies regardless of catalog.",
+      "caveats": [
+        "S3 Tables-side documentation does not yet explicitly document lineage support"
+      ]
+    },
+    "aws-emr:snowflake-horizon-catalog:v2": {
+      "level": "full",
+      "notes": "EMR Spark natively supports the Iceberg REST catalog spec via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint. Direct REST catalog connections support both reads and writes. Note: when routing through AWS Glue Catalog Federation, writes are not supported — that is a Glue/EMR federation path limitation, not an OSS Spark or Horizon Catalog limitation.",
+      "caveats": [
+        "Write via direct REST catalog API is supported",
+        "Write via Glue Catalog Federation path is not supported (Glue engine limitation)"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "aws-emr:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "V3 support via EMR Spark requires iceberg-spark-runtime 1.7.0+.",
+      "caveats": [
+        "Requires iceberg-spark-runtime 1.7.0+ for V3 table support"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "aws-emr:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": []
+    },
+    "aws-emr:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 supports Iceberg V3 deletion vectors (Puffin files), replacing positional delete files for efficient merge-on-read row-level deletes.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 deletion vectors on Amazon EMR",
+          "url": "https://aws.amazon.com/blogs/big-data/unlock-the-power-of-apache-iceberg-v3-deletion-vectors-on-amazon-emr/"
+        }
+      ]
+    }
+  }
+}

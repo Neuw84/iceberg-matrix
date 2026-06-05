@@ -1,0 +1,796 @@
+{
+  "platforms": [
+    {
+      "id": "spark",
+      "name": "OSS Spark (4.1)",
+      "vendor": "Apache",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://iceberg.apache.org/docs/latest/spark-getting-started/"
+    }
+  ],
+  "support": {
+    "spark:position-deletes:v2": {
+      "level": "full",
+      "notes": "Full support for position delete files as the reference Iceberg implementation",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark:position-deletes:v3": {
+      "level": "full",
+      "notes": "Full support including V3 binary deletion vectors for more efficient row-level deletes",
+      "caveats": [
+        "Deletion vectors (V3) require Iceberg 1.6+ and Spark 3.5+ or 4.0+"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Full support for equality delete files as the reference Iceberg implementation",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark:equality-deletes:v3": {
+      "level": "full",
+      "notes": "Full equality delete support with V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Full merge-on-read support with position and equality deletes; configurable via write.delete.mode and write.update.mode table properties",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark:merge-on-read:v3": {
+      "level": "full",
+      "notes": "Full merge-on-read support with V3 deletion vectors for improved performance",
+      "caveats": [
+        "Deletion vectors require Iceberg 1.6+ and Spark 3.5+ or 4.0+"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Full copy-on-write support; default mode for DELETE, UPDATE, and MERGE operations",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark:copy-on-write:v3": {
+      "level": "full",
+      "notes": "Full copy-on-write support with V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int→long, float→double), and modify nullability",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        }
+      ]
+    },
+    "spark:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Full schema evolution support with V3 tables, including automatic schema merging on write",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        },
+        {
+          "label": "Schema Merge on Write",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#schema-merge"
+        }
+      ]
+    },
+    "spark:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values (initial-default, write-default) are a V3 feature",
+      "caveats": []
+    },
+    "spark:column-default-values:v3": {
+      "level": "partial",
+      "notes": "Iceberg V3 spec supports initial-default and write-default at the metadata level. Spark's Iceberg integration can read/write tables with column defaults, but Spark SQL DDL does not yet expose full syntax for managing column defaults on Iceberg tables",
+      "caveats": [
+        "No Spark SQL DDL syntax for setting Iceberg column defaults",
+        "Requires Iceberg 1.6+ with format-version 3"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 Spec",
+          "url": "https://iceberg.apache.org/spec/#column-default-values"
+        }
+      ]
+    },
+    "spark:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "spark:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Spark does not support Iceberg nanosecond timestamp types (timestamp_ns, timestamptz_ns). The Iceberg-to-Spark type conversion table lists these as 'Not supported'. Creating or reading V3 tables with nanosecond timestamp columns will fail",
+      "caveats": [
+        "Spark has no native nanosecond timestamp type",
+        "See GitHub issue apache/iceberg#13681"
+      ],
+      "links": [
+        {
+          "label": "Type Compatibility",
+          "url": "https://iceberg.apache.org/docs/latest/spark-getting-started/#iceberg-type-to-spark-type"
+        },
+        {
+          "label": "GitHub Issue #13681",
+          "url": "https://github.com/apache/iceberg/issues/13681"
+        }
+      ]
+    },
+    "spark:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Full hidden partitioning support with transforms: year, month, day, hour, bucket, truncate. Users query by data values without knowing partition layout",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark DDL - Partitioned By",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#partitioned-by"
+        }
+      ]
+    },
+    "spark:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Full hidden partitioning support with V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark DDL - Partitioned By",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#partitioned-by"
+        }
+      ]
+    },
+    "spark:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Full partition evolution via ALTER TABLE ADD/DROP/REPLACE PARTITION FIELD. Metadata-only operation; existing data is not rewritten",
+      "caveats": [
+        "Requires Iceberg SQL extensions"
+      ],
+      "links": [
+        {
+          "label": "Partition Evolution DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table-add-partition-field"
+        }
+      ]
+    },
+    "spark:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Full partition evolution support with V3 tables",
+      "caveats": [
+        "Requires Iceberg SQL extensions"
+      ],
+      "links": [
+        {
+          "label": "Partition Evolution DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table-add-partition-field"
+        }
+      ]
+    },
+    "spark:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument (multi-source-column) transforms are a V3 feature",
+      "caveats": []
+    },
+    "spark:multi-arg-transforms:v3": {
+      "level": "partial",
+      "notes": "V3 introduces multi-argument transforms that can reference multiple source columns. Spark support is being developed; single-column transforms (bucket, truncate, year, month, day, hour) are fully supported",
+      "caveats": [
+        "Multi-source-column transforms are a new V3 capability with evolving Spark support",
+        "Requires Spark 4.0+ for full V3 transform support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 Spec",
+          "url": "https://iceberg.apache.org/spec/#version-3-extended-types-and-capabilities"
+        }
+      ]
+    },
+    "spark:time-travel:v2": {
+      "level": "full",
+      "notes": "Full time travel support via SQL (TIMESTAMP AS OF, VERSION AS OF) and DataFrame API (snapshot-id, as-of-timestamp, branch, tag options). Supports branches and tags for versioned reads",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Time Travel SQL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-queries/#time-travel-queries-with-sql"
+        },
+        {
+          "label": "Time Travel DataFrame",
+          "url": "https://iceberg.apache.org/docs/latest/spark-queries/#time-travel-queries-with-dataframe"
+        }
+      ]
+    },
+    "spark:time-travel:v3": {
+      "level": "full",
+      "notes": "Full time travel support with V3 tables, including branch and tag references",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Time Travel SQL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-queries/#time-travel-queries-with-sql"
+        }
+      ]
+    },
+    "spark:table-maintenance:v2": {
+      "level": "full",
+      "notes": "Full table maintenance via stored procedures: expire_snapshots, remove_orphan_files, rewrite_data_files (with bin-pack and sort strategies including z-order), rewrite_manifests, and rewrite_position_delete_files",
+      "caveats": [
+        "Requires Iceberg SQL extensions for stored procedures"
+      ],
+      "links": [
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark:table-maintenance:v3": {
+      "level": "full",
+      "notes": "Full table maintenance support with V3 tables",
+      "caveats": [
+        "Requires Iceberg SQL extensions for stored procedures"
+      ],
+      "links": [
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Full branching and tagging support via DDL (CREATE/REPLACE/DROP BRANCH and TAG) and procedures (fast_forward, cherrypick_snapshot). Supports write-audit-publish (WAP) workflows and reading/writing to specific branches",
+      "caveats": [
+        "Requires Iceberg SQL extensions"
+      ],
+      "links": [
+        {
+          "label": "Branching & Tagging DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#branching-and-tagging-ddl"
+        },
+        {
+          "label": "Writing to Branches",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#writing-to-branches"
+        }
+      ]
+    },
+    "spark:branching-tagging:v3": {
+      "level": "full",
+      "notes": "Full branching and tagging support with V3 tables",
+      "caveats": [
+        "Requires Iceberg SQL extensions"
+      ],
+      "links": [
+        {
+          "label": "Branching & Tagging DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#branching-and-tagging-ddl"
+        }
+      ]
+    },
+    "spark:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via SQL SELECT, DataFrame API, and metadata table inspection (history, snapshots, files, manifests, partitions, entries). Supports incremental reads and vectorized Parquet reading",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark Queries",
+          "url": "https://iceberg.apache.org/docs/latest/spark-queries/"
+        },
+        {
+          "label": "Getting Started",
+          "url": "https://iceberg.apache.org/docs/latest/spark-getting-started/"
+        }
+      ]
+    },
+    "spark:read-support:v3": {
+      "level": "full",
+      "notes": "Full read support for V3 tables including deletion vectors. Spark is the most feature-rich engine for Iceberg V3 reads",
+      "caveats": [
+        "Some V3 data types (nanosecond timestamps, geospatial) are not readable in Spark"
+      ],
+      "links": [
+        {
+          "label": "Spark Queries",
+          "url": "https://iceberg.apache.org/docs/latest/spark-queries/"
+        }
+      ]
+    },
+    "spark:write-insert:v2": {
+      "level": "full",
+      "notes": "Full write support: INSERT INTO, INSERT OVERWRITE (static and dynamic modes), DataFrameWriterV2 API (append, overwritePartitions), and CTAS/RTAS",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark:write-insert:v3": {
+      "level": "full",
+      "notes": "Full write support for V3 tables including all insert modes",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "Full row-level DML: MERGE INTO (with WHEN MATCHED, WHEN NOT MATCHED, WHEN NOT MATCHED BY SOURCE), UPDATE, DELETE FROM. Supports both copy-on-write and merge-on-read modes",
+      "caveats": [
+        "MERGE INTO, UPDATE, and row-level DELETE require Iceberg SQL extensions"
+      ],
+      "links": [
+        {
+          "label": "MERGE INTO",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#merge-into"
+        },
+        {
+          "label": "DELETE FROM",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#delete-from"
+        },
+        {
+          "label": "UPDATE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#update"
+        }
+      ]
+    },
+    "spark:write-merge-update-delete:v3": {
+      "level": "full",
+      "notes": "Full DML support for V3 tables. Spark 4.0 adds DataFrame MERGE INTO API (mergeInto)",
+      "caveats": [
+        "MERGE INTO, UPDATE, and row-level DELETE require Iceberg SQL extensions",
+        "DataFrame MERGE INTO API requires Spark 4.0+"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Supports all major Iceberg catalog implementations via SparkCatalog and SparkSessionCatalog. Catalog types: hive, hadoop, rest, glue, jdbc, nessie, and custom implementations via catalog-impl",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark Configuration - Catalogs",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark:catalog-integration:v3": {
+      "level": "full",
+      "notes": "All catalog implementations support V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark Configuration - Catalogs",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Native Hive Metastore catalog support via catalog type 'hive'. Supports SparkSessionCatalog for mixed Iceberg and non-Iceberg tables in the same Hive Metastore",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Hive Metastore catalog fully supports V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supported natively via catalog type 'glue' with the iceberg-aws module",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
+        }
+      ]
+    },
+    "spark:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supports V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
+        }
+      ]
+    },
+    "spark:rest-catalog:v2": {
+      "level": "full",
+      "notes": "Full REST Catalog support via catalog type 'rest'. Connects to any Iceberg REST Catalog-compatible endpoint",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark:rest-catalog:v3": {
+      "level": "full",
+      "notes": "REST Catalog fully supports V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark:nessie:v2": {
+      "level": "full",
+      "notes": "Nessie catalog supported natively via catalog type 'nessie'. Provides Git-like version control for data tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
+        }
+      ]
+    },
+    "spark:nessie:v3": {
+      "level": "full",
+      "notes": "Nessie catalog supports V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
+        }
+      ]
+    },
+    "spark:polaris:v2": {
+      "level": "full",
+      "notes": "Polaris catalog fully supported via the REST Catalog API, as Polaris implements the Iceberg REST Catalog specification",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark:polaris:v3": {
+      "level": "full",
+      "notes": "Polaris supports V3 tables via REST Catalog API",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark:unity-catalog:v2": {
+      "level": "full",
+      "notes": "Unity Catalog supported via REST Catalog API, as Unity Catalog implements the Iceberg REST Catalog specification",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark:unity-catalog:v3": {
+      "level": "full",
+      "notes": "Unity Catalog supports V3 tables via REST Catalog API",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark:hadoop-catalog:v2": {
+      "level": "full",
+      "notes": "Native Hadoop catalog support via catalog type 'hadoop'. Uses a directory-based layout in HDFS or compatible file systems",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark:hadoop-catalog:v3": {
+      "level": "full",
+      "notes": "Hadoop catalog supports V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark:jdbc-catalog:v2": {
+      "level": "full",
+      "notes": "JDBC catalog supported natively via catalog type 'jdbc'. Stores Iceberg metadata in a relational database",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
+        }
+      ]
+    },
+    "spark:jdbc-catalog:v3": {
+      "level": "full",
+      "notes": "JDBC catalog supports V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
+        }
+      ]
+    },
+    "spark:table-creation:v2": {
+      "level": "full",
+      "notes": "Full CREATE TABLE support as the reference Iceberg implementation",
+      "caveats": []
+    },
+    "spark:table-creation:v3": {
+      "level": "full",
+      "notes": "Full CREATE TABLE support for V3",
+      "caveats": []
+    },
+    "spark:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "spark:variant-type:v3": {
+      "level": "full",
+      "notes": "Full Variant type support in Spark with Iceberg V3",
+      "caveats": []
+    },
+    "spark:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "spark:shredded-variant:v3": {
+      "level": "full",
+      "notes": "OSS Spark supports writing shredded Variant data in Iceberg-Spark (Spark 4.0/4.1), with reading backed by ArrayData.getVariant for row-based Parquet readers (Iceberg 1.11.0).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
+    },
+    "spark:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "spark:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "OSS Spark V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "spark:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "spark:lineage:v3": {
+      "level": "full",
+      "notes": "OSS Spark supports Iceberg V3 row lineage tracking (_row_id and _last_updated_sequence_number), with row lineage preserved through RewriteDataFiles compaction (Iceberg 1.11.0).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
+    },
+    "spark:statistics:v2": {
+      "level": "full",
+      "notes": "As the reference Iceberg implementation, Spark writes comprehensive column statistics (min/max values, null counts, value counts, NaN counts) to manifest files by default. Statistics mode is configurable per column via write.metadata.metrics.default (default: truncate(16)) and write.metadata.metrics.column.* properties. Also supports compute_table_stats procedure for Puffin-based NDV statistics.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/"
+        },
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark:statistics:v3": {
+      "level": "full",
+      "notes": "Full column statistics support for V3 tables, including compute_table_stats procedure for Puffin-based statistics",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/"
+        },
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark:bloom-filters:v2": {
+      "level": "full",
+      "notes": "Full Parquet-level bloom filter support via write.parquet.bloom-filter-enabled.column.* table properties. Configurable false positive probability via write.parquet.bloom-filter-fpp.column.* and max bytes via write.parquet.bloom-filter-max-bytes. Also supports compute_table_stats procedure for Puffin-based statistics.",
+      "caveats": [
+        "Bloom filters must be explicitly enabled per column via table properties",
+        "Not enabled by default"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Configuration - Write Properties",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/#write-properties"
+        },
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark:bloom-filters:v3": {
+      "level": "full",
+      "notes": "Full bloom filter support for V3 tables with the same configuration options as V2",
+      "caveats": [
+        "Bloom filters must be explicitly enabled per column via table properties"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Configuration - Write Properties",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/#write-properties"
+        }
+      ]
+    },
+    "spark:type-promotion:v2": {
+      "level": "full",
+      "notes": "Spark is the reference implementation for Iceberg and supports all spec-defined type promotions via ALTER TABLE ALTER COLUMN TYPE: int to long, float to double, and increasing decimal precision. The operation is metadata-only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark DDL – ALTER TABLE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        },
+        {
+          "label": "Schema evolution",
+          "url": "https://iceberg.apache.org/docs/latest/evolution/"
+        }
+      ]
+    },
+    "spark:type-promotion:v3": {
+      "level": "full",
+      "notes": "Full type promotion support for V3 tables with the same promotions as V2: int to long, float to double, and decimal precision widening.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Spark DDL – ALTER TABLE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        }
+      ]
+    },
+    "spark:snowflake-horizon-catalog:v2": {
+      "level": "full",
+      "notes": "Spark Iceberg connector supports REST catalog natively. Configure with spark.sql.catalog.<name>.type=rest and the Horizon Catalog endpoint URI.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "spark:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "V3 support depends on iceberg-spark-runtime version (1.7.0+ recommended). REST catalog connectivity unchanged.",
+      "caveats": [
+        "Requires iceberg-spark-runtime 1.7.0+ for V3 table support"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "spark:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "spark:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "OSS Spark fully supports Iceberg V3 binary deletion vectors for efficient row-level deletes without rewriting data files.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,381 @@
+{
+  "platforms": [
+    {
+      "id": "aws-glue",
+      "name": "Glue (5.1)",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/glue/"
+    }
+  ],
+  "support": {
+    "aws-glue:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Glue ETL with S3 Tables integration",
+      "caveats": []
+    },
+    "aws-glue:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Glue ETL with S3 Tables integration",
+      "caveats": []
+    },
+    "aws-glue:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Merge-on-read supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:type-promotion:v2": {
+      "level": "full",
+      "notes": "Type promotion supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:table-creation:v2": {
+      "level": "full",
+      "notes": "CREATE TABLE supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "All partition transforms supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Partition evolution supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel via snapshot ID and timestamp supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:table-maintenance:v2": {
+      "level": "full",
+      "notes": "S3 Tables provides automatic compaction; Spark procedures also available for manual maintenance",
+      "caveats": [
+        "S3 Tables handles compaction automatically"
+      ]
+    },
+    "aws-glue:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Full branching and tagging support via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO, INSERT OVERWRITE, and CTAS supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE INTO, UPDATE, DELETE supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Integrated with S3 Tables catalog via EMR",
+      "caveats": []
+    },
+    "aws-glue:statistics:v2": {
+      "level": "full",
+      "notes": "Column statistics supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:bloom-filters:v2": {
+      "level": "full",
+      "notes": "Bloom filters and Puffin files supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:hive-metastore:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
+      "caveats": []
+    },
+    "aws-glue:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
+      "caveats": []
+    },
+    "aws-glue:rest-catalog:v2": {
+      "level": "full",
+      "notes": "S3 Tables exposes a REST-compatible catalog API used by EMR",
+      "caveats": []
+    },
+    "aws-glue:nessie:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-glue:polaris:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-glue:unity-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-glue:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-glue:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-glue:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage tracking is a V3 feature",
+      "caveats": []
+    },
+    "aws-glue:position-deletes:v3": {
+      "level": "full",
+      "notes": "V3 position deletes supported via Spark 3.5+ on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:equality-deletes:v3": {
+      "level": "full",
+      "notes": "V3 equality deletes supported via Spark 3.5+ on EMR with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:merge-on-read:v3": {
+      "level": "full",
+      "notes": "V3 merge-on-read with deletion vectors supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:copy-on-write:v3": {
+      "level": "full",
+      "notes": "V3 copy-on-write supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:schema-evolution:v3": {
+      "level": "full",
+      "notes": "V3 schema evolution supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:type-promotion:v3": {
+      "level": "full",
+      "notes": "V3 type promotion supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:column-default-values:v3": {
+      "level": "full",
+      "notes": "V3 column default values supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:table-creation:v3": {
+      "level": "full",
+      "notes": "V3 table creation supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "V3 hidden partitioning supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:partition-evolution:v3": {
+      "level": "full",
+      "notes": "V3 partition evolution supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Multi-argument transforms support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-glue:time-travel:v3": {
+      "level": "full",
+      "notes": "V3 time travel supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:table-maintenance:v3": {
+      "level": "full",
+      "notes": "S3 Tables provides automatic compaction; Spark procedures also available for V3 tables",
+      "caveats": [
+        "S3 Tables handles compaction automatically"
+      ]
+    },
+    "aws-glue:branching-tagging:v3": {
+      "level": "full",
+      "notes": "V3 branching and tagging supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:read-support:v3": {
+      "level": "full",
+      "notes": "Full V3 read support via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:write-insert:v3": {
+      "level": "full",
+      "notes": "V3 INSERT INTO, INSERT OVERWRITE, and CTAS supported with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:write-merge-update-delete:v3": {
+      "level": "full",
+      "notes": "V3 MERGE INTO, UPDATE, DELETE supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Integrated with S3 Tables catalog via EMR for V3",
+      "caveats": []
+    },
+    "aws-glue:statistics:v3": {
+      "level": "full",
+      "notes": "V3 column statistics supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:bloom-filters:v3": {
+      "level": "full",
+      "notes": "V3 bloom filters supported via Glue ETL with S3 Tables",
+      "caveats": []
+    },
+    "aws-glue:hive-metastore:v3": {
+      "level": "none",
+      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
+      "caveats": []
+    },
+    "aws-glue:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
+      "caveats": []
+    },
+    "aws-glue:rest-catalog:v3": {
+      "level": "full",
+      "notes": "S3 Tables exposes a REST-compatible catalog API used by EMR for V3",
+      "caveats": []
+    },
+    "aws-glue:nessie:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-glue:polaris:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-glue:unity-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-glue:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-glue:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "S3 Tables does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-glue:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Variant type support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-glue:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Shredded variant support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-glue:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Geometry type support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-glue:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "Nanosecond timestamp support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-glue:lineage:v3": {
+      "level": "unknown",
+      "notes": "Lineage tracking support with S3 Tables not explicitly documented",
+      "caveats": []
+    },
+    "aws-glue:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "AWS Glue Spark jobs can connect to Snowflake Horizon Catalog as an external REST catalog. Read access is supported. Write access to externally-managed tables is not supported — Glue Spark only supports writes to Glue Data Catalog natively. This is a Glue engine limitation and does not apply to OSS Spark.",
+      "caveats": [
+        "Read-only — Glue Spark only supports writes to Glue Data Catalog natively",
+        "Write limitation is a Glue engine limitation, not a Horizon Catalog limitation",
+        "Requires bundling Iceberg REST catalog dependency in Glue job"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "aws-glue:snowflake-horizon-catalog:v3": {
+      "level": "unknown",
+      "notes": "V3 support via Glue Spark depends on Iceberg library version used; REST catalog connectivity pattern unchanged.",
+      "caveats": [
+        "V3 support depends on Iceberg library version bundled in Glue job"
+      ],
+      "links": []
+    },
+    "aws-glue:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": []
+    },
+    "aws-glue:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "Glue 5.1 (Iceberg 1.10.0) supports Iceberg V3 deletion vectors (Puffin files) for efficient row-level deletes without rewriting data files.",
+      "caveats": []
+    }
+  }
+}

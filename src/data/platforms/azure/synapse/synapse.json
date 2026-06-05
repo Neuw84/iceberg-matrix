@@ -1,0 +1,766 @@
+{
+  "platforms": [
+    {
+      "id": "azure-synapse",
+      "name": "Synapse (3.5)",
+      "vendor": "Microsoft",
+      "category": "cloud",
+      "group": "Azure",
+      "docUrl": "https://learn.microsoft.com/en-us/azure/synapse-analytics/"
+    }
+  ],
+  "support": {
+    "azure-synapse:position-deletes:v2": {
+      "level": "partial",
+      "notes": "Supported via Spark pools (3.4/3.5) with manually installed iceberg-spark-runtime JAR; not available in serverless or dedicated SQL pools",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; serverless SQL pool and dedicated SQL pool have no Iceberg support",
+        "Microsoft recommends migrating Synapse Spark workloads to Microsoft Fabric"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        },
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
+      ]
+    },
+    "azure-synapse:position-deletes:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": [
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
+      ]
+    },
+    "azure-synapse:equality-deletes:v2": {
+      "level": "partial",
+      "notes": "Supported via Spark pools (3.4/3.5) with manually installed iceberg-spark-runtime JAR; not available in serverless or dedicated SQL pools",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; serverless SQL pool and dedicated SQL pool have no Iceberg support",
+        "Microsoft recommends migrating Synapse Spark workloads to Microsoft Fabric"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        },
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
+      ]
+    },
+    "azure-synapse:equality-deletes:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": [
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
+      ]
+    },
+    "azure-synapse:merge-on-read:v2": {
+      "level": "partial",
+      "notes": "Merge-on-read supported via Spark pools with manually installed Iceberg runtime; not available in SQL pools",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; no SQL pool support for Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:merge-on-read:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:copy-on-write:v2": {
+      "level": "partial",
+      "notes": "Copy-on-write supported via Spark pools with manually installed Iceberg runtime; not available in SQL pools",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; no SQL pool support for Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:copy-on-write:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Schema evolution supported via Spark pools with manually installed Iceberg runtime; serverless SQL pool does not support Iceberg at all",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Serverless SQL pool does not support Iceberg (only Parquet, Delta Lake, CSV)",
+        "Dedicated SQL pool has no Iceberg support"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        },
+        {
+          "label": "Serverless SQL pool overview",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview"
+        }
+      ]
+    },
+    "azure-synapse:schema-evolution:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "Hidden partitioning supported via Spark pools with manually installed Iceberg runtime",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; no SQL pool support for Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:hidden-partitioning:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:partition-evolution:v2": {
+      "level": "partial",
+      "notes": "Partition evolution supported via Spark pools with manually installed Iceberg runtime",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; no SQL pool support for Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:partition-evolution:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:time-travel:v2": {
+      "level": "partial",
+      "notes": "Time travel supported via Spark pools with manually installed Iceberg runtime; serverless SQL pool does not support Iceberg",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; serverless SQL pool does not support Iceberg time travel"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:time-travel:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "Table maintenance (compaction, expire snapshots, etc.) available via Spark pools with manually installed Iceberg runtime; no built-in automatic optimization",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Requires manual Spark procedures; no automatic table optimization like Fabric provides",
+        "Only available via Spark pools"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:table-maintenance:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:branching-tagging:v2": {
+      "level": "partial",
+      "notes": "Branching and tagging available via Spark pools with manually installed Iceberg runtime (requires Iceberg 1.2+)",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Requires iceberg-spark-runtime 1.2+ for branching and tagging support",
+        "Only available via Spark pools"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:branching-tagging:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:read-support:v2": {
+      "level": "partial",
+      "notes": "Read support available only via Spark pools with manually installed iceberg-spark-runtime JAR; serverless SQL pool does NOT support Iceberg (only Parquet, Delta Lake, CSV); dedicated SQL pool has no Iceberg support",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Serverless SQL pool does NOT support Iceberg — only Parquet, Delta Lake, and delimited text formats",
+        "Dedicated SQL pool has no Iceberg support",
+        "Microsoft recommends migrating Synapse Spark workloads to Microsoft Fabric"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        },
+        {
+          "label": "Serverless SQL pool overview (supported formats)",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview"
+        },
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
+      ]
+    },
+    "azure-synapse:read-support:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": [
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
+      ]
+    },
+    "azure-synapse:write-insert:v2": {
+      "level": "partial",
+      "notes": "Write/INSERT support available via Spark pools only with manually installed Iceberg runtime; serverless SQL pool does not support Iceberg; dedicated SQL pool has no Iceberg support",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Serverless SQL pool does not support Iceberg at all",
+        "Dedicated SQL pool has no Iceberg support"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:write-insert:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "MERGE, UPDATE, DELETE available via Spark pools only with manually installed Iceberg runtime and SQL extensions configured; no SQL pool support",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Requires configuring spark.sql.extensions with IcebergSparkSessionExtensions",
+        "Serverless SQL pool and dedicated SQL pool have no Iceberg support"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:write-merge-update-delete:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:catalog-integration:v2": {
+      "level": "partial",
+      "notes": "Standard Spark Iceberg catalogs (Hive, Hadoop, REST, JDBC) can be configured manually via Spark pool settings; no native Synapse catalog integration for Iceberg",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
+        "No native Synapse catalog integration for Iceberg — all catalog configuration is manual",
+        "Catalog type depends on user-supplied Spark configuration"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:catalog-integration:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:hive-metastore:v2": {
+      "level": "partial",
+      "notes": "Hive Metastore catalog can be configured via Spark pool Iceberg settings; uses the standard Spark Iceberg HiveCatalog implementation",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
+        "Requires configuring spark.sql.catalog with org.apache.iceberg.spark.SparkCatalog",
+        "No native Synapse integration — standard OSS Spark Iceberg configuration"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:hive-metastore:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "Azure Synapse does not support AWS Glue Catalog; cross-cloud catalog integration is not available",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Azure Synapse does not support AWS Glue Catalog; cross-cloud catalog integration is not available",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:rest-catalog:v2": {
+      "level": "partial",
+      "notes": "Iceberg REST Catalog can be configured via Spark pool settings using the standard Spark Iceberg RESTCatalog implementation",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
+        "No native Synapse REST catalog endpoint — must point to an external REST catalog server",
+        "Standard OSS Spark Iceberg configuration applies"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:rest-catalog:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:nessie:v2": {
+      "level": "partial",
+      "notes": "Nessie catalog can be configured via Spark pool settings with the appropriate Nessie Iceberg JAR; requires additional library installation",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
+        "Requires additional nessie-spark-extensions JAR beyond the Iceberg runtime",
+        "Must point to an external Nessie server"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:nessie:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:polaris:v2": {
+      "level": "none",
+      "notes": "Azure Synapse does not natively support Polaris catalog; could theoretically connect via REST catalog interface but not tested or documented",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:polaris:v3": {
+      "level": "none",
+      "notes": "Azure Synapse does not natively support Polaris catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:unity-catalog:v2": {
+      "level": "none",
+      "notes": "Azure Synapse does not support Databricks Unity Catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Azure Synapse does not support Databricks Unity Catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:hadoop-catalog:v2": {
+      "level": "partial",
+      "notes": "Hadoop catalog can be configured via Spark pool settings; works with ADLS Gen2 using abfss:// paths as the warehouse location",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
+        "Uses ADLS Gen2 (abfss://) as the underlying storage; standard Hadoop catalog with ADLS connector",
+        "No native Synapse integration — standard OSS Spark Iceberg configuration"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:hadoop-catalog:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:jdbc-catalog:v2": {
+      "level": "partial",
+      "notes": "JDBC catalog can be configured via Spark pool settings using the standard Spark Iceberg JdbcCatalog implementation",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
+        "Requires network access from Spark pool to the JDBC endpoint",
+        "Standard OSS Spark Iceberg configuration applies"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:jdbc-catalog:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:table-creation:v2": {
+      "level": "partial",
+      "notes": "Iceberg table creation supported via Spark pools with manually installed iceberg-spark-runtime JAR and SQL extensions; not available in serverless or dedicated SQL pools",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Requires configuring spark.sql.extensions with IcebergSparkSessionExtensions",
+        "Not available in serverless SQL pool or dedicated SQL pool"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        },
+        {
+          "label": "Spark version support",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-version-support"
+        }
+      ]
+    },
+    "azure-synapse:table-creation:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:lineage:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:statistics:v2": {
+      "level": "partial",
+      "notes": "Column statistics supported via Spark pools with manually installed iceberg-spark-runtime JAR. Statistics are written to manifest files via the standard Iceberg write path. Not available in serverless or dedicated SQL pools.",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Only available via Spark pools; serverless SQL pool and dedicated SQL pool have no Iceberg support"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:statistics:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:bloom-filters:v2": {
+      "level": "partial",
+      "notes": "Parquet-level bloom filters can be enabled via Iceberg table properties when using Spark pools with manually installed iceberg-spark-runtime JAR. Not available in SQL pools.",
+      "caveats": [
+        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
+        "Requires setting bloom filter table properties per column",
+        "Not available in serverless or dedicated SQL pools"
+      ],
+      "links": [
+        {
+          "label": "Manage Spark pool packages",
+          "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-manage-pool-packages"
+        }
+      ]
+    },
+    "azure-synapse:bloom-filters:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    },
+    "azure-synapse:type-promotion:v2": {
+      "level": "partial",
+      "notes": "Type promotion supported via Spark pools with manually installed Iceberg runtime. Supports int to long, float to double, and decimal precision widening when using Spark's ALTER TABLE ALTER COLUMN TYPE.",
+      "caveats": [
+        "Requires manual installation of iceberg-spark-runtime in Spark pools",
+        "Not available in Synapse Serverless SQL pools (read-only for Iceberg)"
+      ],
+      "links": [
+        {
+          "label": "Spark DDL – ALTER TABLE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        }
+      ]
+    },
+    "azure-synapse:type-promotion:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has not officially announced V3 support",
+      "caveats": [
+        "Synapse V3 support not officially announced"
+      ],
+      "links": []
+    },
+    "azure-synapse:snowflake-horizon-catalog:v2": {
+      "level": "none",
+      "notes": "Azure Synapse Analytics uses its own catalog and does not support connecting to external REST catalogs including Snowflake Horizon Catalog.",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "Azure Synapse does not support external REST catalogs.",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-synapse:deletion-vectors:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 documentation or support.",
+      "caveats": [
+        "No official Synapse documentation for Iceberg V3",
+        "V3 support depends entirely on user-installed Iceberg library version"
+      ],
+      "links": []
+    }
+  }
+}

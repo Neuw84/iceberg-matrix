@@ -1,0 +1,808 @@
+{
+  "platforms": [
+    {
+      "id": "clickhouse",
+      "name": "ClickHouse (26.1)",
+      "vendor": "ClickHouse Inc.",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://clickhouse.com/docs"
+    }
+  ],
+  "support": {
+    "clickhouse:position-deletes:v2": {
+      "level": "full",
+      "notes": "Reading V2 tables with position deletes is supported via the icebergS3/icebergLocal table functions (recommended approach).",
+      "caveats": [
+        "Read-only via table functions; no write support"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:position-deletes:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:equality-deletes:v2": {
+      "level": "partial",
+      "notes": "Reading is supported via Table Function (icebergS3/icebergLocal). Confirmed via GitHub PR #75930 and ClickHouse engineers; not yet reflected in official documentation.",
+      "caveats": [
+        "Not yet reflected in official documentation",
+        "Read-only via table functions; no write support"
+      ],
+      "links": [
+        {
+          "label": "GitHub PR #75930 (equality deletes implementation)",
+          "url": "https://github.com/ClickHouse/ClickHouse/pull/75930"
+        },
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:equality-deletes:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Reading merge-on-read tables with both position deletes and equality deletes is supported via the icebergS3/icebergLocal table functions (recommended approach). Deletion vectors (V3) are not supported.",
+      "caveats": [
+        "Read-only via table functions; no write support",
+        "Deletion vectors (V3) not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:merge-on-read:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 deletion vectors are not supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:copy-on-write:v2": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg integration via table functions is read-only; cannot write using copy-on-write strategy.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:copy-on-write:v3": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg integration via table functions is read-only; V3 not supported.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Reading schema-evolved Iceberg tables is supported via the icebergS3/icebergLocal table functions (recommended approach): add/remove columns, reorder, nullable promotion, and limited type casting (int→long, float→double, decimal widening). Cannot change nested structures or array/map element types.",
+      "caveats": [
+        "Read-only via table functions; cannot perform schema changes",
+        "No nested structure or array/map element type evolution",
+        "Requires allow_dynamic_metadata_for_data_lakes = true for post-creation schema changes"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:schema-evolution:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:column-default-values:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Reading hidden-partitioned Iceberg tables with partition pruning is supported via the icebergS3/icebergLocal table functions (recommended approach). Enable with use_iceberg_partition_pruning = 1.",
+      "caveats": [
+        "Read-only via table functions; cannot create or modify partitioning",
+        "Requires use_iceberg_partition_pruning = 1 to enable partition pruning"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:partition-evolution:v2": {
+      "level": "unknown",
+      "notes": "Reading partition-evolved Iceberg tables via the icebergS3/icebergLocal table functions (recommended approach) is not explicitly documented.",
+      "caveats": [
+        "Read-only via table functions; cannot modify partitioning"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:partition-evolution:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel is supported via the icebergS3/icebergLocal table functions (recommended approach) using iceberg_timestamp_ms and iceberg_snapshot_id query settings.",
+      "caveats": [
+        "Cannot specify both iceberg_timestamp_ms and iceberg_snapshot_id in the same query"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:time-travel:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:table-maintenance:v2": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg integration via table functions is read-only; no table maintenance operations are supported.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:table-maintenance:v3": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg integration via table functions is read-only; no table maintenance operations are supported.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:branching-tagging:v2": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg integration via table functions does not support branching and tagging.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:branching-tagging:v3": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg integration via table functions does not support branching and tagging.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support for Iceberg V1 and V2 tables via the icebergS3/icebergAzure/icebergHDFS/icebergLocal table functions (recommended approach). Supports S3, Azure, HDFS, and local storage.",
+      "caveats": [
+        "Read-only via table functions"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:read-support:v3": {
+      "level": "none",
+      "notes": "ClickHouse currently supports reading Iceberg V1 and V2 only via table functions; V3 support is not yet available.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:write-insert:v2": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg integration via table functions (icebergS3/icebergLocal) is read-only; no INSERT support.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:write-insert:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:write-merge-update-delete:v2": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg integration via table functions is read-only; no MERGE/UPDATE/DELETE support.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:catalog-integration:v2": {
+      "level": "full",
+      "notes": "ClickHouse supports multiple catalog types via the icebergS3/icebergLocal table functions (recommended approach) and the experimental DataLakeCatalog database engine: REST Catalog, AWS Glue, Unity Catalog, and Polaris (via REST).",
+      "caveats": [
+        "DataLakeCatalog engine is experimental (requires allow_experimental_database_iceberg = 1)",
+        "No Hive Metastore, Nessie, Hadoop, or JDBC catalog support"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:catalog-integration:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:hive-metastore:v2": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg table functions do not support Hive Metastore as a catalog.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:hive-metastore:v3": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg table functions do not support Hive Metastore as a catalog.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "AWS Glue Data Catalog is supported via the icebergS3 table function (recommended approach) with storage_catalog_type='glue', and also via the experimental DataLakeCatalog engine with catalog_type='glue'.",
+      "caveats": [
+        "DataLakeCatalog engine is experimental (requires allow_experimental_database_iceberg = 1)",
+        "Currently only supports access key authentication for Glue"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        },
+        {
+          "label": "ClickHouse + AWS Glue guide",
+          "url": "https://clickhouse.com/docs/use-cases/data-lake/glue-catalog"
+        }
+      ]
+    },
+    "clickhouse:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:rest-catalog:v2": {
+      "level": "full",
+      "notes": "Iceberg REST Catalog is supported via the icebergS3 table function (recommended approach) with storage_catalog_type='rest', and also via the experimental DataLakeCatalog engine with catalog_type='rest'.",
+      "caveats": [
+        "DataLakeCatalog engine is experimental (requires allow_experimental_database_iceberg = 1)"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        },
+        {
+          "label": "ClickHouse + REST Catalog guide",
+          "url": "https://clickhouse.com/docs/use-cases/data-lake/rest-catalog"
+        }
+      ]
+    },
+    "clickhouse:rest-catalog:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:nessie:v2": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg table functions do not support Nessie catalog.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:nessie:v3": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg table functions do not support Nessie catalog.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:polaris:v2": {
+      "level": "partial",
+      "notes": "Polaris is accessible via the REST Catalog API using the icebergS3 table function (recommended approach) with storage_catalog_type='rest', or via the experimental DataLakeCatalog engine.",
+      "caveats": [
+        "Requires REST Catalog endpoint configuration",
+        "DataLakeCatalog engine is experimental (requires allow_experimental_database_iceberg = 1)"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        },
+        {
+          "label": "ClickHouse + REST Catalog guide",
+          "url": "https://clickhouse.com/docs/use-cases/data-lake/rest-catalog"
+        }
+      ]
+    },
+    "clickhouse:polaris:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Unity Catalog is accessible via the icebergS3 table function (recommended approach) with storage_catalog_type='rest', or via the experimental DataLakeCatalog engine.",
+      "caveats": [
+        "DataLakeCatalog engine is experimental (requires allow_experimental_database_iceberg = 1)"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:unity-catalog:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg table functions do not support Hadoop catalog.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg table functions do not support Hadoop catalog.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg table functions do not support JDBC catalog.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg table functions do not support JDBC catalog.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:table-creation:v2": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg integration via table functions is read-only; creating Iceberg tables is not supported.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:table-creation:v3": {
+      "level": "none",
+      "notes": "ClickHouse Iceberg integration via table functions is read-only; creating Iceberg tables is not supported.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:variant-type:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 variant type support is not yet documented",
+      "caveats": []
+    },
+    "clickhouse:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 shredded variant support is not yet documented",
+      "caveats": []
+    },
+    "clickhouse:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 geometry type support is not yet documented",
+      "caveats": []
+    },
+    "clickhouse:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "clickhouse:lineage:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 lineage support is not yet documented",
+      "caveats": []
+    },
+    "clickhouse:statistics:v2": {
+      "level": "partial",
+      "notes": "ClickHouse reads column statistics from Iceberg manifest files for file pruning during scan planning via the icebergS3/icebergLocal table functions (recommended approach). Read-only; cannot write Iceberg tables.",
+      "caveats": [
+        "Read-only via table functions; cannot write Iceberg tables or statistics"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:statistics:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:bloom-filters:v2": {
+      "level": "none",
+      "notes": "ClickHouse does not support reading Iceberg Parquet-level bloom filters or Puffin-based bloom filter statistics via table functions. ClickHouse has its own bloom filter index types but they do not apply to external Iceberg tables.",
+      "caveats": [
+        "Read-only via table functions; no bloom filter support"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:bloom-filters:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:type-promotion:v2": {
+      "level": "partial",
+      "notes": "ClickHouse can read Iceberg tables that have undergone type promotion (int→long, float→double, decimal precision widening) via the icebergS3/icebergLocal table functions (recommended approach). Cannot perform type promotion itself — that must be done by another engine (e.g. Spark). Nested structure and array/map element type changes are not supported.",
+      "caveats": [
+        "Read-only via table functions; cannot perform type promotion",
+        "No nested structure or array/map element type evolution",
+        "Type promotion must be performed by another engine"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:type-promotion:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "caveats": [
+        "Iceberg V3 format not supported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
+    },
+    "clickhouse:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "ClickHouse supports REST catalog via the IcebergCatalog table function. Connection to Snowflake Horizon Catalog follows the same REST catalog configuration.",
+      "caveats": [
+        "REST catalog support available but with configuration complexity",
+        "Feature set may be limited compared to native catalog integrations"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "clickhouse:snowflake-horizon-catalog:v3": {
+      "level": "unknown",
+      "notes": "ClickHouse V3 Iceberg support is not yet documented; REST catalog connectivity pattern unchanged.",
+      "caveats": [
+        "V3 support not yet documented in ClickHouse"
+      ],
+      "links": []
+    },
+    "clickhouse:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "clickhouse:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 deletion vectors are not supported.",
+      "caveats": [],
+      "links": []
+    }
+  }
+}

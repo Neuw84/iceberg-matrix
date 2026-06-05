@@ -1,0 +1,373 @@
+{
+  "platforms": [
+    {
+      "id": "aws-redshift-s3",
+      "name": "Redshift (S3)",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/redshift/"
+    }
+  ],
+  "support": {
+    "aws-redshift-s3:position-deletes:v2": {
+      "level": "full",
+      "notes": "Redshift reads position deletes when querying S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:position-deletes:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Redshift reads equality deletes when querying S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Merge-on-read supported when querying S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported when writing to S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Redshift can read evolved schemas from S3 Tables; ALTER TABLE support limited",
+      "caveats": [
+        "Schema changes should be made via Spark/EMR"
+      ]
+    },
+    "aws-redshift-s3:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:type-promotion:v2": {
+      "level": "partial",
+      "notes": "Type promotion limited when accessing S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:type-promotion:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:column-default-values:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:table-creation:v2": {
+      "level": "full",
+      "notes": "CREATE EXTERNAL TABLE supported for S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:table-creation:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Redshift supports reading hidden-partitioned tables on S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:partition-evolution:v2": {
+      "level": "partial",
+      "notes": "Redshift can read partition-evolved tables on S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:time-travel:v2": {
+      "level": "full",
+      "notes": "Time travel supported via Redshift with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:time-travel:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "S3 Tables provides automatic compaction; limited manual maintenance via Redshift",
+      "caveats": [
+        "S3 Tables handles compaction automatically"
+      ]
+    },
+    "aws-redshift-s3:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Redshift does not support branching and tagging on S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support for S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:read-support:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO supported for S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:write-insert:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported for S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Redshift integrates with S3 Tables catalog",
+      "caveats": []
+    },
+    "aws-redshift-s3:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:statistics:v2": {
+      "level": "full",
+      "notes": "Column statistics supported when querying S3 Tables via Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:statistics:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:bloom-filters:v2": {
+      "level": "unknown",
+      "notes": "Bloom filter support for S3 Tables via Redshift not explicitly documented",
+      "caveats": []
+    },
+    "aws-redshift-s3:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:hive-metastore:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
+      "caveats": []
+    },
+    "aws-redshift-s3:hive-metastore:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
+      "caveats": []
+    },
+    "aws-redshift-s3:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:rest-catalog:v2": {
+      "level": "full",
+      "notes": "S3 Tables exposes a REST-compatible catalog API used by Redshift",
+      "caveats": []
+    },
+    "aws-redshift-s3:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:nessie:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-redshift-s3:nessie:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:polaris:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Polaris catalog",
+      "caveats": []
+    },
+    "aws-redshift-s3:polaris:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:unity-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Unity Catalog",
+      "caveats": []
+    },
+    "aws-redshift-s3:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-redshift-s3:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "S3 Tables does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-redshift-s3:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:variant-type:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:geometry-type:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage tracking is a V3 feature",
+      "caveats": []
+    },
+    "aws-redshift-s3:lineage:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
+      "caveats": []
+    },
+    "aws-redshift-s3:snowflake-horizon-catalog:v2": {
+      "level": "unknown",
+      "notes": "Redshift Spectrum may be able to read Snowflake-managed Iceberg V2 tables via AWS Glue Catalog Federation, similar to Athena. This has not been confirmed. Write access is not expected to be supported.",
+      "caveats": [
+        "Unconfirmed — based on Glue Catalog Federation pattern used by Athena",
+        "Write operations to external catalogs are not supported by Redshift Spectrum"
+      ],
+      "links": []
+    },
+    "aws-redshift-s3:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3 tables. This is a Redshift engine limitation.",
+      "caveats": [],
+      "links": []
+    },
+    "aws-redshift-s3:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": []
+    },
+    "aws-redshift-s3:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Redshift does not support Iceberg V3, so V3 deletion vectors are unavailable.",
+      "caveats": []
+    }
+  }
+}

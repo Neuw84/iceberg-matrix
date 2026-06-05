@@ -1,0 +1,783 @@
+{
+  "platforms": [
+    {
+      "id": "aws-emr",
+      "name": "EMR (8.0 Spark)",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/emr/"
+    }
+  ],
+  "support": {
+    "aws-emr:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on Glue 3.0+ (Iceberg 0.13.1+); Glue 4.0+ (Iceberg 1.0.0) recommended for production",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:position-deletes:v3": {
+      "level": "full",
+      "notes": "V3 replaces positional deletes with deletion vectors (Puffin files) on EMR 8.0 / Spark 4.0.2",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support",
+        "EMR 8.0 ships with Iceberg 1.10.1 for full deletion vector support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on Glue 3.0+; Glue 4.0+ recommended",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:equality-deletes:v3": {
+      "level": "full",
+      "notes": "V3 replaces equality deletes with deletion vectors on EMR 8.0 / Spark 4.0.2",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support",
+        "V3 deletion vectors supersede V2 equality delete files"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Merge-on-read supported via Spark on Glue 3.0+",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:merge-on-read:v3": {
+      "level": "full",
+      "notes": "Merge-on-read with V3 deletion vectors on EMR 8.0 / Spark 4.0.2",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write supported via Spark on Glue 3.0+",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:copy-on-write:v3": {
+      "level": "full",
+      "notes": "Copy-on-write supported via Spark 4.0.2 on EMR 8.0",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution (add, drop, rename, reorder columns) via Spark SQL on Glue 3.0+; ALTER TABLE RENAME not available on Glue 3.0",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Full schema evolution supported via Spark 4.0.2 on EMR 8.0",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-emr:column-default-values:v3": {
+      "level": "full",
+      "notes": "Supported via Spark 4.0.2 on EMR 8.0; requires format-version=3",
+      "caveats": [
+        "Requires EMR 8.0 with V3 format tables"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-emr:nanosecond-timestamps:v3": {
+      "level": "full",
+      "notes": "Supported via Spark 4.0.2 on EMR 8.0; requires format-version=3",
+      "caveats": [
+        "Requires EMR 8.0 with V3 format tables"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Supports identity, bucket, truncate, year, month, day, hour partition transforms via Spark on Glue 3.0+",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Full hidden partitioning supported via Spark 4.0.2 on EMR 8.0",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Partition evolution supported via Spark SQL ALTER TABLE on Glue 3.0+",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Partition evolution supported via Spark 4.0.2 on EMR 8.0",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ]
+    },
+    "aws-emr:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-emr:multi-arg-transforms:v3": {
+      "level": "full",
+      "notes": "Supported via Spark 4.0.2 on EMR 8.0; requires format-version=3",
+      "caveats": [
+        "Requires EMR 8.0 with V3 format tables"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:time-travel:v2": {
+      "level": "full",
+      "notes": "Query by snapshot ID or timestamp via Spark SQL on Glue 3.0+",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:time-travel:v3": {
+      "level": "full",
+      "notes": "Time travel supported via Spark 4.0.2 on EMR 8.0; spans V2 and V3 snapshots after upgrade",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:table-maintenance:v2": {
+      "level": "full",
+      "notes": "Spark procedures (rewrite_data_files, expire_snapshots, remove_orphan_files) available on Glue 4.0+; AWS Glue Data Catalog provides automatic compaction, snapshot expiry, and orphan file removal",
+      "caveats": [
+        "Automatic optimization requires AWS Glue Data Catalog configuration"
+      ],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        },
+        {
+          "label": "Working with Iceberg in AWS Glue (prescriptive guidance)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/iceberg-glue.html"
+        }
+      ]
+    },
+    "aws-emr:table-maintenance:v3": {
+      "level": "full",
+      "notes": "Full table maintenance for V3 tables on EMR 8.0 / Spark 4.0.2; when using AWS Glue Data Catalog, automatic optimization compacts deletion vector files and removes old V2 delete files after upgrade",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support",
+        "First compaction after V2→V3 upgrade removes old positional/equality delete files"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Supported via Spark on EMR. Glue: Branching and tagging require Iceberg ≥1.2.0; only available natively on Glue 5.0+ (Iceberg 1.7.1) or via custom JARs on Glue 4.0",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:branching-tagging:v3": {
+      "level": "full",
+      "notes": "Branching and tagging supported via Spark 4.0.2 on EMR 8.0 with V3 tables",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via Spark on Glue 3.0+; supports GlueContext DynamicFrame and Spark DataFrame APIs",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:read-support:v3": {
+      "level": "full",
+      "notes": "Full read support for V3 tables on EMR 8.0 / Spark 4.0.2; handles deletion vectors transparently",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO, CTAS, and DataFrame append supported via Spark and GlueContext APIs on Glue 3.0+",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:write-insert:v3": {
+      "level": "full",
+      "notes": "INSERT INTO supported on EMR 8.0 / Spark 4.0.2 with V3 format tables",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported via Spark SQL with IcebergSparkSessionExtensions on Glue 3.0+; GlueContext native API supports append/overwrite only",
+      "caveats": [
+        "Requires IcebergSparkSessionExtensions for UPDATE/DELETE/MERGE"
+      ],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:write-merge-update-delete:v3": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported via Spark SQL on EMR 8.0 / Spark 4.0.2; V3 deletion vectors improve write performance for updates and deletes",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support",
+        "Requires IcebergSparkSessionExtensions for UPDATE/DELETE/MERGE"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Native AWS Glue Data Catalog integration as Iceberg catalog; also supports Iceberg REST Catalog API",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        },
+        {
+          "label": "Working with Iceberg in AWS Glue (prescriptive guidance)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/iceberg-glue.html"
+        }
+      ]
+    },
+    "aws-emr:catalog-integration:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 integrates natively with the AWS Glue Data Catalog for V3 tables; the Iceberg REST Catalog API is also supported",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Native Hive Metastore support on EMR. Glue: Can connect to external Hive Metastore via custom Spark catalog configuration; Glue Data Catalog is the default and recommended catalog",
+      "caveats": [
+        "Requires custom Spark configuration",
+        "Not the default catalog; Glue Data Catalog is preferred"
+      ],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Native Hive Metastore support on EMR 8.0 / Spark 4.0.2 for V3 tables",
+      "caveats": [
+        "Requires custom Spark configuration",
+        "Not the default catalog; Glue Data Catalog is preferred"
+      ]
+    },
+    "aws-emr:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Native default catalog for AWS Glue; pre-configured as glue_catalog with GlueCatalog implementation",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        },
+        {
+          "label": "Working with Iceberg in AWS Glue (prescriptive guidance)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/iceberg-glue.html"
+        }
+      ]
+    },
+    "aws-emr:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 uses the AWS Glue Data Catalog as a default catalog with V3 table support; automatic table optimization available on the catalog side",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:rest-catalog:v2": {
+      "level": "full",
+      "notes": "AWS Glue Data Catalog supports the Iceberg REST Catalog API, enabling cross-engine interoperability",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Glue Iceberg REST API",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/connect-glu-iceberg-rest.html"
+        }
+      ]
+    },
+    "aws-emr:rest-catalog:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 connects to V3 tables via the Iceberg REST Catalog API, including the AWS Glue Data Catalog REST endpoint",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Glue Iceberg REST API",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/connect-glu-iceberg-rest.html"
+        },
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:nessie:v2": {
+      "level": "full",
+      "notes": "Nessie catalog supported via Spark on EMR. Glue: Can connect to Nessie via custom Spark catalog configuration on Glue; not natively integrated",
+      "caveats": [
+        "Requires custom Spark configuration and Nessie endpoint",
+        "Nessie JARs must be provided via --extra-jars"
+      ]
+    },
+    "aws-emr:nessie:v3": {
+      "level": "full",
+      "notes": "Nessie catalog supported via Spark 4.0.2 on EMR 8.0 with V3 tables",
+      "caveats": [
+        "Requires custom Spark configuration, Nessie endpoint, and extra JARs"
+      ]
+    },
+    "aws-emr:polaris:v2": {
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog on EMR. Glue: Can connect to Polaris via REST Catalog configuration on Glue",
+      "caveats": [
+        "Requires custom Spark REST Catalog configuration"
+      ]
+    },
+    "aws-emr:polaris:v3": {
+      "level": "full",
+      "notes": "Polaris supported via REST Catalog on EMR 8.0 / Spark 4.0.2 with V3 tables",
+      "caveats": [
+        "Requires custom Spark REST Catalog configuration"
+      ]
+    },
+    "aws-emr:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Can connect to Unity Catalog via REST Catalog API on EMR. Glue: AWS Glue does not natively support Databricks Unity Catalog",
+      "caveats": [
+        "Requires Databricks REST Catalog endpoint configuration"
+      ]
+    },
+    "aws-emr:unity-catalog:v3": {
+      "level": "partial",
+      "notes": "EMR 8.0 / Spark 4.0.2 can connect to Databricks Unity Catalog via the Iceberg REST Catalog API; no native Unity Catalog integration",
+      "caveats": [
+        "Requires Databricks REST Catalog endpoint configuration"
+      ]
+    },
+    "aws-emr:hadoop-catalog:v2": {
+      "level": "full",
+      "notes": "Hadoop catalog supported via Spark on EMR. Glue: Can use Hadoop catalog via custom Spark configuration on Glue; not recommended for production",
+      "caveats": [
+        "Requires custom Spark configuration",
+        "No atomic rename guarantee on S3; Glue Data Catalog recommended instead"
+      ]
+    },
+    "aws-emr:hadoop-catalog:v3": {
+      "level": "full",
+      "notes": "Hadoop catalog supported via Spark 4.0.2 on EMR 8.0 with V3 tables; not recommended for production",
+      "caveats": [
+        "Requires custom Spark configuration",
+        "No atomic rename guarantee on S3; Glue Data Catalog recommended instead"
+      ]
+    },
+    "aws-emr:jdbc-catalog:v2": {
+      "level": "full",
+      "notes": "JDBC catalog supported via Spark on EMR. Glue: Can use JDBC catalog via custom Spark configuration on Glue",
+      "caveats": [
+        "Requires custom Spark configuration, JDBC driver, and endpoint"
+      ]
+    },
+    "aws-emr:jdbc-catalog:v3": {
+      "level": "full",
+      "notes": "JDBC catalog supported via Spark 4.0.2 on EMR 8.0 with V3 tables",
+      "caveats": [
+        "Requires custom Spark configuration, JDBC driver, and endpoint"
+      ]
+    },
+    "aws-emr:table-creation:v2": {
+      "level": "full",
+      "notes": "Create Iceberg tables via Spark SQL DDL (CREATE TABLE, CTAS) or Glue Data Catalog CreateTable API on Glue 3.0+",
+      "caveats": [
+        "Glue Data Catalog UpdateTable API does not support Iceberg table format as input"
+      ],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:table-creation:v3": {
+      "level": "full",
+      "notes": "Create V3 tables via Spark SQL DDL with format-version=3 on EMR 8.0 / Spark 4.0.2; upgrade V2→V3 via ALTER TABLE SET TBLPROPERTIES",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support",
+        "V2→V3 upgrade is one-way; cannot downgrade back to V2"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-emr:variant-type:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 introduces native VARIANT data type support, enabling JSON and semi-structured data handling on Iceberg V3 tables. (Per AWS EMR 8.0 GA announcement, May 27, 2026.)",
+      "caveats": [
+        "Requires EMR 8.0 (Iceberg 1.10.1)",
+        "Variant type support is still maturing in the Iceberg ecosystem"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-emr:shredded-variant:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 supports shredded VARIANT using the standard Apache Parquet shredded implementation, enabling efficient columnar storage and predicate pushdown for nested fields within VARIANT columns.",
+      "caveats": []
+    },
+    "aws-emr:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-emr:geometry-type:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 ships with Iceberg 1.10.1, which adds native Geometry and Geography data type support, enabling geospatial workloads on Iceberg V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:lineage:v2": {
+      "level": "none",
+      "notes": "Row lineage is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-emr:lineage:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 supports Iceberg V3 row lineage, exposing the `_row_id` and `_last_updated_sequence_number` metadata fields for precise row-level change tracking and audit trails. (Per AWS EMR 8.0 GA announcement, May 27, 2026 — V3 stronger transaction guarantees and data lineage.)",
+      "caveats": [
+        "Requires EMR 8.0 (Iceberg 1.10.1)",
+        "No historical backfill after V2→V3 upgrade"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:statistics:v2": {
+      "level": "full",
+      "notes": "AWS Glue writes column statistics to Iceberg manifest files via Spark on Glue 3.0+. Statistics include min/max values, null counts, and value counts. Configurable via write.metadata.metrics.default and per-column settings.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Using Iceberg in AWS Glue",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+        }
+      ]
+    },
+    "aws-emr:statistics:v3": {
+      "level": "full",
+      "notes": "Column statistics fully supported via Spark 4.0.2 on EMR 8.0 for V3 tables",
+      "caveats": [
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 on AWS",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/table-spec-v3.html"
+        }
+      ]
+    },
+    "aws-emr:bloom-filters:v2": {
+      "level": "full",
+      "notes": "Full bloom filter support via Spark on EMR. Parquet-level bloom filters configurable via write.parquet.bloom-filter-enabled.column.* table properties. Also supports compute_table_stats procedure for Puffin-based statistics.. Glue: Parquet-level bloom filters can be enabled via Iceberg table properties (write.parquet.bloom-filter-enabled.column.*) when writing with Spark on Glue 4.0+. Not enabled by default.",
+      "caveats": [
+        "Requires setting bloom filter table properties per column",
+        "Not enabled by default",
+        "No Puffin-based bloom filter support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg configuration",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/"
+        }
+      ]
+    },
+    "aws-emr:bloom-filters:v3": {
+      "level": "full",
+      "notes": "Full bloom filter support via Spark 4.0.2 on EMR 8.0 with Iceberg V3; Parquet-level bloom filters configurable via Iceberg table properties",
+      "caveats": [
+        "Requires setting bloom filter table properties per column",
+        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg configuration",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/"
+        }
+      ]
+    },
+    "aws-emr:type-promotion:v2": {
+      "level": "full",
+      "notes": "AWS Glue supports type promotion via Spark SQL ALTER TABLE ALTER COLUMN TYPE on Iceberg tables. Supports int to bigint, float to double, and decimal precision widening.",
+      "caveats": [
+        "Requires Spark SQL on EMR",
+        "Metadata-only operation; no data file rewrite required"
+      ],
+      "links": [
+        {
+          "label": "AWS Glue Iceberg schema evolution",
+          "url": "https://aws.amazon.com/blogs/big-data/use-aws-glue-etl-to-perform-merge-partition-evolution-and-schema-evolution-on-apache-iceberg/"
+        },
+        {
+          "label": "Spark DDL – ALTER TABLE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        }
+      ]
+    },
+    "aws-emr:type-promotion:v3": {
+      "level": "full",
+      "notes": "Type promotion supported via Spark SQL on EMR 8.0 / Spark 4.0.2 for V3 Iceberg tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "AWS Glue Iceberg schema evolution",
+          "url": "https://aws.amazon.com/blogs/big-data/use-aws-glue-etl-to-perform-merge-partition-evolution-and-schema-evolution-on-apache-iceberg/"
+        },
+        {
+          "label": "Spark DDL – ALTER TABLE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        }
+      ]
+    },
+    "aws-emr:snowflake-horizon-catalog:v2": {
+      "level": "full",
+      "notes": "EMR Spark natively supports the Iceberg REST catalog spec via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint. Direct REST catalog connections support both reads and writes. Note: when routing through AWS Glue Catalog Federation, writes are not supported — that is a Glue/EMR federation path limitation, not an OSS Spark or Horizon Catalog limitation.",
+      "caveats": [
+        "Write via direct REST catalog API is supported"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "aws-emr:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "EMR 8.0 / Spark 4.0.2 ships with iceberg-spark-runtime sufficient for V3 table support against Snowflake Horizon Catalog via the REST Catalog API.",
+      "caveats": [
+        "Requires iceberg-spark-runtime 1.7.0+ for V3 table support"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "aws-emr:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "aws-emr:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "EMR 8.0 / Spark 4.0.2 supports Iceberg V3 deletion vectors (Puffin files), replacing positional delete files for efficient merge-on-read row-level deletes.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 deletion vectors on Amazon EMR",
+          "url": "https://aws.amazon.com/blogs/big-data/unlock-the-power-of-apache-iceberg-v3-deletion-vectors-on-amazon-emr/"
+        }
+      ]
+    }
+  }
+}

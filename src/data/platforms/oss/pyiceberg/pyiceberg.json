@@ -1,0 +1,521 @@
+{
+  "platforms": [
+    {
+      "id": "pyiceberg",
+      "name": "PyIceberg (0.11.0)",
+      "vendor": "Apache",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://py.iceberg.apache.org/"
+    }
+  ],
+  "support": {
+    "pyiceberg:position-deletes:v2": {
+      "level": "partial",
+      "notes": "PyIceberg can read position delete files but only writes copy-on-write deletes (rewrites data files); does not produce position delete files",
+      "caveats": [
+        "Read-only support for position delete files",
+        "Write deletes use copy-on-write mode only"
+      ]
+    },
+    "pyiceberg:position-deletes:v3": {
+      "level": "partial",
+      "notes": "PyIceberg can read V3 deletion vectors (added in v0.10.0) but does not write position delete files",
+      "caveats": [
+        "Deletion vectors read support only",
+        "No position delete file writing"
+      ],
+      "links": [
+        {
+          "label": "PyIceberg v0.10.0 Release Notes",
+          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.10.0"
+        }
+      ]
+    },
+    "pyiceberg:equality-deletes:v2": {
+      "level": "partial",
+      "notes": "PyIceberg can read equality delete files but cannot write them",
+      "caveats": [
+        "Read-only support for equality deletes"
+      ],
+      "links": [
+        {
+          "label": "GitHub PR #2255",
+          "url": "https://github.com/apache/iceberg-python/pull/2255"
+        }
+      ]
+    },
+    "pyiceberg:equality-deletes:v3": {
+      "level": "none",
+      "notes": "PyIceberg does not support equality deletes in V3",
+      "caveats": [
+        "Equality deletes not supported in any format version"
+      ]
+    },
+    "pyiceberg:merge-on-read:v2": {
+      "level": "partial",
+      "notes": "PyIceberg can read tables with position and equality delete files (merge-on-read), but cannot write merge-on-read deletes; all deletes use copy-on-write",
+      "caveats": [
+        "Read-side MoR only (position and equality deletes)",
+        "All writes use copy-on-write"
+      ]
+    },
+    "pyiceberg:merge-on-read:v3": {
+      "level": "partial",
+      "notes": "PyIceberg can read V3 deletion vectors (added in v0.10.0) but cannot write merge-on-read deletes",
+      "caveats": [
+        "Read-side deletion vectors only",
+        "Write-side MoR not supported"
+      ],
+      "links": [
+        {
+          "label": "PyIceberg v0.10.0 Release Notes",
+          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.10.0"
+        }
+      ]
+    },
+    "pyiceberg:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Copy-on-write is PyIceberg's default and only delete/update mode; data files are rewritten without deleted rows",
+      "caveats": []
+    },
+    "pyiceberg:copy-on-write:v3": {
+      "level": "full",
+      "notes": "Copy-on-write supported for V3 tables",
+      "caveats": []
+    },
+    "pyiceberg:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution support via update_schema() context manager: add, drop, rename, reorder columns, widen types, and union_by_name",
+      "caveats": []
+    },
+    "pyiceberg:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Full schema evolution support in V3 via update_schema() context manager",
+      "caveats": []
+    },
+    "pyiceberg:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature not applicable to V2",
+      "caveats": []
+    },
+    "pyiceberg:column-default-values:v3": {
+      "level": "none",
+      "notes": "PyIceberg does not yet support column default values",
+      "caveats": [
+        "Not yet implemented"
+      ]
+    },
+    "pyiceberg:table-creation:v2": {
+      "level": "full",
+      "notes": "Full table creation support via catalog.create_table() with Iceberg or PyArrow schemas, partition specs, sort orders, and table properties",
+      "caveats": []
+    },
+    "pyiceberg:table-creation:v3": {
+      "level": "full",
+      "notes": "V3 table creation supported by setting format-version property to 3",
+      "caveats": []
+    },
+    "pyiceberg:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports hidden partitioning with identity, bucket, truncate, year, month, day, hour transforms; bucket and truncate write support added in v0.9.0 via iceberg-rust",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg v0.9.0 Release Notes",
+          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.9.0"
+        }
+      ]
+    },
+    "pyiceberg:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Hidden partitioning fully supported in V3 with all transforms including bucket and truncate (via iceberg-rust)",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg v0.9.0 Release Notes",
+          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.9.0"
+        }
+      ]
+    },
+    "pyiceberg:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Full partition evolution support via update_spec() context manager",
+      "caveats": []
+    },
+    "pyiceberg:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Partition evolution supported in V3 via update_spec()",
+      "caveats": []
+    },
+    "pyiceberg:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature not applicable to V2",
+      "caveats": []
+    },
+    "pyiceberg:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "PyIceberg does not yet support multi-argument transforms",
+      "caveats": [
+        "Not yet implemented"
+      ]
+    },
+    "pyiceberg:time-travel:v2": {
+      "level": "full",
+      "notes": "Full time travel support via scan(snapshot_id=...) and table.inspect methods with snapshot_id parameter",
+      "caveats": []
+    },
+    "pyiceberg:time-travel:v3": {
+      "level": "full",
+      "notes": "Time travel supported in V3",
+      "caveats": []
+    },
+    "pyiceberg:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "PyIceberg supports expire_snapshots and manage_snapshots APIs; does not support data compaction, manifest rewriting, or orphan file cleanup",
+      "caveats": [
+        "No data file compaction",
+        "No manifest rewriting",
+        "No orphan file cleanup",
+        "No old metadata file cleanup"
+      ]
+    },
+    "pyiceberg:table-maintenance:v3": {
+      "level": "partial",
+      "notes": "Same table maintenance limitations as V2 apply to V3",
+      "caveats": [
+        "No data file compaction",
+        "No manifest rewriting",
+        "No orphan file cleanup"
+      ]
+    },
+    "pyiceberg:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Full branching and tagging support via manage_snapshots() API: create_branch, create_tag, with configurable retention policies",
+      "caveats": []
+    },
+    "pyiceberg:branching-tagging:v3": {
+      "level": "full",
+      "notes": "Branching and tagging fully supported in V3",
+      "caveats": []
+    },
+    "pyiceberg:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via scan().to_arrow(), to_pandas(), to_duckdb(), to_ray(); supports row filters, column projection, and streaming via to_arrow_batch_reader()",
+      "caveats": [
+        "Cannot read tables containing equality delete files"
+      ]
+    },
+    "pyiceberg:read-support:v3": {
+      "level": "full",
+      "notes": "V3 read support including deletion vectors (added in v0.10.0) and nanosecond timestamps",
+      "caveats": [
+        "Cannot read tables containing equality delete files"
+      ],
+      "links": [
+        {
+          "label": "PyIceberg v0.10.0 Release Notes",
+          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.10.0"
+        }
+      ]
+    },
+    "pyiceberg:write-insert:v2": {
+      "level": "full",
+      "notes": "Full insert support via append(), overwrite(), and dynamic_partition_overwrite() using PyArrow tables",
+      "caveats": []
+    },
+    "pyiceberg:write-insert:v3": {
+      "level": "full",
+      "notes": "Insert/append/overwrite supported for V3 tables",
+      "caveats": []
+    },
+    "pyiceberg:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "PyIceberg supports delete(filter), overwrite(filter), and upsert() operations via programmatic API; no SQL MERGE/UPDATE/DELETE syntax",
+      "caveats": [
+        "Programmatic API only, no SQL syntax",
+        "Deletes use copy-on-write (can be slow for large tables)",
+        "Upsert requires identifier fields to be defined"
+      ]
+    },
+    "pyiceberg:write-merge-update-delete:v3": {
+      "level": "partial",
+      "notes": "Same delete/overwrite/upsert programmatic API available for V3 tables",
+      "caveats": [
+        "Programmatic API only, no SQL syntax",
+        "Copy-on-write deletes only"
+      ]
+    },
+    "pyiceberg:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Native support for REST, SQL (PostgreSQL, SQLite), Hive, Glue, and DynamoDB catalogs",
+      "caveats": []
+    },
+    "pyiceberg:catalog-integration:v3": {
+      "level": "full",
+      "notes": "All catalog integrations work with V3 tables",
+      "caveats": []
+    },
+    "pyiceberg:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Native Hive Metastore catalog support via Thrift protocol",
+      "caveats": []
+    },
+    "pyiceberg:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Hive Metastore supported for V3 tables",
+      "caveats": []
+    },
+    "pyiceberg:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Native AWS Glue Catalog support",
+      "caveats": []
+    },
+    "pyiceberg:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supported for V3 tables",
+      "caveats": []
+    },
+    "pyiceberg:rest-catalog:v2": {
+      "level": "full",
+      "notes": "Full Iceberg REST Catalog support with OAuth2, SIGv4 authentication, and bearer token signing",
+      "caveats": []
+    },
+    "pyiceberg:rest-catalog:v3": {
+      "level": "full",
+      "notes": "REST Catalog fully supported for V3 tables",
+      "caveats": []
+    },
+    "pyiceberg:nessie:v2": {
+      "level": "partial",
+      "notes": "No native Nessie catalog implementation; Nessie can be accessed via REST Catalog API when Nessie exposes an Iceberg REST endpoint",
+      "caveats": [
+        "No native NessieCatalog; requires Nessie REST endpoint",
+        "Nessie-specific features like branching via Nessie API not directly supported"
+      ]
+    },
+    "pyiceberg:nessie:v3": {
+      "level": "partial",
+      "notes": "Nessie accessible via REST Catalog API for V3 tables; no native catalog",
+      "caveats": [
+        "No native NessieCatalog; requires Nessie REST endpoint"
+      ]
+    },
+    "pyiceberg:polaris:v2": {
+      "level": "full",
+      "notes": "Polaris fully supported as it implements the Iceberg REST Catalog API",
+      "caveats": []
+    },
+    "pyiceberg:polaris:v3": {
+      "level": "full",
+      "notes": "Polaris supported for V3 tables via REST Catalog API",
+      "caveats": []
+    },
+    "pyiceberg:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Unity Catalog can be accessed via its Iceberg REST API endpoint",
+      "caveats": [
+        "Requires Unity Catalog Iceberg REST endpoint configuration",
+        "Not all Unity Catalog features are accessible via REST API"
+      ]
+    },
+    "pyiceberg:unity-catalog:v3": {
+      "level": "partial",
+      "notes": "Unity Catalog accessible via REST API for V3 tables",
+      "caveats": [
+        "Requires Unity Catalog Iceberg REST endpoint configuration"
+      ]
+    },
+    "pyiceberg:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "PyIceberg does not implement the Hadoop catalog (JVM-based); use SQL or REST catalog instead",
+      "caveats": []
+    },
+    "pyiceberg:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Hadoop catalog is JVM-only; not applicable to PyIceberg",
+      "caveats": []
+    },
+    "pyiceberg:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "PyIceberg does not implement JDBC catalog (JVM-based); PyIceberg offers a SQL catalog backed by PostgreSQL or SQLite as an alternative",
+      "caveats": []
+    },
+    "pyiceberg:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "JDBC catalog is JVM-only; use PyIceberg SQL catalog (PostgreSQL/SQLite) as alternative",
+      "caveats": []
+    },
+    "pyiceberg:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature not applicable to V2",
+      "caveats": []
+    },
+    "pyiceberg:variant-type:v3": {
+      "level": "none",
+      "notes": "PyIceberg does not yet support the Variant type",
+      "caveats": [
+        "Not yet implemented"
+      ]
+    },
+    "pyiceberg:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature not applicable to V2",
+      "caveats": []
+    },
+    "pyiceberg:shredded-variant:v3": {
+      "level": "none",
+      "notes": "PyIceberg does not yet support shredded variant",
+      "caveats": [
+        "Not yet implemented"
+      ]
+    },
+    "pyiceberg:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature not applicable to V2",
+      "caveats": []
+    },
+    "pyiceberg:geometry-type:v3": {
+      "level": "none",
+      "notes": "PyIceberg does not yet support geometry types",
+      "caveats": [
+        "Not yet implemented"
+      ]
+    },
+    "pyiceberg:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature not applicable to V2",
+      "caveats": []
+    },
+    "pyiceberg:nanosecond-timestamps:v3": {
+      "level": "full",
+      "notes": "PyIceberg supports timestamp_ns and timestamptz_ns types (added in v0.10.0)",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg v0.10.0 Release Notes",
+          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.10.0"
+        }
+      ]
+    },
+    "pyiceberg:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage tracking is not supported by PyIceberg",
+      "caveats": []
+    },
+    "pyiceberg:lineage:v3": {
+      "level": "none",
+      "notes": "PyIceberg does not support lineage tracking",
+      "caveats": [
+        "Not yet implemented"
+      ]
+    },
+    "pyiceberg:statistics:v2": {
+      "level": "full",
+      "notes": "PyIceberg reads column statistics from manifest files for scan planning and file pruning. Writes column statistics (min/max, null counts, value counts) when appending or overwriting data. Statistics mode configurable via write.metadata.metrics.default and per-column properties.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    "pyiceberg:statistics:v3": {
+      "level": "full",
+      "notes": "Column statistics fully supported for V3 tables in PyIceberg",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    "pyiceberg:bloom-filters:v2": {
+      "level": "none",
+      "notes": "PyIceberg does not support reading or writing Parquet-level bloom filters or Puffin-based bloom filter statistics. PyIceberg uses PyArrow for Parquet writing which does not currently respect Iceberg bloom filter table properties.",
+      "caveats": [
+        "PyArrow-based Parquet writer does not support Iceberg bloom filter table properties"
+      ],
+      "links": [
+        {
+          "label": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    "pyiceberg:bloom-filters:v3": {
+      "level": "none",
+      "notes": "PyIceberg does not support bloom filters for V3 tables",
+      "caveats": [
+        "PyArrow-based Parquet writer does not support bloom filter configuration"
+      ],
+      "links": []
+    },
+    "pyiceberg:type-promotion:v2": {
+      "level": "full",
+      "notes": "PyIceberg supports type promotion via the update_schema() context manager's update_column() method. Supports all Iceberg spec-defined promotions: int to long, float to double, and increasing decimal precision. The operation is metadata-only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg API – Schema evolution",
+          "url": "https://py.iceberg.apache.org/api/"
+        },
+        {
+          "label": "PyIceberg type promotion",
+          "url": "https://deepwiki.com/apache/iceberg-python/3.3-schemas-and-types"
+        }
+      ]
+    },
+    "pyiceberg:type-promotion:v3": {
+      "level": "full",
+      "notes": "Full type promotion support for V3 tables via update_schema() context manager.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PyIceberg API – Schema evolution",
+          "url": "https://py.iceberg.apache.org/api/"
+        }
+      ]
+    },
+    "pyiceberg:snowflake-horizon-catalog:v2": {
+      "level": "full",
+      "notes": "PyIceberg has first-class REST catalog support. Configure with type=rest and the Horizon Catalog endpoint in pyiceberg config.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "pyiceberg:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "PyIceberg REST catalog support is available; V3 feature support depends on PyIceberg version (0.8.0+ recommended).",
+      "caveats": [
+        "Requires PyIceberg 0.8.0+ for V3 table support"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "pyiceberg:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "pyiceberg:deletion-vectors:v3": {
+      "level": "partial",
+      "notes": "PyIceberg can read V3 deletion vectors (added in v0.10.0) but does not write deletion vectors.",
+      "caveats": [
+        "Read-only; cannot write deletion vectors"
+      ],
+      "links": []
+    }
+  }
+}

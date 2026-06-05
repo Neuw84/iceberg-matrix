@@ -23,14 +23,30 @@ A React single-page application that displays an interactive compatibility matri
 │   │   └── VersionTabs.tsx           # V2/V3 version tab switcher
 │   ├── data/                 # JSON data files
 │   │   ├── features.json             # Feature definitions and categories
-│   │   ├── load-data.ts              # Merges vendor files into CompatibilityData at import time
-│   │   └── platforms/                # Per-vendor platform + support data
-│   │       ├── aws.json              # AWS platforms and support entries
-│   │       ├── gcp.json              # GCP platforms and support entries
-│   │       ├── azure.json            # Azure platforms and support entries
-│   │       ├── databricks.json       # Databricks platforms and support entries
-│   │       ├── snowflake.json        # Snowflake platforms and support entries
-│   │       └── oss.json              # Open-source engines (DuckDB, Spark, Flink, etc.)
+│   │   ├── load-data.ts              # Merges nested per-engine files into CompatibilityData at import time
+│   │   └── platforms/                # Nested per-vendor / per-engine platform + support data
+│   │       ├── aws/                  # split first by S3 mode, then by engine
+│   │       │   ├── s3buckets/        # AWS in S3-buckets mode (exported as `data`)
+│   │       │   │   ├── athena/athena.json
+│   │       │   │   ├── emr/emr.json
+│   │       │   │   ├── glue/glue.json
+│   │       │   │   ├── managed-flink/managed-flink.json
+│   │       │   │   ├── redshift-s3/redshift-s3.json
+│   │       │   │   └── firehose/firehose.json        # staged, NOT imported
+│   │       │   └── s3tables/         # AWS in S3-Tables mode (exported as `dataS3Tables`)
+│   │       │       ├── athena/athena.json
+│   │       │       ├── emr/emr.json
+│   │       │       ├── glue/glue.json
+│   │       │       ├── managed-flink/managed-flink.json
+│   │       │       ├── redshift-s3/redshift-s3.json
+│   │       │       └── firehose/firehose.json        # staged, NOT imported
+│   │       ├── gcp/                  # bigquery/, dataproc/
+│   │       ├── azure/                # synapse/, fabric/
+│   │       ├── databricks/           # databricks/
+│   │       ├── snowflake/            # snowflake/
+│   │       └── oss/                  # duckdb/, clickhouse/, daft/, spark/, flink/,
+│   │                                 # pyiceberg/, doris/, databend/,
+│   │                                 # kafka-connect/ (staged, NOT imported)
 │   ├── utils/                # Pure utility functions
 │   │   ├── comparison.ts             # Comparison logic between platforms
 │   │   ├── filters.ts                # Filter/search logic
@@ -82,19 +98,63 @@ Platforms are grouped by: AWS, GCP, Azure, Databricks, Snowflake, 3rd Party.
 
 Features are categorized into: row-level-operations, schema-management, partitioning, table-management, read-write, catalog-support, v3-data-types, v3-advanced.
 
+## Data Architecture
+
+Platform data lives under `src/data/platforms/` in a nested per-vendor / per-engine hierarchy. There are exactly six vendor folders: `aws`, `gcp`, `azure`, `databricks`, `snowflake`, and `oss` (all lowercase).
+
+### Per-engine layout
+
+Each vendor folder holds one subfolder per engine, and each engine subfolder contains a single JSON file named after the engine (e.g. `gcp/bigquery/bigquery.json`). An engine file mirrors the vendor-file shape but holds exactly one engine's data:
+
+```jsonc
+{
+  "platforms": [ /* exactly one Platform object */ ],
+  "support":    { /* only this engine's "{id}:{featureId}:{version}" entries */ }
+}
+```
+
+### Engine subfolder naming (vendor-prefix omission)
+
+The engine subfolder name is derived from the platform `id` by dropping the leading vendor prefix and its trailing hyphen:
+
+- `google-bigquery` → `bigquery`, `aws-redshift-s3` → `redshift-s3`, `aws-managed-flink` → `managed-flink`.
+- An id without a vendor prefix keeps its name: `duckdb` → `duckdb`, `snowflake` → `snowflake`, `kafka-connect` → `kafka-connect`.
+
+Two engines within the same vendor must never derive to the same subfolder name.
+
+### AWS dual-mode layout
+
+AWS is split first by S3 mode and then by engine. `aws/s3buckets/` and `aws/s3tables/` each contain the same per-engine subfolders — `athena`, `emr`, `glue`, `managed-flink`, `redshift-s3` (plus the staged `firehose`). The two modes hold separate compatibility data for S3 buckets vs S3 Tables.
+
+### How the loader merges the data
+
+`src/data/load-data.ts` uses explicit static imports of each engine's JSON file (no `import.meta.glob`) and concatenates them in a fixed order:
+
+- AWS engines first, in the order `athena`, `emr`, `glue`, `managed-flink`, `redshift-s3`.
+- Then the non-AWS vendors in the order `gcp`, `azure`, `databricks`, `snowflake`, `oss`.
+
+It exports two `CompatibilityData` datasets: `data` (built from `aws/s3buckets` + the non-AWS vendors) and `dataS3Tables` (built from `aws/s3tables` + the non-AWS vendors). `features` and `versions` come unchanged from `features.json`. The fixed import order makes the merged platform order and support map deterministic, independent of filesystem enumeration.
+
+### Staged-but-excluded engines
+
+Firehose (`aws/s3buckets/firehose` and `aws/s3tables/firehose`) and Kafka Connect (`oss/kafka-connect`) are stored in the structure but deliberately excluded from both datasets — the loader simply does not import their files. As a result, neither `aws-firehose` nor `kafka-connect` appears in `data` or `dataS3Tables`, and neither is rendered by the app.
+
+> Note: the original flat per-vendor files (`aws.json`, `aws-tables.json`, `gcp.json`, etc.) are retained temporarily for verification and will be removed later. The nested structure is the source of truth that `load-data.ts` reads from.
+
 ## Best Practices
 
-### Adding a New Platform
+### Adding a New Platform or Engine
 
-1. Add the platform object to the relevant `src/data/platforms/{vendor}.json` file under `"platforms"`.
-2. Add support entries for every feature × version combination in the same file under `"support"`.
-3. If the platform needs a logo, add an SVG to `public/logos/`.
-4. Run `npm test` and `npm run build` to verify nothing breaks.
+1. Create the engine subfolder under its vendor folder using the prefix-less name (e.g. platform `google-bigquery` → `src/data/platforms/gcp/bigquery/`). For AWS, create it under both `aws/s3buckets/<engine>/` and `aws/s3tables/<engine>/`.
+2. Add the engine's JSON file named after the subfolder (e.g. `bigquery/bigquery.json`) containing a single platform object under `"platforms"` and a support entry for every feature × version combination under `"support"`.
+3. Wire an explicit static import for the new engine file into `src/data/load-data.ts`, placing it at the correct position in the merge order (AWS engines first in the order athena, emr, glue, managed-flink, redshift-s3; then gcp, azure, databricks, snowflake, oss).
+4. If the platform needs a logo, add an SVG to `public/logos/`.
+5. Run `npm run build` and `npm test` to verify nothing breaks.
 
 ### Adding a New Feature
 
 1. Add the feature definition to `src/data/features.json`.
-2. Add support entries for the new feature across all existing platforms in each `src/data/platforms/{vendor}.json` file.
+2. Add support entries for the new feature across all existing platforms in each engine's JSON file under `src/data/platforms/`.
 3. Remember about adding caveats or links where relevant ( official docs).
 
 ### Code Conventions
@@ -113,7 +173,10 @@ Features are categorized into: row-level-operations, schema-management, partitio
 
 ### Data Integrity
 
-- Data is split into per-vendor files under `src/data/platforms/` and merged at import time by `src/data/load-data.ts`. There is no single aggregated JSON file to keep in sync.
+- Data is split into nested per-vendor / per-engine files under `src/data/platforms/` and merged at import time by `src/data/load-data.ts`. The nested structure is the single source of truth that `load-data.ts` reads from; there is no aggregated JSON file to keep in sync.
+- Each engine file holds exactly one platform object plus only that platform's support entries. The loader concatenates the engine files in a fixed order, so the merged platform order and support map are deterministic regardless of filesystem enumeration.
+- The original flat per-vendor files are retained temporarily for verification and will be removed later; do not add new data to them.
+- Firehose and Kafka Connect are staged in the structure but excluded from both datasets (their files are never imported), so they are not rendered.
 - Feature definitions live in `src/data/features.json` (single source of truth for features and versions).
 - Every platform must have entries for all features × all versions. Missing entries will show as blank cells in the matrix.
 - Use `"unknown"` level when a platform hasn't announced support for a feature yet, rather than omitting the entry.

@@ -1,0 +1,693 @@
+{
+  "platforms": [
+    {
+      "id": "azure-fabric",
+      "name": "Fabric (1.3)",
+      "vendor": "Microsoft",
+      "category": "cloud",
+      "group": "Azure",
+      "docUrl": "https://learn.microsoft.com/en-us/fabric/"
+    }
+  ],
+  "support": {
+    "azure-fabric:position-deletes:v2": {
+      "level": "unknown",
+      "notes": "OneLake virtualizes Iceberg tables as Delta Lake using Apache XTable, which converts positional delete files during Iceberg-to-Delta conversion",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Position deletes are translated during metadata virtualization; not a native Iceberg engine"
+      ],
+      "links": [
+        {
+          "label": "How OneLake provides Iceberg support",
+          "url": "https://blog.fabric.microsoft.com/en-US/blog/how-to-access-your-microsoft-fabric-tables-in-apache-iceberg-format/"
+        },
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:position-deletes:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric; Microsoft is actively working on V3 compatibility",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": [
+        {
+          "label": "How OneLake provides Iceberg support",
+          "url": "https://blog.fabric.microsoft.com/en-US/blog/how-to-access-your-microsoft-fabric-tables-in-apache-iceberg-format/"
+        }
+      ]
+    },
+    "azure-fabric:equality-deletes:v2": {
+      "level": "unknown",
+      "notes": "Equality delete support depends on the Apache XTable virtualization layer that converts Iceberg metadata to Delta Lake format",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Equality delete handling depends on XTable conversion fidelity"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:equality-deletes:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:merge-on-read:v2": {
+      "level": "unknown",
+      "notes": "When reading external Iceberg tables via shortcuts, merge-on-read is handled by the XTable virtualization layer converting to Delta Lake",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Fabric uses Delta Lake merge strategies internally, not Iceberg MoR"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:merge-on-read:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:copy-on-write:v2": {
+      "level": "unknown",
+      "notes": "Fabric uses Delta Lake copy-on-write internally; when Delta tables are virtualized as Iceberg, the underlying CoW behavior is preserved",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "CoW is the underlying Delta Lake behavior, not native Iceberg CoW"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:copy-on-write:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:schema-evolution:v2": {
+      "level": "unknown",
+      "notes": "Schema evolution works on the Delta Lake side; for Iceberg shortcuts, metadata changes may not be immediately reflected until a data change occurs",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg metadata changes (add/drop/rename columns) may require a data change to trigger re-conversion"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:schema-evolution:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:column-default-values:v2": {
+      "level": "unknown",
+      "notes": "Column default values are an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:nanosecond-timestamps:v2": {
+      "level": "unknown",
+      "notes": "Nanosecond timestamps are an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:nanosecond-timestamps:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:hidden-partitioning:v2": {
+      "level": "unknown",
+      "notes": "Iceberg hidden partitioning is preserved when reading via OneLake shortcuts; Fabric creates Delta partitioned tables natively, which are virtualized as Iceberg",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Partitioning is translated between formats during virtualization"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:hidden-partitioning:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:partition-evolution:v2": {
+      "level": "unknown",
+      "notes": "Partition evolution support depends on the metadata virtualization layer; may have limitations compared to native Iceberg partition evolution",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Partition evolution may not fully round-trip through Delta-Iceberg virtualization"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:partition-evolution:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:multi-arg-transforms:v2": {
+      "level": "unknown",
+      "notes": "Multi-argument transforms are an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:time-travel:v2": {
+      "level": "unknown",
+      "notes": "Time travel is available on Delta Lake tables within Fabric; for Iceberg shortcuts virtualized as Delta, time travel operates on the Delta log, not Iceberg snapshots",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Time travel operates on virtualized Delta log, not native Iceberg snapshot history"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:time-travel:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:table-maintenance:v2": {
+      "level": "unknown",
+      "notes": "Fabric provides automatic optimization (compaction, V-Order) for Delta Lake tables; for Iceberg shortcuts, maintenance must be performed by the source Iceberg writer",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Auto-optimization applies to Delta tables only; Iceberg shortcuts require external maintenance"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:table-maintenance:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:branching-tagging:v2": {
+      "level": "unknown",
+      "notes": "Fabric does not support Iceberg branching and tagging; Fabric uses Delta Lake natively which does not have equivalent branch/tag features",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:branching-tagging:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric; branching/tagging also not supported",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:read-support:v2": {
+      "level": "unknown",
+      "notes": "Full read support for Iceberg tables via OneLake shortcuts with automatic metadata virtualization to Delta Lake (GA). Also supports Delta-to-Iceberg virtualization for external Iceberg readers. OneLake-Snowflake bidirectional Iceberg read is GA as of Jan 2026.",
+      "caveats": [
+        "Not all Iceberg data types are supported (e.g., time type); some type width issues with certain numeric types",
+        "Iceberg time data type is not supported",
+        "Private links not supported; some region restrictions (Qatar Central, Norway West)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        },
+        {
+          "label": "OneLake and Snowflake interoperability (GA)",
+          "url": "https://blog.fabric.microsoft.com/en-us/blog/microsoft-onelake-and-snowflake-interoperability-is-now-generally-available/"
+        },
+        {
+          "label": "How OneLake provides Iceberg support",
+          "url": "https://blog.fabric.microsoft.com/en-US/blog/how-to-access-your-microsoft-fabric-tables-in-apache-iceberg-format/"
+        }
+      ]
+    },
+    "azure-fabric:read-support:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric; V3 compatibility is actively being developed",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": [
+        {
+          "label": "How OneLake provides Iceberg support",
+          "url": "https://blog.fabric.microsoft.com/en-US/blog/how-to-access-your-microsoft-fabric-tables-in-apache-iceberg-format/"
+        }
+      ]
+    },
+    "azure-fabric:write-insert:v2": {
+      "level": "unknown",
+      "notes": "Fabric writes Delta Lake tables natively, which are auto-virtualized as Iceberg for external readers. External tools (e.g., Snowflake) can write Iceberg tables directly to OneLake. Fabric itself does not write native Iceberg format.",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Fabric engines write Delta Lake, not native Iceberg; external Iceberg writers (Snowflake) can write directly to OneLake"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        },
+        {
+          "label": "OneLake and Snowflake interoperability (GA)",
+          "url": "https://blog.fabric.microsoft.com/en-us/blog/microsoft-onelake-and-snowflake-interoperability-is-now-generally-available/"
+        }
+      ]
+    },
+    "azure-fabric:write-insert:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:write-merge-update-delete:v2": {
+      "level": "unknown",
+      "notes": "DML operations (MERGE, UPDATE, DELETE) operate on Delta Lake tables within Fabric; changes are reflected in the virtualized Iceberg view. No native Iceberg DML from Fabric engines.",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "DML is Delta Lake-based; Iceberg view is read-only from Fabric perspective"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:write-merge-update-delete:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:catalog-integration:v2": {
+      "level": "unknown",
+      "notes": "OneLake Table APIs (Preview) provide Iceberg REST Catalog (IRC) and Unity Catalog API endpoints for metadata read operations. Write operations are not yet supported.",
+      "caveats": [
+        "OneLake Table APIs are in Preview as of Feb 2026",
+        "Only read-only metadata operations supported; catalog write operations not yet available"
+      ],
+      "links": [
+        {
+          "label": "OneLake Table APIs overview",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/table-apis/table-apis-overview"
+        },
+        {
+          "label": "OneLake Table APIs for Iceberg",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/table-apis/iceberg-table-apis-overview"
+        }
+      ]
+    },
+    "azure-fabric:catalog-integration:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:hive-metastore:v2": {
+      "level": "unknown",
+      "notes": "Fabric does not support Hive Metastore for Iceberg catalog integration",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:hive-metastore:v3": {
+      "level": "unknown",
+      "notes": "Fabric does not support Hive Metastore for Iceberg catalog integration",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:aws-glue-catalog:v2": {
+      "level": "unknown",
+      "notes": "Fabric does not support AWS Glue Catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:aws-glue-catalog:v3": {
+      "level": "unknown",
+      "notes": "Fabric does not support AWS Glue Catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:rest-catalog:v2": {
+      "level": "unknown",
+      "notes": "OneLake Table APIs (Preview) implement the Iceberg REST Catalog (IRC) specification at https://onelake.table.fabric.microsoft.com/iceberg. Currently read-only metadata operations only (list namespaces, list tables, get table). Metadata write operations planned for future.",
+      "caveats": [
+        "OneLake Table APIs are in Preview",
+        "Read-only metadata operations; write operations not yet supported",
+        "Requires Microsoft Entra ID authentication"
+      ],
+      "links": [
+        {
+          "label": "OneLake Table APIs for Iceberg",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/table-apis/iceberg-table-apis-overview"
+        },
+        {
+          "label": "OneLake Table APIs getting started",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/table-apis/onelake-iceberg-table-apis-detailed"
+        }
+      ]
+    },
+    "azure-fabric:rest-catalog:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:nessie:v2": {
+      "level": "unknown",
+      "notes": "Fabric does not support Nessie catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:nessie:v3": {
+      "level": "unknown",
+      "notes": "Fabric does not support Nessie catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:polaris:v2": {
+      "level": "unknown",
+      "notes": "Fabric does not natively support Polaris catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:polaris:v3": {
+      "level": "unknown",
+      "notes": "Fabric does not natively support Polaris catalog",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:unity-catalog:v2": {
+      "level": "unknown",
+      "notes": "OneLake Table APIs (Preview) support the Unity Catalog API open standard for metadata read operations, in addition to the Iceberg REST Catalog API",
+      "caveats": [
+        "OneLake Table APIs are in Preview",
+        "Read-only metadata operations only"
+      ],
+      "links": [
+        {
+          "label": "OneLake Table APIs overview",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/table-apis/table-apis-overview"
+        }
+      ]
+    },
+    "azure-fabric:unity-catalog:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:hadoop-catalog:v2": {
+      "level": "unknown",
+      "notes": "Fabric does not support Hadoop catalog for Iceberg",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:hadoop-catalog:v3": {
+      "level": "unknown",
+      "notes": "Fabric does not support Hadoop catalog for Iceberg",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:jdbc-catalog:v2": {
+      "level": "unknown",
+      "notes": "Fabric does not support JDBC catalog for Iceberg",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:jdbc-catalog:v3": {
+      "level": "unknown",
+      "notes": "Fabric does not support JDBC catalog for Iceberg",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:table-creation:v2": {
+      "level": "unknown",
+      "notes": "Fabric creates Delta Lake tables (via Spark notebooks, pipelines, etc.) that are automatically virtualized as Iceberg for external readers. External writers (e.g., Snowflake) can create Iceberg tables directly in OneLake.",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Native Iceberg table creation only via external writers (e.g., Snowflake); Fabric creates Delta tables virtualized as Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        },
+        {
+          "label": "OneLake and Snowflake interoperability (GA)",
+          "url": "https://blog.fabric.microsoft.com/en-us/blog/microsoft-onelake-and-snowflake-interoperability-is-now-generally-available/"
+        }
+      ]
+    },
+    "azure-fabric:table-creation:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:variant-type:v2": {
+      "level": "unknown",
+      "notes": "Variant type is an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:shredded-variant:v2": {
+      "level": "unknown",
+      "notes": "Shredded variant is an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:geometry-type:v2": {
+      "level": "unknown",
+      "notes": "Geometry type is an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:lineage:v2": {
+      "level": "unknown",
+      "notes": "Lineage is an Iceberg V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:lineage:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:statistics:v2": {
+      "level": "unknown",
+      "notes": "When Fabric virtualizes Delta Lake tables as Iceberg via Apache XTable, column statistics are translated from Delta Lake statistics to Iceberg manifest statistics. For external Iceberg tables read via OneLake shortcuts, existing statistics are preserved.",
+      "caveats": [
+        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Statistics quality depends on the Delta-to-Iceberg virtualization fidelity"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:statistics:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:bloom-filters:v2": {
+      "level": "unknown",
+      "notes": "Fabric does not support Iceberg bloom filters. Delta Lake tables virtualized as Iceberg do not include bloom filter metadata in the Iceberg representation.",
+      "caveats": [
+        "Iceberg support is via metadata virtualization — Fabric natively uses Delta Lake, not Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:bloom-filters:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    },
+    "azure-fabric:type-promotion:v2": {
+      "level": "unknown",
+      "notes": "Microsoft Fabric accesses Iceberg tables via read-only shortcuts. Type promotion cannot be performed through Fabric; it must be done externally.",
+      "caveats": [
+        "Fabric only supports read-only access to Iceberg tables via OneLake shortcuts",
+        "Type promotions must be performed using an external engine"
+      ],
+      "links": [
+        {
+          "label": "Iceberg tables in OneLake",
+          "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+        }
+      ]
+    },
+    "azure-fabric:type-promotion:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric",
+      "caveats": [
+        "Fabric does not support Iceberg V3"
+      ],
+      "links": []
+    },
+    "azure-fabric:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Microsoft OneLake and Snowflake interoperability is generally available (Feb 2026). Fabric can bidirectionally read Iceberg data managed by Snowflake via Horizon Catalog, and Snowflake-managed Iceberg tables can be natively stored in OneLake. Write access from Fabric engines to Snowflake-managed Iceberg tables via Horizon Catalog is not supported.",
+      "caveats": [
+        "Read interop is GA; write from Fabric to Snowflake-managed Iceberg not supported via Horizon Catalog",
+        "Requires OneLake Snowflake item configuration"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        },
+        {
+          "label": "Microsoft OneLake and Snowflake interoperability (GA)",
+          "url": "https://blog.fabric.microsoft.com/en-GB/blog/microsoft-onelake-and-snowflake-interoperability-is-now-generally-available/"
+        }
+      ]
+    },
+    "azure-fabric:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "Azure Fabric does not support external REST catalogs.",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "azure-fabric:deletion-vectors:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric; deletion vector support is undocumented.",
+      "caveats": [
+        "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
+      ],
+      "links": []
+    }
+  }
+}

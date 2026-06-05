@@ -1,0 +1,476 @@
+{
+  "platforms": [
+    {
+      "id": "daft",
+      "name": "Daft",
+      "vendor": "Eventual",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://docs.daft.ai/en/stable/connectors/iceberg/"
+    }
+  ],
+  "support": {
+    "daft:position-deletes:v2": {
+      "level": "full",
+      "notes": "Daft supports reading Iceberg tables with position deletes via PyIceberg",
+      "caveats": []
+    },
+    "daft:position-deletes:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Daft does not yet support equality deletes; only positional deletes are supported",
+      "caveats": [
+        "Equality deletes on the roadmap (see GitHub #2458)"
+      ]
+    },
+    "daft:equality-deletes:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:merge-on-read:v2": {
+      "level": "partial",
+      "notes": "Daft supports merge-on-read with position deletes only; equality deletes not yet supported",
+      "caveats": [
+        "Only position delete files supported for MOR; equality deletes on roadmap"
+      ]
+    },
+    "daft:merge-on-read:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Daft supports reading copy-on-write Iceberg tables (data files contain final state)",
+      "caveats": []
+    },
+    "daft:copy-on-write:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Daft supports reading schema-evolved Iceberg tables via PyIceberg",
+      "caveats": []
+    },
+    "daft:schema-evolution:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are an Iceberg V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "daft:column-default-values:v3": {
+      "level": "none",
+      "notes": "Daft has not announced Iceberg V3 support; column default values is a V3 feature",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are an Iceberg V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "daft:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Daft has not announced Iceberg V3 support; nanosecond timestamps is a V3 feature",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Daft leverages hidden partitioning for efficient reads with partition pruning",
+      "caveats": []
+    },
+    "daft:hidden-partitioning:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Daft supports reading partition-evolved Iceberg tables via PyIceberg",
+      "caveats": []
+    },
+    "daft:partition-evolution:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument partition transforms are an Iceberg V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "daft:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Daft has not announced Iceberg V3 support; multi arg transforms is a V3 feature",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:time-travel:v2": {
+      "level": "partial",
+      "notes": "Daft supports time travel by snapshot ID; timestamp-based and snapshot slice queries are on the roadmap",
+      "caveats": [
+        "Only snapshot ID-based time travel; timestamp-based lookups and snapshot slices on roadmap"
+      ]
+    },
+    "daft:time-travel:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Daft does not provide table maintenance operations (compaction, expiring snapshots, etc.)",
+      "caveats": [
+        "Use PyIceberg or Spark for table maintenance"
+      ]
+    },
+    "daft:table-maintenance:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Daft does not support Iceberg branching and tagging",
+      "caveats": []
+    },
+    "daft:branching-tagging:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:read-support:v2": {
+      "level": "full",
+      "notes": "Full distributed read support for Iceberg V2 tables via PyIceberg; includes predicate pushdown and partition pruning",
+      "caveats": []
+    },
+    "daft:read-support:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:write-insert:v2": {
+      "level": "full",
+      "notes": "Daft supports append and overwrite write modes to Iceberg tables via PyIceberg",
+      "caveats": []
+    },
+    "daft:write-insert:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:write-merge-update-delete:v2": {
+      "level": "none",
+      "notes": "Daft does not support SQL MERGE, UPDATE, or DELETE operations; only append and overwrite modes are available via write_iceberg()",
+      "caveats": [
+        "No row-level MERGE/UPDATE/DELETE; use append or overwrite mode only"
+      ]
+    },
+    "daft:write-merge-update-delete:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Daft supports all Iceberg catalogs available through PyIceberg (REST, Hive, Glue, SQL, DynamoDB)",
+      "caveats": []
+    },
+    "daft:catalog-integration:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Hive Metastore catalog supported via PyIceberg",
+      "caveats": []
+    },
+    "daft:hive-metastore:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "AWS Glue Catalog supported via PyIceberg",
+      "caveats": []
+    },
+    "daft:aws-glue-catalog:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:rest-catalog:v2": {
+      "level": "full",
+      "notes": "REST Catalog fully supported via PyIceberg; confirmed in Daft FAQ",
+      "caveats": []
+    },
+    "daft:rest-catalog:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:nessie:v2": {
+      "level": "partial",
+      "notes": "Nessie catalog accessible via PyIceberg REST Catalog interface",
+      "caveats": [
+        "Accessed through REST catalog protocol; not a native PyIceberg catalog type"
+      ]
+    },
+    "daft:nessie:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:polaris:v2": {
+      "level": "partial",
+      "notes": "Polaris catalog accessible via PyIceberg REST Catalog interface",
+      "caveats": [
+        "Accessed through REST catalog protocol"
+      ]
+    },
+    "daft:polaris:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Unity Catalog accessible via PyIceberg REST Catalog interface",
+      "caveats": [
+        "Accessed through REST catalog protocol; requires compatible Unity Catalog version"
+      ]
+    },
+    "daft:unity-catalog:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Hadoop catalog is not supported by PyIceberg and therefore not available in Daft",
+      "caveats": []
+    },
+    "daft:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Hadoop catalog is not supported by PyIceberg",
+      "caveats": []
+    },
+    "daft:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "JDBC catalog is a Java concept; PyIceberg has a SQL catalog but not JDBC. Daft does not support JDBC catalogs",
+      "caveats": [
+        "PyIceberg offers a SQL catalog as an alternative"
+      ]
+    },
+    "daft:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "JDBC catalog is not supported; PyIceberg has SQL catalog as alternative",
+      "caveats": []
+    },
+    "daft:table-creation:v2": {
+      "level": "full",
+      "notes": "Daft supports creating Iceberg tables via Session.create_table() and PyIceberg integration",
+      "caveats": []
+    },
+    "daft:table-creation:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "daft:variant-type:v3": {
+      "level": "none",
+      "notes": "Daft has not announced Iceberg V3 support; variant type is a V3 feature",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "daft:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Daft has not announced Iceberg V3 support; shredded variant is a V3 feature",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "daft:geometry-type:v3": {
+      "level": "none",
+      "notes": "Daft has not announced Iceberg V3 support; geometry type is a V3 feature",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:lineage:v2": {
+      "level": "none",
+      "notes": "Row lineage is an Iceberg V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "daft:lineage:v3": {
+      "level": "none",
+      "notes": "Daft has not announced Iceberg V3 support; lineage is a V3 feature",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ]
+    },
+    "daft:statistics:v2": {
+      "level": "full",
+      "notes": "Daft reads column statistics from Iceberg manifest files via PyIceberg for predicate pushdown and file pruning during scan planning. Writes column statistics when appending data.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Daft Iceberg connector",
+          "url": "https://docs.daft.ai/en/stable/connectors/iceberg/"
+        }
+      ]
+    },
+    "daft:statistics:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ],
+      "links": []
+    },
+    "daft:bloom-filters:v2": {
+      "level": "none",
+      "notes": "Daft does not support reading or writing Iceberg bloom filters (Parquet-level or Puffin-based).",
+      "caveats": [],
+      "links": []
+    },
+    "daft:bloom-filters:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+      ],
+      "links": []
+    },
+    "daft:type-promotion:v2": {
+      "level": "none",
+      "notes": "Daft is a DataFrame engine focused on reads and writes via PyIceberg. It does not provide DDL operations for type promotion; type changes must be performed using PyIceberg's update_schema() API or another engine.",
+      "caveats": [
+        "Daft can read Iceberg tables that have been type-promoted by other engines",
+        "No ALTER TABLE or schema DDL support in Daft"
+      ],
+      "links": [
+        {
+          "label": "Daft Iceberg connector",
+          "url": "https://docs.daft.ai/en/stable/connectors/iceberg/"
+        }
+      ]
+    },
+    "daft:type-promotion:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support",
+      "caveats": [
+        "Daft V3 support not yet announced"
+      ],
+      "links": []
+    },
+    "daft:snowflake-horizon-catalog:v2": {
+      "level": "full",
+      "notes": "Daft supports REST catalog natively via PyIceberg integration. Configure with type=rest and the Horizon Catalog endpoint.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "daft:snowflake-horizon-catalog:v3": {
+      "level": "unknown",
+      "notes": "Daft V3 REST catalog support not yet documented.",
+      "caveats": [
+        "V3 support via Daft not yet documented"
+      ],
+      "links": []
+    },
+    "daft:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "daft:deletion-vectors:v3": {
+      "level": "unknown",
+      "notes": "Daft has not announced Iceberg V3 support; deletion vector support is undocumented.",
+      "caveats": [
+        "No Iceberg V3 support announced"
+      ],
+      "links": []
+    }
+  }
+}

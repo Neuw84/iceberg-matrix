@@ -1,0 +1,439 @@
+{
+  "platforms": [
+    {
+      "id": "aws-athena",
+      "name": "Athena SQL (v3)",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/athena/"
+    }
+  ],
+  "support": {
+    "aws-athena:position-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Athena engine v3",
+      "caveats": []
+    },
+    "aws-athena:position-deletes:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Supported via Athena engine v3",
+      "caveats": []
+    },
+    "aws-athena:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Supports merge-on-read for both position and equality deletes",
+      "caveats": []
+    },
+    "aws-athena:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:copy-on-write:v2": {
+      "level": "partial",
+      "notes": "Copy-on-write is the default write mode, but any MERGE or DELETE operation uses merge-on-read regardless of table properties",
+      "caveats": [
+        "MERGE and DELETE always use merge-on-read",
+        "Table write.delete.mode and write.update.mode properties are ignored for these operations"
+      ]
+    },
+    "aws-athena:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Add, drop, and rename columns supported",
+      "caveats": []
+    },
+    "aws-athena:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:column-default-values:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Supports identity, bucket, truncate, year, month, day, hour transforms",
+      "caveats": []
+    },
+    "aws-athena:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Partition evolution supported",
+      "caveats": []
+    },
+    "aws-athena:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:time-travel:v2": {
+      "level": "full",
+      "notes": "Query by snapshot ID or timestamp",
+      "caveats": []
+    },
+    "aws-athena:time-travel:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "Supports OPTIMIZE (REWRITE DATA compaction with BIN_PACK), VACUUM (snapshot expiry and orphan file removal), Iceberg table statistics for cost-based optimization, and Parquet column indexing; no rewrite_manifests procedure",
+      "caveats": [
+        "No rewrite_manifests procedure",
+        "OPTIMIZE limited to BIN_PACK strategy",
+        "VACUUM combines snapshot expiry and orphan file removal"
+      ],
+      "links": [
+        {
+          "label": "Athena Iceberg table optimization docs",
+          "url": "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg-data-optimization.html"
+        }
+      ]
+    },
+    "aws-athena:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:branching-tagging:v2": {
+      "level": "partial",
+      "notes": "Athena can read tags via the $ref metadata table but cannot create or manage branches and tags",
+      "caveats": [
+        "Read-only access to tags via $ref metadata table",
+        "Cannot create or manage branches and tags"
+      ]
+    },
+    "aws-athena:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:read-support:v2": {
+      "level": "full",
+      "notes": "Full read support via Athena engine v3",
+      "caveats": []
+    },
+    "aws-athena:read-support:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO and CTAS supported",
+      "caveats": []
+    },
+    "aws-athena:write-insert:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "MERGE, UPDATE, DELETE supported via Athena engine v3",
+      "caveats": []
+    },
+    "aws-athena:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Integrated with AWS Glue Data Catalog",
+      "caveats": []
+    },
+    "aws-athena:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:hive-metastore:v2": {
+      "level": "none",
+      "notes": "Athena uses AWS Glue Catalog exclusively",
+      "caveats": []
+    },
+    "aws-athena:hive-metastore:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Native integration with AWS Glue Data Catalog",
+      "caveats": []
+    },
+    "aws-athena:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:rest-catalog:v2": {
+      "level": "none",
+      "notes": "Athena does not support REST Catalog directly",
+      "caveats": []
+    },
+    "aws-athena:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:nessie:v2": {
+      "level": "none",
+      "notes": "Athena does not support Nessie catalog",
+      "caveats": []
+    },
+    "aws-athena:nessie:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:polaris:v2": {
+      "level": "partial",
+      "notes": "Athena can access Polaris catalog via AWS Glue Data Catalog federation",
+      "caveats": [
+        "Requires catalog federation setup in AWS Glue Data Catalog"
+      ],
+      "links": [
+        {
+          "label": "Access Snowflake Horizon Catalog data using catalog federation",
+          "url": "https://aws.amazon.com/blogs/big-data/access-snowflake-horizon-catalog-data-using-catalog-federation-in-the-aws-glue-data-catalog/"
+        }
+      ]
+    },
+    "aws-athena:polaris:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Athena can access Unity Catalog via AWS Glue Data Catalog federation with Databricks. Tables must be native Iceberg tables or Delta tables with UniForm enabled",
+      "caveats": [
+        "Requires catalog federation setup in AWS Glue Data Catalog",
+        "Delta tables require UniForm enabled to be read as Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Catalog federation with Databricks",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation-databricks.html"
+        }
+      ]
+    },
+    "aws-athena:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:hadoop-catalog:v2": {
+      "level": "none",
+      "notes": "Athena does not support Hadoop catalog",
+      "caveats": []
+    },
+    "aws-athena:hadoop-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:jdbc-catalog:v2": {
+      "level": "none",
+      "notes": "Athena does not support JDBC catalog",
+      "caveats": []
+    },
+    "aws-athena:jdbc-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:table-creation:v2": {
+      "level": "full",
+      "notes": "Athena supports CREATE TABLE for Iceberg tables via CTAS and standard DDL",
+      "caveats": [
+        "The set of table properties that you can declared is limited."
+      ],
+      "links": [
+        {
+          "label": "Athena Iceberg table creation docs",
+          "url": "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg-creating-tables.html"
+        }
+      ]
+    },
+    "aws-athena:table-creation:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:variant-type:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:geometry-type:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "aws-athena:lineage:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:statistics:v2": {
+      "level": "full",
+      "notes": "Athena writes column statistics to Iceberg manifest files on INSERT/CTAS and uses them for scan planning and file pruning. Athena also supports computing Iceberg table statistics for cost-based optimization.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Athena Iceberg optimization",
+          "url": "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg-data-optimization.html"
+        }
+      ]
+    },
+    "aws-athena:statistics:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:bloom-filters:v2": {
+      "level": "partial",
+      "notes": "Athena can use Glue catalog statistics for cost-based optimization (CBO). Bloom filter read/write support requires further testing to confirm.",
+      "caveats": [
+        "Bloom filter read/write support needs further testing"
+      ],
+      "links": [
+        {
+          "label": "Trino bloom filter PR",
+          "url": "https://github.com/trinodb/trino/pull/21602"
+        }
+      ]
+    },
+    "aws-athena:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:type-promotion:v2": {
+      "level": "full",
+      "notes": "Athena supports type widening via ALTER TABLE CHANGE COLUMN (e.g. decimal(9,6) to decimal(12,6), int to bigint, float to double)",
+      "caveats": [
+        "Metadata-only operation; no data file rewrite required"
+      ],
+      "links": [
+        {
+          "label": "ALTER TABLE CHANGE COLUMN",
+          "url": "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg-alter-table-change-column.html"
+        }
+      ]
+    },
+    "aws-athena:type-promotion:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3",
+      "caveats": []
+    },
+    "aws-athena:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Athena can access Snowflake Horizon Catalog via AWS Glue Catalog Federation, enabling read-only access to Snowflake-managed Iceberg V2 tables. Write operations are not supported — this is an Athena engine limitation, not a Horizon Catalog or Glue Catalog Federation limitation.",
+      "caveats": [
+        "Read-only — write operations to external catalogs not supported by Athena",
+        "Requires AWS Glue Catalog Federation configuration"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "aws-athena:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3 tables. This is an Athena engine limitation, not a Glue Catalog Federation or Horizon Catalog limitation. Athena supports Horizon Catalog for reads on V2 tables via Glue Catalog Federation.",
+      "caveats": [],
+      "links": []
+    },
+    "aws-athena:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "aws-athena:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3, so V3 deletion vectors are unavailable.",
+      "caveats": [],
+      "links": []
+    }
+  }
+}
