@@ -57,6 +57,8 @@ const PLATFORM_LOGOS: Record<string, string> = {
   duckdb: "/logos/duckdb.svg",
   clickhouse: "/logos/clickhouse.svg",
   "spark": "/logos/spark.svg",
+  "spark-gluten": "/logos/spark.svg",
+  "spark-comet": "/logos/spark.svg",
   "flink": "/logos/flink.svg",
   pyiceberg: "/logos/pyiceberg.svg",
   daft: "/logos/daft.svg",
@@ -91,6 +93,7 @@ export function CompatibilityMatrix({
 }: CompatibilityMatrixProps) {
   const [popover, setPopover] = useState<PopoverState | null>(null);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<FeatureCategory>>(new Set());
+  const [activeVariants, setActiveVariants] = useState<Record<string, string>>({});
   const { platforms, features } = applyFilters(data, filters);
   const versions = filters.selectedVersions;
 
@@ -108,16 +111,50 @@ export function CompatibilityMatrix({
     features: features.filter((f) => f.category === cat),
   })).filter((g) => g.features.length > 0);
 
-  const colCount = platforms.length * versions.length;
-
-  // Group platforms by their group for header rendering
-  const platformGroups: { group: PlatformGroup; platforms: Platform[] }[] = [];
+  // Collapse platforms that share a `variantGroup` into a single display column
+  // (e.g. OSS Spark: Vanilla / Gluten-Velox / Comet). Non-variant platforms map
+  // to a single-variant display column. Order is preserved by first occurrence.
+  interface DisplayColumn {
+    key: string;
+    group: PlatformGroup;
+    variants: Platform[];
+    active: Platform;
+  }
+  const displayColumns: DisplayColumn[] = [];
+  const groupIndex = new Map<string, number>();
   for (const p of platforms) {
-    const last = platformGroups[platformGroups.length - 1];
-    if (last && last.group === p.group) {
-      last.platforms.push(p);
+    if (p.variantGroup) {
+      const existing = groupIndex.get(p.variantGroup);
+      if (existing != null) {
+        displayColumns[existing].variants.push(p);
+        continue;
+      }
+      groupIndex.set(p.variantGroup, displayColumns.length);
+      displayColumns.push({ key: p.variantGroup, group: p.group, variants: [p], active: p });
     } else {
-      platformGroups.push({ group: p.group, platforms: [p] });
+      displayColumns.push({ key: p.id, group: p.group, variants: [p], active: p });
+    }
+  }
+  // Resolve the active variant for each multi-variant column from UI state.
+  for (const dc of displayColumns) {
+    if (dc.variants.length > 1) {
+      const activeId = activeVariants[dc.key];
+      dc.active = dc.variants.find((v) => v.id === activeId) ?? dc.variants[0];
+    }
+  }
+
+  // Effective columns actually rendered (one active platform per display column).
+  const effectivePlatforms = displayColumns.map((dc) => dc.active);
+  const colCount = displayColumns.length * versions.length;
+
+  // Group display columns by their platform group for the group header row.
+  const platformGroups: { group: PlatformGroup; columns: DisplayColumn[] }[] = [];
+  for (const dc of displayColumns) {
+    const last = platformGroups[platformGroups.length - 1];
+    if (last && last.group === dc.group) {
+      last.columns.push(dc);
+    } else {
+      platformGroups.push({ group: dc.group, columns: [dc] });
     }
   }
 
@@ -175,7 +212,7 @@ export function CompatibilityMatrix({
               {platformGroups.map((pg) => (
                 <th
                   key={pg.group}
-                  colSpan={pg.platforms.length * versions.length}
+                  colSpan={pg.columns.length * versions.length}
                   className={`px-2 py-1.5 text-center text-[10px] font-bold uppercase tracking-wider border-b border-x ${GROUP_COLORS[pg.group]}`}
                 >
                   <div className="flex items-center justify-center gap-2">
@@ -202,32 +239,71 @@ export function CompatibilityMatrix({
             </tr>
             {/* Platform header row */}
             <tr className="border-b border-gray-300">
-              {platforms.map((p) =>
-                versions.map((v) => (
-                  <th
-                    key={`${p.id}:${v}`}
-                    className="px-1 py-1.5 text-center border-x border-gray-100 bg-gray-50/80"
-                    scope="col"
-                  >
-                    <div className="flex flex-col items-center gap-0.5">
-                      {PLATFORM_LOGOS[p.id] && (
-                        <img
-                          src={PLATFORM_LOGOS[p.id]}
-                          alt=""
-                          className="w-4 h-4 opacity-60"
-                        />
-                      )}
-                      <span className="text-[10px] font-semibold text-gray-700 leading-tight">
-                        {p.name}
-                      </span>
-                      {versions.length > 1 && (
-                        <span className="text-[9px] text-gray-400 font-normal">
-                          {v.toUpperCase()}
+              {displayColumns.map((dc) =>
+                versions.map((v) => {
+                  const p = dc.active;
+                  const isVariant = dc.variants.length > 1;
+                  return (
+                    <th
+                      key={`${dc.key}:${v}`}
+                      className="px-1 py-1.5 text-center border-x border-gray-100 bg-gray-50/80"
+                      scope="col"
+                    >
+                      <div className="flex flex-col items-center gap-0.5">
+                        {PLATFORM_LOGOS[p.id] && (
+                          <img
+                            src={PLATFORM_LOGOS[p.id]}
+                            alt=""
+                            className="w-4 h-4 opacity-60"
+                          />
+                        )}
+                        <span className="text-[10px] font-semibold text-gray-700 leading-tight">
+                          {p.name}
                         </span>
-                      )}
-                    </div>
-                  </th>
-                )),
+                        {isVariant && (
+                          <div
+                            className="inline-flex items-center gap-0.5 mt-0.5 px-1 py-0.5 rounded-full border border-gray-300 bg-white"
+                            role="group"
+                            aria-label={`${p.name} engine variant`}
+                          >
+                            {dc.variants.map((vp, i) => {
+                              const isActive = vp.id === dc.active.id;
+                              return (
+                                <Fragment key={vp.id}>
+                                  {i > 0 && <span className="text-gray-300 text-[9px]">/</span>}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveVariants((prev) => ({
+                                        ...prev,
+                                        [dc.key]: vp.id,
+                                      }));
+                                    }}
+                                    className={`px-1 rounded-full text-[9px] leading-tight cursor-pointer transition-colors normal-case tracking-normal ${
+                                      isActive
+                                        ? "font-bold text-gray-800"
+                                        : "font-normal text-gray-400 hover:text-gray-600"
+                                    }`}
+                                    aria-pressed={isActive}
+                                    title={`Show ${vp.variantLabel ?? vp.name} data`}
+                                  >
+                                    {vp.variantLabel ?? vp.name}
+                                  </button>
+                                </Fragment>
+                              );
+                            })}
+                          </div>
+                        )}
+                        {versions.length > 1 && (
+                          <span className="text-[9px] text-gray-400 font-normal">
+                            {v.toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  );
+                }),
               )}
             </tr>
           </thead>
@@ -270,7 +346,7 @@ export function CompatibilityMatrix({
                       <FeatureRow
                         key={feature.id}
                         feature={feature}
-                        platforms={platforms}
+                        platforms={effectivePlatforms}
                         versions={versions}
                         getSupportEntry={(pid, fid, ver) =>
                           getSupportEntry(data, pid, fid, ver)

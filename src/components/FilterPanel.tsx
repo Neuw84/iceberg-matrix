@@ -60,6 +60,8 @@ const PLATFORM_LOGOS: Record<string, string> = {
   duckdb: "/logos/duckdb.svg",
   clickhouse: "/logos/clickhouse.svg",
   spark: "/logos/spark.svg",
+  "spark-gluten": "/logos/spark.svg",
+  "spark-comet": "/logos/spark.svg",
   flink: "/logos/flink.svg",
   daft: "/logos/daft.svg",
   doris: "/logos/doris.svg",
@@ -85,7 +87,10 @@ export function FilterPanel({
   const groupMap = new Map<PlatformGroup, { id: string; name: string }[]>();
   for (const g of GROUP_ORDER) groupMap.set(g, []);
   for (const p of data.platforms) {
-    groupMap.get(p.group)?.push({ id: p.id, name: p.name });
+    groupMap.get(p.group)?.push({
+      id: p.id,
+      name: p.variantLabel ? `${p.name} ${p.variantLabel}` : p.name,
+    });
   }
 
   const selectedSet = new Set(filters.selectedPlatforms);

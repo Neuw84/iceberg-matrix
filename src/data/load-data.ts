@@ -28,6 +28,8 @@ import duckdb from "./platforms/oss/duckdb/duckdb.json";
 import clickhouse from "./platforms/oss/clickhouse/clickhouse.json";
 import daft from "./platforms/oss/daft/daft.json";
 import spark from "./platforms/oss/spark/spark.json";
+import sparkGluten from "./platforms/oss/spark-gluten/spark-gluten.json";
+import sparkComet from "./platforms/oss/spark-comet/spark-comet.json";
 import flink from "./platforms/oss/flink/flink.json";
 import pyiceberg from "./platforms/oss/pyiceberg/pyiceberg.json";
 import doris from "./platforms/oss/doris/doris.json";
@@ -51,6 +53,8 @@ const nonAwsEngines: EngineFile[] = [
   clickhouse,
   daft,
   spark,
+  sparkGluten,
+  sparkComet,
   flink,
   pyiceberg,
   doris,

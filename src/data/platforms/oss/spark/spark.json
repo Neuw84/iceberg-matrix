@@ -2,11 +2,13 @@
   "platforms": [
     {
       "id": "spark",
-      "name": "OSS Spark (4.1)",
+      "name": "Spark (4.1)",
       "vendor": "Apache",
       "category": "open-source",
       "group": "3rd Party",
-      "docUrl": "https://iceberg.apache.org/docs/latest/spark-getting-started/"
+      "docUrl": "https://iceberg.apache.org/docs/latest/spark-getting-started/",
+      "variantGroup": "spark",
+      "variantLabel": "Vanilla"
     }
   ],
   "support": {

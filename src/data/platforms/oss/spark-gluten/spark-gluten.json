@@ -1,0 +1,917 @@
+{
+  "platforms": [
+    {
+      "id": "spark-gluten",
+      "name": "Spark (4.1)",
+      "vendor": "Apache",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://gluten.apache.org/docs/latest/get-started/VeloxIceberg.html",
+      "variantGroup": "spark",
+      "variantLabel": "Gluten/Velox"
+    }
+  ],
+  "support": {
+    "spark-gluten:position-deletes:v2": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark-gluten:position-deletes:v3": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine",
+        "Deletion vectors (V3) require Iceberg 1.6+ and Spark 3.5+ or 4.0+"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark-gluten:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark-gluten:equality-deletes:v3": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark-gluten:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark-gluten:merge-on-read:v3": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine",
+        "Deletion vectors require Iceberg 1.6+ and Spark 3.5+ or 4.0+"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark-gluten:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark-gluten:copy-on-write:v3": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark-gluten:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Spark DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        }
+      ]
+    },
+    "spark-gluten:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Spark DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        },
+        {
+          "label": "Schema Merge on Write",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#schema-merge"
+        }
+      ]
+    },
+    "spark-gluten:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values (initial-default, write-default) are a V3 feature",
+      "caveats": []
+    },
+    "spark-gluten:column-default-values:v3": {
+      "level": "partial",
+      "notes": "The Velox native scan does not yet accelerate this V3 type; reads fall back to vanilla Spark, which provides the underlying support.",
+      "caveats": [
+        "Reads of this type fall back to vanilla Spark (no native Velox acceleration yet)",
+        "No Spark SQL DDL syntax for setting Iceberg column defaults",
+        "Requires Iceberg 1.6+ with format-version 3"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 Spec",
+          "url": "https://iceberg.apache.org/spec/#column-default-values"
+        }
+      ]
+    },
+    "spark-gluten:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature",
+      "caveats": []
+    },
+    "spark-gluten:nanosecond-timestamps:v3": {
+      "level": "full",
+      "notes": "The Velox native scan does not yet accelerate this V3 type; reads fall back to vanilla Spark, which provides the underlying support.",
+      "caveats": [
+        "Reads of this type fall back to vanilla Spark (no native Velox acceleration yet)",
+        "Microsecond TIMESTAMP remains the default; only switch when nanosecond precision is required",
+        "Requires format-version 3"
+      ],
+      "links": [
+        {
+          "label": "Type Compatibility",
+          "url": "https://iceberg.apache.org/docs/latest/spark-getting-started/#iceberg-type-to-spark-type"
+        },
+        {
+          "label": "Iceberg V3 Spec",
+          "url": "https://iceberg.apache.org/spec/#primitive-types"
+        }
+      ]
+    },
+    "spark-gluten:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Spark DDL - Partitioned By",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#partitioned-by"
+        }
+      ]
+    },
+    "spark-gluten:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Spark DDL - Partitioned By",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#partitioned-by"
+        }
+      ]
+    },
+    "spark-gluten:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine",
+        "Requires Iceberg SQL extensions"
+      ],
+      "links": [
+        {
+          "label": "Partition Evolution DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table-add-partition-field"
+        }
+      ]
+    },
+    "spark-gluten:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine",
+        "Requires Iceberg SQL extensions"
+      ],
+      "links": [
+        {
+          "label": "Partition Evolution DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table-add-partition-field"
+        }
+      ]
+    },
+    "spark-gluten:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument (multi-source-column) transforms are a V3 feature",
+      "caveats": []
+    },
+    "spark-gluten:multi-arg-transforms:v3": {
+      "level": "partial",
+      "notes": "The Velox native scan does not yet accelerate this V3 type; reads fall back to vanilla Spark, which provides the underlying support.",
+      "caveats": [
+        "Reads of this type fall back to vanilla Spark (no native Velox acceleration yet)",
+        "Multi-source-column transforms are a new V3 capability with evolving Spark support",
+        "Requires Spark 4.0+ for full V3 transform support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 Spec",
+          "url": "https://iceberg.apache.org/spec/#version-3-extended-types-and-capabilities"
+        }
+      ]
+    },
+    "spark-gluten:time-travel:v2": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Time Travel SQL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-queries/#time-travel-queries-with-sql"
+        },
+        {
+          "label": "Time Travel DataFrame",
+          "url": "https://iceberg.apache.org/docs/latest/spark-queries/#time-travel-queries-with-dataframe"
+        }
+      ]
+    },
+    "spark-gluten:time-travel:v3": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Time Travel SQL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-queries/#time-travel-queries-with-sql"
+        }
+      ]
+    },
+    "spark-gluten:table-maintenance:v2": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine",
+        "Requires Iceberg SQL extensions for stored procedures"
+      ],
+      "links": [
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark-gluten:table-maintenance:v3": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine",
+        "Requires Iceberg SQL extensions for stored procedures"
+      ],
+      "links": [
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark-gluten:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine",
+        "Requires Iceberg SQL extensions"
+      ],
+      "links": [
+        {
+          "label": "Branching & Tagging DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#branching-and-tagging-ddl"
+        },
+        {
+          "label": "Writing to Branches",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#writing-to-branches"
+        }
+      ]
+    },
+    "spark-gluten:branching-tagging:v3": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine",
+        "Requires Iceberg SQL extensions"
+      ],
+      "links": [
+        {
+          "label": "Branching & Tagging DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#branching-and-tagging-ddl"
+        }
+      ]
+    },
+    "spark-gluten:read-support:v2": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Spark Queries",
+          "url": "https://iceberg.apache.org/docs/latest/spark-queries/"
+        },
+        {
+          "label": "Getting Started",
+          "url": "https://iceberg.apache.org/docs/latest/spark-getting-started/"
+        }
+      ]
+    },
+    "spark-gluten:read-support:v3": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark",
+        "Some V3 data types (nanosecond timestamps, geospatial) are not readable in Spark"
+      ],
+      "links": [
+        {
+          "label": "Spark Queries",
+          "url": "https://iceberg.apache.org/docs/latest/spark-queries/"
+        }
+      ]
+    },
+    "spark-gluten:write-insert:v2": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark-gluten:write-insert:v3": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark-gluten:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine",
+        "MERGE INTO, UPDATE, and row-level DELETE require Iceberg SQL extensions"
+      ],
+      "links": [
+        {
+          "label": "MERGE INTO",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#merge-into"
+        },
+        {
+          "label": "DELETE FROM",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#delete-from"
+        },
+        {
+          "label": "UPDATE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#update"
+        }
+      ]
+    },
+    "spark-gluten:write-merge-update-delete:v3": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine",
+        "MERGE INTO, UPDATE, and row-level DELETE require Iceberg SQL extensions",
+        "DataFrame MERGE INTO API requires Spark 4.0+"
+      ],
+      "links": [
+        {
+          "label": "Spark Writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "spark-gluten:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Spark Configuration - Catalogs",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark-gluten:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Spark Configuration - Catalogs",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark-gluten:hive-metastore:v2": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark-gluten:hive-metastore:v3": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark-gluten:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
+        }
+      ]
+    },
+    "spark-gluten:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
+        }
+      ]
+    },
+    "spark-gluten:rest-catalog:v2": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark-gluten:rest-catalog:v3": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark-gluten:nessie:v2": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
+        }
+      ]
+    },
+    "spark-gluten:nessie:v3": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
+        }
+      ]
+    },
+    "spark-gluten:polaris:v2": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark-gluten:polaris:v3": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark-gluten:unity-catalog:v2": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark-gluten:unity-catalog:v3": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark-gluten:hadoop-catalog:v2": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark-gluten:hadoop-catalog:v3": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
+        }
+      ]
+    },
+    "spark-gluten:jdbc-catalog:v2": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
+        }
+      ]
+    },
+    "spark-gluten:jdbc-catalog:v3": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Catalog Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
+        }
+      ]
+    },
+    "spark-gluten:table-creation:v2": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine"
+      ]
+    },
+    "spark-gluten:table-creation:v3": {
+      "level": "full",
+      "notes": "Gluten/Velox accelerates reads only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "caveats": [
+        "Writes/DML are executed by vanilla Spark, not the native engine"
+      ]
+    },
+    "spark-gluten:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant Type is a V3 feature",
+      "caveats": []
+    },
+    "spark-gluten:variant-type:v3": {
+      "level": "full",
+      "notes": "The Velox native scan does not yet accelerate this V3 type; reads fall back to vanilla Spark, which provides the underlying support.",
+      "caveats": [
+        "Reads of this type fall back to vanilla Spark (no native Velox acceleration yet)"
+      ]
+    },
+    "spark-gluten:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature",
+      "caveats": []
+    },
+    "spark-gluten:shredded-variant:v3": {
+      "level": "full",
+      "notes": "The Velox native scan does not yet accelerate this V3 type; reads fall back to vanilla Spark, which provides the underlying support.",
+      "caveats": [
+        "Reads of this type fall back to vanilla Spark (no native Velox acceleration yet)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
+    },
+    "spark-gluten:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry Type is a V3 feature",
+      "caveats": []
+    },
+    "spark-gluten:geometry-type:v3": {
+      "level": "full",
+      "notes": "The Velox native scan does not yet accelerate this V3 type; reads fall back to vanilla Spark, which provides the underlying support.",
+      "caveats": [
+        "Reads of this type fall back to vanilla Spark (no native Velox acceleration yet)",
+        "Spatial query operators come from engine-side libraries (e.g. Apache Sedona), not Spark core",
+        "Requires format-version 3"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 Spec",
+          "url": "https://iceberg.apache.org/spec/#geometry"
+        },
+        {
+          "label": "Apache Sedona",
+          "url": "https://sedona.apache.org/"
+        }
+      ]
+    },
+    "spark-gluten:lineage:v2": {
+      "level": "none",
+      "notes": "Lineage is a V3 feature",
+      "caveats": []
+    },
+    "spark-gluten:lineage:v3": {
+      "level": "full",
+      "notes": "The Velox native scan does not yet accelerate this V3 type; reads fall back to vanilla Spark, which provides the underlying support.",
+      "caveats": [
+        "Reads of this type fall back to vanilla Spark (no native Velox acceleration yet)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
+    },
+    "spark-gluten:statistics:v2": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/"
+        },
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark-gluten:statistics:v3": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Configuration",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/"
+        },
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark-gluten:bloom-filters:v2": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark",
+        "Bloom filters must be explicitly enabled per column via table properties",
+        "Not enabled by default"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Configuration - Write Properties",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/#write-properties"
+        },
+        {
+          "label": "Spark Procedures",
+          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
+        }
+      ]
+    },
+    "spark-gluten:bloom-filters:v3": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark",
+        "Bloom filters must be explicitly enabled per column via table properties"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Configuration - Write Properties",
+          "url": "https://iceberg.apache.org/docs/latest/configuration/#write-properties"
+        }
+      ]
+    },
+    "spark-gluten:type-promotion:v2": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Spark DDL – ALTER TABLE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        },
+        {
+          "label": "Schema evolution",
+          "url": "https://iceberg.apache.org/docs/latest/evolution/"
+        }
+      ]
+    },
+    "spark-gluten:type-promotion:v3": {
+      "level": "full",
+      "notes": "Read path is natively accelerated by the Gluten Velox backend (offloaded scans for Parquet and ORC). Partitioned-table scans, metadata-table reads, equality-delete reads, and unsupported expressions fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "caveats": [
+        "Avro is not offloaded; partitioned tables and metadata reads mostly fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Spark DDL – ALTER TABLE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        }
+      ]
+    },
+    "spark-gluten:snowflake-horizon-catalog:v2": {
+      "level": "full",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "spark-gluten:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "Catalog operations run on vanilla Spark (catalogs are not used by the native engine); feature support is inherited from Spark.",
+      "caveats": [
+        "Catalog handling and CALL procedures fall back to vanilla Spark",
+        "Requires iceberg-spark-runtime 1.7.0+ for V3 table support"
+      ],
+      "links": [
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "spark-gluten:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "spark-gluten:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "The Velox native scan does not yet accelerate this V3 type; reads fall back to vanilla Spark, which provides the underlying support.",
+      "caveats": [
+        "Reads of this type fall back to vanilla Spark (no native Velox acceleration yet)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
+    }
+  }
+}

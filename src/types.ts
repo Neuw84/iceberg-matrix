@@ -9,6 +9,14 @@ export interface Platform {
   category: "cloud" | "open-source";
   group: PlatformGroup;
   docUrl: string;
+  /**
+   * Optional grouping key. Platforms sharing the same `variantGroup` are
+   * collapsed into a single matrix column with a toggle to switch between
+   * them (e.g. OSS Spark: Vanilla / Gluten-Velox / Comet).
+   */
+  variantGroup?: string;
+  /** Short label shown in the variant toggle (e.g. "Vanilla", "Gluten/Velox"). */
+  variantLabel?: string;
 }
 
 export interface Feature {
