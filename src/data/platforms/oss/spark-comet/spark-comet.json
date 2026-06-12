@@ -13,139 +13,73 @@
   ],
   "support": {
     "spark-comet:position-deletes:v2": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine"
-      ],
-      "links": [
-        {
-          "label": "Spark Writes",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:position-deletes:v3": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine",
-        "Deletion vectors (V3) require Iceberg 1.6+ and Spark 3.5+ or 4.0+"
-      ],
-      "links": [
-        {
-          "label": "Spark Writes",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:equality-deletes:v2": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine"
-      ],
-      "links": [
-        {
-          "label": "Spark Writes",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:equality-deletes:v3": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine"
-      ],
-      "links": [
-        {
-          "label": "Spark Writes",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:merge-on-read:v2": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine"
-      ],
-      "links": [
-        {
-          "label": "Spark Writes",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:merge-on-read:v3": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine",
-        "Deletion vectors require Iceberg 1.6+ and Spark 3.5+ or 4.0+"
-      ],
-      "links": [
-        {
-          "label": "Spark Writes",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:copy-on-write:v2": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine"
-      ],
-      "links": [
-        {
-          "label": "Spark Writes",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:copy-on-write:v3": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine"
-      ],
-      "links": [
-        {
-          "label": "Spark Writes",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:schema-evolution:v2": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Spark DDL",
-          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:schema-evolution:v3": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Spark DDL",
-          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
-        },
-        {
-          "label": "Schema Merge on Write",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#schema-merge"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:column-default-values:v2": {
@@ -154,18 +88,10 @@
       "caveats": []
     },
     "spark-comet:column-default-values:v3": {
-      "level": "partial",
-      "notes": "Comet native Parquet scan support for this V3 type is limited; reads fall back to vanilla Spark, which provides the underlying support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Reads of this type fall back to vanilla Spark (limited native Comet acceleration)",
-        "No Spark SQL DDL syntax for setting Iceberg column defaults",
-        "Requires Iceberg 1.6+ with format-version 3"
-      ],
-      "links": [
-        {
-          "label": "Iceberg V3 Spec",
-          "url": "https://iceberg.apache.org/spec/#column-default-values"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:nanosecond-timestamps:v2": {
@@ -174,76 +100,38 @@
       "caveats": []
     },
     "spark-comet:nanosecond-timestamps:v3": {
-      "level": "full",
-      "notes": "Comet native Parquet scan support for this V3 type is limited; reads fall back to vanilla Spark, which provides the underlying support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Reads of this type fall back to vanilla Spark (limited native Comet acceleration)",
-        "Microsecond TIMESTAMP remains the default; only switch when nanosecond precision is required",
-        "Requires format-version 3"
-      ],
-      "links": [
-        {
-          "label": "Type Compatibility",
-          "url": "https://iceberg.apache.org/docs/latest/spark-getting-started/#iceberg-type-to-spark-type"
-        },
-        {
-          "label": "Iceberg V3 Spec",
-          "url": "https://iceberg.apache.org/spec/#primitive-types"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:hidden-partitioning:v2": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Spark DDL - Partitioned By",
-          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#partitioned-by"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:hidden-partitioning:v3": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Spark DDL - Partitioned By",
-          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#partitioned-by"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:partition-evolution:v2": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine",
-        "Requires Iceberg SQL extensions"
-      ],
-      "links": [
-        {
-          "label": "Partition Evolution DDL",
-          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table-add-partition-field"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:partition-evolution:v3": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine",
-        "Requires Iceberg SQL extensions"
-      ],
-      "links": [
-        {
-          "label": "Partition Evolution DDL",
-          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table-add-partition-field"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:multi-arg-transforms:v2": {
@@ -252,450 +140,234 @@
       "caveats": []
     },
     "spark-comet:multi-arg-transforms:v3": {
-      "level": "partial",
-      "notes": "Comet native Parquet scan support for this V3 type is limited; reads fall back to vanilla Spark, which provides the underlying support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Reads of this type fall back to vanilla Spark (limited native Comet acceleration)",
-        "Multi-source-column transforms are a new V3 capability with evolving Spark support",
-        "Requires Spark 4.0+ for full V3 transform support"
-      ],
-      "links": [
-        {
-          "label": "Iceberg V3 Spec",
-          "url": "https://iceberg.apache.org/spec/#version-3-extended-types-and-capabilities"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:time-travel:v2": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Time Travel SQL",
-          "url": "https://iceberg.apache.org/docs/latest/spark-queries/#time-travel-queries-with-sql"
-        },
-        {
-          "label": "Time Travel DataFrame",
-          "url": "https://iceberg.apache.org/docs/latest/spark-queries/#time-travel-queries-with-dataframe"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:time-travel:v3": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Time Travel SQL",
-          "url": "https://iceberg.apache.org/docs/latest/spark-queries/#time-travel-queries-with-sql"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:table-maintenance:v2": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine",
-        "Requires Iceberg SQL extensions for stored procedures"
-      ],
-      "links": [
-        {
-          "label": "Spark Procedures",
-          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:table-maintenance:v3": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine",
-        "Requires Iceberg SQL extensions for stored procedures"
-      ],
-      "links": [
-        {
-          "label": "Spark Procedures",
-          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:branching-tagging:v2": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine",
-        "Requires Iceberg SQL extensions"
-      ],
-      "links": [
-        {
-          "label": "Branching & Tagging DDL",
-          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#branching-and-tagging-ddl"
-        },
-        {
-          "label": "Writing to Branches",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#writing-to-branches"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:branching-tagging:v3": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine",
-        "Requires Iceberg SQL extensions"
-      ],
-      "links": [
-        {
-          "label": "Branching & Tagging DDL",
-          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#branching-and-tagging-ddl"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:read-support:v2": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Spark Queries",
-          "url": "https://iceberg.apache.org/docs/latest/spark-queries/"
-        },
-        {
-          "label": "Getting Started",
-          "url": "https://iceberg.apache.org/docs/latest/spark-getting-started/"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:read-support:v3": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "partial",
+      "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark",
-        "Some V3 data types (nanosecond timestamps, geospatial) are not readable in Spark"
-      ],
-      "links": [
-        {
-          "label": "Spark Queries",
-          "url": "https://iceberg.apache.org/docs/latest/spark-queries/"
-        }
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:write-insert:v2": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine"
-      ],
-      "links": [
-        {
-          "label": "Spark Writes",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:write-insert:v3": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine"
-      ],
-      "links": [
-        {
-          "label": "Spark Writes",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:write-merge-update-delete:v2": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine",
-        "MERGE INTO, UPDATE, and row-level DELETE require Iceberg SQL extensions"
-      ],
-      "links": [
-        {
-          "label": "MERGE INTO",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#merge-into"
-        },
-        {
-          "label": "DELETE FROM",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#delete-from"
-        },
-        {
-          "label": "UPDATE",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/#update"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:write-merge-update-delete:v3": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine",
-        "MERGE INTO, UPDATE, and row-level DELETE require Iceberg SQL extensions",
-        "DataFrame MERGE INTO API requires Spark 4.0+"
-      ],
-      "links": [
-        {
-          "label": "Spark Writes",
-          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:catalog-integration:v2": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Spark Configuration - Catalogs",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:catalog-integration:v3": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Spark Configuration - Catalogs",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:hive-metastore:v2": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:hive-metastore:v3": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:aws-glue-catalog:v2": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:aws-glue-catalog:v3": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:rest-catalog:v2": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:rest-catalog:v3": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:nessie:v2": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:nessie:v3": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:polaris:v2": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:polaris:v3": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:unity-catalog:v2": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:unity-catalog:v3": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:hadoop-catalog:v2": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:hadoop-catalog:v3": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:jdbc-catalog:v2": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:jdbc-catalog:v3": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:table-creation:v2": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:table-creation:v3": {
-      "level": "full",
-      "notes": "Comet accelerates Parquet scans only; all writes and DML fall back to vanilla Spark, which provides the underlying feature support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Writes/DML are executed by vanilla Spark, not the native engine"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:variant-type:v2": {
@@ -704,10 +376,10 @@
       "caveats": []
     },
     "spark-comet:variant-type:v3": {
-      "level": "full",
-      "notes": "Comet native Parquet scan support for this V3 type is limited; reads fall back to vanilla Spark, which provides the underlying support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Reads of this type fall back to vanilla Spark (limited native Comet acceleration)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:shredded-variant:v2": {
@@ -716,16 +388,10 @@
       "caveats": []
     },
     "spark-comet:shredded-variant:v3": {
-      "level": "full",
-      "notes": "Comet native Parquet scan support for this V3 type is limited; reads fall back to vanilla Spark, which provides the underlying support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Reads of this type fall back to vanilla Spark (limited native Comet acceleration)"
-      ],
-      "links": [
-        {
-          "label": "Apache Iceberg 1.11.0 release notes",
-          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:geometry-type:v2": {
@@ -734,22 +400,10 @@
       "caveats": []
     },
     "spark-comet:geometry-type:v3": {
-      "level": "full",
-      "notes": "Comet native Parquet scan support for this V3 type is limited; reads fall back to vanilla Spark, which provides the underlying support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Reads of this type fall back to vanilla Spark (limited native Comet acceleration)",
-        "Spatial query operators come from engine-side libraries (e.g. Apache Sedona), not Spark core",
-        "Requires format-version 3"
-      ],
-      "links": [
-        {
-          "label": "Iceberg V3 Spec",
-          "url": "https://iceberg.apache.org/spec/#geometry"
-        },
-        {
-          "label": "Apache Sedona",
-          "url": "https://sedona.apache.org/"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:lineage:v2": {
@@ -758,140 +412,66 @@
       "caveats": []
     },
     "spark-comet:lineage:v3": {
-      "level": "full",
-      "notes": "Comet native Parquet scan support for this V3 type is limited; reads fall back to vanilla Spark, which provides the underlying support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Reads of this type fall back to vanilla Spark (limited native Comet acceleration)"
-      ],
-      "links": [
-        {
-          "label": "Apache Iceberg 1.11.0 release notes",
-          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:statistics:v2": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "unknown",
+      "notes": "Acceleration of this feature by Apache DataFusion Comet is not documented; it falls back to vanilla Spark where unsupported (see the Vanilla toggle).",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Iceberg Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/configuration/"
-        },
-        {
-          "label": "Spark Procedures",
-          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
-        }
+        "Acceleration not documented; falls back to vanilla Spark where unsupported"
       ]
     },
     "spark-comet:statistics:v3": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "unknown",
+      "notes": "Acceleration of this feature by Apache DataFusion Comet is not documented; it falls back to vanilla Spark where unsupported (see the Vanilla toggle).",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Iceberg Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/configuration/"
-        },
-        {
-          "label": "Spark Procedures",
-          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
-        }
+        "Acceleration not documented; falls back to vanilla Spark where unsupported"
       ]
     },
     "spark-comet:bloom-filters:v2": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "unknown",
+      "notes": "Acceleration of this feature by Apache DataFusion Comet is not documented; it falls back to vanilla Spark where unsupported (see the Vanilla toggle).",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark",
-        "Bloom filters must be explicitly enabled per column via table properties",
-        "Not enabled by default"
-      ],
-      "links": [
-        {
-          "label": "Iceberg Configuration - Write Properties",
-          "url": "https://iceberg.apache.org/docs/latest/configuration/#write-properties"
-        },
-        {
-          "label": "Spark Procedures",
-          "url": "https://iceberg.apache.org/docs/latest/spark-procedures/"
-        }
+        "Acceleration not documented; falls back to vanilla Spark where unsupported"
       ]
     },
     "spark-comet:bloom-filters:v3": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "unknown",
+      "notes": "Acceleration of this feature by Apache DataFusion Comet is not documented; it falls back to vanilla Spark where unsupported (see the Vanilla toggle).",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark",
-        "Bloom filters must be explicitly enabled per column via table properties"
-      ],
-      "links": [
-        {
-          "label": "Iceberg Configuration - Write Properties",
-          "url": "https://iceberg.apache.org/docs/latest/configuration/#write-properties"
-        }
+        "Acceleration not documented; falls back to vanilla Spark where unsupported"
       ]
     },
     "spark-comet:type-promotion:v2": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "unknown",
+      "notes": "Acceleration of this feature by Apache DataFusion Comet is not documented; it falls back to vanilla Spark where unsupported (see the Vanilla toggle).",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Spark DDL – ALTER TABLE",
-          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
-        },
-        {
-          "label": "Schema evolution",
-          "url": "https://iceberg.apache.org/docs/latest/evolution/"
-        }
+        "Acceleration not documented; falls back to vanilla Spark where unsupported"
       ]
     },
     "spark-comet:type-promotion:v3": {
-      "level": "full",
-      "notes": "Read path is natively accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan, including complex types on Spark 4.0). ORC/Avro and unsupported cases fall back to vanilla Spark. Iceberg feature support is inherited from Spark.",
+      "level": "unknown",
+      "notes": "Acceleration of this feature by Apache DataFusion Comet is not documented; it falls back to vanilla Spark where unsupported (see the Vanilla toggle).",
       "caveats": [
-        "Only Parquet scans are accelerated natively; ORC/Avro fall back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Spark DDL – ALTER TABLE",
-          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
-        }
+        "Acceleration not documented; falls back to vanilla Spark where unsupported"
       ]
     },
     "spark-comet:snowflake-horizon-catalog:v2": {
-      "level": "full",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark"
-      ],
-      "links": [
-        {
-          "label": "Snowflake Horizon Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:snowflake-horizon-catalog:v3": {
-      "level": "partial",
-      "notes": "Catalog operations run on vanilla Spark; feature support is inherited from Spark.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Catalog handling falls back to vanilla Spark",
-        "Requires iceberg-spark-runtime 1.7.0+ for V3 table support"
-      ],
-      "links": [
-        {
-          "label": "Snowflake Horizon Catalog docs",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     },
     "spark-comet:deletion-vectors:v2": {
@@ -901,16 +481,10 @@
       "links": []
     },
     "spark-comet:deletion-vectors:v3": {
-      "level": "full",
-      "notes": "Comet native Parquet scan support for this V3 type is limited; reads fall back to vanilla Spark, which provides the underlying support.",
+      "level": "none",
+      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Reads of this type fall back to vanilla Spark (limited native Comet acceleration)"
-      ],
-      "links": [
-        {
-          "label": "Apache Iceberg 1.11.0 release notes",
-          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
-        }
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
     }
   }
