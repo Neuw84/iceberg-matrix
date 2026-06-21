@@ -11,20 +11,26 @@
   ],
   "support": {
     "snowflake:position-deletes:v2": {
-      "level": "partial",
-      "notes": "Position deletes are supported for externally managed Iceberg tables only. Snowflake-managed tables use copy-on-write exclusively and do not produce position delete files.",
+      "level": "full",
+      "notes": "Snowflake fully supports reading and writing position deletes for Iceberg v2 tables. For externally managed tables, merge-on-read with positional delete files is the default write mode (ICEBERG_MERGE_ON_READ_BEHAVIOR='AUTO'). For Snowflake-managed v2 tables, copy-on-write is the default but merge-on-read can be enabled via the ICEBERG_MERGE_ON_READ_BEHAVIOR parameter. Write support for externally managed tables (including positional deletes) is generally available as of October 2025.",
       "caveats": [
-        "Only supported when reading externally managed Iceberg tables that contain position delete files",
-        "Snowflake-managed tables use copy-on-write and never produce position deletes"
+        "Externally managed v2 tables: merge-on-read with positional deletes is the default (ICEBERG_MERGE_ON_READ_BEHAVIOR='AUTO')",
+        "Snowflake-managed v2 tables: copy-on-write by default; set ICEBERG_MERGE_ON_READ_BEHAVIOR='ENABLED' to produce positional delete files",
+        "ENABLE_ICEBERG_MERGE_ON_READ is a deprecated fallback; use ICEBERG_MERGE_ON_READ_BEHAVIOR instead",
+        "Write support for externally managed tables (GA October 2025) on S3, Azure, and Google Cloud"
       ],
       "links": [
         {
-          "label": "Row-level deletes",
+          "label": "Row-level deletes (manage Iceberg tables)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes"
         },
         {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+          "label": "Write support for externally managed tables (GA Oct 2025)",
+          "url": "https://docs.snowflake.com/en/release-notes/2025/other/2025-10-17-iceberg-external-writes-cld-ga"
+        },
+        {
+          "label": "Write support for externally managed tables (docs)",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-externally-managed-writes"
         }
       ]
     },
@@ -78,20 +84,25 @@
     },
     "snowflake:merge-on-read:v2": {
       "level": "partial",
-      "notes": "Merge-on-read is supported for externally managed Iceberg tables via the ENABLE_ICEBERG_MERGE_ON_READ session parameter. Snowflake-managed tables use copy-on-write exclusively.",
+      "notes": "Merge-on-read is supported for all Iceberg v2 tables in Snowflake, controlled by the ICEBERG_MERGE_ON_READ_BEHAVIOR parameter. The default value 'AUTO' enables MoR for all externally managed tables and uses copy-on-write for Snowflake-managed v2 tables. Set to 'ENABLED' to force MoR for Snowflake-managed v2 tables. Uses positional delete files for v2. Write support for externally managed tables is generally available as of October 2025. ENABLE_ICEBERG_MERGE_ON_READ is deprecated in favour of ICEBERG_MERGE_ON_READ_BEHAVIOR.",
       "caveats": [
-        "Only available for externally managed Iceberg tables, not Snowflake-managed tables",
-        "Requires setting the ENABLE_ICEBERG_MERGE_ON_READ session parameter",
-        "Snowflake-managed tables always use copy-on-write"
+        "ICEBERG_MERGE_ON_READ_BEHAVIOR='AUTO' (default): MoR for all externally managed tables; CoW for Snowflake-managed v2 tables",
+        "Set ICEBERG_MERGE_ON_READ_BEHAVIOR='ENABLED' to force MoR for Snowflake-managed v2 tables",
+        "ENABLE_ICEBERG_MERGE_ON_READ session parameter is deprecated — use ICEBERG_MERGE_ON_READ_BEHAVIOR instead",
+        "Snowflake uses heuristics (row %, file size) to decide per-file whether to use MoR or CoW even when MoR is active"
       ],
       "links": [
         {
-          "label": "Row-level deletes",
+          "label": "Row-level deletes (manage Iceberg tables)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes"
         },
         {
-          "label": "Manage Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
+          "label": "Write support for externally managed tables (GA Oct 2025)",
+          "url": "https://docs.snowflake.com/en/release-notes/2025/other/2025-10-17-iceberg-external-writes-cld-ga"
+        },
+        {
+          "label": "Write support for externally managed tables (docs)",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-externally-managed-writes"
         }
       ]
     },
@@ -118,19 +129,16 @@
     },
     "snowflake:copy-on-write:v2": {
       "level": "full",
-      "notes": "Copy-on-write is the exclusive write strategy for Snowflake-managed Iceberg tables. All DELETE, UPDATE, and MERGE operations rewrite affected data files.",
+      "notes": "Copy-on-write is the default write strategy for Snowflake-managed Iceberg v2 tables. All DELETE, UPDATE, and MERGE operations rewrite affected data files. Merge-on-read is also available (and is the default for externally managed v2 tables) via the ICEBERG_MERGE_ON_READ_BEHAVIOR parameter.",
       "caveats": [
-        "Exclusive write strategy for Snowflake-managed Iceberg tables",
-        "All DML operations (DELETE, UPDATE, MERGE) rewrite entire data files"
+        "Default write strategy for Snowflake-managed v2 tables",
+        "All DML operations (DELETE, UPDATE, MERGE) rewrite entire data files when using CoW",
+        "Set ICEBERG_MERGE_ON_READ_BEHAVIOR='DISABLED' to force CoW for all tables including externally managed"
       ],
       "links": [
         {
           "label": "Manage Iceberg tables",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
         }
       ]
     },
@@ -237,20 +245,26 @@
       ]
     },
     "snowflake:hidden-partitioning:v2": {
-      "level": "partial",
-      "notes": "Snowflake supports Iceberg partition transforms (year, month, day, hour, truncate, bucket, identity) but the bucket transform can negatively impact query performance.",
+      "level": "full",
+      "notes": "Snowflake supports all Iceberg v2 partition transforms (year, month, day, hour, bucket, truncate, identity) for both Snowflake-managed and externally managed tables. Partitioned writes are GA (Oct 2025). As of Feb 2026 (Preview), Snowflake also supports hierarchical (Hive-style) path layout via PATH_LAYOUT=HIERARCHICAL, enabling compatibility with external engines that expect directory-per-partition layouts.",
       "caveats": [
-        "Bucket partition transform may negatively impact query performance in Snowflake",
-        "Uses Snowflake clustering in conjunction with Iceberg partition transforms"
+        "Partitioned writes (GA October 2025): all Iceberg v2 transforms supported for managed and externally managed tables",
+        "Hierarchical (Hive-style) path layout: PATH_LAYOUT=HIERARCHICAL parameter (Preview Feb 2026)",
+        "Default flat file layout used when PATH_LAYOUT is not specified",
+        "Bucket partition transform may negatively impact query performance in Snowflake (proprietary micro-partition pruning used instead)"
       ],
       "links": [
         {
-          "label": "Create Iceberg tables",
+          "label": "Create Iceberg tables (partitioning)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create"
         },
         {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+          "label": "Partitioned writes (GA Oct 2025)",
+          "url": "https://docs.snowflake.com/en/release-notes/2025/other/2025-10-17-iceberg-partitioned-writes-ga"
+        },
+        {
+          "label": "Hierarchical path layout for partitioned writes (Preview Feb 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/10_6"
         }
       ]
     },
@@ -274,9 +288,11 @@
     },
     "snowflake:partition-evolution:v2": {
       "level": "partial",
-      "notes": "Limited partition evolution support. Partition evolution is managed through Snowflake's internal clustering mechanisms rather than native Iceberg partition evolution.",
+      "notes": "Partition evolution is supported for externally managed Iceberg tables — Snowflake's partitioned write support (GA October 2025) writes data conforming to the table's current Iceberg partition spec, so changing the spec in your external catalog is reflected in new writes from Snowflake. For Snowflake-managed tables, partition schemes are managed via ALTER ICEBERG TABLE … PARTITION BY; old data retains its existing layout while new data uses the updated spec, following Iceberg's native partition evolution model.",
       "caveats": [
-        "Partition evolution is managed through Snowflake clustering, not native Iceberg partition evolution"
+        "Partitioned writes (GA October 2025) enable Snowflake to correctly write to tables whose partition spec has evolved",
+        "Snowflake-managed tables: use ALTER ICEBERG TABLE … PARTITION BY to evolve the partition spec; data is not automatically rewritten",
+        "External catalog tables: partition evolution is controlled by the external catalog; Snowflake writes follow the current spec"
       ],
       "links": [
         {
@@ -284,8 +300,8 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
         },
         {
-          "label": "Create Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create"
+          "label": "Partitioned writes (GA Oct 2025)",
+          "url": "https://docs.snowflake.com/en/release-notes/2025/other/2025-10-17-iceberg-partitioned-writes-ga"
         }
       ]
     },
@@ -368,11 +384,12 @@
     },
     "snowflake:table-maintenance:v2": {
       "level": "full",
-      "notes": "Snowflake automatically handles table maintenance for managed Iceberg tables including auto-compaction, manifest compaction, and snapshot expiry. Orphan file deletion is not supported.",
+      "notes": "Snowflake automatically handles table maintenance for managed Iceberg tables including auto-compaction, manifest compaction, and snapshot expiry. Orphan file deletion is not supported. As of September 2025, compaction can be disabled per-table via ENABLE_DATA_COMPACTION=false (account, database, schema, or table level). As of October 2025, a target file size for Snowflake-managed tables can be set to control compaction output.",
       "caveats": [
-        "Automatic compaction of small data files (auto-compaction)",
+        "Automatic compaction of small data files (enabled by default; disable with ENABLE_DATA_COMPACTION=false)",
         "Automatic manifest compaction",
         "Automatic snapshot expiry",
+        "Set target file size for compaction output (GA October 2025)",
         "Orphan file deletion is NOT supported"
       ],
       "links": [
@@ -381,16 +398,18 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
         },
         {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+          "label": "Prevent data compaction (ENABLE_DATA_COMPACTION) — Sep 2025",
+          "url": "https://docs.snowflake.com/en/release-notes/2025/other/2025-09-22-enable-data-compaction-parameter"
         }
       ]
     },
     "snowflake:table-maintenance:v3": {
       "level": "full",
-      "notes": "Automatic table maintenance supported for Iceberg V3 tables including compaction, manifest compaction, and snapshot expiry. Generally available (as of May 7, 2026).",
+      "notes": "Automatic table maintenance supported for Iceberg V3 tables including compaction, manifest compaction, and snapshot expiry. Generally available (as of May 7, 2026). Compaction can be disabled via ENABLE_DATA_COMPACTION=false and a target file size for compaction output can be configured.",
       "caveats": [
         "Generally available (as of May 7, 2026)",
+        "Automatic compaction enabled by default; disable with ENABLE_DATA_COMPACTION=false",
+        "Target file size for compaction output configurable (GA October 2025)",
         "Orphan file deletion is NOT supported"
       ],
       "links": [
@@ -471,10 +490,12 @@
     },
     "snowflake:write-insert:v2": {
       "level": "full",
-      "notes": "INSERT INTO supported for Snowflake-managed Iceberg tables. Externally managed tables can also support writes when using Snowflake as a REST catalog.",
+      "notes": "INSERT INTO is fully supported for both Snowflake-managed and externally managed Iceberg v2 tables. Write support for externally managed tables (INSERT, UPDATE, DELETE, MERGE) is generally available as of October 2025. External writes commit changes back to the linked external REST catalog. Partitioned writes (GA October 2025) ensure partition-spec-compliant data layout for both table types.",
       "caveats": [
         "Fully supported for Snowflake-managed Iceberg tables",
-        "Externally managed tables support writes via Snowflake Horizon Catalog (REST catalog)"
+        "Write support for externally managed tables (GA October 2025): INSERT supported for tables linked to external Iceberg REST catalogs (AWS Glue, Snowflake Open Catalog, Unity Catalog, etc.)",
+        "Partitioned writes (GA October 2025): Snowflake writes data conforming to the table's Iceberg partition spec",
+        "CREATE ICEBERG TABLE … AS SELECT is not supported with vended credentials for catalog-linked databases"
       ],
       "links": [
         {
@@ -482,8 +503,16 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
         },
         {
-          "label": "Create Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create"
+          "label": "Write support for externally managed tables (GA Oct 2025)",
+          "url": "https://docs.snowflake.com/en/release-notes/2025/other/2025-10-17-iceberg-external-writes-cld-ga"
+        },
+        {
+          "label": "Write support for externally managed tables (docs)",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-externally-managed-writes"
+        },
+        {
+          "label": "Partitioned writes (GA Oct 2025)",
+          "url": "https://docs.snowflake.com/en/release-notes/2025/other/2025-10-17-iceberg-partitioned-writes-ga"
         }
       ]
     },
@@ -506,10 +535,12 @@
     },
     "snowflake:write-merge-update-delete:v2": {
       "level": "full",
-      "notes": "MERGE, UPDATE, and DELETE are fully supported for Snowflake-managed Iceberg tables using copy-on-write mode.",
+      "notes": "MERGE, UPDATE, and DELETE are fully supported for both Snowflake-managed and externally managed Iceberg v2 tables. Write support for externally managed tables (GA October 2025) enables full DML operations that commit changes back to the linked external REST catalog. Snowflake-managed v2 tables default to copy-on-write; externally managed v2 tables default to merge-on-read with positional delete files (ICEBERG_MERGE_ON_READ_BEHAVIOR='AUTO').",
       "caveats": [
-        "All DML operations use copy-on-write mode (rewrites affected data files)",
-        "Supported for Snowflake-managed Iceberg tables"
+        "Snowflake-managed v2: all DML operations use copy-on-write by default (rewrite affected data files)",
+        "Externally managed v2: DML defaults to merge-on-read with positional delete files (GA October 2025)",
+        "Write mode can be controlled via ICEBERG_MERGE_ON_READ_BEHAVIOR parameter",
+        "Snowflake uses heuristics (row %, file size) to switch between MoR and CoW per file when MoR is active"
       ],
       "links": [
         {
@@ -517,8 +548,12 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
         },
         {
-          "label": "Row-level deletes",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes"
+          "label": "Write support for externally managed tables (GA Oct 2025)",
+          "url": "https://docs.snowflake.com/en/release-notes/2025/other/2025-10-17-iceberg-external-writes-cld-ga"
+        },
+        {
+          "label": "Write support for externally managed tables (docs)",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-externally-managed-writes"
         }
       ]
     },
@@ -541,10 +576,10 @@
     },
     "snowflake:catalog-integration:v2": {
       "level": "full",
-      "notes": "Snowflake supports multiple catalog integrations including Snowflake Horizon Catalog (Polaris), REST Catalog, and AWS Glue.",
+      "notes": "Snowflake supports a broad set of catalog integrations: Snowflake itself (managed tables), REST Catalog (generic), AWS Glue, Databricks Unity Catalog, Snowflake Open Catalog (Polaris), Google BigLake Metastore (GA Jun 2, 2026), Microsoft Fabric / OneLake (GA Jan 30, 2026), and Delta Sharing. Azure Data Lake Storage Gen2 external volumes are GA (Jun 12, 2026).",
       "caveats": [
-        "Supports Snowflake Horizon Catalog (Polaris), REST Catalog, and AWS Glue as external catalogs",
-        "Snowflake can also serve as its own Iceberg catalog for managed tables"
+        "Supports: Snowflake-managed, AWS Glue, Unity Catalog, Open Catalog (Polaris), REST generic, BigLake Metastore (GA Jun 2026), Fabric/OneLake (GA Jan 2026)",
+        "Azure DLS Gen2 external volumes: GA June 12, 2026"
       ],
       "links": [
         {
@@ -552,8 +587,16 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
         },
         {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+          "label": "BigLake Metastore catalog integration (GA Jun 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-06-02-iceberg-google-biglake-metastore-catalog-integration-ga"
+        },
+        {
+          "label": "Microsoft Fabric bi-directional access (GA Jan 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-01-30-iceberg-microsoft-fabric-bidirectional-data-access-ga"
+        },
+        {
+          "label": "Azure DLS Gen2 support (GA Jun 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-06-12-iceberg-azure-dls-external-volumes-ga"
         }
       ]
     },
@@ -637,18 +680,26 @@
     },
     "snowflake:rest-catalog:v2": {
       "level": "full",
-      "notes": "Snowflake supports the Iceberg REST Catalog protocol for external catalog integration.",
+      "notes": "Snowflake supports the Iceberg REST Catalog protocol for both consuming tables from external catalogs and exposing Snowflake-managed tables to external engines (Horizon Catalog). Supported REST catalogs include Open Catalog (Polaris), Google BigLake Metastore (GA Jun 2, 2026), Microsoft Fabric / OneLake (GA Jan 30, 2026), and any generic REST catalog server. Private connectivity for catalog-vended credentials is GA (Jun 2, 2026).",
       "caveats": [
-        "Supports REST Catalog protocol for reading and writing Iceberg tables via external catalogs"
+        "Supports any REST Catalog-compliant server for reading and writing externally managed tables",
+        "Horizon Catalog exposes Snowflake-managed tables via REST Catalog API for external engines",
+        "Google BigLake Metastore via REST catalog integration: GA Jun 2, 2026",
+        "Microsoft Fabric / OneLake via REST catalog integration: GA Jan 30, 2026",
+        "Private connectivity for catalog-vended credentials: GA Jun 2, 2026"
       ],
       "links": [
         {
-          "label": "Configure catalog integration",
+          "label": "Configure REST catalog integration",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
         },
         {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+          "label": "BigLake Metastore catalog integration (GA Jun 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-06-02-iceberg-google-biglake-metastore-catalog-integration-ga"
+        },
+        {
+          "label": "Microsoft Fabric bi-directional access (GA Jan 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-01-30-iceberg-microsoft-fabric-bidirectional-data-access-ga"
         }
       ]
     },
@@ -731,37 +782,48 @@
       ]
     },
     "snowflake:unity-catalog:v2": {
-      "level": "partial",
-      "notes": "Snowflake can access Unity Catalog Iceberg tables via the REST Catalog API, but with read-only access.",
+      "level": "full",
+      "notes": "Full read and write support for Databricks Unity Catalog managed Iceberg tables. Write support is GA on AWS (Oct 2025) and Azure (Apr 2026, requires Azure Data Lake Storage Gen2 external volume). CREATE ICEBERG TABLE … AS SELECT (CTAS) is also GA (Mar 2026). Snowflake commits all DML changes back to Unity Catalog as the remote catalog.",
       "caveats": [
-        "Read-only access to Unity Catalog managed Iceberg tables via REST Catalog API"
+        "Write support on AWS: GA since October 2025",
+        "Write support on Azure: GA since April 2026 (requires Azure DLS Gen2 external volume)",
+        "CTAS (CREATE ICEBERG TABLE … AS SELECT) for Unity Catalog: GA since March 2026",
+        "Uses REST Catalog API integration with Databricks Unity Catalog"
       ],
       "links": [
         {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
+          "label": "Configure Unity Catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration-rest-unity"
         },
         {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+          "label": "Write support for Unity Catalog on Azure (GA Apr 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-04-06-iceberg-write-support-azure-unity-catalog"
+        },
+        {
+          "label": "CTAS for Unity Catalog (GA Mar 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-03-31-ctas-unity-catalog-external-volumes"
         }
       ]
     },
     "snowflake:unity-catalog:v3": {
-      "level": "partial",
-      "notes": "Unity Catalog accessible via REST Catalog API for V3 tables. Read-only access. Generally available (as of May 7, 2026).",
+      "level": "full",
+      "notes": "Full read and write support for Unity Catalog managed Iceberg V3 tables. All V3 capabilities (deletion vectors, row lineage, variant type, etc.) are supported. Write support on AWS and Azure is GA. Generally available as of May 7, 2026.",
       "caveats": [
-        "Generally available (as of May 7, 2026)",
-        "Read-only access via REST Catalog API"
+        "Generally available as of May 7, 2026",
+        "Write support on Azure requires Azure DLS Gen2 external volume"
       ],
       "links": [
+        {
+          "label": "Configure Unity Catalog integration",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration-rest-unity"
+        },
         {
           "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
-          "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
+          "label": "Write support for Unity Catalog on Azure (GA Apr 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-04-06-iceberg-write-support-azure-unity-catalog"
         }
       ]
     },
@@ -819,10 +881,12 @@
     },
     "snowflake:table-creation:v2": {
       "level": "full",
-      "notes": "Snowflake supports creating Iceberg tables as Snowflake-managed tables or as externally managed tables using external catalogs.",
+      "notes": "Snowflake supports creating Iceberg tables as Snowflake-managed tables (using an external volume or Snowflake-managed storage), or as externally managed tables linked to an external catalog. As of June 1, 2026 (GA), you can create Iceberg tables using Snowflake storage — no external volume required, with Fail-safe protection and transient table support. A DEFAULT_METADATA_WRITE_FORMAT account/database/schema parameter (GA June 2026) allows creating Iceberg tables via standard CREATE TABLE without the ICEBERG keyword.",
       "caveats": [
-        "Supports CREATE ICEBERG TABLE for Snowflake-managed tables",
-        "Supports creating tables from external catalogs (Glue, REST, Object Storage)"
+        "Snowflake-managed tables: CREATE ICEBERG TABLE with an external volume (S3, Azure, GCS), or with Snowflake storage (no external volume, GA Jun 1, 2026)",
+        "Snowflake storage option: Fail-safe protected, transient variant available; commercial AWS and Azure regions only",
+        "Externally managed tables: linked to AWS Glue, Unity Catalog, BigLake Metastore, Fabric/OneLake, or generic REST catalog",
+        "DEFAULT_METADATA_WRITE_FORMAT parameter (GA Jun 5, 2026): set account/DB/schema default to create Iceberg tables without ICEBERG keyword"
       ],
       "links": [
         {
@@ -830,8 +894,12 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-create"
         },
         {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+          "label": "Snowflake storage for Iceberg tables (GA Jun 1, 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-06-01-iceberg-snowflake-storage-ga"
+        },
+        {
+          "label": "Snowflake storage docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-internal-storage"
         }
       ]
     },
@@ -1051,25 +1119,49 @@
     },
     "snowflake:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Native integration \u2014 Snowflake is the provider. Connect via CREATE CATALOG INTEGRATION TYPE=ICEBERG_REST with Snowflake Horizon Catalog as the REST endpoint.",
-      "caveats": [],
+      "notes": "Snowflake Horizon Catalog is Snowflake's managed Iceberg REST Catalog built on Apache Polaris. External query engines (Spark, Trino, DuckDB, PyIceberg, Flink, etc.) can connect via a single REST endpoint. Read support GA Feb 6, 2026. Write support for external engines GA May 26, 2026. Masking policies and row access policies defined in Snowflake are enforced when Spark queries tables through Horizon Catalog (Jan 2026). Works with both tables on external volumes and Snowflake-managed storage (GA Jun 1, 2026). Available on commercial AWS and Azure regions.",
+      "caveats": [
+        "External engine READ via Horizon Catalog: GA since Feb 6, 2026",
+        "External engine WRITE via Horizon Catalog: GA since May 26, 2026",
+        "Security policy enforcement (masking + row access policies) via Spark: GA Jan 27, 2026",
+        "Snowflake storage for Iceberg tables (no external volume needed) accessible via Horizon Catalog: GA Jun 1, 2026",
+        "Available in commercial AWS and Azure regions; GCP not yet supported for Snowflake storage",
+        "API requests billed at 0.5 credit per million calls (billing starts second half of 2026)"
+      ],
       "links": [
         {
-          "label": "Snowflake Horizon Catalog docs",
+          "label": "Access Iceberg tables with external engines via Horizon Catalog",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        },
+        {
+          "label": "External query engine read support (GA Feb 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-02-06-tables-iceberg-query-using-external-query-engine-snowflake-horizon-ga"
+        },
+        {
+          "label": "Enforce data protection policies via Spark (Jan 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-01-27-iceberg-enforce-access-policies-on-tables-queried-from-apache-spark"
+        },
+        {
+          "label": "Snowflake storage for Iceberg tables (GA Jun 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-06-01-iceberg-snowflake-storage-ga"
         }
       ]
     },
     "snowflake:snowflake-horizon-catalog:v3": {
       "level": "full",
-      "notes": "Full support for Iceberg V3 tables via Snowflake Horizon Catalog. Generally available as of May 7, 2026.",
+      "notes": "Full Iceberg V3 support via Snowflake Horizon Catalog for external engines, including deletion vectors, row lineage, and variant types. Read and write via external engines GA. Generally available as of May 7, 2026.",
       "caveats": [
-        "Generally available as of May 7, 2026"
+        "Generally available as of May 7, 2026",
+        "External engine read and write via Horizon Catalog supported for V3 tables"
       ],
       "links": [
         {
-          "label": "Snowflake Horizon Catalog docs",
+          "label": "Access Iceberg tables with external engines via Horizon Catalog",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        },
+        {
+          "label": "Iceberg V3 Support (GA)",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         }
       ]
     },
