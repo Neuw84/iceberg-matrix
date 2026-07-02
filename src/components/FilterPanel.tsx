@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type {
   CompatibilityData,
   FeatureCategory,
@@ -84,6 +85,38 @@ export function FilterPanel({
   data,
   onFilterChange,
 }: FilterPanelProps) {
+  // Debounce the search box so typing doesn't re-filter/re-render the whole
+  // matrix on every keystroke. Local state drives the input; changes are
+  // propagated to the shared filter state after a short pause.
+  const [searchInput, setSearchInput] = useState(filters.searchQuery);
+  // Reset the local input when searchQuery changes externally (e.g. "Clear
+  // all"), using React's recommended render-time adjustment pattern.
+  const [prevQuery, setPrevQuery] = useState(filters.searchQuery);
+  if (filters.searchQuery !== prevQuery) {
+    setPrevQuery(filters.searchQuery);
+    setSearchInput(filters.searchQuery);
+  }
+
+  const filtersRef = useRef(filters);
+  const onFilterChangeRef = useRef(onFilterChange);
+  useEffect(() => {
+    filtersRef.current = filters;
+    onFilterChangeRef.current = onFilterChange;
+  });
+
+  // Debounce propagation of the search box to shared filter state so typing
+  // doesn't re-filter/re-render the whole matrix on every keystroke.
+  useEffect(() => {
+    if (searchInput === filtersRef.current.searchQuery) return;
+    const t = setTimeout(() => {
+      onFilterChangeRef.current({
+        ...filtersRef.current,
+        searchQuery: searchInput,
+      });
+    }, 200);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
   const groupMap = new Map<PlatformGroup, { id: string; name: string }[]>();
   for (const g of GROUP_ORDER) groupMap.set(g, []);
   for (const p of data.platforms) {
@@ -192,10 +225,8 @@ export function FilterPanel({
           <input
             id="feature-search"
             type="text"
-            value={filters.searchQuery}
-            onChange={(e) =>
-              onFilterChange({ ...filters, searchQuery: e.target.value })
-            }
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Filter features…"
             className="w-full border border-gray-300 rounded-md px-2.5 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
             aria-label="Search features by name"

@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "databricks",
-      "name": "Databricks (DBR 17.3)",
+      "name": "Databricks (DBR 18.2)",
       "vendor": "Databricks",
       "category": "cloud",
       "group": "Databricks",
@@ -77,9 +77,10 @@
     },
     "databricks:merge-on-read:v3": {
       "level": "full",
-      "notes": "Iceberg v3 deletion vectors enable efficient row-level deletes without rewriting data files, functionally equivalent to merge-on-read. Enabled by default on v3 tables. Requires DBR 17.3+ (Beta).",
+      "notes": "Iceberg v3 deletion vectors enable efficient row-level deletes without rewriting data files, functionally equivalent to merge-on-read. Enabled by default on v3 tables. Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)",
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them",
         "Uses Iceberg v3 deletion vectors, not v2-style merge-on-read"
       ],
       "links": [
@@ -93,7 +94,7 @@
       "level": "full",
       "notes": "Copy-on-write is the default write mode for managed Iceberg tables in Databricks. Managed Iceberg tables are in Public Preview (DBR 16.4 LTS+).",
       "caveats": [
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)"
+        "Managed Iceberg tables are GA"
       ],
       "links": [
         {
@@ -104,9 +105,10 @@
     },
     "databricks:copy-on-write:v3": {
       "level": "full",
-      "notes": "Copy-on-write supported for Iceberg v3 tables. Requires DBR 17.3+ (Beta).",
+      "notes": "Copy-on-write supported for Iceberg v3 tables. Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
@@ -119,7 +121,7 @@
       "level": "full",
       "notes": "Full schema evolution supported on managed Iceberg tables including add, rename, drop, and reorder columns. Managed Iceberg tables are in Public Preview (DBR 16.4 LTS+).",
       "caveats": [
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)"
+        "Managed Iceberg tables are GA"
       ],
       "links": [
         {
@@ -130,9 +132,10 @@
     },
     "databricks:schema-evolution:v3": {
       "level": "full",
-      "notes": "Full schema evolution supported on managed Iceberg v3 tables. Requires DBR 17.3+ (Beta).",
+      "notes": "Full schema evolution supported on managed Iceberg v3 tables. Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
@@ -185,7 +188,7 @@
       "caveats": [
         "Expression-based partitioning (years, months, days, hours, bucket) not supported on managed Iceberg tables",
         "BINARY type partitioning not supported",
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)"
+        "Managed Iceberg tables are GA"
       ],
       "links": [
         {
@@ -200,7 +203,8 @@
       "caveats": [
         "Expression-based partitioning (years, months, days, hours, bucket) not supported on managed Iceberg tables",
         "BINARY type partitioning not supported",
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
@@ -219,7 +223,7 @@
       "caveats": [
         "Only supported via external Iceberg engines, not directly in Databricks SQL",
         "Not supported on foreign Iceberg tables",
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)"
+        "Managed Iceberg tables are GA"
       ],
       "links": [
         {
@@ -233,7 +237,8 @@
       "notes": "Partition evolution is supported on managed Iceberg tables only when interacting from external Iceberg engines. Not available directly via Databricks SQL.",
       "caveats": [
         "Only supported via external Iceberg engines, not directly in Databricks SQL",
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
@@ -270,7 +275,7 @@
       "notes": "Time travel fully supported for managed Iceberg tables. For foreign Iceberg tables, time travel is limited to snapshots previously read in Databricks.",
       "caveats": [
         "Foreign Iceberg tables: time travel only for previously-read snapshots",
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)"
+        "Managed Iceberg tables are GA"
       ],
       "links": [
         {
@@ -281,9 +286,10 @@
     },
     "databricks:time-travel:v3": {
       "level": "full",
-      "notes": "Time travel and RESTORE TABLE supported for managed Iceberg v3 tables. Requires DBR 17.3+ (Beta).",
+      "notes": "Time travel and RESTORE TABLE supported for managed Iceberg v3 tables. Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
@@ -297,7 +303,7 @@
       "notes": "Predictive optimization provides automatic compaction, snapshot expiration, and file compaction for managed Iceberg tables. Unity Catalog manages lifecycle tasks. Predictive optimization must be enabled.",
       "caveats": [
         "Predictive optimization must be enabled for managed Iceberg table creation",
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)"
+        "Managed Iceberg tables are GA"
       ],
       "links": [
         {
@@ -312,10 +318,11 @@
     },
     "databricks:table-maintenance:v3": {
       "level": "full",
-      "notes": "Predictive optimization provides automatic compaction, snapshot expiration, and file compaction for managed Iceberg v3 tables. Requires DBR 17.3+ (Beta).",
+      "notes": "Predictive optimization provides automatic compaction, snapshot expiration, and file compaction for managed Iceberg v3 tables. Requires DBR 18.0+ (GA).",
       "caveats": [
         "Predictive optimization must be enabled for managed Iceberg table creation",
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
@@ -358,7 +365,7 @@
       "level": "full",
       "notes": "Full read support for native managed Iceberg v2 tables via Unity Catalog (Public Preview, DBR 16.4 LTS+). Also supports read-only access to foreign Iceberg tables via Lakehouse Federation. Note: UniForm is a separate Delta Lake feature that exposes Delta tables as Iceberg \u2014 it is not native Iceberg.",
       "caveats": [
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)",
+        "Managed Iceberg tables are GA",
         "Some data types not supported: UUID, Fixed(L), TIME, nested STRUCT with required fields",
         "UniForm (Delta + Iceberg reads) is a different feature from native managed Iceberg tables"
       ],
@@ -375,10 +382,11 @@
     },
     "databricks:read-support:v3": {
       "level": "full",
-      "notes": "Full read support for native managed Iceberg v3 tables. Requires DBR 17.3+ (Beta). Some v3 data types are not yet supported.",
+      "notes": "Full read support for native managed Iceberg v3 tables. Requires DBR 18.0+ (GA). Some v3 data types are not yet supported.",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)",
-        "Geospatial types, nanosecond timestamps, and multi-arg transforms not supported"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them",
+        "Nanosecond timestamps, multi-arg transforms, and the Unknown type are not supported (geospatial types supported on DBR 18.2+)"
       ],
       "links": [
         {
@@ -391,7 +399,7 @@
       "level": "full",
       "notes": "INSERT INTO fully supported for native managed Iceberg tables in Unity Catalog. External engines can also write via the Iceberg REST Catalog API. Note: UniForm tables are read-only for Iceberg clients.",
       "caveats": [
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)",
+        "Managed Iceberg tables are GA",
         "UniForm (Delta + Iceberg reads) tables are read-only for Iceberg clients \u2014 this is not native Iceberg"
       ],
       "links": [
@@ -407,9 +415,10 @@
     },
     "databricks:write-insert:v3": {
       "level": "full",
-      "notes": "INSERT INTO fully supported for native managed Iceberg v3 tables. Requires DBR 17.3+ (Beta).",
+      "notes": "INSERT INTO fully supported for native managed Iceberg v3 tables. Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
@@ -422,7 +431,7 @@
       "level": "full",
       "notes": "MERGE, UPDATE, DELETE fully supported for native managed Iceberg tables via copy-on-write. Managed Iceberg tables are in Public Preview (DBR 16.4 LTS+).",
       "caveats": [
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)",
+        "Managed Iceberg tables are GA",
         "Uses copy-on-write for row-level operations in v2 (no v2 delete files)"
       ],
       "links": [
@@ -434,9 +443,10 @@
     },
     "databricks:write-merge-update-delete:v3": {
       "level": "full",
-      "notes": "MERGE, UPDATE, DELETE fully supported for native managed Iceberg v3 tables with deletion vectors for efficient row-level operations. Requires DBR 17.3+ (Beta).",
+      "notes": "MERGE, UPDATE, DELETE fully supported for native managed Iceberg v3 tables with deletion vectors for efficient row-level operations. Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
@@ -462,9 +472,10 @@
     },
     "databricks:catalog-integration:v3": {
       "level": "full",
-      "notes": "Unity Catalog provides native Iceberg REST Catalog API support with v3 compatibility. Requires DBR 17.3+ (Beta).",
+      "notes": "Unity Catalog provides native Iceberg REST Catalog API support with v3 compatibility. Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
@@ -562,9 +573,10 @@
     },
     "databricks:rest-catalog:v3": {
       "level": "full",
-      "notes": "Unity Catalog implements the Iceberg REST Catalog API with v3 support. Requires DBR 17.3+ (Beta).",
+      "notes": "Unity Catalog implements the Iceberg REST Catalog API with v3 support. Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
@@ -615,7 +627,7 @@
       "level": "full",
       "notes": "Native Unity Catalog with Iceberg REST Catalog API support. Manages lifecycle tasks including snapshot expiration and file compaction. Supports credential vending for external engine access. Managed Iceberg tables are in Public Preview (DBR 16.4 LTS+).",
       "caveats": [
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)"
+        "Managed Iceberg tables are GA"
       ],
       "links": [
         {
@@ -630,9 +642,10 @@
     },
     "databricks:unity-catalog:v3": {
       "level": "full",
-      "notes": "Native Unity Catalog with Iceberg REST Catalog API support for v3 tables including deletion vectors and VARIANT type. Requires DBR 17.3+ (Beta).",
+      "notes": "Native Unity Catalog with Iceberg REST Catalog API support for v3 tables including deletion vectors and VARIANT type. Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
@@ -673,7 +686,7 @@
       "level": "full",
       "notes": "Supports CREATE TABLE ... USING iceberg for native managed Iceberg tables in Unity Catalog. External engines can also create tables via the REST Catalog API. Note: UniForm (TBLPROPERTIES delta.universalFormat.enabledFormats = 'iceberg') creates Delta tables with Iceberg reads \u2014 not native Iceberg.",
       "caveats": [
-        "Managed Iceberg tables are in Public Preview (requires DBR 16.4 LTS+)",
+        "Managed Iceberg tables are GA",
         "Predictive optimization must be enabled for managed Iceberg table creation",
         "UniForm creates Delta tables with Iceberg compatibility layer, not native Iceberg tables"
       ],
@@ -690,9 +703,10 @@
     },
     "databricks:table-creation:v3": {
       "level": "full",
-      "notes": "Supports creating native Iceberg v3 tables with deletion vectors and VARIANT columns. Existing v2 tables can be upgraded to v3 (irreversible). Requires DBR 17.3+ (Beta).",
+      "notes": "Supports creating native Iceberg v3 tables with deletion vectors and VARIANT columns. Existing v2 tables can be upgraded to v3 (irreversible). Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)",
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them",
         "Managed Iceberg tables upgraded to v3 cannot be downgraded"
       ],
       "links": [
@@ -712,7 +726,8 @@
       "level": "full",
       "notes": "VARIANT data type is fully supported on native Iceberg v3 tables. Adding a VARIANT column to an existing v2 table automatically upgrades it to v3. Requires DBR 15.3+ for read/write.",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)",
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them",
         "Adding a VARIANT column automatically upgrades an existing table to v3 (irreversible)"
       ],
       "links": [
@@ -752,15 +767,16 @@
       "links": []
     },
     "databricks:geometry-type:v3": {
-      "level": "none",
-      "notes": "Geospatial types are explicitly not supported in Databricks Iceberg v3 implementation.",
+      "level": "full",
+      "notes": "Geospatial (GEOMETRY/GEOGRAPHY) types are supported on managed Iceberg v3 tables as of the v3 GA release. Requires DBR 18.2+.",
       "caveats": [
-        "Explicitly listed as unsupported in Databricks Iceberg v3 limitations"
+        "Requires DBR 18.2 or above",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
-          "label": "Iceberg v3 limitations",
-          "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3#limitations"
+          "label": "Use Apache Iceberg v3 features (Databricks)",
+          "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"
         }
       ]
     },
@@ -772,10 +788,11 @@
     },
     "databricks:lineage:v3": {
       "level": "full",
-      "notes": "Row lineage is required and automatically enabled on all native Iceberg v3 tables. Tracks incremental changes with unique row IDs and last-modified sequence numbers. Requires DBR 17.3+ (Beta).",
+      "notes": "Row lineage is required and automatically enabled on all native Iceberg v3 tables. Tracks incremental changes with unique row IDs and last-modified sequence numbers. Requires DBR 18.0+ (GA).",
       "caveats": [
         "Row lineage is required for all v3 tables \u2014 cannot be disabled",
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {
@@ -900,9 +917,10 @@
     },
     "databricks:deletion-vectors:v3": {
       "level": "full",
-      "notes": "Deletion vectors are enabled by default on native managed Iceberg v3 tables, providing efficient row-level deletes without rewriting data files. Requires DBR 17.3+ (Beta).",
+      "notes": "Deletion vectors are enabled by default on native managed Iceberg v3 tables, providing efficient row-level deletes without rewriting data files. Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Iceberg v3 features are in Beta (requires DBR 17.3+)"
+        "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
+        "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
       "links": [
         {

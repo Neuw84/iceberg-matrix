@@ -1182,9 +1182,15 @@ def test_deletion_vectors(version: str) -> TestResult:
             f"SELECT file_format, content FROM {tbl}.all_delete_files"
         ).collect()
         formats = {row[0] for row in delete_files}
-        if delete_files and ("PUFFIN" in formats or len(delete_files) > 0):
+        if "PUFFIN" in formats:
             r.result = "pass"
-            r.details = f"V3 deletion vectors produced on DELETE (delete file formats: {sorted(formats)})"
+            r.details = "V3 deletion vectors (Puffin) produced on DELETE"
+        elif delete_files:
+            # Delete files exist but are not Puffin deletion vectors (e.g. the
+            # Iceberg runtime fell back to positional deletes). MoR delete still
+            # works, but this is not a true V3 deletion vector.
+            r.result = "pass"
+            r.details = f"MoR delete produced non-Puffin delete files: {sorted(formats)}"
         else:
             snap = spark.sql(
                 f"SELECT summary FROM {tbl}.snapshots ORDER BY committed_at DESC LIMIT 1"
@@ -1279,6 +1285,46 @@ def load_spark_json_support() -> dict:
     return result
 
 
+def load_matrix_features() -> dict:
+    """Load feature definitions from the matrix source of truth (features.json).
+
+    Returns a dict keyed by feature_id -> {"name": str, "introducedIn": str}.
+    This lets the suite assert that EVERY feature shown in the matrix is
+    exercised by a test, so newly added matrix features cannot silently go
+    untested.
+    """
+    features_path = os.path.join(REPO_ROOT, "src", "data", "features.json")
+    with open(features_path) as f:
+        data = json.load(f)
+    return {
+        feat["id"]: {
+            "name": feat.get("name", feat["id"]),
+            "introducedIn": feat.get("introducedIn", "v2"),
+        }
+        for feat in data.get("features", [])
+    }
+
+
+def compute_coverage(results: list["TestResult"]) -> dict:
+    """Compare the set of tested feature ids against the matrix features.
+
+    Returns a dict with the matrix feature count, the set of tested ids, and any
+    matrix features that have no corresponding test result ("uncovered"). A
+    non-empty ``uncovered`` list means the test suite has drifted from the
+    matrix and should be treated as a failure.
+    """
+    matrix = load_matrix_features()
+    tested_ids = {r.feature_id for r in results}
+    uncovered = sorted(set(matrix) - tested_ids)
+    extra = sorted(tested_ids - set(matrix))
+    return {
+        "matrix_feature_count": len(matrix),
+        "tested_feature_count": len(tested_ids),
+        "uncovered": [{"id": fid, "name": matrix[fid]["name"]} for fid in uncovered],
+        "extra": extra,
+    }
+
+
 def compute_match(test_result: str, json_level: str) -> bool:
     """
     Determine if a test result agrees with the JSON support level.
@@ -1324,6 +1370,7 @@ def generate_report(results: list[TestResult]) -> dict:
         "spark_version": spark_version,
         "iceberg_version": ICEBERG_VERSION,
         "versions_tested": VERSIONS,
+        "coverage": compute_coverage(results),
         "tests": tests_output,
         "summary": {
             "total": len(results),
@@ -1332,6 +1379,7 @@ def generate_report(results: list[TestResult]) -> dict:
             "skipped": skipped,
             "errors": errors,
             "discrepancies": discrepancies,
+            "uncovered_features": len(compute_coverage(results)["uncovered"]),
         },
     }
     return report
@@ -1358,7 +1406,25 @@ def generate_markdown(report: dict) -> str:
     lines.append(f"| ⏭️ Skipped | {s['skipped']} |")
     lines.append(f"| ⚠️ Errors | {s['errors']} |")
     lines.append(f"| 🔍 Discrepancies | {s['discrepancies']} |")
+    lines.append(f"| 🧭 Uncovered matrix features | {s.get('uncovered_features', 0)} |")
     lines.append("")
+
+    cov = report.get("coverage")
+    if cov:
+        lines.append(
+            f"**Matrix coverage:** {cov['tested_feature_count']}/{cov['matrix_feature_count']} "
+            f"features in `features.json` have a test."
+        )
+        if cov["uncovered"]:
+            lines.append("")
+            lines.append("### 🧭 Uncovered matrix features (no test!)")
+            lines.append("")
+            for f in cov["uncovered"]:
+                lines.append(f"- **{f['name']}** (`{f['id']}`) — add a `test_*` function and register it in `ALL_TESTS`")
+        if cov.get("extra"):
+            lines.append("")
+            lines.append(f"> Note: tests exist for ids not in the matrix: {', '.join(cov['extra'])}")
+        lines.append("")
 
     lines.append("## Test Results")
     lines.append("")
@@ -1464,7 +1530,8 @@ def main():
     print(f"\n{'=' * 70}")
     print(f"  RESULTS: {s['passed']} passed, {s['failed']} failed, "
           f"{s['skipped']} skipped, {s['errors']} errors, "
-          f"{s['discrepancies']} discrepancies")
+          f"{s['discrepancies']} discrepancies, "
+          f"{s.get('uncovered_features', 0)} uncovered matrix features")
     print(f"{'=' * 70}")
 
     print("\n" + md_content)
@@ -1478,8 +1545,9 @@ def main():
     if os.path.exists(WAREHOUSE_DIR):
         shutil.rmtree(WAREHOUSE_DIR, ignore_errors=True)
 
-    # Exit non-zero if there are discrepancies or test errors.
-    if s["discrepancies"] > 0 or s["errors"] > 0:
+    # Exit non-zero if there are discrepancies, test errors, or matrix features
+    # with no test coverage (the suite has drifted from the matrix).
+    if s["discrepancies"] > 0 or s["errors"] > 0 or s.get("uncovered_features", 0) > 0:
         sys.exit(1)
     sys.exit(0)
 

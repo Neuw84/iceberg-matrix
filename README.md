@@ -100,8 +100,13 @@ The repo includes a PySpark-based test suite that validates Iceberg features aga
 
 ### Prerequisites
 
-- Java 11 or 17
+- Java 17
 - Python 3.11+
+- PySpark 4.0.x (installed via `tests/requirements.txt`)
+
+> The suite exercises **both** Iceberg format-version 2 and version 3, so it
+> requires an Iceberg runtime that supports V3 (VARIANT, geometry, deletion
+> vectors, row lineage). Use Iceberg **1.10.1+** with Spark 4.0 / Scala 2.13.
 
 ### Local Execution
 
@@ -109,14 +114,20 @@ The repo includes a PySpark-based test suite that validates Iceberg features aga
 # Install dependencies
 pip install -r tests/requirements.txt
 
-# Download the Iceberg Spark runtime JAR
-ICEBERG_VERSION=1.7.1
-curl -fSL -o "iceberg-spark-runtime-3.5_2.12-${ICEBERG_VERSION}.jar" \
-  "https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.5_2.12/${ICEBERG_VERSION}/iceberg-spark-runtime-3.5_2.12-${ICEBERG_VERSION}.jar"
+# Download the Iceberg Spark 4.0 (Scala 2.13) runtime JAR
+ICEBERG_VERSION=1.10.1
+curl -fSL -o "iceberg-spark-runtime-4.0_2.13-${ICEBERG_VERSION}.jar" \
+  "https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-4.0_2.13/${ICEBERG_VERSION}/iceberg-spark-runtime-4.0_2.13-${ICEBERG_VERSION}.jar"
 
-# Run the tests
+# Run the tests (auto-detects the JAR, or falls back to Maven coordinates).
+# Override the version with ICEBERG_VERSION=... if needed.
 python tests/iceberg_feature_tests.py
 ```
+
+The suite also enforces **matrix coverage**: every feature defined in
+`src/data/features.json` must have a corresponding `test_*` function registered
+in `ALL_TESTS`. If a feature is added to the matrix without a test, the run
+fails with a list of uncovered features.
 
 Reports are written to `test-reports/` as both JSON and Markdown.
 

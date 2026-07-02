@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useState, useMemo, useCallback, lazy, Suspense } from "react";
 import type {
   AwsS3Mode,
   CompatibilityData,
@@ -12,8 +12,12 @@ import type {
 } from "../types";
 import { applyFilters } from "../utils/filters";
 import { getSupportEntry } from "../utils/support";
-import { DetailPopover } from "./DetailPopover";
 import { FeatureRow } from "./FeatureRow";
+
+// DetailPopover is only mounted when a cell is clicked; code-split it.
+const DetailPopover = lazy(() =>
+  import("./DetailPopover").then((m) => ({ default: m.DetailPopover })),
+);
 
 const CATEGORY_LABELS: Record<FeatureCategory, string> = {
   "row-level-operations": "Row-Level Operations",
@@ -78,6 +82,13 @@ interface PopoverState {
   entry: SupportEntry;
 }
 
+interface DisplayColumn {
+  key: string;
+  group: PlatformGroup;
+  variants: Platform[];
+  active: Platform;
+}
+
 interface CompatibilityMatrixProps {
   data: CompatibilityData;
   filters: FilterState;
@@ -94,8 +105,88 @@ export function CompatibilityMatrix({
   const [popover, setPopover] = useState<PopoverState | null>(null);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<FeatureCategory>>(new Set());
   const [activeVariants, setActiveVariants] = useState<Record<string, string>>({});
-  const { platforms, features } = applyFilters(data, filters);
+  const { platforms, features } = useMemo(
+    () => applyFilters(data, filters),
+    [data, filters],
+  );
   const versions = filters.selectedVersions;
+
+  const grouped = useMemo(
+    () =>
+      CATEGORY_ORDER.map((cat) => ({
+        category: cat,
+        label: CATEGORY_LABELS[cat],
+        features: features.filter((f) => f.category === cat),
+      })).filter((g) => g.features.length > 0),
+    [features],
+  );
+
+  // Collapse platforms that share a `variantGroup` into a single display column
+  // (e.g. OSS Spark: Vanilla / Gluten-Velox / Comet). Non-variant platforms map
+  // to a single-variant display column. Order is preserved by first occurrence.
+  const displayColumns = useMemo<DisplayColumn[]>(() => {
+    const cols: DisplayColumn[] = [];
+    const groupIndex = new Map<string, number>();
+    for (const p of platforms) {
+      if (p.variantGroup) {
+        const existing = groupIndex.get(p.variantGroup);
+        if (existing != null) {
+          cols[existing].variants.push(p);
+          continue;
+        }
+        groupIndex.set(p.variantGroup, cols.length);
+        cols.push({ key: p.variantGroup, group: p.group, variants: [p], active: p });
+      } else {
+        cols.push({ key: p.id, group: p.group, variants: [p], active: p });
+      }
+    }
+    // Resolve the active variant for each multi-variant column from UI state.
+    for (const dc of cols) {
+      if (dc.variants.length > 1) {
+        const activeId = activeVariants[dc.key];
+        dc.active = dc.variants.find((v) => v.id === activeId) ?? dc.variants[0];
+      }
+    }
+    return cols;
+  }, [platforms, activeVariants]);
+
+  // Effective columns actually rendered (one active platform per display column).
+  const effectivePlatforms = useMemo(
+    () => displayColumns.map((dc) => dc.active),
+    [displayColumns],
+  );
+  const colCount = displayColumns.length * versions.length;
+
+  // Group display columns by their platform group for the group header row.
+  const platformGroups = useMemo(() => {
+    const groups: { group: PlatformGroup; columns: DisplayColumn[] }[] = [];
+    for (const dc of displayColumns) {
+      const last = groups[groups.length - 1];
+      if (last && last.group === dc.group) {
+        last.columns.push(dc);
+      } else {
+        groups.push({ group: dc.group, columns: [dc] });
+      }
+    }
+    return groups;
+  }, [displayColumns]);
+
+  // Check if any AWS platform is visible
+  const hasAwsPlatforms = platformGroups.some((pg) => pg.group === "AWS");
+
+  // Stable callbacks so memoized FeatureRow instances don't re-render when only
+  // the popover (matrix-level state) changes.
+  const handleCellClick = useCallback(
+    (platform: Platform, feature: Feature, version: Version, entry: SupportEntry) => {
+      setPopover({ platform, feature, version, entry });
+    },
+    [],
+  );
+
+  const getEntry = useCallback(
+    (pid: string, fid: string, ver: Version) => getSupportEntry(data, pid, fid, ver),
+    [data],
+  );
 
   if (platforms.length === 0 || features.length === 0) {
     return (
@@ -105,62 +196,6 @@ export function CompatibilityMatrix({
     );
   }
 
-  const grouped = CATEGORY_ORDER.map((cat) => ({
-    category: cat,
-    label: CATEGORY_LABELS[cat],
-    features: features.filter((f) => f.category === cat),
-  })).filter((g) => g.features.length > 0);
-
-  // Collapse platforms that share a `variantGroup` into a single display column
-  // (e.g. OSS Spark: Vanilla / Gluten-Velox / Comet). Non-variant platforms map
-  // to a single-variant display column. Order is preserved by first occurrence.
-  interface DisplayColumn {
-    key: string;
-    group: PlatformGroup;
-    variants: Platform[];
-    active: Platform;
-  }
-  const displayColumns: DisplayColumn[] = [];
-  const groupIndex = new Map<string, number>();
-  for (const p of platforms) {
-    if (p.variantGroup) {
-      const existing = groupIndex.get(p.variantGroup);
-      if (existing != null) {
-        displayColumns[existing].variants.push(p);
-        continue;
-      }
-      groupIndex.set(p.variantGroup, displayColumns.length);
-      displayColumns.push({ key: p.variantGroup, group: p.group, variants: [p], active: p });
-    } else {
-      displayColumns.push({ key: p.id, group: p.group, variants: [p], active: p });
-    }
-  }
-  // Resolve the active variant for each multi-variant column from UI state.
-  for (const dc of displayColumns) {
-    if (dc.variants.length > 1) {
-      const activeId = activeVariants[dc.key];
-      dc.active = dc.variants.find((v) => v.id === activeId) ?? dc.variants[0];
-    }
-  }
-
-  // Effective columns actually rendered (one active platform per display column).
-  const effectivePlatforms = displayColumns.map((dc) => dc.active);
-  const colCount = displayColumns.length * versions.length;
-
-  // Group display columns by their platform group for the group header row.
-  const platformGroups: { group: PlatformGroup; columns: DisplayColumn[] }[] = [];
-  for (const dc of displayColumns) {
-    const last = platformGroups[platformGroups.length - 1];
-    if (last && last.group === dc.group) {
-      last.columns.push(dc);
-    } else {
-      platformGroups.push({ group: dc.group, columns: [dc] });
-    }
-  }
-
-  // Check if any AWS platform is visible
-  const hasAwsPlatforms = platformGroups.some((pg) => pg.group === "AWS");
-
   const GROUP_COLORS: Record<PlatformGroup, string> = {
     AWS: "bg-orange-100 text-orange-900 border-orange-200",
     GCP: "bg-blue-100 text-blue-900 border-blue-200",
@@ -168,15 +203,6 @@ export function CompatibilityMatrix({
     Databricks: "bg-red-100 text-red-900 border-red-200",
     Snowflake: "bg-cyan-100 text-cyan-900 border-cyan-200",
     "3rd Party": "bg-gray-100 text-gray-700 border-gray-200",
-  };
-
-  const handleCellClick = (
-    platform: Platform,
-    feature: Feature,
-    version: Version,
-    entry: SupportEntry,
-  ) => {
-    setPopover({ platform, feature, version, entry });
   };
 
   const toggleCategory = (cat: FeatureCategory) => {
@@ -348,9 +374,7 @@ export function CompatibilityMatrix({
                         feature={feature}
                         platforms={effectivePlatforms}
                         versions={versions}
-                        getSupportEntry={(pid, fid, ver) =>
-                          getSupportEntry(data, pid, fid, ver)
-                        }
+                        getSupportEntry={getEntry}
                         onCellClick={handleCellClick}
                       />
                     ))}
@@ -363,13 +387,15 @@ export function CompatibilityMatrix({
 
       {popover && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/20">
-          <DetailPopover
-            entry={popover.entry}
-            feature={popover.feature}
-            platform={popover.platform}
-            version={popover.version}
-            onClose={() => setPopover(null)}
-          />
+          <Suspense fallback={null}>
+            <DetailPopover
+              entry={popover.entry}
+              feature={popover.feature}
+              platform={popover.platform}
+              version={popover.version}
+              onClose={() => setPopover(null)}
+            />
+          </Suspense>
         </div>
       )}
     </div>

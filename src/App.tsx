@@ -1,11 +1,18 @@
-import { useState } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import type { AwsS3Mode, FilterState } from "./types";
 import { data, dataS3Tables } from "./data/load-data";
 import { FilterPanel } from "./components/FilterPanel";
 import { VersionTabs } from "./components/VersionTabs";
 import { CompatibilityMatrix } from "./components/CompatibilityMatrix";
-import { ComparisonSummary } from "./components/ComparisonSummary";
 import { applyFilters } from "./utils/filters";
+
+// Code-split the comparison view: it is only rendered in compare mode, so keep
+// it out of the initial bundle.
+const ComparisonSummary = lazy(() =>
+  import("./components/ComparisonSummary").then((m) => ({
+    default: m.ComparisonSummary,
+  })),
+);
 
 const initialFilters: FilterState = {
   selectedVersions: ["v2"],
@@ -26,7 +33,10 @@ export default function App() {
     setFilters((prev) => ({ ...prev, selectedVersions: versions }));
   };
 
-  const { platforms } = applyFilters(activeData, filters);
+  const { platforms } = useMemo(
+    () => applyFilters(activeData, filters),
+    [activeData, filters],
+  );
   const isCompareMode = filters.selectedVersions.length > 1;
 
   return (
@@ -58,7 +68,9 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-[1800px] mx-auto px-4 py-3 sm:px-6">
+      <main className="w-full px-4 py-3 sm:px-6">
+        {/* Text/controls stay at a readable width; the matrix below goes full-width */}
+        <div className="max-w-[1800px] mx-auto">
         {/* Collapsible intro */}
         <div className="mb-3">
           <button
@@ -102,13 +114,16 @@ export default function App() {
             onFilterChange={setFilters}
           />
         </div>
+        </div>
 
         {isCompareMode && (
-          <ComparisonSummary
-            data={activeData}
-            platforms={platforms}
-            versions={filters.selectedVersions}
-          />
+          <Suspense fallback={null}>
+            <ComparisonSummary
+              data={activeData}
+              platforms={platforms}
+              versions={filters.selectedVersions}
+            />
+          </Suspense>
         )}
 
         <CompatibilityMatrix data={activeData} filters={filters} awsS3Mode={awsS3Mode} onAwsS3ModeChange={setAwsS3Mode} />

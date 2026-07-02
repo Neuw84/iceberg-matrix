@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import type { Feature, Platform, SupportEntry, Version } from "../types";
 import { createPortal } from "react-dom";
 import { SupportCell } from "./SupportCell";
@@ -11,7 +11,7 @@ interface FeatureRowProps {
   onCellClick: (platform: Platform, feature: Feature, version: Version, entry: SupportEntry) => void;
 }
 
-export function FeatureRow({
+function FeatureRowImpl({
   feature,
   platforms,
   versions,
@@ -69,3 +69,5 @@ export function FeatureRow({
     </tr>
   );
 }
+
+export const FeatureRow = memo(FeatureRowImpl);

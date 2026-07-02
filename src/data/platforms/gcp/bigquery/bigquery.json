@@ -362,7 +362,7 @@
       "level": "full",
       "notes": "INSERT INTO supported via GoogleSQL DML. Also supports batch loading via LOAD DATA and streaming via BigQuery Storage Write API",
       "caveats": [
-        "Writing from external engines is not supported; data must be added exclusively through BigQuery"
+        "Writing from external engines historically required BigQuery; external-engine writes are now in Preview via the BigLake Iceberg REST Catalog"
       ],
       "links": [
         {
@@ -479,13 +479,20 @@
       ]
     },
     "google-bigquery:rest-catalog:v2": {
-      "level": "unknown",
-      "notes": "REST catalog support for BigLake metastore is not mentioned in the BigLake Iceberg tables documentation",
-      "caveats": [],
+      "level": "partial",
+      "notes": "BigLake metastore now exposes a Google-managed Iceberg REST Catalog. As announced at the Apache Iceberg Summit (2026), read and write interoperability between BigQuery and external Iceberg engines (Trino, Spark, and others) is in Preview via this REST catalog.",
+      "caveats": [
+        "Read/write interoperability via the BigLake Iceberg REST Catalog is in Preview",
+        "Historically writes were BigQuery-only; external-engine writes are now enabled through the REST catalog in Preview"
+      ],
       "links": [
         {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
+          "label": "Improved interoperability for your Apache Iceberg lakehouse (Iceberg Summit 2026)",
+          "url": "https://cloud.google.com/blog/products/data-analytics/improved-interoperability-for-your-apache-iceberg-lakehouse/"
+        },
+        {
+          "label": "Use the BigLake Metastore with the Iceberg REST catalog",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
         }
       ]
     },

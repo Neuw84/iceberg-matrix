@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { SupportEntry } from "../types";
 
 const CONFIG: Record<
@@ -39,7 +40,7 @@ interface SupportCellProps {
   onClick?: () => void;
 }
 
-export function SupportCell({ entry, onClick }: SupportCellProps) {
+export const SupportCell = memo(function SupportCell({ entry, onClick }: SupportCellProps) {
   const cfg = CONFIG[entry.level] ?? CONFIG.unknown;
 
   return (
@@ -54,4 +55,4 @@ export function SupportCell({ entry, onClick }: SupportCellProps) {
       <span className="text-[10px]">{cfg.label}</span>
     </button>
   );
-}
+});

@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "duckdb",
-      "name": "DuckDB (1.5.2)",
+      "name": "DuckDB (1.5.4)",
       "vendor": "DuckDB Foundation",
       "category": "open-source",
       "group": "3rd Party",
@@ -85,15 +85,13 @@
       ]
     },
     "duckdb:merge-on-read:v3": {
-      "level": "unknown",
-      "notes": "Merge-on-read behavior on V3 tables not yet documented",
-      "caveats": [
-        "V3 merge-on-read support not yet documented"
-      ],
+      "level": "full",
+      "notes": "V3 tables use merge-on-read with binary deletion vectors; UPDATE/DELETE/MERGE against a V3 table write deletion vectors automatically",
+      "caveats": [],
       "links": [
         {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 deletion vectors)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         }
       ]
     },
@@ -144,19 +142,13 @@
       ]
     },
     "duckdb:schema-evolution:v3": {
-      "level": "partial",
-      "notes": "Schema evolution on V3 tables supported for V2-compatible data types; ALTER TABLE added in v1.5.2",
-      "caveats": [
-        "V3 reads supported only with V2-compatible data types"
-      ],
+      "level": "full",
+      "notes": "ALTER TABLE (rename table/column, add/drop column, set format-version) is fully supported on V3 tables since v1.5.3",
+      "caveats": [],
       "links": [
         {
-          "label": "Announcing DuckDB v1.5.2 (Iceberg ALTER TABLE)",
-          "url": "https://duckdb.org/2026/04/13/announcing-duckdb-152"
-        },
-        {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (ALTER TABLE + V3)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         }
       ]
     },
@@ -167,12 +159,14 @@
       "links": []
     },
     "duckdb:column-default-values:v3": {
-      "level": "none",
-      "notes": "Column default values are a V3-only data type feature not yet supported by DuckDB",
-      "caveats": [
-        "V3-only feature; DuckDB V3 support limited to V2-compatible data types"
-      ],
+      "level": "full",
+      "notes": "Schema-level column default values supported on V3 tables since the extension shipped with v1.5.3",
+      "caveats": [],
       "links": [
+        {
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
+        },
         {
           "label": "Iceberg Extension Overview",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
@@ -186,12 +180,14 @@
       "links": []
     },
     "duckdb:nanosecond-timestamps:v3": {
-      "level": "none",
-      "notes": "Nanosecond timestamps are a V3-only data type not supported by DuckDB's Iceberg extension",
-      "caveats": [
-        "V3-only feature; DuckDB V3 support limited to V2-compatible data types"
-      ],
+      "level": "full",
+      "notes": "TIMESTAMP_NS (nanosecond-precision timestamps) supported for reads and writes on V3 tables since the extension shipped with v1.5.3",
+      "caveats": [],
       "links": [
+        {
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
+        },
         {
           "label": "Iceberg Extension Overview",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
@@ -214,15 +210,13 @@
       ]
     },
     "duckdb:hidden-partitioning:v3": {
-      "level": "partial",
-      "notes": "Hidden partitioning on V3 tables readable if V2-compatible data types are used",
-      "caveats": [
-        "V3 reads supported only with V2-compatible data types"
-      ],
+      "level": "full",
+      "notes": "Reads and writes of hidden-partitioned V3 tables are supported, including the bucket and truncate transforms added in v1.5.2/v1.5.3",
+      "caveats": [],
       "links": [
         {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (partition transforms + V3)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         }
       ]
     },
@@ -285,15 +279,13 @@
       ]
     },
     "duckdb:time-travel:v3": {
-      "level": "partial",
-      "notes": "Time travel on V3 tables likely works for V2-compatible data types but not explicitly documented",
-      "caveats": [
-        "V3 reads supported only with V2-compatible data types"
-      ],
+      "level": "full",
+      "notes": "Time travel via AT (VERSION => snapshot_id) and AT (TIMESTAMP => ts) works on V3 tables since full V3 support in v1.5.3",
+      "caveats": [],
       "links": [
         {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         }
       ]
     },
@@ -359,13 +351,16 @@
       ]
     },
     "duckdb:read-support:v3": {
-      "level": "partial",
-      "notes": "DuckDB can read V3 tables that use only V2-compatible data types",
+      "level": "full",
+      "notes": "Since v1.5.3 DuckDB fully reads V3 tables, including VARIANT, TIMESTAMP_NS, column default values, binary deletion vectors, and row lineage",
       "caveats": [
-        "V3 reads supported only with V2-compatible data types",
-        "V3-only data types (e.g., nanosecond timestamps, geometry) not supported"
+        "Geography type and Unknown type are not yet supported (planned for DuckDB v2.0.0)"
       ],
       "links": [
+        {
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
+        },
         {
           "label": "Iceberg Extension Overview",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
@@ -390,16 +385,15 @@
       ]
     },
     "duckdb:write-insert:v3": {
-      "level": "partial",
-      "notes": "Inserts into V3 Iceberg tables are supported per the extension limitations page",
+      "level": "full",
+      "notes": "Since v1.5.3 DuckDB creates and inserts into V3 tables (CREATE TABLE ... WITH ('format-version' = 3)), including VARIANT and TIMESTAMP_NS columns",
       "caveats": [
-        "V3 insert support available; UPDATE/DELETE on V3 not yet documented",
         "Requires attachment to an Iceberg REST catalog"
       ],
       "links": [
         {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         },
         {
           "label": "Writes in DuckDB-Iceberg (blog)",
@@ -408,39 +402,34 @@
       ]
     },
     "duckdb:write-merge-update-delete:v2": {
-      "level": "partial",
-      "notes": "UPDATE and DELETE supported since v1.4.2; v1.5.2 adds UPDATE/DELETE on partitioned tables and ALTER TABLE. MERGE INTO is still not supported.",
+      "level": "full",
+      "notes": "MERGE INTO, UPDATE, and DELETE are all supported. UPDATE/DELETE landed in v1.4.2, partitioned UPDATE/DELETE and ALTER TABLE in v1.5.2, and MERGE INTO in v1.5.3.",
       "caveats": [
-        "MERGE INTO is not supported",
-        "Only writes positional deletes (no copy-on-write mode for deletes)",
-        "Only merge-on-read semantics supported"
+        "Uses merge-on-read semantics only (writes positional deletes); copy-on-write for deletes is not supported",
+        "Requires attachment to an Iceberg REST catalog"
       ],
       "links": [
         {
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (MERGE INTO)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
+        },
+        {
           "label": "Announcing DuckDB v1.5.2 (partitioned UPDATE/DELETE, ALTER TABLE)",
           "url": "https://duckdb.org/2026/04/13/announcing-duckdb-152"
-        },
-        {
-          "label": "Writes in DuckDB-Iceberg (blog)",
-          "url": "https://duckdb.org/2025/11/28/iceberg-writes-in-duckdb"
-        },
-        {
-          "label": "Iceberg REST Catalogs",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
         }
       ]
     },
     "duckdb:write-merge-update-delete:v3": {
-      "level": "unknown",
-      "notes": "UPDATE/DELETE on V3 tables not yet documented; MERGE INTO not supported on any version",
+      "level": "full",
+      "notes": "Since v1.5.3 MERGE INTO, UPDATE, and DELETE are supported on V3 tables; row-level changes are written as binary deletion vectors (Puffin) under merge-on-read semantics",
       "caveats": [
-        "MERGE INTO not supported",
-        "V3 UPDATE/DELETE support not yet documented"
+        "Uses merge-on-read semantics (deletion vectors); copy-on-write for deletes is not supported",
+        "Requires attachment to an Iceberg REST catalog"
       ],
       "links": [
         {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (MERGE INTO + V3)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         }
       ]
     },
@@ -466,20 +455,19 @@
       ]
     },
     "duckdb:catalog-integration:v3": {
-      "level": "partial",
-      "notes": "V3 catalog integration works for reads with V2-compatible data types; V3 inserts supported",
+      "level": "full",
+      "notes": "Since v1.5.3 REST catalog integration fully supports V3 tables for reads and writes",
       "caveats": [
-        "V3 reads supported only with V2-compatible data types",
-        "Only REST-based catalogs supported"
+        "Only REST-based catalogs supported (no Hive Metastore, Hadoop, or JDBC)"
       ],
       "links": [
         {
-          "label": "Iceberg REST Catalogs",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         },
         {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+          "label": "Iceberg REST Catalogs",
+          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
         }
       ]
     },
@@ -523,20 +511,19 @@
       ]
     },
     "duckdb:aws-glue-catalog:v3": {
-      "level": "partial",
-      "notes": "AWS Glue integration works for V3 tables with V2-compatible data types",
+      "level": "full",
+      "notes": "AWS Glue (SageMaker Lakehouse) integration supports V3 tables since full V3 support in v1.5.3",
       "caveats": [
-        "Experimental",
-        "V3 reads supported only with V2-compatible data types"
+        "Experimental"
       ],
       "links": [
         {
-          "label": "Amazon SageMaker Lakehouse (AWS Glue)",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/amazon_sagemaker_lakehouse"
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         },
         {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+          "label": "Amazon SageMaker Lakehouse (AWS Glue)",
+          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/amazon_sagemaker_lakehouse"
         }
       ]
     },
@@ -552,19 +539,17 @@
       ]
     },
     "duckdb:rest-catalog:v3": {
-      "level": "partial",
-      "notes": "REST Catalog attachment works for V3 tables with V2-compatible data types",
-      "caveats": [
-        "V3 reads supported only with V2-compatible data types"
-      ],
+      "level": "full",
+      "notes": "REST Catalog attachment fully supports V3 tables for reads and writes since v1.5.3",
+      "caveats": [],
       "links": [
+        {
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
+        },
         {
           "label": "Iceberg REST Catalogs",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
-        },
-        {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
         }
       ]
     },
@@ -602,19 +587,17 @@
       ]
     },
     "duckdb:polaris:v3": {
-      "level": "partial",
-      "notes": "Polaris via REST Catalog works for V3 tables with V2-compatible data types",
-      "caveats": [
-        "V3 reads supported only with V2-compatible data types"
-      ],
+      "level": "full",
+      "notes": "Polaris via REST Catalog fully supports V3 tables for reads and writes since v1.5.3",
+      "caveats": [],
       "links": [
+        {
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
+        },
         {
           "label": "Iceberg REST Catalogs",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
-        },
-        {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
         }
       ]
     },
@@ -706,15 +689,15 @@
       ]
     },
     "duckdb:table-creation:v3": {
-      "level": "unknown",
-      "notes": "V3 table creation not yet documented",
+      "level": "full",
+      "notes": "Since v1.5.3 DuckDB creates V3 tables via CREATE TABLE ... WITH ('format-version' = 3), or upgrades an existing table with ALTER TABLE ... SET ('format-version' = 3)",
       "caveats": [
-        "V3 table creation support not yet documented"
+        "Requires attachment to an Iceberg REST catalog"
       ],
       "links": [
         {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         }
       ]
     },
@@ -725,12 +708,14 @@
       "links": []
     },
     "duckdb:variant-type:v3": {
-      "level": "none",
-      "notes": "Variant type is a V3-only data type not supported by DuckDB's Iceberg extension",
-      "caveats": [
-        "V3-only feature; DuckDB V3 support limited to V2-compatible data types"
-      ],
+      "level": "full",
+      "notes": "VARIANT type is fully supported for both reads and writes on V3 tables since the DuckDB-Iceberg extension shipped with v1.5.3",
+      "caveats": [],
       "links": [
+        {
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
+        },
         {
           "label": "Iceberg Extension Overview",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
@@ -763,17 +748,19 @@
       "links": []
     },
     "duckdb:geometry-type:v3": {
-      "level": "full",
-      "notes": "GEOMETRY type support added to the DuckDB Iceberg extension in v1.5.2",
-      "caveats": [],
+      "level": "partial",
+      "notes": "The GEOMETRY type is supported by the DuckDB Iceberg extension (added in v1.5.2). The Iceberg V3 GEOGRAPHY type is not yet supported (planned for DuckDB v2.0.0).",
+      "caveats": [
+        "GEOGRAPHY type not yet supported (planned for DuckDB v2.0.0)"
+      ],
       "links": [
+        {
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (Geography/Unknown not yet supported)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
+        },
         {
           "label": "Announcing DuckDB v1.5.2 (GEOMETRY type)",
           "url": "https://duckdb.org/2026/04/13/announcing-duckdb-152"
-        },
-        {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
         }
       ]
     },
@@ -784,12 +771,14 @@
       "links": []
     },
     "duckdb:lineage:v3": {
-      "level": "none",
-      "notes": "Lineage tracking not available in DuckDB's Iceberg extension",
-      "caveats": [
-        "V3-only feature; not supported"
-      ],
+      "level": "full",
+      "notes": "Row lineage tracking is written for V3 tables by the DuckDB-Iceberg extension since v1.5.3",
+      "caveats": [],
       "links": [
+        {
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
+        },
         {
           "label": "Iceberg Extension Overview",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
@@ -814,15 +803,13 @@
       ]
     },
     "duckdb:statistics:v3": {
-      "level": "partial",
-      "notes": "DuckDB can read column statistics from V3 tables that use only V2-compatible data types",
-      "caveats": [
-        "V3 reads supported only with V2-compatible data types"
-      ],
+      "level": "full",
+      "notes": "DuckDB reads and writes column statistics to manifest files on V3 tables since full V3 support in v1.5.3",
+      "caveats": [],
       "links": [
         {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         }
       ]
     },
@@ -900,12 +887,15 @@
       "links": []
     },
     "duckdb:deletion-vectors:v3": {
-      "level": "partial",
-      "notes": "DuckDB's Iceberg extension can read V3 tables with deletion vectors when only V2-compatible data types are used; writing deletion vectors is not supported.",
-      "caveats": [
-        "Read-only; limited to V2-compatible data types"
-      ],
-      "links": []
+      "level": "full",
+      "notes": "Since v1.5.3 DuckDB reads and writes binary deletion vectors (Puffin) on V3 tables. UPDATE/DELETE/MERGE against a V3 table automatically encode changes as deletion vectors rather than positional-delete Parquet files.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 deletion vectors)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
+        }
+      ]
     }
   }
 }
