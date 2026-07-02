@@ -28,6 +28,11 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:

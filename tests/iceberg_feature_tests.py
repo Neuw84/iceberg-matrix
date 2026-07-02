@@ -38,9 +38,16 @@ ICEBERG_JAR = os.environ.get(
     "ICEBERG_JAR",
     f"iceberg-spark-runtime-{SPARK_VERSION_SHORT}_2.13-{ICEBERG_VERSION}.jar",
 )
-WAREHOUSE_DIR = os.environ.get(
-    "ICEBERG_WAREHOUSE", os.path.join(os.getcwd(), "iceberg-test-warehouse")
+WAREHOUSE_DIR = os.path.abspath(
+    os.environ.get(
+        "ICEBERG_WAREHOUSE", os.path.join(os.getcwd(), "iceberg-test-warehouse")
+    )
 )
+# Explicit local-filesystem URI for the Hadoop catalog warehouse. Passing a
+# file:// URI (rather than a bare path) guarantees the Hadoop Iceberg catalog
+# writes to the local machine and never resolves to HDFS or some other default
+# FileSystem, regardless of any Hadoop config present on the runner.
+WAREHOUSE_URI = Path(WAREHOUSE_DIR).as_uri()
 REPO_ROOT = os.environ.get(
     "REPO_ROOT",
     str(Path(__file__).resolve().parent.parent),
@@ -133,7 +140,7 @@ def get_spark():
         .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
         .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
         .config("spark.sql.catalog.local.type", "hadoop")
-        .config("spark.sql.catalog.local.warehouse", WAREHOUSE_DIR)
+        .config("spark.sql.catalog.local.warehouse", WAREHOUSE_URI)
         .config("spark.sql.defaultCatalog", "local")
         .config("spark.sql.adaptive.enabled", "false")
         .config("spark.driver.memory", "2g")

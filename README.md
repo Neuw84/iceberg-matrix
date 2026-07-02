@@ -102,11 +102,11 @@ The repo includes a PySpark-based test suite that validates Iceberg features aga
 
 - Java 17
 - Python 3.11+
-- PySpark 4.0.x (installed via `tests/requirements.txt`)
+- PySpark 4.1.2 (installed via `tests/requirements.txt`)
 
 > The suite exercises **both** Iceberg format-version 2 and version 3, so it
 > requires an Iceberg runtime that supports V3 (VARIANT, geometry, deletion
-> vectors, row lineage). Use Iceberg **1.10.1+** with Spark 4.0 / Scala 2.13.
+> vectors, row lineage). Use Iceberg **1.11.0+** with Spark 4.1 / Scala 2.13.
 
 ### Local Execution
 
@@ -114,10 +114,10 @@ The repo includes a PySpark-based test suite that validates Iceberg features aga
 # Install dependencies
 pip install -r tests/requirements.txt
 
-# Download the Iceberg Spark 4.0 (Scala 2.13) runtime JAR
-ICEBERG_VERSION=1.10.1
-curl -fSL -o "iceberg-spark-runtime-4.0_2.13-${ICEBERG_VERSION}.jar" \
-  "https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-4.0_2.13/${ICEBERG_VERSION}/iceberg-spark-runtime-4.0_2.13-${ICEBERG_VERSION}.jar"
+# Download the Iceberg Spark 4.1 (Scala 2.13) runtime JAR
+ICEBERG_VERSION=1.11.0
+curl -fSL -o "iceberg-spark-runtime-4.1_2.13-${ICEBERG_VERSION}.jar" \
+  "https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-4.1_2.13/${ICEBERG_VERSION}/iceberg-spark-runtime-4.1_2.13-${ICEBERG_VERSION}.jar"
 
 # Run the tests (auto-detects the JAR, or falls back to Maven coordinates).
 # Override the version with ICEBERG_VERSION=... if needed.
