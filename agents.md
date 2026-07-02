@@ -170,6 +170,7 @@ Firehose (`aws/s3buckets/firehose` and `aws/s3tables/firehose`) and Kafka Connec
 - PRs trigger lint → test → build validation.
 - Pushes to `main` trigger test → build → deploy to GitHub Pages.
 - The `BASE_URL` env var is set during deploy to handle the repo subpath.
+- CI and Deploy workflows run on Node 24 (`actions/setup-node@v4` with `node-version: 24`). Node 20 is deprecated on GitHub Actions runners — keep the build and deploy pipelines on Node 24 and do not fall back to `ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION`.
 
 ### Data Integrity
 
