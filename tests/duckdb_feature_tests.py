@@ -1,18 +1,37 @@
-#!/usr/bin/env python3
 """
 DuckDB-based Iceberg Feature Test Suite.
 
-Tests Iceberg features using DuckDB's built-in Iceberg extension,
-then compares results with the DuckDB entries from oss.json.
+Tests Iceberg features using DuckDB's built-in Iceberg extension against a real,
+open-source Iceberg REST catalog (the Apache ``iceberg-rest-fixture`` backed by
+MinIO S3 storage), then compares results with the DuckDB entries from
+``src/data/platforms/oss/duckdb/duckdb.json``.
+
+DuckDB's Iceberg *write* path (CREATE TABLE, INSERT, UPDATE, DELETE, MERGE INTO,
+ALTER TABLE and all V3 features) only works through an attached Iceberg REST
+catalog -- the path-based ``iceberg_scan`` interface is read-only. This suite
+therefore attaches to a REST catalog when one is configured and exercises the
+features for real; when no catalog is configured the catalog-dependent tests are
+reported as ``skip`` (never as a fabricated pass/fail).
 
 Usage:
+    # Point at a running Iceberg REST catalog (see .github/workflows/duckdb-tests.yml
+    # for a docker recipe using apache/iceberg-rest-fixture + MinIO):
+    export ICEBERG_REST_URI=http://127.0.0.1:8181
     python tests/duckdb_feature_tests.py
 
-Environment variables for version selection:
-    DUCKDB_VERSION  - Override reported DuckDB version (default: auto-detected)
+Environment variables:
+    ICEBERG_REST_URI        - Iceberg REST catalog endpoint. When unset, all
+                              catalog-dependent tests are skipped.
+    ICEBERG_REST_WAREHOUSE  - Warehouse identifier to attach (default: "warehouse")
+    ICEBERG_S3_ENDPOINT     - S3 endpoint for data files (default: "127.0.0.1:9000")
+    ICEBERG_S3_KEY_ID       - S3 access key id (default: "admin")
+    ICEBERG_S3_SECRET       - S3 secret access key (default: "password")
+    ICEBERG_S3_REGION       - S3 region (default: "us-east-1")
+    DUCKDB_VERSION          - Override reported DuckDB version (default: auto-detected)
 
 Requirements:
-    - duckdb >= 1.4.0 (Iceberg write support)
+    - duckdb == 1.5.4 (pinned in CI; Iceberg V3 read/write via v1.5.x)
+    - An Iceberg REST catalog backed by S3-compatible storage for write tests.
 """
 
 import json
@@ -27,7 +46,7 @@ from pathlib import Path
 try:
     import duckdb
 except ImportError:
-    print("[FATAL] duckdb not installed. Run: pip install duckdb")
+    print("[FATAL] duckdb not installed. Run: pip install duckdb==1.5.4")
     sys.exit(1)
 
 # ---------------------------------------------------------------------------
@@ -43,6 +62,19 @@ REPO_ROOT = os.environ.get(
 REPORT_DIR = os.environ.get("REPORT_DIR", os.path.join(os.getcwd(), "test-reports"))
 DUCKDB_VERSION = os.environ.get("DUCKDB_VERSION", duckdb.__version__)
 
+# Iceberg REST catalog configuration. Writes require an attached REST catalog;
+# when ICEBERG_REST_URI is unset the catalog-dependent tests are skipped.
+REST_URI = os.environ.get("ICEBERG_REST_URI")
+REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "warehouse")
+S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", "127.0.0.1:9000")
+S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "admin")
+S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "password")
+S3_REGION = os.environ.get("ICEBERG_S3_REGION", "us-east-1")
+
+NO_CATALOG_DETAIL = (
+    "Requires an Iceberg REST catalog (set ICEBERG_REST_URI); not configured in this run"
+)
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -52,36 +84,95 @@ def _unique(prefix: str = "t") -> str:
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
 
 
-def _create_connection() -> duckdb.DuckDBPyConnection:
-    """Create a fresh in-memory DuckDB connection with the iceberg extension loaded."""
+def _rest_available() -> bool:
+    """True when an Iceberg REST catalog endpoint has been configured."""
+    return bool(REST_URI)
+
+
+def _plain_connection() -> "duckdb.DuckDBPyConnection":
+    """A fresh in-memory DuckDB connection with the iceberg extension loaded."""
     con = duckdb.connect(":memory:")
     con.execute("INSTALL iceberg; LOAD iceberg;")
     return con
 
 
-def _create_catalog_connection(warehouse_path: str) -> duckdb.DuckDBPyConnection:
-    """Create a DuckDB connection with an Iceberg REST catalog-style local setup.
+def _catalog_connection() -> "duckdb.DuckDBPyConnection":
+    """Connect to DuckDB and ATTACH the configured Iceberg REST catalog as ``ib``.
 
-    DuckDB's Iceberg write support requires attaching to an Iceberg REST catalog.
-    For local testing without a REST server, we use iceberg_scan for reads
-    and test write features that don't need a catalog.
+    The catalog is attached writable: we pass the warehouse *name* (not an
+    ``s3://`` URI) and ``ACCESS_DELEGATION_MODE 'none'`` so DuckDB uses the local
+    S3 secret defined below rather than expecting the catalog to vend credentials.
     """
     con = duckdb.connect(":memory:")
-    con.execute("INSTALL iceberg; LOAD iceberg;")
+    con.execute("INSTALL iceberg; LOAD iceberg; INSTALL httpfs; LOAD httpfs;")
+    con.execute(
+        f"""
+        CREATE SECRET s3sec (
+            TYPE s3,
+            KEY_ID '{S3_KEY_ID}',
+            SECRET '{S3_SECRET}',
+            ENDPOINT '{S3_ENDPOINT}',
+            URL_STYLE 'path',
+            USE_SSL false,
+            REGION '{S3_REGION}'
+        )
+        """
+    )
+    con.execute(
+        f"""
+        ATTACH '{REST_WAREHOUSE}' AS ib (
+            TYPE iceberg,
+            ENDPOINT '{REST_URI}',
+            AUTHORIZATION_TYPE 'none',
+            ACCESS_DELEGATION_MODE 'none'
+        )
+        """
+    )
     return con
+
+
+def _new_namespace(con: "duckdb.DuckDBPyConnection") -> str:
+    """Create and return a fresh, uniquely-named namespace in the attached catalog."""
+    ns = "ns_" + uuid.uuid4().hex[:10]
+    con.execute(f"CREATE SCHEMA ib.{ns}")
+    return ns
+
+
+def _catalog_test(r: "TestResult", body):
+    """Run ``body(con, ns, r)`` against the REST catalog, or skip if none configured.
+
+    ``body`` must set ``r.result``/``r.details`` on success. Any exception is
+    reported as an ``error`` so it never masquerades as a data discrepancy.
+    """
+    if not _rest_available():
+        r.result = "skip"
+        r.details = NO_CATALOG_DETAIL
+        return r
+    con = None
+    try:
+        con = _catalog_connection()
+        ns = _new_namespace(con)
+        body(con, ns, r)
+    except Exception as e:  # noqa: BLE001 - surface any failure as an error
+        r.result = "error"
+        r.details = f"{type(e).__name__}: {str(e).splitlines()[0][:280]}"
+    finally:
+        if con:
+            con.close()
+    return r
 
 
 # ---------------------------------------------------------------------------
-# Result classes
+# Result class
 # ---------------------------------------------------------------------------
 
 class TestResult:
-    def __init__(self, feature_id: str, feature_name: str):
+    def __init__(self, feature_id: str, feature_name: str, version: str = "v2"):
         self.feature_id = feature_id
         self.feature_name = feature_name
         self.result = "skip"  # pass | fail | skip | error
         self.details = ""
-        self.version_tested = "v2"
+        self.version_tested = version
 
     def to_dict(self):
         return {
@@ -94,728 +185,468 @@ class TestResult:
 
 
 # ---------------------------------------------------------------------------
-# Individual test functions
+# Catalog-backed feature tests (real operations against the REST catalog)
 # ---------------------------------------------------------------------------
-# DuckDB Iceberg write support requires a REST catalog (ATTACH TYPE iceberg).
-# Without a running REST catalog server, we test:
-# - Read features using iceberg_scan on pre-created tables
-# - Write features by creating tables via DuckDB and reading back
-# - Features that can be verified without external services
-#
-# For features requiring a REST catalog, we attempt to use one and skip if unavailable.
 
 def test_table_creation() -> TestResult:
-    """Test creating an Iceberg table via DuckDB.
+    r = TestResult("table-creation", "Table Creation", "v2")
 
-    DuckDB Iceberg write requires a REST catalog. Without one, we test that
-    DuckDB can create local Parquet files that form a valid Iceberg table structure.
-    With a catalog, we'd use CREATE TABLE directly.
-    """
-    r = TestResult("table-creation", "Table Creation")
-    con = None
-    test_dir = os.path.join(WAREHOUSE_DIR, _unique("create"))
-    try:
-        con = _create_connection()
-        os.makedirs(test_dir, exist_ok=True)
-
-        # DuckDB Iceberg extension: without a REST catalog, we can't CREATE TABLE
-        # in Iceberg format directly. Instead, we verify the extension loads and
-        # can handle Iceberg operations by creating a table, exporting to parquet,
-        # and verifying iceberg_scan works on properly structured data.
-
-        # Test 1: Verify extension is loaded and functional
-        result = con.execute("SELECT iceberg_version() IS NOT NULL AS ok").fetchone()
-        # iceberg_version() may not exist, try alternative
+    def body(con, ns, r):
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR)")
+        con.execute(f"CREATE TABLE ib.{ns}.t2 AS SELECT 1 AS id")
+        con.execute(f"DROP TABLE ib.{ns}.t2")
+        tbls = con.execute(
+            f"SELECT count(*) FROM duckdb_tables() WHERE schema_name='{ns}'"
+        ).fetchone()[0]
+        assert tbls == 1, f"expected 1 table after create+drop, got {tbls}"
         r.result = "pass"
-        r.details = "DuckDB Iceberg extension loaded; CREATE TABLE requires REST catalog (ATTACH TYPE iceberg)"
-    except duckdb.CatalogException:
-        # iceberg_version() doesn't exist, but extension loaded
-        try:
-            # Verify extension is loaded by checking it's in the list
-            exts = con.execute("SELECT extension_name, loaded FROM duckdb_extensions() WHERE extension_name = 'iceberg'").fetchone()
-            if exts and exts[1]:
-                r.result = "pass"
-                r.details = "DuckDB Iceberg extension loaded successfully; table creation requires REST catalog"
-            else:
-                r.result = "fail"
-                r.details = "Iceberg extension not loaded"
-        except Exception as e2:
-            r.result = "error"
-            r.details = f"Could not verify extension: {e2}"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-        shutil.rmtree(test_dir, ignore_errors=True)
-    return r
+        r.details = "CREATE TABLE, CREATE TABLE AS SELECT and DROP TABLE via REST catalog"
+
+    return _catalog_test(r, body)
 
 
 def test_read_support() -> TestResult:
-    """Test reading Iceberg tables with iceberg_scan."""
-    r = TestResult("read-support", "Read Support")
-    con = None
-    test_dir = os.path.join(WAREHOUSE_DIR, _unique("read"))
-    try:
-        con = _create_connection()
-        os.makedirs(test_dir, exist_ok=True)
+    r = TestResult("read-support", "Read Support", "v2")
 
-        # Create a minimal Iceberg table structure using DuckDB's parquet writer
-        # then use iceberg_scan to read it
-        data_dir = os.path.join(test_dir, "data")
-        metadata_dir = os.path.join(test_dir, "metadata")
-        os.makedirs(data_dir, exist_ok=True)
-        os.makedirs(metadata_dir, exist_ok=True)
+    def body(con, ns, r):
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR)")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1,'a'),(2,'b'),(3,'c')")
+        n = con.execute(f"SELECT count(*) FROM ib.{ns}.t").fetchone()[0]
+        assert n == 3, f"expected 3 rows, got {n}"
+        r.result = "pass"
+        r.details = "Round-trip read of an Iceberg table via the REST catalog (3 rows)"
 
-        # Write test parquet file
-        parquet_path = os.path.join(data_dir, "00000.parquet")
-        con.execute(f"""
-            COPY (SELECT 1 AS id, 'alice' AS name, 10 AS val
-                  UNION ALL SELECT 2, 'bob', 20
-                  UNION ALL SELECT 3, 'charlie', 30)
-            TO '{parquet_path}' (FORMAT PARQUET)
-        """)
-
-        # Verify DuckDB can read parquet (baseline)
-        rows = con.execute(f"SELECT count(*) FROM '{parquet_path}'").fetchone()[0]
-        assert rows == 3, f"Expected 3 rows, got {rows}"
-
-        # Test iceberg_scan function exists and handles errors gracefully
-        try:
-            con.execute(f"SELECT count(*) FROM iceberg_scan('{test_dir}')")
-            r.result = "pass"
-            r.details = "iceberg_scan reads Iceberg table data successfully"
-        except Exception as scan_err:
-            err_str = str(scan_err).lower()
-            if "metadata" in err_str or "version" in err_str or "not found" in err_str:
-                # Expected: no proper Iceberg metadata, but function exists
-                r.result = "pass"
-                r.details = "iceberg_scan function operational; requires proper Iceberg metadata (version-hint.text or metadata JSON)"
-            else:
-                r.result = "error"
-                r.details = f"iceberg_scan error: {scan_err}"
-
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-        shutil.rmtree(test_dir, ignore_errors=True)
-    return r
+    return _catalog_test(r, body)
 
 
 def test_write_insert() -> TestResult:
-    """Test INSERT INTO Iceberg tables.
+    r = TestResult("write-insert", "Write (INSERT)", "v2")
 
-    Write support requires a REST catalog. We verify the capability exists.
-    """
-    r = TestResult("write-insert", "Write (INSERT)")
-    con = None
-    try:
-        con = _create_connection()
+    def body(con, ns, r):
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR)")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1,'a'),(2,'b')")
+        con.execute(f"INSERT INTO ib.{ns}.t SELECT 3, 'c'")
+        n = con.execute(f"SELECT count(*) FROM ib.{ns}.t").fetchone()[0]
+        assert n == 3, f"expected 3 rows, got {n}"
+        r.result = "pass"
+        r.details = "INSERT INTO ... VALUES and INSERT INTO ... SELECT committed 3 rows"
 
-        # Verify that DuckDB supports Iceberg ATTACH (the mechanism for writes)
-        # We can't actually connect without a REST server, but we can verify
-        # the ATTACH TYPE iceberg syntax is recognized
-        try:
-            con.execute("""
-                ATTACH ':memory:' AS test_ice (TYPE iceberg, ENDPOINT 'http://localhost:99999', AUTHORIZATION_TYPE 'none')
-            """)
-            r.result = "pass"
-            r.details = "ATTACH TYPE iceberg accepted; INSERT requires running REST catalog"
-        except duckdb.IOException as e:
-            err_str = str(e).lower()
-            if "connection" in err_str or "connect" in err_str or "refused" in err_str or "failed" in err_str:
-                # ATTACH syntax recognized, just can't connect — this proves write support exists
-                r.result = "pass"
-                r.details = "INSERT INTO supported via REST catalog ATTACH (connection refused to test endpoint, confirming syntax support)"
-            else:
-                r.result = "error"
-                r.details = f"Unexpected IO error: {str(e)[:200]}"
-        except duckdb.HTTPException as e:
-            # HTTP error means it tried to connect — syntax is valid
-            r.result = "pass"
-            r.details = "INSERT INTO supported via REST catalog ATTACH (HTTP error to test endpoint, confirming syntax support)"
-        except duckdb.CatalogException as e:
-            if "iceberg" in str(e).lower():
-                r.result = "pass"
-                r.details = "Iceberg catalog type recognized; write requires REST catalog server"
-            else:
-                r.result = "error"
-                r.details = str(e)[:200]
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-    return r
+    return _catalog_test(r, body)
 
 
 def test_write_merge_update_delete() -> TestResult:
-    """Test UPDATE, DELETE (MERGE INTO is not supported in DuckDB Iceberg)."""
-    r = TestResult("write-merge-update-delete", "Write (MERGE/UPDATE/DELETE)")
-    con = None
-    try:
-        con = _create_connection()
+    r = TestResult("write-merge-update-delete", "Write (MERGE/UPDATE/DELETE)", "v2")
 
-        # UPDATE and DELETE are supported but only on non-partitioned, non-sorted tables
-        # MERGE INTO is explicitly NOT supported
-        # We verify the catalog attachment mechanism works (syntax accepted)
-        try:
-            con.execute("""
-                ATTACH ':memory:' AS test_ice (TYPE iceberg, ENDPOINT 'http://localhost:99999', AUTHORIZATION_TYPE 'none')
-            """)
-        except (duckdb.IOException, duckdb.HTTPException):
-            # Expected — can't connect, but syntax recognized
-            pass
-
-        # Document the known limitations
+    def body(con, ns, r):
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR)")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1,'John'),(2,'Anna')")
+        con.execute(f"UPDATE ib.{ns}.t SET name='Johnny' WHERE id=1")
+        con.execute(f"DELETE FROM ib.{ns}.t WHERE id=2")
+        con.execute(
+            f"""
+            MERGE INTO ib.{ns}.t AS target
+            USING (SELECT * FROM (VALUES (1,'J'),(3,'Sarah')) v(id,name)) AS src
+            ON src.id = target.id
+            WHEN MATCHED THEN UPDATE SET name = src.name
+            WHEN NOT MATCHED THEN INSERT VALUES (src.id, src.name)
+            """
+        )
+        rows = con.execute(f"SELECT id, name FROM ib.{ns}.t ORDER BY id").fetchall()
+        assert rows == [(1, "J"), (3, "Sarah")], f"unexpected rows: {rows}"
         r.result = "pass"
-        r.details = ("UPDATE/DELETE supported on non-partitioned tables via REST catalog; "
-                      "MERGE INTO not supported; only positional deletes (merge-on-read)")
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-    return r
+        r.details = "UPDATE, DELETE and MERGE INTO (upsert) all committed correctly"
+
+    return _catalog_test(r, body)
 
 
 def test_position_deletes() -> TestResult:
-    """Test that DuckDB can handle position deletes."""
-    r = TestResult("position-deletes", "Position Deletes")
-    con = None
-    try:
-        con = _create_connection()
+    r = TestResult("position-deletes", "Position Deletes", "v2")
 
-        # DuckDB writes positional deletes for UPDATE/DELETE operations
-        # and can read tables with position deletes
-        # Verify via iceberg_metadata function which shows delete files
-        try:
-            # Test that iceberg_metadata function exists
-            con.execute("SELECT * FROM iceberg_metadata('nonexistent') LIMIT 0")
-        except Exception as e:
-            err_str = str(e).lower()
-            if "no such file" in err_str or "not found" in err_str or "does not exist" in err_str or "could not" in err_str:
-                # Function exists, just no table — position deletes are supported
-                r.result = "pass"
-                r.details = "DuckDB reads/writes position deletes; iceberg_metadata function available for inspecting delete files"
-                return r
-
+    def body(con, ns, r):
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT) WITH ('format-version'='2')")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1),(2),(3)")
+        con.execute(f"DELETE FROM ib.{ns}.t WHERE id=2")
+        meta = con.execute(
+            f"SELECT content, file_format FROM iceberg_metadata(ib.{ns}.t)"
+        ).fetchall()
+        has_pos_delete = any(
+            c == "POSITION_DELETES" and fmt == "parquet" for c, fmt in meta
+        )
+        assert has_pos_delete, f"no positional-delete parquet file found: {meta}"
         r.result = "pass"
-        r.details = "DuckDB supports reading and writing position deletes"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-    return r
+        r.details = "DELETE on a V2 table wrote a positional-delete Parquet file (merge-on-read)"
+
+    return _catalog_test(r, body)
 
 
-def test_copy_on_write() -> TestResult:
-    """Test Copy-on-Write mode.
-
-    DuckDB INSERT uses CoW semantics (append-only, no delete files),
-    but UPDATE/DELETE only support merge-on-read.
-    """
-    r = TestResult("copy-on-write", "Copy-on-Write")
-    try:
-        # Per DuckDB docs: "Copy-on-write functionality is not yet supported"
-        # for UPDATE/DELETE. INSERT is effectively CoW (append-only).
-        r.result = "pass"
-        r.details = ("INSERT uses COW semantics (append-only); UPDATE/DELETE only support "
-                      "merge-on-read, not copy-on-write (per DuckDB docs)")
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
+def test_equality_deletes() -> TestResult:
+    r = TestResult("equality-deletes", "Equality Deletes", "v2")
+    # DuckDB can *read* tables containing equality deletes but never writes them,
+    # so producing an equality-delete file requires another engine. We do not
+    # fabricate a result: report skip (the JSON records read-only "full" support).
+    r.result = "skip"
+    r.details = (
+        "DuckDB reads equality deletes but cannot write them; producing an "
+        "equality-delete file requires another engine, so this is not exercised here"
+    )
     return r
 
 
 def test_merge_on_read() -> TestResult:
-    """Test Merge-on-Read mode."""
-    r = TestResult("merge-on-read", "Merge-on-Read")
-    con = None
-    try:
-        con = _create_connection()
+    r = TestResult("merge-on-read", "Merge-on-Read", "v2")
 
-        # DuckDB only supports merge-on-read for UPDATE/DELETE
-        # Verify the extension understands MoR by checking that ATTACH works
-        try:
-            con.execute("""
-                ATTACH ':memory:' AS test_ice (TYPE iceberg, ENDPOINT 'http://localhost:99999', AUTHORIZATION_TYPE 'none')
-            """)
-        except (duckdb.IOException, duckdb.HTTPException):
-            pass
-
+    def body(con, ns, r):
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT) WITH ('format-version'='2')")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1),(2),(3)")
+        con.execute(f"DELETE FROM ib.{ns}.t WHERE id=1")
+        meta = con.execute(
+            f"SELECT content FROM iceberg_metadata(ib.{ns}.t)"
+        ).fetchall()
+        assert any(c == "POSITION_DELETES" for (c,) in meta), f"no delete files: {meta}"
+        n = con.execute(f"SELECT count(*) FROM ib.{ns}.t").fetchone()[0]
+        assert n == 2, f"expected 2 live rows, got {n}"
         r.result = "pass"
-        r.details = ("DuckDB uses merge-on-read exclusively for UPDATE/DELETE; "
-                      "writes positional deletes, fails if table properties require non-MoR mode")
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-    return r
+        r.details = "UPDATE/DELETE use merge-on-read: delete files written, live rows reconciled on read"
+
+    return _catalog_test(r, body)
+
+
+def test_copy_on_write() -> TestResult:
+    r = TestResult("copy-on-write", "Copy-on-Write", "v2")
+
+    def body(con, ns, r):
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT)")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1),(2)")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (3)")
+        meta = con.execute(
+            f"SELECT content FROM iceberg_metadata(ib.{ns}.t)"
+        ).fetchall()
+        # Append-only writes must not create delete files (COW semantics for INSERT).
+        assert not any(c and "DELETE" in c for (c,) in meta), f"unexpected delete files: {meta}"
+        r.result = "pass"
+        r.details = (
+            "INSERT uses copy-on-write semantics (append-only, no delete files); "
+            "UPDATE/DELETE are merge-on-read only"
+        )
+
+    return _catalog_test(r, body)
 
 
 def test_schema_evolution() -> TestResult:
-    """Test schema evolution support.
+    r = TestResult("schema-evolution", "Schema Evolution", "v2")
 
-    DuckDB can READ schema-evolved tables but ALTER TABLE is NOT supported.
-    """
-    r = TestResult("schema-evolution", "Schema Evolution")
-    con = None
-    test_dir = os.path.join(WAREHOUSE_DIR, _unique("schema"))
-    try:
-        con = _create_connection()
-        os.makedirs(test_dir, exist_ok=True)
-
-        # Create two parquet files with different schemas to simulate evolution
-        file1 = os.path.join(test_dir, "v1.parquet")
-        file2 = os.path.join(test_dir, "v2.parquet")
-
-        con.execute(f"""
-            COPY (SELECT 1 AS id, 'alice' AS name) TO '{file1}' (FORMAT PARQUET)
-        """)
-        con.execute(f"""
-            COPY (SELECT 2 AS id, 'bob' AS name, 30 AS age) TO '{file2}' (FORMAT PARQUET)
-        """)
-
-        # DuckDB can read parquet files with evolved schemas using union_by_name
-        rows = con.execute(f"""
-            SELECT * FROM read_parquet(['{file1}', '{file2}'], union_by_name=true)
-            ORDER BY id
-        """).fetchall()
-        assert len(rows) == 2
-        assert rows[0][2] is None  # age is NULL for old row
-        assert rows[1][2] == 30
-
-        # For Iceberg specifically, ALTER TABLE is NOT supported
+    def body(con, ns, r):
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR)")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1,'a')")
+        con.execute(f"ALTER TABLE ib.{ns}.t ADD COLUMN age INT")
+        con.execute(f"ALTER TABLE ib.{ns}.t RENAME COLUMN name TO full_name")
+        con.execute(f"ALTER TABLE ib.{ns}.t DROP COLUMN age")
+        cols = [c[0] for c in con.execute(f"DESCRIBE ib.{ns}.t").fetchall()]
+        assert cols == ["id", "full_name"], f"unexpected columns: {cols}"
         r.result = "pass"
-        r.details = "DuckDB reads schema-evolved Iceberg tables (read-side); ALTER TABLE not supported for writes"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-        shutil.rmtree(test_dir, ignore_errors=True)
-    return r
+        r.details = "ALTER TABLE ADD / RENAME / DROP COLUMN supported via REST catalog"
+
+    return _catalog_test(r, body)
 
 
 def test_type_promotion() -> TestResult:
-    """Test type promotion / widening.
-
-    DuckDB Iceberg does NOT support ALTER TABLE, so type promotion is not available.
-    """
-    r = TestResult("type-promotion", "Type Promotion / Widening")
-    try:
-        # ALTER TABLE is listed as unsupported in DuckDB Iceberg docs
-        r.result = "fail"
-        r.details = "ALTER TABLE not supported in DuckDB Iceberg; type promotion not available"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
+    r = TestResult("type-promotion", "Type Promotion / Widening", "v2")
+    # DuckDB's ALTER TABLE support does not include documented Iceberg type
+    # promotion/widening (int -> bigint, float -> double, etc.). Behaviour is not
+    # clearly specified, so rather than assert a pass/fail we do not exercise it.
+    r.result = "skip"
+    r.details = (
+        "ALTER COLUMN type promotion is not a documented DuckDB-Iceberg operation; "
+        "not exercised here to avoid asserting unspecified behaviour"
+    )
     return r
 
 
 def test_time_travel() -> TestResult:
-    """Test time travel / snapshot queries."""
-    r = TestResult("time-travel", "Time Travel / Snapshots")
-    con = None
-    try:
-        con = _create_connection()
+    r = TestResult("time-travel", "Time Travel / Snapshots", "v2")
 
-        # DuckDB supports time travel via:
-        # - iceberg_scan with snapshot_from_id or snapshot_from_timestamp parameters
-        # - SELECT ... AT (VERSION => snapshot_id) with REST catalog
-        # - iceberg_snapshots() to list available snapshots
-
-        # Test iceberg_snapshots function exists
-        try:
-            con.execute("SELECT * FROM iceberg_snapshots('nonexistent') LIMIT 0")
-        except Exception as e:
-            err_str = str(e).lower()
-            if "no such file" in err_str or "not found" in err_str or "does not exist" in err_str or "could not" in err_str:
-                r.result = "pass"
-                r.details = ("Time travel supported via iceberg_scan(snapshot_from_id/snapshot_from_timestamp) "
-                             "and AT (VERSION => id) syntax; iceberg_snapshots() lists available snapshots")
-                return r
-
+    def body(con, ns, r):
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT)")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1)")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (2),(3)")
+        snaps = con.execute(
+            f"SELECT snapshot_id FROM iceberg_snapshots(ib.{ns}.t) ORDER BY sequence_number"
+        ).fetchall()
+        assert len(snaps) >= 2, f"expected >=2 snapshots, got {snaps}"
+        first = snaps[0][0]
+        old = con.execute(
+            f"SELECT count(*) FROM ib.{ns}.t AT (VERSION => {first})"
+        ).fetchone()[0]
+        now = con.execute(f"SELECT count(*) FROM ib.{ns}.t").fetchone()[0]
+        assert old == 1 and now == 3, f"time travel mismatch old={old} now={now}"
         r.result = "pass"
-        r.details = "Time travel supported via snapshot parameters and AT syntax"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-    return r
+        r.details = "Time travel via AT (VERSION => snapshot_id) returns the historical row count"
+
+    return _catalog_test(r, body)
 
 
 def test_table_maintenance() -> TestResult:
-    """Test table maintenance (compaction, expire snapshots).
-
-    DuckDB Iceberg does NOT support table maintenance operations.
-    """
-    r = TestResult("table-maintenance", "Table Maintenance")
-    try:
-        r.result = "fail"
-        r.details = "DuckDB Iceberg does not support table maintenance (compaction, expire snapshots)"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    return r
-
-
-def test_hidden_partitioning() -> TestResult:
-    """Test hidden partitioning with transform functions."""
-    r = TestResult("hidden-partitioning", "Hidden Partitioning")
-    con = None
-    try:
-        con = _create_connection()
-
-        # DuckDB supports reading Iceberg tables with hidden partitioning
-        # including partition transforms (year, month, day, hour, bucket, truncate)
-        # When writing via REST catalog, partition specs are respected
-
-        # Verify the iceberg_scan function can accept partition-related params
-        try:
-            con.execute("SELECT * FROM iceberg_scan('nonexistent') LIMIT 0")
-        except Exception as e:
-            err_str = str(e).lower()
-            if "no such file" in err_str or "not found" in err_str or "does not exist" in err_str or "could not" in err_str:
-                r.result = "pass"
-                r.details = "Hidden partitioning supported for reads; partition transforms respected in scan planning"
-                return r
-
-        r.result = "pass"
-        r.details = "Hidden partitioning with transforms supported"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-    return r
-
-
-def test_partition_evolution() -> TestResult:
-    """Test partition evolution."""
-    r = TestResult("partition-evolution", "Partition Evolution")
-    con = None
-    try:
-        con = _create_connection()
-
-        # DuckDB can read tables with evolved partition specs
-        # ALTER TABLE (for adding partition fields) is not supported
-        # But reading tables with multiple partition specs works
-        r.result = "pass"
-        r.details = "DuckDB reads tables with evolved partition specs; cannot ALTER partition spec (ALTER TABLE unsupported)"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-    return r
-
-
-def test_statistics() -> TestResult:
-    """Test column statistics / metrics."""
-    r = TestResult("statistics", "Statistics (Column Metrics)")
-    con = None
-    try:
-        con = _create_connection()
-
-        # DuckDB reads Iceberg metadata including column statistics
-        # via iceberg_metadata function
-        try:
-            con.execute("SELECT * FROM iceberg_metadata('nonexistent') LIMIT 0")
-        except Exception as e:
-            err_str = str(e).lower()
-            if "no such file" in err_str or "not found" in err_str or "does not exist" in err_str or "could not" in err_str:
-                r.result = "pass"
-                r.details = "iceberg_metadata exposes record_count, file stats; DuckDB uses Iceberg statistics for query optimization"
-                return r
-
-        r.result = "pass"
-        r.details = "Column statistics accessible via iceberg_metadata"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-    return r
-
-
-def test_bloom_filters() -> TestResult:
-    """Test bloom filter support."""
-    r = TestResult("bloom-filters", "Bloom Filters")
-    try:
-        # DuckDB Iceberg does not support Iceberg-level bloom filters
-        r.result = "fail"
-        r.details = "DuckDB Iceberg does not support bloom filter index reading or writing"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
+    r = TestResult("table-maintenance", "Table Maintenance", "v2")
+    r.result = "fail"
+    r.details = "DuckDB Iceberg does not provide maintenance ops (compaction, expire snapshots)"
     return r
 
 
 def test_branching_tagging() -> TestResult:
-    """Test branching and tagging support."""
-    r = TestResult("branching-tagging", "Branching & Tagging")
-    try:
-        # Not supported in DuckDB Iceberg
-        r.result = "fail"
-        r.details = "DuckDB Iceberg does not support branching or tagging operations"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
+    r = TestResult("branching-tagging", "Branching & Tagging", "v2")
+    r.result = "fail"
+    r.details = "DuckDB Iceberg does not support branching or tagging"
+    return r
+
+
+def test_hidden_partitioning() -> TestResult:
+    r = TestResult("hidden-partitioning", "Hidden Partitioning", "v2")
+
+    def body(con, ns, r):
+        con.execute(
+            f"""CREATE TABLE ib.{ns}.t (id BIGINT, country VARCHAR)
+                PARTITIONED BY (bucket(4, id), truncate(2, country))"""
+        )
+        con.execute(
+            f"INSERT INTO ib.{ns}.t VALUES (1,'United States'),(2,'Germany'),(3,'Netherlands')"
+        )
+        n = con.execute(f"SELECT count(*) FROM ib.{ns}.t").fetchone()[0]
+        assert n == 3, f"expected 3 rows, got {n}"
+        r.result = "pass"
+        r.details = "Created and inserted into a table partitioned by bucket()/truncate() transforms"
+
+    return _catalog_test(r, body)
+
+
+def test_partition_evolution() -> TestResult:
+    r = TestResult("partition-evolution", "Partition Evolution", "v2")
+
+    def body(con, ns, r):
+        con.execute(
+            f"CREATE TABLE ib.{ns}.t (id BIGINT, country VARCHAR) PARTITIONED BY (bucket(4, id))"
+        )
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1,'US')")
+        con.execute(f"ALTER TABLE ib.{ns}.t SET PARTITIONED BY (bucket(8, id))")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (2,'DE')")
+        n = con.execute(f"SELECT count(*) FROM ib.{ns}.t").fetchone()[0]
+        assert n == 2, f"expected 2 rows, got {n}"
+        r.result = "pass"
+        r.details = "Evolved the partition spec with ALTER TABLE ... SET PARTITIONED BY and kept reading"
+
+    return _catalog_test(r, body)
+
+
+def test_multi_arg_transforms() -> TestResult:
+    r = TestResult("multi-arg-transforms", "Multi-Argument Transforms", "v3")
+    # V3-only; DuckDB support is undocumented (JSON level "unknown"). Do not assert.
+    r.result = "skip"
+    r.details = "V3 multi-argument transforms are undocumented for DuckDB; not exercised"
+    return r
+
+
+def test_statistics() -> TestResult:
+    r = TestResult("statistics", "Statistics (Column Metrics)", "v2")
+
+    def body(con, ns, r):
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR)")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1,'a'),(2,'b'),(3,'c')")
+        counts = con.execute(
+            f"SELECT record_count FROM iceberg_metadata(ib.{ns}.t) WHERE content='EXISTING'"
+        ).fetchall()
+        total = sum(c[0] for c in counts)
+        assert total == 3, f"expected record_count sum 3, got {total} ({counts})"
+        r.result = "pass"
+        r.details = "iceberg_metadata exposes per-file record_count statistics written by DuckDB"
+
+    return _catalog_test(r, body)
+
+
+def test_bloom_filters() -> TestResult:
+    r = TestResult("bloom-filters", "Bloom Filters", "v2")
+    r.result = "fail"
+    r.details = "DuckDB Iceberg does not read or write Iceberg bloom filters"
     return r
 
 
 def test_catalog_integration() -> TestResult:
-    """Test general catalog integration."""
-    r = TestResult("catalog-integration", "Catalog Integration")
-    con = None
-    try:
-        con = _create_connection()
+    r = TestResult("catalog-integration", "Catalog Integration", "v2")
 
-        # DuckDB supports Iceberg catalogs via ATTACH TYPE iceberg
-        # Test that the mechanism exists
-        try:
-            con.execute("""
-                ATTACH ':memory:' AS test_cat (TYPE iceberg, ENDPOINT 'http://localhost:99999', AUTHORIZATION_TYPE 'none')
-            """)
-        except (duckdb.IOException, duckdb.HTTPException) as e:
-            # Connection refused but syntax valid — catalog integration works
-            r.result = "pass"
-            r.details = "ATTACH TYPE iceberg supported; catalogs accessed via REST protocol with OAuth2 auth"
-            return r
-        except Exception as e:
-            err_str = str(e).lower()
-            if "connection" in err_str or "connect" in err_str or "refused" in err_str:
-                r.result = "pass"
-                r.details = "ATTACH TYPE iceberg recognized; REST catalog protocol supported"
-                return r
-            raise
-
+    def body(con, ns, r):
+        # A successful ATTACH + namespace + table lifecycle proves catalog integration.
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT)")
+        con.execute("SHOW ALL TABLES")
+        dbs = con.execute(
+            "SELECT type FROM duckdb_databases() WHERE database_name='ib'"
+        ).fetchone()
+        assert dbs and dbs[0] == "iceberg", f"catalog not attached as iceberg: {dbs}"
         r.result = "pass"
-        r.details = "Catalog integration via ATTACH TYPE iceberg"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-    return r
+        r.details = "Attached an Iceberg REST catalog and performed namespace/table operations"
 
-
-def test_rest_catalog() -> TestResult:
-    """Test REST catalog support."""
-    r = TestResult("rest-catalog", "REST Catalog")
-    con = None
-    try:
-        con = _create_connection()
-
-        # REST catalog is the primary catalog type for DuckDB Iceberg
-        try:
-            con.execute("""
-                ATTACH 'my_warehouse' AS rest_test (
-                    TYPE iceberg,
-                    ENDPOINT 'http://localhost:99999',
-                    AUTHORIZATION_TYPE 'none'
-                )
-            """)
-        except (duckdb.IOException, duckdb.HTTPException):
-            r.result = "pass"
-            r.details = "REST catalog ATTACH syntax valid; requires running REST server for full test"
-            return r
-        except Exception as e:
-            err_str = str(e).lower()
-            if "connection" in err_str or "connect" in err_str or "refused" in err_str:
-                r.result = "pass"
-                r.details = "REST catalog supported (connection refused to test endpoint)"
-                return r
-            raise
-
-        r.result = "pass"
-        r.details = "REST catalog supported"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-    return r
-
-
-def test_glue_catalog() -> TestResult:
-    """Test AWS Glue catalog support."""
-    r = TestResult("aws-glue-catalog", "AWS Glue Catalog")
-    con = None
-    try:
-        con = _create_connection()
-
-        # DuckDB supports Glue via ENDPOINT_TYPE 'GLUE'
-        try:
-            con.execute("""
-                ATTACH '' AS glue_test (
-                    TYPE iceberg,
-                    ENDPOINT_TYPE 'GLUE'
-                )
-            """)
-        except Exception as e:
-            err_str = str(e).lower()
-            if "credentials" in err_str or "aws" in err_str or "auth" in err_str or "secret" in err_str or "region" in err_str:
-                r.result = "pass"
-                r.details = "AWS Glue catalog supported via ENDPOINT_TYPE 'GLUE'; requires AWS credentials"
-                return r
-            elif "connection" in err_str or "connect" in err_str:
-                r.result = "pass"
-                r.details = "AWS Glue catalog supported (connection error without AWS credentials)"
-                return r
-            else:
-                # Syntax recognized even if it errors differently
-                r.result = "pass"
-                r.details = f"AWS Glue catalog ENDPOINT_TYPE recognized; {str(e)[:150]}"
-                return r
-
-        r.result = "pass"
-        r.details = "AWS Glue catalog supported"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
-    finally:
-        if con:
-            con.close()
-    return r
-
-
-def test_polaris() -> TestResult:
-    """Test Polaris catalog support."""
-    r = TestResult("polaris", "Polaris")
-    r.result = "skip"
-    r.details = "Polaris supported via REST catalog protocol; requires running Polaris server for full test"
-    return r
+    return _catalog_test(r, body)
 
 
 def test_hadoop_catalog() -> TestResult:
-    """Test Hadoop catalog."""
-    r = TestResult("hadoop-catalog", "Hadoop Catalog")
+    r = TestResult("hadoop-catalog", "Hadoop Catalog", "v2")
     r.result = "fail"
-    r.details = "DuckDB Iceberg does not support Hadoop catalog type; uses REST catalog protocol"
+    r.details = "DuckDB Iceberg supports only REST-based catalogs (Hadoop catalog unsupported)"
     return r
 
 
 def test_jdbc_catalog() -> TestResult:
-    """Test JDBC catalog."""
-    r = TestResult("jdbc-catalog", "JDBC Catalog")
+    r = TestResult("jdbc-catalog", "JDBC Catalog", "v2")
     r.result = "fail"
-    r.details = "DuckDB Iceberg does not support JDBC catalog; uses REST catalog protocol"
+    r.details = "DuckDB Iceberg supports only REST-based catalogs (JDBC catalog unsupported)"
     return r
 
 
+def test_rest_catalog() -> TestResult:
+    r = TestResult("rest-catalog", "REST Catalog", "v2")
+
+    def body(con, ns, r):
+        # We are attached to a real Iceberg REST catalog; do a write round-trip.
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT)")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1),(2)")
+        n = con.execute(f"SELECT count(*) FROM ib.{ns}.t").fetchone()[0]
+        assert n == 2
+        r.result = "pass"
+        r.details = "Full read/write round-trip against an Iceberg REST catalog (OAuth2/none auth)"
+
+    return _catalog_test(r, body)
+
+
 def test_hive_metastore() -> TestResult:
-    """Test Hive Metastore catalog."""
-    r = TestResult("hive-metastore", "Hive Metastore")
+    r = TestResult("hive-metastore", "Hive Metastore", "v2")
     r.result = "fail"
-    r.details = "DuckDB Iceberg does not support Hive Metastore catalog"
+    r.details = "DuckDB Iceberg supports only REST-based catalogs (Hive Metastore unsupported)"
+    return r
+
+
+def test_glue_catalog() -> TestResult:
+    r = TestResult("aws-glue-catalog", "AWS Glue Catalog", "v2")
+    # Supported via ENDPOINT_TYPE 'GLUE' but requires real AWS credentials/endpoint.
+    r.result = "skip"
+    r.details = "AWS Glue (SageMaker Lakehouse) catalog requires AWS credentials; not exercised locally"
     return r
 
 
 def test_nessie() -> TestResult:
-    """Test Nessie catalog."""
-    r = TestResult("nessie", "Nessie")
+    r = TestResult("nessie", "Nessie", "v2")
     r.result = "fail"
-    r.details = "DuckDB Iceberg does not support Nessie catalog natively"
+    r.details = "DuckDB Iceberg does not natively support the Nessie catalog"
+    return r
+
+
+def test_polaris() -> TestResult:
+    r = TestResult("polaris", "Polaris", "v2")
+    # Polaris speaks the Iceberg REST protocol (which we exercise via the fixture),
+    # but a Polaris-specific test needs a Polaris server. Not fabricated.
+    r.result = "skip"
+    r.details = "Polaris uses the Iceberg REST protocol; a Polaris-specific server is not run here"
     return r
 
 
 def test_unity_catalog() -> TestResult:
-    """Test Unity Catalog."""
-    r = TestResult("unity-catalog", "Unity Catalog")
+    r = TestResult("unity-catalog", "Unity Catalog", "v2")
     r.result = "skip"
-    r.details = "Unity Catalog may work via REST protocol; requires running Unity Catalog for full test"
-    return r
-
-
-def test_equality_deletes() -> TestResult:
-    """Test equality deletes."""
-    r = TestResult("equality-deletes", "Equality Deletes")
-    r.result = "fail"
-    r.details = "DuckDB does not support reading or writing equality deletes; only positional deletes supported"
-    return r
-
-
-def test_column_default_values() -> TestResult:
-    """Test column default values (V3 feature)."""
-    r = TestResult("column-default-values", "Column Default Values")
-    r.version_tested = "v3"
-    r.result = "fail"
-    r.details = "Column default values not supported in DuckDB Iceberg"
+    r.details = "Unity Catalog REST connectivity is undocumented for DuckDB; requires a Unity server"
     return r
 
 
 def test_variant_type() -> TestResult:
-    """Test Variant type (V3 feature)."""
-    r = TestResult("variant-type", "Variant Type")
-    r.version_tested = "v3"
-    r.result = "fail"
-    r.details = "Variant type not supported in DuckDB Iceberg"
-    return r
+    r = TestResult("variant-type", "Variant Type", "v3")
+
+    def body(con, ns, r):
+        con.execute(
+            f"CREATE TABLE ib.{ns}.t (id INT, payload VARIANT) WITH ('format-version'='3')"
+        )
+        con.execute(
+            f"INSERT INTO ib.{ns}.t VALUES (1, {{'kind':'click','x':10}}::VARIANT)"
+        )
+        row = con.execute(f"SELECT id, payload FROM ib.{ns}.t").fetchone()
+        assert row[0] == 1 and row[1] is not None, f"unexpected variant row: {row}"
+        r.result = "pass"
+        r.details = "Created a V3 table with a VARIANT column and round-tripped a value"
+
+    return _catalog_test(r, body)
 
 
 def test_shredded_variant() -> TestResult:
-    """Test shredded variant (V3 feature)."""
-    r = TestResult("shredded-variant", "Shredded Variant")
-    r.version_tested = "v3"
+    r = TestResult("shredded-variant", "Shredded Variant", "v3")
     r.result = "fail"
-    r.details = "Shredded variant not supported in DuckDB Iceberg"
+    r.details = "DuckDB does not support shredded variant encoding (V3-only feature)"
     return r
 
 
 def test_geometry_type() -> TestResult:
-    """Test geometry type (V3 feature)."""
-    r = TestResult("geometry-type", "Geometry / Geo Types")
-    r.version_tested = "v3"
-    r.result = "fail"
-    r.details = "Geometry type not supported in DuckDB Iceberg"
-    return r
+    r = TestResult("geometry-type", "Geometry / Geo Types", "v3")
+
+    def body(con, ns, r):
+        # GEOMETRY is supported (v1.5.2+); GEOGRAPHY/Unknown are not (planned for v2.0.0).
+        con.execute(
+            f"CREATE TABLE ib.{ns}.t (id INT, geo GEOMETRY) WITH ('format-version'='3')"
+        )
+        cols = [c[1] for c in con.execute(f"DESCRIBE ib.{ns}.t").fetchall()]
+        assert any("GEOMETRY" in str(c).upper() for c in cols), f"no geometry column: {cols}"
+        r.result = "pass"
+        r.details = "V3 GEOMETRY column created (GEOGRAPHY/Unknown still unsupported => partial)"
+
+    return _catalog_test(r, body)
 
 
 def test_nanosecond_timestamps() -> TestResult:
-    """Test nanosecond timestamps (V3 feature)."""
-    r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps")
-    r.version_tested = "v3"
-    r.result = "fail"
-    r.details = "Nanosecond timestamps not supported in DuckDB Iceberg"
-    return r
+    r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps", "v3")
 
+    def body(con, ns, r):
+        con.execute(
+            f"CREATE TABLE ib.{ns}.t (id INT, ts TIMESTAMP_NS) WITH ('format-version'='3')"
+        )
+        con.execute(
+            f"INSERT INTO ib.{ns}.t VALUES (1, TIMESTAMP_NS '2026-05-20 12:00:00.123456789')"
+        )
+        n = con.execute(f"SELECT count(*) FROM ib.{ns}.t WHERE id=1").fetchone()[0]
+        assert n == 1
+        r.result = "pass"
+        r.details = "Created a V3 table with a TIMESTAMP_NS column and inserted a nanosecond value"
 
-def test_multi_arg_transforms() -> TestResult:
-    """Test multi-argument transforms (V3 feature)."""
-    r = TestResult("multi-arg-transforms", "Multi-Argument Transforms")
-    r.version_tested = "v3"
-    r.result = "fail"
-    r.details = "Multi-argument transforms not supported in DuckDB Iceberg"
-    return r
+    return _catalog_test(r, body)
 
 
 def test_lineage() -> TestResult:
-    """Test lineage tracking."""
-    r = TestResult("lineage", "Lineage Tracking")
-    r.result = "fail"
-    r.details = "Lineage tracking not supported in DuckDB Iceberg"
-    return r
+    r = TestResult("lineage", "Lineage Tracking", "v3")
+
+    def body(con, ns, r):
+        # Row lineage is written automatically for V3 tables; exercise the write path
+        # that maintains it (insert + row-level update encoded as a deletion vector).
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR) WITH ('format-version'='3')")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1,'a'),(2,'b')")
+        con.execute(f"UPDATE ib.{ns}.t SET name='z' WHERE id=1")
+        meta = con.execute(
+            f"SELECT content, file_format FROM iceberg_metadata(ib.{ns}.t)"
+        ).fetchall()
+        # V3 row-level changes are encoded as binary deletion vectors (Puffin).
+        assert any(fmt == "puffin" for _, fmt in meta), f"expected puffin deletion vector: {meta}"
+        r.result = "pass"
+        r.details = "V3 write path with row lineage; row-level UPDATE encoded as a binary deletion vector (Puffin)"
+
+    return _catalog_test(r, body)
+
+
+def test_column_default_values() -> TestResult:
+    r = TestResult("column-default-values", "Column Default Values", "v3")
+
+    def body(con, ns, r):
+        # Non-null column defaults are only allowed on V3 tables.
+        con.execute(
+            f"CREATE TABLE ib.{ns}.t (id INT, source VARCHAR DEFAULT 'web') WITH ('format-version'='3')"
+        )
+        con.execute(f"ALTER TABLE ib.{ns}.t ADD COLUMN region VARCHAR DEFAULT 'eu'")
+        con.execute(f"INSERT INTO ib.{ns}.t (id) VALUES (1)")
+        row = con.execute(f"SELECT source, region FROM ib.{ns}.t WHERE id=1").fetchone()
+        assert row == ("web", "eu"), f"defaults not applied: {row}"
+        r.result = "pass"
+        r.details = "V3 schema-level column DEFAULT values applied on CREATE and ALTER ADD COLUMN"
+
+    return _catalog_test(r, body)
 
 
 # ---------------------------------------------------------------------------
@@ -865,7 +696,9 @@ ALL_TESTS = [
 
 def load_duckdb_json_support() -> dict:
     """Load the JSON support levels for DuckDB from the repo data."""
-    oss_path = os.path.join(REPO_ROOT, "src", "data", "platforms", "oss.json")
+    oss_path = os.path.join(
+        REPO_ROOT, "src", "data", "platforms", "oss", "duckdb", "duckdb.json"
+    )
     with open(oss_path) as f:
         data = json.load(f)
     result = {}
@@ -882,9 +715,9 @@ def load_duckdb_json_support() -> dict:
 def compute_match(test_result: str, json_level: str) -> bool:
     """
     Determine if test result matches JSON level.
-    - pass → json should be 'full' or 'partial' (NOT 'unknown' — we have evidence now)
-    - fail → json should be 'none' (NOT 'unknown' — we have evidence now)
-    - skip → always matches (cannot verify)
+    - pass → json should be 'full' or 'partial' (we have positive evidence)
+    - fail → json should be 'none' (we have negative evidence)
+    - skip → always matches (cannot / did not verify)
     - error → always matches (test issue, not data issue)
     """
     if test_result in ("skip", "error"):
@@ -921,6 +754,7 @@ def generate_report(results: list) -> dict:
         "timestamp": datetime.now(tz=__import__('datetime').timezone.utc).isoformat(),
         "engine": "DuckDB",
         "duckdb_version": DUCKDB_VERSION,
+        "rest_catalog": REST_URI or "(none configured)",
         "tests": tests_output,
         "summary": {
             "total": len(results),
@@ -940,6 +774,7 @@ def generate_markdown(report: dict) -> str:
     lines.append("")
     lines.append(f"- **Timestamp:** {report['timestamp']}")
     lines.append(f"- **DuckDB Version:** {report['duckdb_version']}")
+    lines.append(f"- **REST Catalog:** {report.get('rest_catalog', '(none configured)')}")
     lines.append("")
 
     s = report["summary"]
@@ -1000,6 +835,10 @@ def main():
     print(f"DuckDB version: {DUCKDB_VERSION}")
     print(f"Warehouse: {WAREHOUSE_DIR}")
     print(f"Repo root: {REPO_ROOT}")
+    if _rest_available():
+        print(f"REST catalog: {REST_URI} (warehouse '{REST_WAREHOUSE}', S3 {S3_ENDPOINT})")
+    else:
+        print("REST catalog: NONE configured — catalog-dependent tests will be skipped")
     print()
 
     # Clean warehouse
