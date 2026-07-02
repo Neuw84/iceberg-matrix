@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "pyiceberg",
-      "name": "PyIceberg (0.11.0)",
+      "name": "PyIceberg (0.11.1)",
       "vendor": "Apache",
       "category": "open-source",
       "group": "3rd Party",

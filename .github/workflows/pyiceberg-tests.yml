@@ -24,7 +24,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install PyIceberg
-        run: pip install 'pyiceberg[sql-sqlite,pyarrow]'
+        run: pip install 'pyiceberg[sql-sqlite,pyarrow]==0.11.1'
 
       - name: Run PyIceberg feature tests
         run: |

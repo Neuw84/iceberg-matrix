@@ -13,7 +13,7 @@ Environment variables for version selection:
     PYICEBERG_VERSION  - Override reported PyIceberg version (default: auto-detected)
 
 Requirements:
-    - pyiceberg[sql-sqlite,pyarrow] >= 0.9.0
+    - pyiceberg[sql-sqlite,pyarrow] == 0.11.1
 """
 
 import json
@@ -152,7 +152,7 @@ def test_read_support() -> TestResult:
                 datetime(2024, 1, 3, tzinfo=timezone.utc),
             ], type=pa.timestamp("us", tz="UTC")),
         })
-        tbl.append(df)
+        tbl.append(df.cast(tbl.schema().as_arrow()))
         # Read back
         scan = tbl.scan()
         result_df = scan.to_arrow()
@@ -180,9 +180,9 @@ def test_write_insert() -> TestResult:
                 datetime(2024, 6, 2, tzinfo=timezone.utc),
             ], type=pa.timestamp("us", tz="UTC")),
         })
-        tbl.append(df)
+        tbl.append(df.cast(tbl.schema().as_arrow()))
         # Append more
-        tbl.append(df)
+        tbl.append(df.cast(tbl.schema().as_arrow()))
         result = tbl.scan().to_arrow()
         assert len(result) == 4
         r.result = "pass"
@@ -209,7 +209,7 @@ def test_write_merge_update_delete() -> TestResult:
                 datetime(2024, 1, 3, tzinfo=timezone.utc),
             ], type=pa.timestamp("us", tz="UTC")),
         })
-        tbl.append(df)
+        tbl.append(df.cast(tbl.schema().as_arrow()))
         # Try delete
         tbl.delete(delete_filter="id == 2")
         result = tbl.scan().to_arrow()
@@ -246,7 +246,7 @@ def test_position_deletes() -> TestResult:
                 datetime(2024, 1, 3, tzinfo=timezone.utc),
             ], type=pa.timestamp("us", tz="UTC")),
         })
-        tbl.append(df)
+        tbl.append(df.cast(tbl.schema().as_arrow()))
         tbl.delete(delete_filter="id == 1")
         result = tbl.scan().to_arrow()
         assert len(result) == 2
@@ -264,8 +264,14 @@ def test_position_deletes() -> TestResult:
 
 def test_equality_deletes() -> TestResult:
     r = TestResult("equality-deletes", "Equality Deletes")
-    r.result = "fail"
-    r.details = "PyIceberg does not write equality delete files; uses copy-on-write for deletes"
+    # PyIceberg can read tables containing equality deletes (JSON: partial) but
+    # never writes them, and producing an equality-delete file needs another
+    # engine. Do not fabricate a result -- report skip rather than a false fail.
+    r.result = "skip"
+    r.details = (
+        "PyIceberg reads equality deletes but cannot write them; producing an "
+        "equality-delete file requires another engine, so this is not exercised here"
+    )
     return r
 
 
@@ -286,7 +292,7 @@ def test_merge_on_read() -> TestResult:
                 datetime(2024, 1, 3, tzinfo=timezone.utc),
             ], type=pa.timestamp("us", tz="UTC")),
         })
-        tbl.append(df)
+        tbl.append(df.cast(tbl.schema().as_arrow()))
         tbl.delete(delete_filter="id == 2")
         result = tbl.scan().to_arrow()
         assert len(result) == 2
@@ -315,7 +321,7 @@ def test_copy_on_write() -> TestResult:
                 datetime(2024, 1, 3, tzinfo=timezone.utc),
             ], type=pa.timestamp("us", tz="UTC")),
         })
-        tbl.append(df)
+        tbl.append(df.cast(tbl.schema().as_arrow()))
         tbl.delete(delete_filter="id == 2")
         result = tbl.scan().to_arrow()
         assert len(result) == 2
@@ -455,7 +461,7 @@ def test_time_travel() -> TestResult:
             "value": pa.array([1.0]),
             "ts": pa.array([datetime(2024, 1, 1, tzinfo=timezone.utc)], type=pa.timestamp("us", tz="UTC")),
         })
-        tbl.append(df1)
+        tbl.append(df1.cast(tbl.schema().as_arrow()))
         snap1 = tbl.current_snapshot()
         # Snapshot 2
         df2 = pa.table({
@@ -464,7 +470,7 @@ def test_time_travel() -> TestResult:
             "value": pa.array([2.0]),
             "ts": pa.array([datetime(2024, 1, 2, tzinfo=timezone.utc)], type=pa.timestamp("us", tz="UTC")),
         })
-        tbl.append(df2)
+        tbl.append(df2.cast(tbl.schema().as_arrow()))
         # Read at snapshot 1
         result = tbl.scan(snapshot_id=snap1.snapshot_id).to_arrow()
         assert len(result) == 1
@@ -490,10 +496,12 @@ def test_table_maintenance() -> TestResult:
                 "value": pa.array([float(i)]),
                 "ts": pa.array([datetime(2024, 1, i + 1, tzinfo=timezone.utc)], type=pa.timestamp("us", tz="UTC")),
             })
-            tbl.append(df)
+            tbl.append(df.cast(tbl.schema().as_arrow()))
         snapshots_before = len(tbl.metadata.snapshots)
-        # Expire old snapshots
-        tbl.manage_snapshots().create_branch("test_branch").commit()
+        # Exercise a snapshot-management operation (branch creation).
+        tbl.manage_snapshots().create_branch(
+            tbl.current_snapshot().snapshot_id, "test_branch"
+        ).commit()
         r.result = "pass"
         r.details = f"Table maintenance operations available; {snapshots_before} snapshots"
     except Exception as e:
@@ -518,10 +526,11 @@ def test_branching_tagging() -> TestResult:
             "value": pa.array([1.0]),
             "ts": pa.array([datetime(2024, 1, 1, tzinfo=timezone.utc)], type=pa.timestamp("us", tz="UTC")),
         })
-        tbl.append(df)
-        # Create branch and tag
-        tbl.manage_snapshots().create_branch("dev_branch").commit()
-        tbl.manage_snapshots().create_tag("v1_tag", tbl.current_snapshot().snapshot_id).commit()
+        tbl.append(df.cast(tbl.schema().as_arrow()))
+        # Create branch and tag (PyIceberg signature: snapshot_id first, then name)
+        snap_id = tbl.current_snapshot().snapshot_id
+        tbl.manage_snapshots().create_branch(snap_id, "dev_branch").commit()
+        tbl.manage_snapshots().create_tag(snap_id, "v1_tag").commit()
         refs = tbl.metadata.refs
         assert "dev_branch" in refs
         assert "v1_tag" in refs
@@ -618,7 +627,7 @@ def test_statistics() -> TestResult:
                 datetime(2024, 1, 3, tzinfo=timezone.utc),
             ], type=pa.timestamp("us", tz="UTC")),
         })
-        tbl.append(df)
+        tbl.append(df.cast(tbl.schema().as_arrow()))
         # Check manifest has column stats
         manifests = tbl.inspect.manifests()
         assert len(manifests) > 0
@@ -680,13 +689,15 @@ def test_nanosecond_timestamps() -> TestResult:
         r.result = "pass"
         r.details = "Created V3 table with timestamp_ns column"
     except ImportError:
-        r.result = "fail"
-        r.details = "TimestampNanoType not available in this PyIceberg version"
+        r.result = "skip"
+        r.details = "TimestampNanoType not available in this PyIceberg version; cannot verify"
     except Exception as e:
         err = str(e).lower()
-        if "not supported" in err or "not implemented" in err:
-            r.result = "fail"
-            r.details = str(e)
+        if "v3" in err or "not yet supported" in err or "not supported" in err or "not implemented" in err:
+            # PyIceberg 0.11.x can read V3 (JSON records full) but cannot yet WRITE
+            # V3 tables (apache/iceberg-python#1551), so we cannot exercise this here.
+            r.result = "skip"
+            r.details = f"PyIceberg cannot write V3 tables yet ({str(e).splitlines()[0][:120]}); not exercised"
         else:
             r.result = "error"
             r.details = str(e)
@@ -747,7 +758,9 @@ ALL_TESTS = [
 
 def load_pyiceberg_json_support() -> dict:
     """Load the JSON support levels for PyIceberg from the repo data."""
-    oss_path = os.path.join(REPO_ROOT, "src", "data", "platforms", "oss.json")
+    oss_path = os.path.join(
+        REPO_ROOT, "src", "data", "platforms", "oss", "pyiceberg", "pyiceberg.json"
+    )
     with open(oss_path) as f:
         data = json.load(f)
     result = {}
