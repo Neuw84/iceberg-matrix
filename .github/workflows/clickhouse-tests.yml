@@ -10,8 +10,8 @@ permissions:
   pull-requests: write
 
 env:
-  SPARK_VERSION: "4.0"
-  ICEBERG_VERSION: "1.10.1"
+  SPARK_VERSION: "4.1"
+  ICEBERG_VERSION: "1.11.0"
 
 jobs:
   clickhouse-tests:
@@ -21,6 +21,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
 
       - name: Set up Java 17
         uses: actions/setup-java@v4

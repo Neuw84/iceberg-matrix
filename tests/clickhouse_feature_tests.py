@@ -918,7 +918,9 @@ ALL_TESTS = [
 
 def load_clickhouse_json_support() -> dict:
     """Load the JSON support levels for ClickHouse from the repo data."""
-    oss_path = os.path.join(REPO_ROOT, "src", "data", "platforms", "oss.json")
+    oss_path = os.path.join(
+        REPO_ROOT, "src", "data", "platforms", "oss", "clickhouse", "clickhouse.json"
+    )
     with open(oss_path) as f:
         data = json.load(f)
     result = {}
