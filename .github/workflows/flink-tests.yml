@@ -10,9 +10,14 @@ permissions:
   pull-requests: write
 
 env:
-  FLINK_VERSION: "1.20.1"
-  ICEBERG_VERSION: "1.9.0"
-  FLINK_MAJOR: "1.20"
+  # Flink 2.3.0 engine. Iceberg has not released a Flink 2.2/2.3 runtime yet, so
+  # we use the latest published one (iceberg-flink-runtime-2.1), which is
+  # verified to work against the 2.3 engine. FLINK_MAJOR is the runtime's Flink
+  # minor, which can differ from the engine version.
+  FLINK_VERSION: "2.3.0"
+  FLINK_MAJOR: "2.1"
+  ICEBERG_VERSION: "1.11.0"
+  HADOOP_UBER_VERSION: "2.8.3-10.0"
 
 jobs:
   flink-tests:
@@ -23,16 +28,45 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 11
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "11"
+          java-version: "17"
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Start Iceberg REST catalog (Apache iceberg-rest-fixture + MinIO)
+        run: |
+          set -euo pipefail
+          docker network create iceberg-net
+          docker run -d --name minio --network iceberg-net -p 9000:9000 \
+            -e MINIO_ROOT_USER=admin -e MINIO_ROOT_PASSWORD=password \
+            minio/minio:latest server /data
+          sleep 5
+          docker run --rm --network iceberg-net --entrypoint /bin/sh minio/mc:latest -c \
+            "mc alias set m http://minio:9000 admin password && mc mb -p m/warehouse"
+          docker run -d --name iceberg-rest --network iceberg-net -p 8181:8181 \
+            -e CATALOG_WAREHOUSE=s3://warehouse/ \
+            -e CATALOG_IO__IMPL=org.apache.iceberg.aws.s3.S3FileIO \
+            -e CATALOG_S3_ENDPOINT=http://minio:9000 \
+            -e CATALOG_S3_PATH__STYLE__ACCESS=true \
+            -e AWS_ACCESS_KEY_ID=admin -e AWS_SECRET_ACCESS_KEY=password -e AWS_REGION=us-east-1 \
+            apache/iceberg-rest-fixture:latest
+          for i in $(seq 1 30); do
+            if curl -fsS "http://127.0.0.1:8181/v1/config?warehouse=s3://warehouse/" >/dev/null 2>&1; then
+              echo "Iceberg REST catalog is ready"; break
+            fi
+            sleep 2
+          done
 
       - name: Download and setup Flink
         run: |
@@ -43,18 +77,25 @@ jobs:
           tar -xzf "${RUNNER_TEMP}/${FLINK_DIST}" -C "${RUNNER_TEMP}"
           echo "FLINK_HOME=${RUNNER_TEMP}/flink-${FLINK_VERSION}" >> $GITHUB_ENV
 
-      - name: Download Iceberg Flink runtime JAR
+      - name: Add Iceberg + AWS + Hadoop jars to Flink lib
         run: |
-          ICEBERG_JAR="iceberg-flink-runtime-${FLINK_MAJOR}-${ICEBERG_VERSION}.jar"
-          ICEBERG_URL="https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-${FLINK_MAJOR}/${ICEBERG_VERSION}/${ICEBERG_JAR}"
-          echo "Downloading Iceberg Flink runtime ${ICEBERG_VERSION}..."
-          curl -fsSL "${ICEBERG_URL}" -o "${RUNNER_TEMP}/flink-${FLINK_VERSION}/lib/${ICEBERG_JAR}"
+          FLINK_HOME="${RUNNER_TEMP}/flink-${FLINK_VERSION}"
+          BASE="https://repo1.maven.org/maven2/org/apache"
+          # Iceberg Flink runtime (2.1 is the latest published), plus the AWS bundle
+          # that provides S3FileIO so Iceberg reads/writes data files on S3 (MinIO).
+          curl -fsSL "${BASE}/iceberg/iceberg-flink-runtime-${FLINK_MAJOR}/${ICEBERG_VERSION}/iceberg-flink-runtime-${FLINK_MAJOR}-${ICEBERG_VERSION}.jar" \
+            -o "${FLINK_HOME}/lib/iceberg-flink-runtime-${FLINK_MAJOR}-${ICEBERG_VERSION}.jar"
+          curl -fsSL "${BASE}/iceberg/iceberg-aws-bundle/${ICEBERG_VERSION}/iceberg-aws-bundle-${ICEBERG_VERSION}.jar" \
+            -o "${FLINK_HOME}/lib/iceberg-aws-bundle-${ICEBERG_VERSION}.jar"
+          # Iceberg's Flink catalog loader instantiates org.apache.hadoop.conf.Configuration
+          # regardless of catalog type, so Hadoop classes are required on the classpath.
+          curl -fsSL "${BASE}/flink/flink-shaded-hadoop-2-uber/${HADOOP_UBER_VERSION}/flink-shaded-hadoop-2-uber-${HADOOP_UBER_VERSION}.jar" \
+            -o "${FLINK_HOME}/lib/flink-shaded-hadoop-2-uber-${HADOOP_UBER_VERSION}.jar"
 
       - name: Start Flink cluster
         run: |
           echo "Starting Flink standalone cluster..."
           "${FLINK_HOME}/bin/start-cluster.sh"
-          # Wait for cluster to be ready
           for i in $(seq 1 30); do
             if curl -sf http://localhost:8081/overview > /dev/null 2>&1; then
               echo "Flink cluster is ready"
@@ -65,11 +106,17 @@ jobs:
           done
 
       - name: Run Flink Iceberg feature tests
+        env:
+          ICEBERG_REST_URI: http://127.0.0.1:8181
+          ICEBERG_REST_WAREHOUSE: s3://warehouse/
+          ICEBERG_S3_ENDPOINT: http://127.0.0.1:9000
+          ICEBERG_S3_KEY_ID: admin
+          ICEBERG_S3_SECRET: password
         run: |
           export REPO_ROOT="${GITHUB_WORKSPACE}"
           export REPORT_DIR="${GITHUB_WORKSPACE}/test-reports"
-          export ICEBERG_WAREHOUSE="${RUNNER_TEMP}/flink-iceberg-warehouse"
           export FLINK_VERSION="${FLINK_VERSION}"
+          export FLINK_ICEBERG_VERSION="${ICEBERG_VERSION}"
           python tests/flink_feature_tests.py
         continue-on-error: true
 
@@ -77,6 +124,10 @@ jobs:
         if: always()
         run: |
           "${FLINK_HOME}/bin/stop-cluster.sh" || true
+
+      - name: Tear down Iceberg REST catalog
+        if: always()
+        run: docker rm -f iceberg-rest minio 2>/dev/null || true
 
       - name: Upload test report
         if: always()
