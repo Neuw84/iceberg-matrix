@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A React single-page application that displays an interactive compatibility matrix for Apache Iceberg features across cloud platforms and open-source engines. Built with Vite, TypeScript, React 19, and Tailwind CSS. Deployed to GitHub Pages via GitHub Actions.
+A React single-page application that displays an interactive compatibility matrix for Apache Iceberg features across cloud platforms and open-source engines. Built with Vite, TypeScript, React 19.2, and Tailwind CSS. Deployed to GitHub Pages via GitHub Actions.
 
 ## Project Structure
 
@@ -67,7 +67,7 @@ A React single-page application that displays an interactive compatibility matri
 
 ## Tech Stack
 
-- React 19 + TypeScript 5.9
+- React 19.2 + TypeScript 5.9
 - Vite 8 (build + dev server)
 - Tailwind CSS 3
 - Vitest 4 + Testing Library + fast-check (property-based tests)

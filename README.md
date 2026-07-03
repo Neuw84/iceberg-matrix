@@ -25,7 +25,7 @@ npm run build
 
 ## Tech Stack
 
-- React 19, TypeScript, Vite 8
+- React 19.2, TypeScript, Vite 8
 - Tailwind CSS 3
 - Vitest + Testing Library
 - GitHub Actions (CI + deploy)
