@@ -25,7 +25,7 @@ npm run build
 
 ## Tech Stack
 
-- React 19, TypeScript, Vite 7
+- React 19, TypeScript, Vite 8
 - Tailwind CSS 3
 - Vitest + Testing Library
 - GitHub Actions (CI + deploy)
@@ -42,7 +42,7 @@ src/
 public/logos/         # SVG logos for platforms and engines
 ```
 
-Data is split into per-vendor files under `src/data/platforms/` (aws.json, gcp.json, azure.json, databricks.json, snowflake.json, oss.json) and merged at import time by `src/data/load-data.ts`. Feature definitions live in `src/data/features.json`.
+Data lives under `src/data/platforms/` in a nested per-vendor / per-engine structure — each engine has its own file (e.g. `oss/duckdb/duckdb.json`, `gcp/bigquery/bigquery.json`). AWS is split further by S3 mode (`aws/s3buckets/<engine>/` and `aws/s3tables/<engine>/`). `src/data/load-data.ts` imports the engine files and merges them, at import time, into two datasets (`data` for S3-buckets, `dataS3Tables` for S3 Tables). Feature and version definitions live in `src/data/features.json`.
 
 ## Contributing
 
@@ -50,20 +50,20 @@ Contributions are welcome! Please open a pull request against `main`.
 
 ### Adding a New Engine or Platform
 
-1. Add the platform object to the relevant `src/data/platforms/{vendor}.json` file under `"platforms"`.
-2. Add support entries for **every feature × version** combination in the same file under `"support"`. Use `"unknown"` for features the platform hasn't announced yet — don't omit entries.
-3. Drop an SVG logo into `public/logos/` and wire it up in the `PLATFORM_LOGOS` map in `CompatibilityMatrix.tsx` and `FilterPanel.tsx`.
-4. Run `npm test && npm run build` to verify nothing breaks.
+1. Create the engine's folder under its vendor (using the prefix-less engine name, e.g. platform `google-bigquery` → `src/data/platforms/gcp/bigquery/`). For AWS, add it under both `aws/s3buckets/<engine>/` and `aws/s3tables/<engine>/`.
+2. Add the engine JSON file named after the folder (e.g. `bigquery/bigquery.json`) with a single platform object under `"platforms"` and a support entry for **every feature × version** combination under `"support"`. Use `"unknown"` for features the platform hasn't announced yet — don't omit entries.
+3. Wire the engine into `src/data/load-data.ts`: add a static `import` for the JSON file and append it to the correct ordered array (AWS engines, or the non-AWS vendors).
+4. Drop an SVG logo into `public/logos/` and wire it up in the `PLATFORM_LOGOS` map in `CompatibilityMatrix.tsx` and `FilterPanel.tsx`.
+5. Run `npm test && npm run build` to verify nothing breaks.
 
 ### Adding a New Feature
 
 1. Add the feature definition to `src/data/features.json`.
-2. Add it to the `"features"` array in `src/data/compatibility-data.json`.
-3. Add support entries for the new feature across **all** existing platforms in each vendor JSON and in `compatibility-data.json`.
+2. Add support entries for the new feature across **all** existing engines, in each engine's JSON file under `src/data/platforms/`.
 
 ### Updating Existing Data
 
-If a platform's support level changes (e.g. a feature goes from `"partial"` to `"full"`), update both the vendor-specific JSON and `compatibility-data.json`. Include a link to the announcement or docs in the `"notes"` field.
+If a platform's support level changes (e.g. a feature goes from `"partial"` to `"full"`), update that engine's JSON file under `src/data/platforms/`. Include a link to the announcement or docs in the `"notes"` field.
 
 ```
 "aws-athena:read-support:v2": {
