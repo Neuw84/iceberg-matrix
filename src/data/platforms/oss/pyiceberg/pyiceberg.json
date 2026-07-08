@@ -100,10 +100,20 @@
       "caveats": []
     },
     "pyiceberg:column-default-values:v3": {
-      "level": "none",
-      "notes": "PyIceberg does not yet support column default values",
+      "level": "partial",
+      "notes": "PyIceberg parses and preserves initial-default and write-default on schema fields, so tables with column defaults can be read and their metadata round-trips correctly. Writing data that applies defaults is pending V3 write support.",
       "caveats": [
-        "Not yet implemented"
+        "Read/metadata support only; defaults are not applied when writing data"
+      ],
+      "links": [
+        {
+          "label": "Default value read support (apache/iceberg-python#1644)",
+          "url": "https://github.com/apache/iceberg-python/pull/1644"
+        },
+        {
+          "label": "Write default support (apache/iceberg-python#1770)",
+          "url": "https://github.com/apache/iceberg-python/pull/1770"
+        }
       ]
     },
     "pyiceberg:table-creation:v2": {
@@ -404,10 +414,16 @@
       "caveats": []
     },
     "pyiceberg:lineage:v3": {
-      "level": "none",
-      "notes": "PyIceberg does not support lineage tracking",
+      "level": "partial",
+      "notes": "PyIceberg reads V3 row lineage metadata: next-row-id on table metadata and first-row-id on snapshots and manifests are parsed and exposed. Assigning row IDs on write is pending V3 write support.",
       "caveats": [
-        "Not yet implemented"
+        "Metadata read support only; PyIceberg cannot yet write V3 tables, so row IDs are not assigned on commit"
+      ],
+      "links": [
+        {
+          "label": "Row-level lineage issue (apache/iceberg-python#1821)",
+          "url": "https://github.com/apache/iceberg-python/issues/1821"
+        }
       ]
     },
     "pyiceberg:statistics:v2": {

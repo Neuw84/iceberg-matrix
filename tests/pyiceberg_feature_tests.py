@@ -384,8 +384,28 @@ def test_type_promotion() -> TestResult:
 
 def test_column_default_values() -> TestResult:
     r = TestResult("column-default-values", "Column Default Values")
-    r.result = "fail"
-    r.details = "Column default values not supported in PyIceberg"
+    r.version_tested = "v3"
+    try:
+        from pyiceberg.types import NestedField
+
+        field_json = (
+            '{"id": 1, "name": "c", "type": "string", "required": false,'
+            ' "initial-default": "hello", "write-default": "world"}'
+        )
+        f = NestedField.model_validate_json(field_json)
+        assert f.initial_default == "hello"
+        assert f.write_default == "world"
+        roundtrip = json.loads(f.model_dump_json())
+        assert roundtrip.get("initial-default") == "hello"
+        assert roundtrip.get("write-default") == "world"
+        r.result = "pass"
+        r.details = (
+            "Parses and round-trips initial-default/write-default on schema fields; "
+            "applying defaults when writing data is pending V3 write support"
+        )
+    except Exception as e:
+        r.result = "fail"
+        r.details = f"Column default metadata not supported: {str(e).splitlines()[0][:120]}"
     return r
 
 
@@ -706,8 +726,46 @@ def test_nanosecond_timestamps() -> TestResult:
 
 def test_lineage() -> TestResult:
     r = TestResult("lineage", "Lineage Tracking")
-    r.result = "fail"
-    r.details = "PyIceberg does not support lineage tracking"
+    r.version_tested = "v3"
+    try:
+        from pyiceberg.table.metadata import TableMetadataUtil
+
+        v3_meta = {
+            "format-version": 3,
+            "table-uuid": "9c912b62-6bcd-4def-9dd2-c9ec9c4bec37",
+            "location": "s3://bucket/tbl",
+            "last-sequence-number": 1,
+            "last-updated-ms": 1700000000000,
+            "last-column-id": 1,
+            "schemas": [{"schema-id": 0, "type": "struct", "fields": [
+                {"id": 1, "name": "c", "type": "string", "required": False}]}],
+            "current-schema-id": 0,
+            "partition-specs": [{"spec-id": 0, "fields": []}],
+            "default-spec-id": 0,
+            "last-partition-id": 999,
+            "sort-orders": [{"order-id": 0, "fields": []}],
+            "default-sort-order-id": 0,
+            "properties": {},
+            "next-row-id": 100,
+            "snapshots": [{
+                "snapshot-id": 1, "sequence-number": 1,
+                "timestamp-ms": 1700000000000,
+                "manifest-list": "s3://bucket/ml.avro",
+                "summary": {"operation": "append"},
+                "schema-id": 0, "first-row-id": 0, "added-rows": 100,
+            }],
+        }
+        md = TableMetadataUtil.parse_obj(v3_meta)
+        assert md.next_row_id == 100
+        assert md.snapshots[0].first_row_id == 0
+        r.result = "pass"
+        r.details = (
+            "Reads V3 row lineage metadata (next-row-id, snapshot first-row-id); "
+            "assigning row IDs on write is pending V3 write support"
+        )
+    except Exception as e:
+        r.result = "fail"
+        r.details = f"V3 row lineage metadata not readable: {str(e).splitlines()[0][:120]}"
     return r
 
 
