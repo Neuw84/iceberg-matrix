@@ -24,10 +24,10 @@
       ]
     },
     "databricks:position-deletes:v3": {
-      "level": "none",
-      "notes": "Position deletes are a v2 concept. Iceberg v3 replaces them with deletion vectors, which Databricks fully supports.",
+      "level": "full",
+      "notes": "In Iceberg v3, position deletes are realized as deletion vectors, which Databricks writes for DELETE/UPDATE/MERGE on managed Iceberg v3 tables. Verified on DBSQL 2026.15: a DELETE produced added-dvs=1 and is counted as position deletes in the snapshot summary.",
       "caveats": [
-        "V3 uses deletion vectors, not position deletes"
+        "V3 replaces position delete files with deletion vectors; standalone position delete files are a v2 concept"
       ],
       "links": [
         {
@@ -51,9 +51,9 @@
     },
     "databricks:equality-deletes:v3": {
       "level": "none",
-      "notes": "Equality deletes are a v2 concept replaced by deletion vectors in v3, which Databricks fully supports.",
+      "notes": "Equality deletes remain part of the Iceberg v3 spec (v3 replaced position delete files with deletion vectors, not equality deletes), but Databricks does not support reading or writing them.",
       "caveats": [
-        "V3 uses deletion vectors, not equality deletes"
+        "Equality deletes are still valid in the v3 spec; unsupported by Databricks"
       ],
       "links": [
         {
@@ -151,10 +151,11 @@
       "links": []
     },
     "databricks:column-default-values:v3": {
-      "level": "none",
-      "notes": "Column default values (write defaults and initial defaults) are explicitly not supported in Databricks Iceberg v3 implementation.",
+      "level": "partial",
+      "notes": "Works in practice despite docs still listing defaults as unsupported: CREATE TABLE ... (c STRING DEFAULT 'x') USING ICEBERG with format-version 3 succeeds on DBSQL 2026.15, serverless, and DBR 18.2; the default is applied on INSERT and written to Iceberg metadata as write-default (interoperable with external readers).",
       "caveats": [
-        "Explicitly listed as unsupported in Databricks Iceberg v3 limitations"
+        "Official docs still list defaults as unsupported for Iceberg v3",
+        "Serverless rejects CREATE OR REPLACE that introduces the default-value table feature (MANAGED_ICEBERG_OPERATION_NOT_SUPPORTED); fresh CREATE works"
       ],
       "links": [
         {
@@ -350,9 +351,10 @@
     },
     "databricks:branching-tagging:v3": {
       "level": "none",
-      "notes": "Branching and tagging are explicitly not supported for Iceberg tables in Databricks. Only the main branch is accessible.",
+      "notes": "Branching and tagging are not supported for Iceberg tables in Databricks. Only the main branch is accessible. Unity Catalog also rejects branch/tag commits from external Iceberg engines via the Iceberg REST catalog ('Branching or tagging is not allowed'), so this cannot be worked around from outside.",
       "caveats": [
-        "Explicitly listed as unsupported in Databricks Iceberg documentation"
+        "Explicitly listed as unsupported in Databricks Iceberg documentation",
+        "Server-side rejection: external engines cannot create branches/tags through the UC Iceberg REST catalog either"
       ],
       "links": [
         {
@@ -854,10 +856,10 @@
       ]
     },
     "databricks:type-promotion:v2": {
-      "level": "unknown",
-      "notes": "Type promotion/widening for managed Iceberg tables is not explicitly documented. Type widening is a documented Delta Lake feature but is not confirmed for native Iceberg tables.",
+      "level": "partial",
+      "notes": "ALTER TABLE ... ALTER COLUMN ... TYPE BIGINT (int to long widening) works on managed Iceberg tables (verified on DBSQL 2026.15 and serverless). The full matrix of spec-defined promotions is not documented.",
       "caveats": [
-        "Not explicitly documented for managed Iceberg tables"
+        "Only INT to BIGINT widening verified; other promotions untested and undocumented"
       ],
       "links": [
         {
