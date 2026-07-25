@@ -102,6 +102,7 @@ The repo includes a PySpark-based test suite that validates Iceberg features aga
 
 - Java 17
 - Python 3.11+
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) (dependency manager)
 - PySpark 4.1.2 (installed via `tests/requirements.txt`)
 
 > The suite exercises **both** Iceberg format-version 2 and version 3, so it
@@ -111,8 +112,9 @@ The repo includes a PySpark-based test suite that validates Iceberg features aga
 ### Local Execution
 
 ```bash
-# Install dependencies
-pip install -r tests/requirements.txt
+# Create the virtual environment and install dependencies
+uv venv --python 3.11
+uv pip install -r tests/requirements.txt
 
 # Download the Iceberg Spark 4.1 (Scala 2.13) runtime JAR
 ICEBERG_VERSION=1.11.0
@@ -121,7 +123,7 @@ curl -fSL -o "iceberg-spark-runtime-4.1_2.13-${ICEBERG_VERSION}.jar" \
 
 # Run the tests (auto-detects the JAR, or falls back to Maven coordinates).
 # Override the version with ICEBERG_VERSION=... if needed.
-python tests/iceberg_feature_tests.py
+uv run python tests/iceberg_feature_tests.py
 ```
 
 The suite also enforces **matrix coverage**: every feature defined in
@@ -134,7 +136,7 @@ Reports are written to `test-reports/` as both JSON and Markdown.
 ### CI
 
 Tests run automatically on pull requests via the **Iceberg Feature Tests** GitHub Actions workflow. The workflow:
-- Sets up Java 17, Python 3.11, PySpark, and the Iceberg runtime JAR
+- Sets up Java 17, Python 3.11 (deps installed with uv), PySpark, and the Iceberg runtime JAR
 - Runs all feature tests in Spark local mode
 - Uploads the report as a build artifact
 - Posts a summary comment on PRs

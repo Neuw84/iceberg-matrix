@@ -12,7 +12,7 @@ Usage:
 Prerequisites:
     - clickhouse binary: curl https://clickhouse.com/install.sh | sh
     - Java 11+ (for PySpark)
-    - pip install pyspark pyiceberg[sql-sqlite,pyarrow]
+    - uv pip install pyspark pyiceberg[sql-sqlite,pyarrow]
 
 Environment variables:
     ICEBERG_WAREHOUSE   - Local warehouse path (default: ./clickhouse-iceberg-warehouse)
@@ -177,7 +177,7 @@ def _check_prerequisites() -> tuple[bool, bool, str]:
         msgs.append(f"ClickHouse not available (binary: {CLICKHOUSE_BINARY}). "
                     "Install: curl https://clickhouse.com/install.sh | sh")
     if not spark_ok:
-        msgs.append("PySpark not installed. Run: pip install pyspark")
+        msgs.append("PySpark not installed. Run: uv pip install pyspark")
     return ch_ok, spark_ok, "; ".join(msgs) if msgs else "OK"
 
 

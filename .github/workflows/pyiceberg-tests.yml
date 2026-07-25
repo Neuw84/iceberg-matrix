@@ -28,8 +28,13 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+
       - name: Install PyIceberg
-        run: pip install 'pyiceberg[sql-sqlite,pyarrow]==0.11.1'
+        run: uv pip install --system 'pyiceberg[sql-sqlite,pyarrow]==0.11.1'
 
       - name: Run PyIceberg feature tests
         run: |

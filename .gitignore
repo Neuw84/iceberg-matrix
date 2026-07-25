@@ -23,7 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 tests/iceberg-spark-runtime-*.jar
+.venv/
 tests/venv/
 tests/flink-venv/
+__pycache__/
 tests/iceberg-flink-runtime-*.jar
 test-reports/
