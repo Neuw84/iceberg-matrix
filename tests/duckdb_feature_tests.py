@@ -46,7 +46,7 @@ from pathlib import Path
 try:
     import duckdb
 except ImportError:
-    print("[FATAL] duckdb not installed. Run: pip install duckdb==1.5.4")
+    print("[FATAL] duckdb not installed. Run: uv pip install duckdb==1.5.4")
     sys.exit(1)
 
 # ---------------------------------------------------------------------------

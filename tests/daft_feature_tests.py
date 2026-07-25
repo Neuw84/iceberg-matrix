@@ -30,7 +30,7 @@ from pathlib import Path
 try:
     import daft
 except ImportError:
-    print("[FATAL] daft not installed. Run: pip install getdaft")
+    print("[FATAL] daft not installed. Run: uv pip install getdaft")
     sys.exit(1)
 
 try:
@@ -45,7 +45,7 @@ try:
     import pyarrow as pa
 except ImportError as e:
     print(f"[FATAL] Missing dependency: {e}")
-    print("Run: pip install 'pyiceberg[sql-sqlite,pyarrow]'")
+    print("Run: uv pip install 'pyiceberg[sql-sqlite,pyarrow]'")
     sys.exit(1)
 
 # ---------------------------------------------------------------------------

@@ -23,8 +23,13 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+
       - name: Install DuckDB
-        run: pip install duckdb==1.5.4
+        run: uv pip install --system duckdb==1.5.4
 
       - name: Start Iceberg REST catalog (Apache iceberg-rest-fixture + MinIO)
         run: |
