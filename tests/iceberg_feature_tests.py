@@ -145,6 +145,12 @@ def get_spark():
         .config("spark.sql.adaptive.enabled", "false")
         .config("spark.driver.memory", "2g")
         .config("spark.ui.enabled", "false")
+        # Spark 4.1 ships the GEOMETRY/GEOGRAPHY types behind this flag (they
+        # become default-on in 4.2). Without it, DDL using those types fails
+        # with UNSUPPORTED_FEATURE.GEOSPATIAL_DISABLED before Iceberg is ever
+        # consulted, so the V3 geometry test would report a Spark gate as a
+        # missing Iceberg feature.
+        .config("spark.sql.geospatial.enabled", "true")
     )
 
     if jar_path:
@@ -1060,8 +1066,12 @@ def test_geometry_type(version: str) -> TestResult:
         spark.sql(f"CREATE NAMESPACE IF NOT EXISTS local.{ns}")
         tbl = f"local.{ns}.{_unique('geo')}"
         # V3 defines GEOMETRY (planar) and GEOGRAPHY (spheroidal) storage types.
+        # Spark 4.1 requires the SRID-parameterised spelling -- bare GEOMETRY /
+        # GEOGRAPHY is a parse error (UNSUPPORTED_DATATYPE) whatever
+        # spark.sql.geospatial.enabled is set to. SRID 4326 corresponds to
+        # OGC:CRS84, the default CRS in the Iceberg V3 spec.
         spark.sql(f"""
-            CREATE TABLE {tbl} (id BIGINT, g GEOMETRY, gg GEOGRAPHY)
+            CREATE TABLE {tbl} (id BIGINT, g GEOMETRY(4326), gg GEOGRAPHY(4326))
             USING iceberg TBLPROPERTIES ('format-version'='3')
         """)
         cols = [c[0] for c in spark.sql(f"DESCRIBE TABLE {tbl}").collect()]
@@ -1069,15 +1079,32 @@ def test_geometry_type(version: str) -> TestResult:
         spark.sql(f"DROP TABLE IF EXISTS {tbl}")
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
-        r.details = "GEOMETRY and GEOGRAPHY columns created on V3 table"
+        r.details = "GEOMETRY(4326) and GEOGRAPHY(4326) columns created on V3 table"
     except Exception as e:
-        emsg = str(e).lower()
-        if any(t in emsg for t in ("geometry", "geography", "not supported", "unsupported", "type")):
+        emsg = str(e)
+        lowered = emsg.lower()
+        if "geospatial_disabled" in lowered:
+            # Harness problem, not an engine limitation: the session is missing
+            # spark.sql.geospatial.enabled, so nothing about Iceberg was tested.
+            r.result = "error"
+            r.details = (
+                "Spark rejected geospatial DDL with GEOSPATIAL_DISABLED; "
+                f"spark.sql.geospatial.enabled is not in effect: {emsg[:180]}"
+            )
+        elif "not a supported type" in lowered:
+            # Spark parsed and accepted the type; the Iceberg connector cannot
+            # map it to an Iceberg V3 geometry/geography field.
             r.result = "fail"
-            r.details = f"Geometry/Geo types not supported: {str(e)[:200]}"
+            r.details = (
+                "Spark accepts the type but the Iceberg Spark connector rejects it: "
+                f"{emsg[:180]}"
+            )
+        elif any(t in lowered for t in ("geometry", "geography", "not supported", "unsupported", "type")):
+            r.result = "fail"
+            r.details = f"Geometry/Geo types not supported: {emsg[:200]}"
         else:
             r.result = "error"
-            r.details = str(e)[:300]
+            r.details = emsg[:300]
     finally:
         try:
             spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
