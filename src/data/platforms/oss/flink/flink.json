@@ -121,25 +121,37 @@
     },
     "flink:schema-evolution:v2": {
       "level": "full",
-      "notes": "Verified on Flink 2.3 + Iceberg 1.11: ALTER TABLE ADD, RENAME, DROP and MODIFY (including repositioning with AFTER) all succeed via Flink SQL DDL, and rows written before the change still read back correctly.",
-      "caveats": [],
+      "notes": "Verified on Flink 2.3 + Iceberg 1.11: ALTER TABLE ADD, RENAME, DROP and MODIFY (including repositioning with AFTER) all succeed via Flink SQL DDL, and rows written before the change still read back correctly. Beyond DDL, Flink is the only engine with sink-driven schema evolution: the Dynamic Iceberg Sink (Iceberg 1.10+, Java API) evolves the table from the incoming record schema while a streaming job runs -- adding columns, widening types (int to long, float to double), making required fields optional, and optionally dropping unused columns -- with no job restart.",
+      "caveats": [
+        "Runtime (sink-driven) schema evolution requires the Dynamic Sink Java API; column renames are unsupported there since matching is name-based"
+      ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table",
       "links": [
         {
           "label": "Flink DDL",
           "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        },
+        {
+          "label": "Flink Dynamic Iceberg Sink",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#flink-dynamic-iceberg-sink"
         }
       ]
     },
     "flink:schema-evolution:v3": {
       "level": "full",
-      "notes": "Verified on Flink 2.3 + Iceberg 1.11: ALTER TABLE ADD, RENAME, DROP and MODIFY (including repositioning with AFTER) all succeed via Flink SQL DDL, and rows written before the change still read back correctly.",
-      "caveats": [],
+      "notes": "Verified on Flink 2.3 + Iceberg 1.11: ALTER TABLE ADD, RENAME, DROP and MODIFY (including repositioning with AFTER) all succeed via Flink SQL DDL, and rows written before the change still read back correctly. Beyond DDL, Flink is the only engine with sink-driven schema evolution: the Dynamic Iceberg Sink (Iceberg 1.10+, Java API) evolves the table from the incoming record schema while a streaming job runs -- adding columns, widening types (int to long, float to double), making required fields optional, and optionally dropping unused columns -- with no job restart.",
+      "caveats": [
+        "Runtime (sink-driven) schema evolution requires the Dynamic Sink Java API; column renames are unsupported there since matching is name-based"
+      ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table",
       "links": [
         {
           "label": "Flink DDL",
           "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        },
+        {
+          "label": "Flink Dynamic Iceberg Sink",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#flink-dynamic-iceberg-sink"
         }
       ]
     },
@@ -346,7 +358,7 @@
     },
     "flink:write-insert:v2": {
       "level": "full",
-      "notes": "Verified in both runtimes. Batch: INSERT INTO appends across commits and INSERT OVERWRITE replaces the table contents. Streaming: an unbounded INSERT from a continuous source committed multiple append snapshots on checkpoints while the job was still running, with the data readable mid-flight -- the exactly-once checkpoint-commit loop that Flink streaming ingestion relies on.",
+      "notes": "Verified in both runtimes. Batch: INSERT INTO appends across commits and INSERT OVERWRITE replaces the table contents. Streaming: an unbounded INSERT from a continuous source committed multiple append snapshots on checkpoints while the job was still running, with the data readable mid-flight -- the exactly-once checkpoint-commit loop that Flink streaming ingestion relies on. Write-side extras hover behind this cell: write.distribution-mode of hash or range shuffles rows before writing (range is statistics-driven for skew, FlinkSink-only), and the Dynamic Iceberg Sink (Java API) routes each record to a table chosen at runtime, creating target tables on demand -- one stream fanning out to many tables.",
       "caveats": [
         "INSERT OVERWRITE is batch-only"
       ],
@@ -355,12 +367,16 @@
         {
           "label": "Flink writes",
           "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
+        },
+        {
+          "label": "Flink Dynamic Iceberg Sink",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#flink-dynamic-iceberg-sink"
         }
       ]
     },
     "flink:write-insert:v3": {
       "level": "full",
-      "notes": "Verified in both runtimes. Batch: INSERT INTO appends across commits and INSERT OVERWRITE replaces the table contents. Streaming: an unbounded INSERT from a continuous source committed multiple append snapshots on checkpoints while the job was still running, with the data readable mid-flight -- the exactly-once checkpoint-commit loop that Flink streaming ingestion relies on.",
+      "notes": "Verified in both runtimes. Batch: INSERT INTO appends across commits and INSERT OVERWRITE replaces the table contents. Streaming: an unbounded INSERT from a continuous source committed multiple append snapshots on checkpoints while the job was still running, with the data readable mid-flight -- the exactly-once checkpoint-commit loop that Flink streaming ingestion relies on. Write-side extras hover behind this cell: write.distribution-mode of hash or range shuffles rows before writing (range is statistics-driven for skew, FlinkSink-only), and the Dynamic Iceberg Sink (Java API) routes each record to a table chosen at runtime, creating target tables on demand -- one stream fanning out to many tables.",
       "caveats": [
         "INSERT OVERWRITE is batch-only"
       ],
@@ -369,6 +385,10 @@
         {
           "label": "Flink writes",
           "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
+        },
+        {
+          "label": "Flink Dynamic Iceberg Sink",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#flink-dynamic-iceberg-sink"
         }
       ]
     },
@@ -707,23 +727,31 @@
     },
     "flink:type-promotion:v2": {
       "level": "full",
-      "notes": "Flink supports type widening for Iceberg tables",
+      "notes": "Verified: ALTER TABLE MODIFY widened INT to BIGINT and FLOAT to DOUBLE, and an out-of-INT-range value was stored and read back. The Dynamic Sink applies the same widenings automatically at runtime when the incoming record schema is wider than the table's (Java API).",
       "caveats": [],
       "links": [
         {
-          "label": "Flink writes - type widening",
-          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#dynamic-routing-configuration"
+          "label": "Flink DDL",
+          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        },
+        {
+          "label": "Flink Dynamic Iceberg Sink",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#flink-dynamic-iceberg-sink"
         }
       ]
     },
     "flink:type-promotion:v3": {
       "level": "full",
-      "notes": "Flink supports type widening for Iceberg V3 tables",
+      "notes": "Verified: ALTER TABLE MODIFY widened INT to BIGINT and FLOAT to DOUBLE, and an out-of-INT-range value was stored and read back. The Dynamic Sink applies the same widenings automatically at runtime when the incoming record schema is wider than the table's (Java API).",
       "caveats": [],
       "links": [
         {
-          "label": "Flink writes - type widening",
-          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#dynamic-routing-configuration"
+          "label": "Flink DDL",
+          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        },
+        {
+          "label": "Flink Dynamic Iceberg Sink",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#flink-dynamic-iceberg-sink"
         }
       ]
     },
