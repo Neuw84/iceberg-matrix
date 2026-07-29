@@ -61,45 +61,16 @@ jobs:
             "${BASE}/iceberg-aws-bundle/${ICEBERG_VERSION}/${AWS_JAR}"
           echo "ICEBERG_JAR=$(pwd)/${RUNTIME_JAR},$(pwd)/${AWS_JAR}" >> $GITHUB_ENV
 
-      - name: Start Iceberg REST catalog (Apache iceberg-rest-fixture + MinIO)
-        run: |
-          set -euo pipefail
-          docker network create iceberg-net
-
-          # MinIO S3-compatible object storage for the table data files.
-          docker run -d --name minio --network iceberg-net -p 9000:9000 \
-            -e MINIO_ROOT_USER=admin -e MINIO_ROOT_PASSWORD=password \
-            minio/minio:latest server /data
-          sleep 5
-
-          # Create the warehouse bucket.
-          docker run --rm --network iceberg-net --entrypoint /bin/sh minio/mc:latest -c \
-            "mc alias set m http://minio:9000 admin password && mc mb -p m/warehouse"
-
-          # Apache Iceberg REST catalog backed by the MinIO warehouse.
-          docker run -d --name iceberg-rest --network iceberg-net -p 8181:8181 \
-            -e CATALOG_WAREHOUSE=s3://warehouse/ \
-            -e CATALOG_IO__IMPL=org.apache.iceberg.aws.s3.S3FileIO \
-            -e CATALOG_S3_ENDPOINT=http://minio:9000 \
-            -e CATALOG_S3_PATH__STYLE__ACCESS=true \
-            -e AWS_ACCESS_KEY_ID=admin -e AWS_SECRET_ACCESS_KEY=password -e AWS_REGION=us-east-1 \
-            apache/iceberg-rest-fixture:latest
-
-          # Wait for the catalog to answer its config endpoint.
-          for i in $(seq 1 30); do
-            if curl -fsS "http://127.0.0.1:8181/v1/config?warehouse=s3://warehouse/" >/dev/null 2>&1; then
-              echo "Iceberg REST catalog is ready"; break
-            fi
-            sleep 2
-          done
+      - name: Start Lakekeeper REST catalog + MinIO
+        run: ./tests/docker/start-lakekeeper.sh
 
       - name: Run Iceberg feature tests
         env:
-          ICEBERG_REST_URI: http://127.0.0.1:8181
-          ICEBERG_REST_WAREHOUSE: s3://warehouse/
+          ICEBERG_REST_URI: http://127.0.0.1:8181/catalog
+          ICEBERG_REST_WAREHOUSE: demo
           ICEBERG_S3_ENDPOINT: http://127.0.0.1:9000
-          ICEBERG_S3_KEY_ID: admin
-          ICEBERG_S3_SECRET: password
+          ICEBERG_S3_KEY_ID: minio
+          ICEBERG_S3_SECRET: minio12345
           ICEBERG_S3_REGION: us-east-1
         run: |
           export REPO_ROOT="${GITHUB_WORKSPACE}"
@@ -110,9 +81,9 @@ jobs:
           python tests/iceberg_feature_tests.py
         continue-on-error: true
 
-      - name: Tear down Iceberg REST catalog
+      - name: Tear down Lakekeeper REST catalog
         if: always()
-        run: docker rm -f iceberg-rest minio 2>/dev/null || true
+        run: ./tests/docker/stop-lakekeeper.sh
 
       - name: Upload test report
         if: always()

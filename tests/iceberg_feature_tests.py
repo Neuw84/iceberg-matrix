@@ -11,9 +11,9 @@ The goal is parity: the test outcome for every (feature, version) pair should
 agree with the support level recorded in the matrix data. Any disagreement is
 reported as a "discrepancy".
 
-The primary catalog ("local") is an Iceberg REST catalog by default (e.g.
-apache/iceberg-rest-fixture backed by MinIO, which is what CI runs). The suite
-looks for one at http://127.0.0.1:8181 unless ICEBERG_REST_URI points
+The primary catalog ("local") is an Iceberg REST catalog by default: Lakekeeper
+backed by MinIO, which both CI and tests/docker/start-lakekeeper.sh stand up.
+The suite looks for one at http://127.0.0.1:8181/catalog unless ICEBERG_REST_URI points
 elsewhere. If no catalog answers there and none was explicitly requested, the
 suite falls back to a local Hadoop catalog so it still runs standalone; when
 ICEBERG_REST_URI *was* set explicitly, an unreachable catalog is left to fail
@@ -58,13 +58,15 @@ ICEBERG_JAR = os.environ.get(
 # REST catalog configuration. An Iceberg REST catalog is the default: the suite
 # targets DEFAULT_REST_URI unless ICEBERG_REST_URI says otherwise. Setting
 # ICEBERG_REST_URI to an empty string opts out and uses the Hadoop catalog.
-DEFAULT_REST_URI = "http://127.0.0.1:8181"
+# The defaults match the Lakekeeper + MinIO stack in tests/docker (Lakekeeper
+# serves the Iceberg REST API under /catalog and addresses warehouses by name).
+DEFAULT_REST_URI = "http://127.0.0.1:8181/catalog"
 REST_URI_EXPLICIT = "ICEBERG_REST_URI" in os.environ
 REST_URI = os.environ.get("ICEBERG_REST_URI", DEFAULT_REST_URI)
-REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "s3://warehouse/")
+REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "demo")
 S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", "http://127.0.0.1:9000")
-S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "admin")
-S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "password")
+S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "minio")
+S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "minio12345")
 S3_REGION = os.environ.get("ICEBERG_S3_REGION", "us-east-1")
 WAREHOUSE_DIR = os.path.abspath(
     os.environ.get(
@@ -837,7 +839,12 @@ def test_partition_evolution(version: str) -> TestResult:
         """)
         spark.sql(f"INSERT INTO {tbl} VALUES (1, TIMESTAMP '2023-06-15', 'old')")
 
-        spark.sql(f"ALTER TABLE {tbl} ADD PARTITION FIELD month(ts)")
+        # Evolve on a different source column. A second time transform on ts
+        # (month(ts) beside year(ts)) is a redundant time partition: the Java
+        # client tolerates it, but a spec-strict catalog such as Lakekeeper
+        # rejects the commit, which says nothing about whether partition
+        # evolution itself works.
+        spark.sql(f"ALTER TABLE {tbl} ADD PARTITION FIELD bucket(4, id)")
         spark.sql(f"INSERT INTO {tbl} VALUES (2, TIMESTAMP '2024-03-10', 'new')")
 
         cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]

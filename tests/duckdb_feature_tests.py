@@ -2,8 +2,8 @@
 DuckDB-based Iceberg Feature Test Suite.
 
 Tests Iceberg features using DuckDB's built-in Iceberg extension against a real,
-open-source Iceberg REST catalog (the Apache ``iceberg-rest-fixture`` backed by
-MinIO S3 storage), then compares results with the DuckDB entries from
+open-source Iceberg REST catalog (Lakekeeper backed by MinIO S3 storage, see
+tests/docker), then compares results with the DuckDB entries from
 ``src/data/platforms/oss/duckdb/duckdb.json``.
 
 DuckDB's Iceberg *write* path (CREATE TABLE, INSERT, UPDATE, DELETE, MERGE INTO,
@@ -14,9 +14,9 @@ real; when no catalog answers the catalog-dependent tests are reported as
 ``skip`` (never as a fabricated pass/fail).
 
 Usage:
-    # A REST catalog at http://127.0.0.1:8181 is the default; start one first
-    # (see .github/workflows/duckdb-tests.yml for a docker recipe using
-    # apache/iceberg-rest-fixture + MinIO):
+    # A REST catalog at http://127.0.0.1:8181/catalog is the default; start the
+    # Lakekeeper + MinIO stack first:
+    ./tests/docker/start-lakekeeper.sh
     python tests/duckdb_feature_tests.py
 
 Environment variables:
@@ -70,14 +70,16 @@ DUCKDB_VERSION = os.environ.get("DUCKDB_VERSION", duckdb.__version__)
 # so one is the default: the suite targets DEFAULT_REST_URI unless
 # ICEBERG_REST_URI says otherwise. If nothing answers there and no catalog was
 # requested explicitly, the catalog-dependent tests are skipped rather than
-# reported as failures.
-DEFAULT_REST_URI = "http://127.0.0.1:8181"
+# reported as failures. The defaults match the Lakekeeper + MinIO stack in
+# tests/docker (Lakekeeper serves the Iceberg REST API under /catalog and
+# addresses warehouses by name).
+DEFAULT_REST_URI = "http://127.0.0.1:8181/catalog"
 REST_URI_EXPLICIT = "ICEBERG_REST_URI" in os.environ
 REST_URI = os.environ.get("ICEBERG_REST_URI", DEFAULT_REST_URI)
-REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "warehouse")
+REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "demo")
 S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", "127.0.0.1:9000")
-S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "admin")
-S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "password")
+S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "minio")
+S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "minio12345")
 S3_REGION = os.environ.get("ICEBERG_S3_REGION", "us-east-1")
 
 NO_CATALOG_DETAIL = (
@@ -186,6 +188,22 @@ def _new_namespace(con: "duckdb.DuckDBPyConnection") -> str:
     return ns
 
 
+def _is_catalog_schema_rejection(msg: str) -> bool:
+    """True when the REST catalog itself refused to model the table schema.
+
+    Lakekeeper (iceberg-rust) cannot deserialize V3 geometry/geography schemas
+    and answers 422 with "data did not match any variant of untagged enum
+    SchemaEnum". That is a catalog limitation, not an engine one, so the feature
+    is unmeasured rather than unsupported.
+    """
+    low = msg.lower()
+    return (
+        "schemaenum" in low
+        or "unprocessablecontent_422" in low
+        or "did not match any variant" in low
+    )
+
+
 def _catalog_test(r: "TestResult", body):
     """Run ``body(con, ns, r)`` against the REST catalog, or skip if none configured.
 
@@ -202,8 +220,18 @@ def _catalog_test(r: "TestResult", body):
         ns = _new_namespace(con)
         body(con, ns, r)
     except Exception as e:  # noqa: BLE001 - surface any failure as an error
-        r.result = "error"
-        r.details = f"{type(e).__name__}: {str(e).splitlines()[0][:280]}"
+        msg = f"{type(e).__name__}: {str(e).splitlines()[0]}"
+        if _is_catalog_schema_rejection(msg):
+            # The catalog could not model the schema, so this says nothing about
+            # DuckDB. Report it as unmeasured rather than an engine failure.
+            r.result = "skip"
+            r.details = (
+                "REST catalog rejected the table schema, so DuckDB's support could not be "
+                f"measured: {msg[:220]}"
+            )
+        else:
+            r.result = "error"
+            r.details = msg[:280]
     finally:
         if con:
             con.close()
