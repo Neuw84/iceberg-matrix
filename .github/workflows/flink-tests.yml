@@ -49,11 +49,45 @@ jobs:
 
       - name: Download and setup Flink
         run: |
+          set -euo pipefail
           FLINK_DIST="flink-${FLINK_VERSION}-bin-scala_2.12.tgz"
-          FLINK_URL="https://archive.apache.org/dist/flink/flink-${FLINK_VERSION}/${FLINK_DIST}"
-          echo "Downloading Flink ${FLINK_VERSION}..."
-          curl -fsSL "${FLINK_URL}" -o "${RUNNER_TEMP}/${FLINK_DIST}"
-          tar -xzf "${RUNNER_TEMP}/${FLINK_DIST}" -C "${RUNNER_TEMP}"
+          REL_PATH="flink/flink-${FLINK_VERSION}/${FLINK_DIST}"
+          DEST="${RUNNER_TEMP}/${FLINK_DIST}"
+
+          # archive.apache.org is a single throttled origin and the dist is
+          # ~590 MB: measured side by side, the CDN sustained ~8 MB/s while the
+          # archive stalled at effectively 0. The CDN only carries current
+          # releases though, and closer.lua picks a nearby mirror, so try the
+          # fast sources first and keep the archive as the fallback that always
+          # has the version (including after it ages off the CDN).
+          download() {
+            for url in \
+              "https://dlcdn.apache.org/${REL_PATH}" \
+              "https://www.apache.org/dyn/closer.lua/${REL_PATH}?action=download" \
+              "https://archive.apache.org/dist/${REL_PATH}"
+            do
+              echo "Trying ${url}"
+              if curl -fsSL --retry 3 --retry-connrefused --connect-timeout 15 \
+                   "${url}" -o "${DEST}"; then
+                echo "Downloaded Flink ${FLINK_VERSION} from ${url}"
+                return 0
+              fi
+              rm -f "${DEST}"
+            done
+            echo "All Apache sources failed for ${REL_PATH}" >&2
+            return 1
+          }
+          download
+
+          # Mirrors are third parties, so verify against a checksum published by
+          # the ASF itself before unpacking.
+          curl -fsSL --retry 3 "https://downloads.apache.org/${REL_PATH}.sha512" \
+               -o "${DEST}.sha512" \
+            || curl -fsSL --retry 3 "https://archive.apache.org/dist/${REL_PATH}.sha512" \
+               -o "${DEST}.sha512"
+          (cd "${RUNNER_TEMP}" && sha512sum -c "${FLINK_DIST}.sha512")
+
+          tar -xzf "${DEST}" -C "${RUNNER_TEMP}"
           echo "FLINK_HOME=${RUNNER_TEMP}/flink-${FLINK_VERSION}" >> $GITHUB_ENV
 
       - name: Add Iceberg + AWS + Hadoop jars to Flink lib
