@@ -99,7 +99,10 @@ def upload(local: Path, key: str) -> str:
 
 
 def create_application() -> str:
-    name = f"{RESOURCE_PREFIX}-{RUN_TAG}"[:64]
+    # RUN_TAG already carries the prefix in CI (icebergmatrix-<run_id>); don't
+    # repeat it, and leave room for the 64-char limit.
+    name = RUN_TAG if RUN_TAG.startswith(RESOURCE_PREFIX) else f"{RESOURCE_PREFIX}-{RUN_TAG}"
+    name = name[:64]
     print(f"[driver] creating application {name} ({RELEASE_LABEL})")
     resp = emr.create_application(
         name=name,
