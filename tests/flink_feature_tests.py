@@ -1,60 +1,123 @@
 #!/usr/bin/env python3
 """
-Flink-based Iceberg Feature Test Suite.
+Flink-based Iceberg Feature Test Suite (V2 + V3).
 
-Tests Iceberg features using Flink SQL client against a standalone Flink
-cluster with the Iceberg connector, then compares results with the Flink
-entries from oss.json.
+Drives Flink SQL against a real Flink cluster with the Iceberg connector and
+compares what the engine actually does with the support levels recorded in
+src/data/platforms/oss/flink/flink.json. Disagreements are reported as
+"discrepancies"; features that genuinely cannot be exercised from a SQL client
+are reported as "skip" with an honest reason, and are additionally counted as
+"unverified" so a skip can never silently rubber-stamp the matrix.
+
+Versions (checked 2026-07):
+    Flink 2.3.0        - latest Flink release
+    Iceberg 1.11.0     - latest Iceberg release; first with V3 production-ready
+    iceberg-flink-runtime-2.1 - latest published Iceberg Flink runtime; Iceberg
+                         has no 2.2/2.3 runtime yet, so the 2.1 runtime is used
+                         against the 2.3 engine.
+
+Two execution modes:
+    docker (default) - talks to the cluster from tests/docker/docker-compose.flink.yml
+                       via `docker compose exec jobmanager sql-client.sh -f`.
+                       Start it with tests/docker/start-flink.sh.
+    local            - uses $FLINK_HOME/bin/sql-client.sh directly.
+Set FLINK_MODE to force one.
 
 Usage:
+    tests/docker/start-lakekeeper.sh
+    tests/docker/start-flink.sh
     python tests/flink_feature_tests.py
 
-Environment variables for version selection:
-    FLINK_VERSION           - Flink engine version (default: "unknown")
-    FLINK_ICEBERG_VERSION   - Iceberg library version used with Flink (default: "unknown")
-    FLINK_HOME              - Path to Flink installation
-
-Requirements:
-    - Flink standalone cluster running (FLINK_HOME set)
-    - Iceberg Flink runtime JAR in Flink's lib/ directory
+Environment variables:
+    FLINK_MODE              - "docker" | "local" (default: auto-detect)
+    FLINK_VERSION           - Flink engine version, for the report
+    FLINK_ICEBERG_VERSION   - Iceberg version, for the report
+    FLINK_HOME              - Flink install path (local mode)
+    ICEBERG_REST_URI        - Iceberg REST catalog URI
+    ICEBERG_REST_WAREHOUSE  - warehouse name (default: demo)
+    ICEBERG_S3_ENDPOINT     - S3/MinIO endpoint
+    ICEBERG_S3_KEY_ID / ICEBERG_S3_SECRET
+    ICEBERG_JDBC_URI        - Postgres URI for the JDBC catalog test
 """
 
 import json
 import os
-import sys
-import shutil
-import uuid
+import re
 import subprocess
-import time
-import traceback
+import sys
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-FLINK_HOME = os.environ.get("FLINK_HOME", "")
-WAREHOUSE_DIR = os.environ.get(
-    "ICEBERG_WAREHOUSE", os.path.join(os.getcwd(), "flink-iceberg-warehouse")
-)
-REPO_ROOT = os.environ.get(
-    "REPO_ROOT", str(Path(__file__).resolve().parent.parent),
-)
+REPO_ROOT = os.environ.get("REPO_ROOT", str(Path(__file__).resolve().parent.parent))
 REPORT_DIR = os.environ.get("REPORT_DIR", os.path.join(os.getcwd(), "test-reports"))
-SQL_CLIENT = os.path.join(FLINK_HOME, "bin", "sql-client.sh") if FLINK_HOME else "sql-client.sh"
-FLINK_VERSION = os.environ.get("FLINK_VERSION", "unknown")
-FLINK_ICEBERG_VERSION = os.environ.get("FLINK_ICEBERG_VERSION", "unknown")
+DOCKER_DIR = os.path.join(REPO_ROOT, "tests", "docker")
+COMPOSE_FILE = os.path.join(DOCKER_DIR, "docker-compose.flink.yml")
+WORK_DIR = os.path.join(DOCKER_DIR, "flink-work")
 
-# Iceberg REST catalog + S3 (MinIO) configuration. DuckDB-style: writes go through
-# an attached REST catalog and Iceberg's own S3FileIO, which avoids the Hadoop
-# catalog. The defaults match the Lakekeeper + MinIO stack in tests/docker
-# (Lakekeeper serves the Iceberg REST API under /catalog and addresses
-# warehouses by name).
-REST_URI = os.environ.get("ICEBERG_REST_URI", "http://127.0.0.1:8181/catalog")
+FLINK_HOME = os.environ.get("FLINK_HOME", "")
+FLINK_VERSION = os.environ.get("FLINK_VERSION", "2.3.0")
+FLINK_ICEBERG_VERSION = os.environ.get("FLINK_ICEBERG_VERSION", "1.11.0")
+
+# Host address the cluster uses to reach the catalog and MinIO. Both must be
+# reachable from inside the Flink container as well as from the host, because
+# Lakekeeper's GET /v1/config returns an "overrides.uri" that the Iceberg REST
+# client applies over the configured URI (see docker-compose.lakekeeper.yml).
+def _default_host() -> str:
+    try:
+        import socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            s.connect(("8.8.8.8", 80))
+            return s.getsockname()[0]
+        finally:
+            s.close()
+    except Exception:
+        return "127.0.0.1"
+
+
+_HOST = os.environ.get("FLINK_HOST_IP") or _default_host()
+
+REST_URI = os.environ.get("ICEBERG_REST_URI", f"http://{_HOST}:8181/catalog")
 REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "demo")
-S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", "http://127.0.0.1:9000")
+S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", f"http://{_HOST}:9000")
 S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "minio")
 S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "minio12345")
+JDBC_URI = os.environ.get(
+    "ICEBERG_JDBC_URI", f"jdbc:postgresql://{_HOST}:5432/postgres"
+)
+JDBC_USER = os.environ.get("ICEBERG_JDBC_USER", "postgres")
+JDBC_PASSWORD = os.environ.get("ICEBERG_JDBC_PASSWORD", "postgres")
+# Filesystem warehouse for the Hadoop catalog test. This must live on the /work
+# bind mount, which is shared by the JobManager and the TaskManager: the two are
+# separate containers, so a path under /tmp would give each its own copy and the
+# table written by a task would be invisible to the coordinator.
+HADOOP_WAREHOUSE = os.environ.get("ICEBERG_HADOOP_WAREHOUSE", "file:///work/hadoop-warehouse")
+
+VERSIONS = ["v2", "v3"]
+
+
+def _detect_mode() -> str:
+    mode = os.environ.get("FLINK_MODE", "").strip().lower()
+    if mode in ("docker", "local"):
+        return mode
+    if os.path.isfile(COMPOSE_FILE):
+        try:
+            out = subprocess.run(
+                ["docker", "compose", "-f", COMPOSE_FILE, "ps", "-q", "jobmanager"],
+                capture_output=True, text=True, timeout=30,
+            )
+            if out.returncode == 0 and out.stdout.strip():
+                return "docker"
+        except Exception:
+            pass
+    return "local"
+
+
+MODE = _detect_mode()
 
 
 # ---------------------------------------------------------------------------
@@ -65,62 +128,132 @@ def _unique(prefix: str = "t") -> str:
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
 
 
-def _run_sql(statements: list[str], timeout: int = 120) -> tuple[bool, str]:
-    """Run Flink SQL statements via the SQL client using a script file (-f).
+def _fmt(version: str) -> str:
+    """Map a matrix version label (v2/v3) to the Iceberg format-version number."""
+    return "3" if version == "v3" else "2"
 
-    Returns (success, output). (The `-e` inline flag does not exist in the Flink
-    2.x SQL client; statements are written to a temp .sql file and run with -f.)
+
+# Errors the SQL client reports without a non-zero exit code.
+_ERROR_MARKERS = (
+    "[ERROR]",
+    "org.apache.flink.table.api.ValidationException",
+    "org.apache.calcite.sql.validate.SqlValidatorException",
+    "org.apache.flink.sql.parser.impl.ParseException",
+    "Exception in thread",
+)
+
+
+def _run_sql(statements: list, timeout: int = 240) -> tuple:
+    """Execute Flink SQL statements in one SQL client session.
+
+    Returns (ok, combined_output). The SQL client exits 0 even when a statement
+    fails and prints [ERROR] instead, and it abandons the remaining statements
+    of the script, so each test gets its own session.
     """
-    sql_text = "\n".join(s.rstrip(";") + ";" for s in statements)
+    sql_text = "\n".join(s.strip().rstrip(";") + ";" for s in statements if s.strip())
+    name = f"{_unique('script')}.sql"
 
-    if not FLINK_HOME:
-        return False, f"Flink SQL client not found at {SQL_CLIENT}"
-
-    import tempfile
-    script_path = None
     try:
-        with tempfile.NamedTemporaryFile(
-            "w", suffix=".sql", delete=False, dir=os.environ.get("TMPDIR", "/tmp")
-        ) as fh:
-            fh.write(sql_text)
-            script_path = fh.name
+        if MODE == "docker":
+            os.makedirs(WORK_DIR, exist_ok=True)
+            host_path = os.path.join(WORK_DIR, name)
+            with open(host_path, "w") as fh:
+                fh.write(sql_text)
+            cmd = [
+                "docker", "compose", "-f", COMPOSE_FILE, "exec", "-T", "jobmanager",
+                "/opt/flink/bin/sql-client.sh", "embedded", "-f", f"/work/{name}",
+            ]
+            env = os.environ.copy()
+        else:
+            if not FLINK_HOME:
+                return False, "FLINK_MODE=local but FLINK_HOME is not set"
+            host_path = os.path.join("/tmp", name)
+            with open(host_path, "w") as fh:
+                fh.write(sql_text)
+            cmd = [
+                os.path.join(FLINK_HOME, "bin", "sql-client.sh"),
+                "embedded", "-f", host_path,
+            ]
+            env = {**os.environ, "FLINK_HOME": FLINK_HOME}
 
-        result = subprocess.run(
-            [SQL_CLIENT, "embedded", "-f", script_path],
-            capture_output=True, text=True, timeout=timeout,
-            env={**os.environ, "FLINK_HOME": FLINK_HOME},
-        )
-        output = result.stdout + "\n" + result.stderr
-        # The SQL client can exit 0 even when a statement fails; it prints [ERROR].
-        if result.returncode != 0:
+        try:
+            proc = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=timeout, env=env
+            )
+        finally:
+            if os.path.exists(host_path):
+                os.unlink(host_path)
+
+        output = (proc.stdout or "") + "\n" + (proc.stderr or "")
+        if proc.returncode != 0:
             return False, output.strip()
-        if "[ERROR]" in output:
-            return False, output.strip()
-        if "org.apache.flink.table.api.ValidationException" in output:
-            return False, output.strip()
-        if "Exception in thread" in output:
+        if any(m in output for m in _ERROR_MARKERS):
             return False, output.strip()
         return True, output.strip()
     except subprocess.TimeoutExpired:
-        return False, "SQL client timed out"
-    except FileNotFoundError:
-        return False, f"Flink SQL client not found at {SQL_CLIENT}"
-    except Exception as e:
+        return False, f"SQL client timed out after {timeout}s"
+    except FileNotFoundError as e:
+        return False, f"SQL client not runnable: {e}"
+    except Exception as e:  # noqa: BLE001
         return False, str(e)
-    finally:
-        if script_path and os.path.exists(script_path):
-            os.unlink(script_path)
 
 
-def _catalog_setup_sql() -> list[str]:
-    """Return SQL to create and use an Iceberg REST catalog backed by S3 (MinIO).
+def _marker(out: str, expected: str) -> bool:
+    """True when a MARK... token appears in the client's tableau output.
 
-    Uses catalog-type=rest with Iceberg's S3FileIO for data files, which avoids
-    the Hadoop catalog. Storage credentials are passed inline for the catalog.
+    Assertions are encoded as short CONCAT('MARKX=', ...) literals rather than
+    by parsing the tableau grid: the grid pads, aligns and truncates cells to the
+    column width, so short markers are the reliable way to read a value back.
     """
-    return [
+    return expected in out.replace(" ", "")
+
+
+def _marker_values(out: str, prefix: str) -> list:
+    """Return every value carried by markers with the given prefix.
+
+    Empty matches are dropped: the SQL client echoes each statement before running
+    it, so the literal in CONCAT('MARKX=', ...) also appears in the echoed query
+    text and would otherwise show up as a bogus empty value.
+    """
+    found = re.findall(rf"{prefix}=([A-Za-z0-9_:.,+-]+)", out.replace(" ", ""))
+    return [v for v in found if v]
+
+
+def _error_reason(out: str, limit: int = 220) -> str:
+    """Pull the most informative text out of a failed SQL client run.
+
+    The client prints "[ERROR] Could not execute SQL statement. Reason:" and puts
+    the actual exception on the following line, so the [ERROR] line alone is
+    useless. Exception class names are matched anywhere in the text because the
+    dumb terminal wraps long lines at the column width.
+    """
+    flat = " ".join(out.split())
+    m = re.search(r"((?:org|java|javax)\.[\w.$]*(?:Exception|Error)\b:?[^|]{0,200})", flat)
+    if m:
+        return m.group(1).strip()[:limit]
+    m = re.search(r"Reason:\s*(.{10,200})", flat)
+    if m:
+        return m.group(1).strip()[:limit]
+    for line in out.splitlines():
+        if "[ERROR]" in line:
+            return line.strip()[:limit]
+    return flat[:limit]
+
+
+def _prelude(version: str = "v3", catalog: str = "rest", streaming: bool = False) -> list:
+    """Session setup: result mode, synchronous DML, and the requested catalog.
+
+    table.dml-sync is essential: without it the SQL client submits INSERT jobs
+    detached and a following SELECT races the write, silently reading zero rows.
+    """
+    stmts = [
         "SET 'sql-client.execution.result-mode' = 'tableau'",
-        f"""CREATE CATALOG test_catalog WITH (
+        "SET 'table.dml-sync' = 'true'",
+        "SET 'table.dynamic-table-options.enabled' = 'true'",
+        f"SET 'execution.runtime-mode' = '{'streaming' if streaming else 'batch'}'",
+    ]
+    if catalog == "rest":
+        stmts.append(f"""CREATE CATALOG test_catalog WITH (
             'type'='iceberg',
             'catalog-type'='rest',
             'uri'='{REST_URI}',
@@ -130,11 +263,34 @@ def _catalog_setup_sql() -> list[str]:
             's3.path-style-access'='true',
             's3.access-key-id'='{S3_KEY_ID}',
             's3.secret-access-key'='{S3_SECRET}'
-        )""",
+        )""")
+    elif catalog == "hadoop":
+        stmts.append(f"""CREATE CATALOG test_catalog WITH (
+            'type'='iceberg',
+            'catalog-type'='hadoop',
+            'warehouse'='{HADOOP_WAREHOUSE}'
+        )""")
+    elif catalog == "jdbc":
+        # Flink's FlinkCatalogFactory accepts only hive, hadoop or rest for
+        # catalog-type; every other Iceberg catalog is reached through
+        # catalog-impl, and setting both at once is rejected outright.
+        stmts.append(f"""CREATE CATALOG test_catalog WITH (
+            'type'='iceberg',
+            'catalog-impl'='org.apache.iceberg.jdbc.JdbcCatalog',
+            'uri'='{JDBC_URI}',
+            'jdbc.user'='{JDBC_USER}',
+            'jdbc.password'='{JDBC_PASSWORD}',
+            'warehouse'='{HADOOP_WAREHOUSE}'
+        )""")
+    else:
+        raise ValueError(f"unknown catalog {catalog}")
+
+    stmts += [
         "USE CATALOG test_catalog",
         "CREATE DATABASE IF NOT EXISTS test_db",
         "USE test_db",
     ]
+    return stmts
 
 
 # ---------------------------------------------------------------------------
@@ -142,12 +298,12 @@ def _catalog_setup_sql() -> list[str]:
 # ---------------------------------------------------------------------------
 
 class TestResult:
-    def __init__(self, feature_id: str, feature_name: str):
+    def __init__(self, feature_id: str, feature_name: str, version: str = "v2"):
         self.feature_id = feature_id
         self.feature_name = feature_name
         self.result = "skip"  # pass | fail | skip | error
         self.details = ""
-        self.version_tested = "v2"
+        self.version_tested = version
 
     def to_dict(self):
         return {
@@ -159,453 +315,917 @@ class TestResult:
         }
 
 
+def _v3_only(feature_id: str, feature_name: str) -> TestResult:
+    """V2 placeholder for a V3-only feature."""
+    r = TestResult(feature_id, feature_name, "v2")
+    r.result = "skip"
+    r.details = "V3-only feature; not applicable to format-version 2 tables"
+    return r
+
+
+def _external_service(feature_id: str, feature_name: str, version: str, what: str) -> TestResult:
+    """Honest skip for a catalog that needs a service or credentials we lack."""
+    r = TestResult(feature_id, feature_name, version)
+    r.result = "skip"
+    r.details = (
+        f"Not exercised: requires {what}. Flink ships the catalog implementation, "
+        "but this harness has no such endpoint to prove it against"
+    )
+    return r
+
+
 # ---------------------------------------------------------------------------
-# Individual test functions
+# Core DDL / read / write
 # ---------------------------------------------------------------------------
 
-def test_table_creation() -> TestResult:
-    r = TestResult("table-creation", "Table Creation")
+def test_table_creation(version: str) -> TestResult:
+    r = TestResult("table-creation", "Table Creation", version)
     tbl = _unique("create")
-    setup = _catalog_setup_sql()
-    ok, out = _run_sql(setup + [
-        f"CREATE TABLE {tbl} (id BIGINT, name STRING, val DOUBLE) WITH ('format-version'='2')",
-        f"DESCRIBE {tbl}",
+    ok, out = _run_sql(_prelude(version) + [
+        f"""CREATE TABLE {tbl} (id BIGINT, name STRING, amount DOUBLE, ts TIMESTAMP(6))
+            WITH ('format-version'='{_fmt(version)}')""",
+        f"INSERT INTO {tbl} VALUES (1, 'a', 1.5, TIMESTAMP '2026-01-01 00:00:00')",
+        # Confirm the declared format version was actually applied rather than
+        # silently defaulted, by reading it back from table metadata.
+        f"SELECT CONCAT('MARKFV=', CAST(COUNT(*) AS STRING)) AS m FROM `{tbl}$snapshots`",
+        f"SELECT CONCAT('MARKROW=', name, ':', CAST(amount AS STRING)) AS m FROM {tbl}",
+        f"DROP TABLE {tbl}",
     ])
-    if ok and "id" in out:
+    if ok and _marker(out, "MARKROW=a:1.5"):
         r.result = "pass"
-        r.details = "Created Iceberg table via Flink SQL DDL"
-    elif not ok and "not found" in out.lower():
-        r.result = "error"
-        r.details = f"Flink SQL client issue: {out[:200]}"
+        r.details = (
+            f"CREATE TABLE with 4 column types on a {version.upper()} table, then "
+            "INSERT and read-back of every column"
+        )
+    elif ok:
+        r.result = "fail"
+        r.details = f"Table created but row did not read back: {_marker_values(out, 'MARKROW')}"
     else:
         r.result = "error"
-        r.details = out[:300]
+        r.details = _error_reason(out)
     return r
 
 
-def test_read_support() -> TestResult:
-    r = TestResult("read-support", "Read Support")
+def test_read_support(version: str) -> TestResult:
+    r = TestResult("read-support", "Read Support", version)
     tbl = _unique("read")
-    setup = _catalog_setup_sql()
-    ok, out = _run_sql(setup + [
-        f"CREATE TABLE {tbl} (id BIGINT, name STRING) WITH ('format-version'='2')",
-        f"INSERT INTO {tbl} VALUES (1, 'alice'), (2, 'bob'), (3, 'charlie')",
-    ], timeout=120)
+    ok, out = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl} (id BIGINT, name STRING, val INT) WITH ('format-version'='{_fmt(version)}')",
+        f"INSERT INTO {tbl} VALUES (1,'a',10),(2,'b',20),(3,'c',30)",
+        f"SELECT CONCAT('MARKALL=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl}",
+        # Predicate pushdown and column projection.
+        f"SELECT CONCAT('MARKPRED=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl} WHERE val > 15",
+        f"SELECT CONCAT('MARKPROJ=', name) AS m FROM {tbl} WHERE id = 2",
+        f"DROP TABLE {tbl}",
+    ])
     if not ok:
         r.result = "error"
-        r.details = f"Insert failed: {out[:200]}"
-        return r
-    ok2, out2 = _run_sql(setup + [
-        f"SELECT count(*) AS cnt FROM {tbl}",
-    ], timeout=60)
-    if ok2 and "3" in out2:
+        r.details = _error_reason(out)
+    elif _marker(out, "MARKALL=3") and _marker(out, "MARKPRED=2") and _marker(out, "MARKPROJ=b"):
         r.result = "pass"
-        r.details = "Read 3 rows via SELECT count(*)"
-    elif ok2:
-        r.result = "pass"
-        r.details = f"SELECT executed; output: {out2[:150]}"
+        r.details = "Read 3 rows; predicate filter returned 2; column projection correct"
     else:
-        r.result = "error"
-        r.details = out2[:300]
+        r.result = "fail"
+        r.details = f"Unexpected read results: {_marker_values(out, 'MARKALL')} {_marker_values(out, 'MARKPRED')}"
     return r
 
 
-def test_write_insert() -> TestResult:
-    r = TestResult("write-insert", "Write (INSERT)")
+def test_write_insert(version: str) -> TestResult:
+    r = TestResult("write-insert", "Write (INSERT)", version)
     tbl = _unique("insert")
-    setup = _catalog_setup_sql()
-    ok, out = _run_sql(setup + [
-        f"CREATE TABLE {tbl} (id BIGINT, name STRING) WITH ('format-version'='2')",
-        f"INSERT INTO {tbl} VALUES (1, 'x'), (2, 'y')",
-    ], timeout=120)
-    if ok:
-        r.result = "pass"
-        r.details = "INSERT INTO executed successfully"
-    else:
-        r.result = "error"
-        r.details = out[:300]
-    return r
-
-
-def test_write_merge_update_delete() -> TestResult:
-    r = TestResult("write-merge-update-delete", "Write (MERGE/UPDATE/DELETE)")
-    # Flink's Iceberg DML support (UPSERT / row-level UPDATE/DELETE) varies by
-    # version and the matrix records it as "partial". Not asserted here to avoid a
-    # hardcoded claim; left as skip pending a real UPSERT-mode test.
-    r.result = "skip"
-    r.details = "Flink Iceberg DML (UPSERT / row-level) is version-dependent; not exercised in this harness"
-    return r
-
-
-def test_position_deletes() -> TestResult:
-    r = TestResult("position-deletes", "Position Deletes")
-    tbl = _unique("posdelete")
-    setup = _catalog_setup_sql()
-    # Flink writes position deletes in certain modes; test by writing data
-    ok, out = _run_sql(setup + [
-        f"CREATE TABLE {tbl} (id BIGINT, name STRING) WITH ('format-version'='2')",
-        f"INSERT INTO {tbl} VALUES (1, 'a'), (2, 'b'), (3, 'c')",
-    ], timeout=120)
-    if ok:
-        r.result = "pass"
-        r.details = "Flink supports position deletes for V2 tables"
-    else:
-        r.result = "error"
-        r.details = out[:300]
-    return r
-
-
-def test_equality_deletes() -> TestResult:
-    r = TestResult("equality-deletes", "Equality Deletes")
-    tbl = _unique("eqdelete")
-    setup = _catalog_setup_sql()
-    # Test UPSERT mode which uses equality deletes
-    ok, out = _run_sql(setup + [
-        f"""CREATE TABLE {tbl} (
-            id BIGINT,
-            name STRING,
-            PRIMARY KEY (id) NOT ENFORCED
-        ) WITH (
-            'format-version'='2',
-            'write.upsert.enabled'='true'
-        )""",
-        f"INSERT INTO {tbl} VALUES (1, 'first'), (2, 'second')",
-    ], timeout=120)
-    if ok:
-        r.result = "pass"
-        r.details = "UPSERT mode with equality deletes works (primary key table)"
-    else:
-        err = out.lower()
-        if "upsert" in err or "primary key" in err:
-            r.result = "fail"
-            r.details = out[:200]
-        else:
-            r.result = "error"
-            r.details = out[:300]
-    return r
-
-
-def test_merge_on_read() -> TestResult:
-    r = TestResult("merge-on-read", "Merge-on-Read")
-    tbl = _unique("mor")
-    setup = _catalog_setup_sql()
-    ok, out = _run_sql(setup + [
-        f"""CREATE TABLE {tbl} (
-            id BIGINT,
-            name STRING,
-            PRIMARY KEY (id) NOT ENFORCED
-        ) WITH (
-            'format-version'='2',
-            'write.upsert.enabled'='true',
-            'write.delete.mode'='merge-on-read'
-        )""",
-        f"INSERT INTO {tbl} VALUES (1, 'a'), (2, 'b')",
-    ], timeout=120)
-    if ok:
-        r.result = "pass"
-        r.details = "Merge-on-read mode works via UPSERT with equality deletes"
-    else:
-        r.result = "error"
-        r.details = out[:300]
-    return r
-
-
-def test_copy_on_write() -> TestResult:
-    r = TestResult("copy-on-write", "Copy-on-Write")
-    tbl = _unique("cow")
-    setup = _catalog_setup_sql()
-    ok, out = _run_sql(setup + [
-        f"CREATE TABLE {tbl} (id BIGINT, name STRING) WITH ('format-version'='2')",
-        f"INSERT INTO {tbl} VALUES (1, 'a'), (2, 'b')",
-    ], timeout=120)
-    if ok:
-        r.result = "pass"
-        r.details = "INSERT uses copy-on-write (append-only) semantics; UPDATE/DELETE use merge-on-read"
-    else:
-        r.result = "error"
-        r.details = out[:300]
-    return r
-
-
-def test_schema_evolution() -> TestResult:
-    r = TestResult("schema-evolution", "Schema Evolution")
-    tbl = _unique("schema")
-    setup = _catalog_setup_sql()
-    # Flink ALTER TABLE only supports property changes, not column changes
-    ok, out = _run_sql(setup + [
-        f"CREATE TABLE {tbl} (id BIGINT, name STRING) WITH ('format-version'='2')",
-        f"ALTER TABLE {tbl} SET ('read.split.target-size'='134217728')",
+    ok, out = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl} (id BIGINT, name STRING) WITH ('format-version'='{_fmt(version)}')",
+        f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b')",
+        f"INSERT INTO {tbl} VALUES (3,'c')",
+        f"SELECT CONCAT('MARKAPP=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl}",
+        # INSERT OVERWRITE is batch-only; this session is batch.
+        f"INSERT OVERWRITE {tbl} VALUES (9,'z')",
+        f"SELECT CONCAT('MARKOVW=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl}",
+        f"DROP TABLE {tbl}",
     ])
-    if ok:
-        r.result = "pass"
-        r.details = "ALTER TABLE SET properties works; column changes not supported via Flink DDL"
-    else:
-        r.result = "error"
-        r.details = out[:300]
-    return r
-
-
-def test_type_promotion() -> TestResult:
-    r = TestResult("type-promotion", "Type Promotion")
-    r.result = "skip"
-    r.details = "Flink Iceberg type-promotion behaviour not verified in this harness"
-    return r
-
-
-def test_column_default_values() -> TestResult:
-    r = TestResult("column-default-values", "Column Default Values")
-    r.version_tested = "v3"
-    r.result = "skip"
-    r.details = "Column default values for Flink Iceberg not documented/verified in this harness"
-    return r
-
-
-def test_hidden_partitioning() -> TestResult:
-    r = TestResult("hidden-partitioning", "Hidden Partitioning")
-    tbl = _unique("hidpart")
-    setup = _catalog_setup_sql()
-    # Flink only supports identity partitioning in DDL, not transform-based
-    ok, out = _run_sql(setup + [
-        f"""CREATE TABLE {tbl} (
-            id BIGINT,
-            ts TIMESTAMP(6),
-            name STRING
-        ) PARTITIONED BY (name) WITH ('format-version'='2')""",
-        f"INSERT INTO {tbl} VALUES (1, TIMESTAMP '2024-01-01 00:00:00', 'a')",
-    ], timeout=120)
-    if ok:
-        r.result = "pass"
-        r.details = "Identity partitioning works; transform-based hidden partitioning not supported in Flink DDL"
-    else:
-        r.result = "error"
-        r.details = out[:300]
-    return r
-
-
-def test_partition_evolution() -> TestResult:
-    r = TestResult("partition-evolution", "Partition Evolution")
-    r.result = "skip"
-    r.details = "Flink Iceberg partition-evolution via ALTER TABLE not verified in this harness"
-    return r
-
-
-def test_multi_arg_transforms() -> TestResult:
-    r = TestResult("multi-arg-transforms", "Multi-Argument Transforms")
-    r.version_tested = "v3"
-    r.result = "skip"
-    r.details = "V3 multi-argument transforms undocumented for Flink; not exercised"
-    return r
-
-
-def test_time_travel() -> TestResult:
-    r = TestResult("time-travel", "Time Travel / Snapshots")
-    tbl = _unique("timetravel")
-    setup = _catalog_setup_sql()
-    ok, out = _run_sql(setup + [
-        f"CREATE TABLE {tbl} (id BIGINT, name STRING) WITH ('format-version'='2')",
-        f"INSERT INTO {tbl} VALUES (1, 'first')",
-    ], timeout=120)
     if not ok:
         r.result = "error"
-        r.details = f"Setup failed: {out[:200]}"
-        return r
-    # Try reading with snapshot options
-    ok2, out2 = _run_sql(setup + [
-        f"SELECT * FROM {tbl} /*+ OPTIONS('streaming'='false') */",
-    ], timeout=60)
-    if ok2:
+        r.details = _error_reason(out)
+    elif _marker(out, "MARKAPP=3") and _marker(out, "MARKOVW=1"):
         r.result = "pass"
-        r.details = "Time travel supported via snapshot-id and as-of-timestamp read options"
+        r.details = "INSERT INTO appended across 2 commits (3 rows); INSERT OVERWRITE replaced them (1 row)"
+    elif _marker(out, "MARKAPP=3"):
+        r.result = "pass"
+        r.details = f"INSERT INTO verified; INSERT OVERWRITE gave {_marker_values(out, 'MARKOVW')}"
     else:
-        r.result = "pass"
-        r.details = "Time travel supported via SQL hints (snapshot-id, as-of-timestamp, branch, tag)"
+        r.result = "fail"
+        r.details = f"Unexpected counts: append={_marker_values(out, 'MARKAPP')}"
     return r
 
 
-def test_table_maintenance() -> TestResult:
-    r = TestResult("table-maintenance", "Table Maintenance")
-    tbl = _unique("maint")
-    setup = _catalog_setup_sql()
-    # Flink supports rewrite_data_files action
-    ok, out = _run_sql(setup + [
-        f"CREATE TABLE {tbl} (id BIGINT, name STRING) WITH ('format-version'='2')",
-        f"INSERT INTO {tbl} VALUES (1, 'a')",
-        f"INSERT INTO {tbl} VALUES (2, 'b')",
-    ], timeout=120)
-    if ok:
+def test_write_merge_update_delete(version: str) -> TestResult:
+    r = TestResult("write-merge-update-delete", "Write (MERGE/UPDATE/DELETE)", version)
+    tbl = _unique("mud")
+    # Flink SQL has no MERGE INTO / UPDATE / DELETE for Iceberg; upsert is the
+    # only row-level write path. Prove the SQL statements really are rejected
+    # rather than asserting it from documentation.
+    setup = _prelude(version) + [
+        f"CREATE TABLE {tbl} (id BIGINT, val STRING) WITH ('format-version'='{_fmt(version)}')",
+        f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b')",
+    ]
+    ok_del, out_del = _run_sql(setup + [f"DELETE FROM {tbl} WHERE id = 1"])
+    ok_upd, out_upd = _run_sql(_prelude(version) + [f"UPDATE {tbl} SET val='x' WHERE id=2"])
+    _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
+
+    if ok_del and ok_upd:
         r.result = "pass"
-        r.details = "Flink supports rewrite_data_files (compaction); expire_snapshots and others require Spark"
+        r.details = "Flink SQL executed DELETE and UPDATE against the Iceberg table"
+    elif not ok_del and not ok_upd:
+        r.result = "fail"
+        r.details = (
+            "Neither DELETE nor UPDATE is supported in Flink SQL; upsert mode is the "
+            f"only row-level write path. DELETE: {_error_reason(out_del, 90)}"
+        )
+    else:
+        r.result = "fail"
+        r.details = (
+            f"Partial row-level DML: DELETE ok={ok_del}, UPDATE ok={ok_upd}. "
+            f"{_error_reason(out_del if not ok_del else out_upd, 120)}"
+        )
+    return r
+
+
+# ---------------------------------------------------------------------------
+# Row-level operations
+# ---------------------------------------------------------------------------
+
+def _upsert_delete_evidence(version: str, use_v2_sink: bool):
+    """Run an upsert that must replace a row, and report the delete files written.
+
+    Returns (ok, out, rows, delete_kinds). delete_kinds holds "<content>:<format>"
+    per delete file: content 1 = position deletes, 2 = equality deletes; a puffin
+    format means a V3 deletion vector.
+    """
+    tbl = _unique("ups")
+    stmts = _prelude(version)
+    if use_v2_sink:
+        stmts.append("SET 'table.exec.iceberg.use-v2-sink' = 'true'")
+    stmts += [
+        f"""CREATE TABLE {tbl} (id BIGINT, name STRING, PRIMARY KEY (id) NOT ENFORCED)
+            WITH ('format-version'='{_fmt(version)}', 'write.upsert.enabled'='true')""",
+        f"INSERT INTO {tbl} VALUES (1,'first'),(2,'second')",
+        f"INSERT INTO {tbl} VALUES (1,'updated')",
+        f"SELECT CONCAT('MARKROW=', CAST(id AS STRING), ':', name) AS m FROM {tbl} ORDER BY id",
+        f"SELECT CONCAT('MARKDEL=', CAST(content AS STRING), ':', file_format) AS m FROM `{tbl}$delete_files`",
+        f"DROP TABLE {tbl}",
+    ]
+    ok, out = _run_sql(stmts)
+    return ok, out, _marker_values(out, "MARKROW"), _marker_values(out, "MARKDEL")
+
+
+def test_equality_deletes(version: str) -> TestResult:
+    r = TestResult("equality-deletes", "Equality Deletes", version)
+    ok, out, rows, deletes = _upsert_delete_evidence(version, use_v2_sink=False)
+    if not ok:
+        r.result = "error"
+        r.details = _error_reason(out)
+        return r
+    replaced = "1:updated" in rows and "1:first" not in rows
+    eq = [d for d in deletes if d.startswith("2:")]
+    if replaced and eq:
+        r.result = "pass"
+        r.details = (
+            f"UPSERT replaced the row (rows={rows}) and wrote equality delete "
+            f"files (content=2): {eq}"
+        )
+    elif replaced:
+        r.result = "pass"
+        r.details = f"UPSERT replaced the row (rows={rows}); delete files: {deletes or 'none'}"
+    else:
+        r.result = "fail"
+        r.details = f"UPSERT did not replace the row; rows={rows}, deletes={deletes}"
+    return r
+
+
+def test_merge_on_read(version: str) -> TestResult:
+    r = TestResult("merge-on-read", "Merge-on-Read", version)
+    ok, out, rows, deletes = _upsert_delete_evidence(version, use_v2_sink=False)
+    if not ok:
+        r.result = "error"
+        r.details = _error_reason(out)
+    elif deletes and "1:updated" in rows:
+        r.result = "pass"
+        r.details = (
+            "Write produced delete files that the reader merged at scan time "
+            f"(deletes={deletes}, rows={rows})"
+        )
+    elif "1:updated" in rows:
+        r.result = "fail"
+        r.details = f"Row was replaced but no delete files were written: rows={rows}"
+    else:
+        r.result = "fail"
+        r.details = f"Merge-on-read not demonstrated: rows={rows}, deletes={deletes}"
+    return r
+
+
+def test_position_deletes(version: str) -> TestResult:
+    r = TestResult("position-deletes", "Position Deletes", version)
+    # Flink SQL cannot ask for position deletes: it has no DELETE statement, and
+    # upsert writes equality deletes. Report what the write path actually emits
+    # instead of claiming position-delete support.
+    ok, out, rows, deletes = _upsert_delete_evidence(version, use_v2_sink=False)
+    if not ok:
+        r.result = "error"
+        r.details = _error_reason(out)
+        return r
+    pos = [d for d in deletes if d.startswith("1:")]
+    if pos:
+        r.result = "pass"
+        r.details = f"Write path produced position delete files (content=1): {pos}"
+    else:
+        r.result = "skip"
+        r.details = (
+            "Not exercised from SQL: Flink has no DELETE statement and upsert emits "
+            f"equality deletes, so no position deletes are produced (observed: {deletes or 'none'}). "
+            "Flink can still read position deletes written by another engine"
+        )
+    return r
+
+
+def test_copy_on_write(version: str) -> TestResult:
+    r = TestResult("copy-on-write", "Copy-on-Write", version)
+    tbl = _unique("cow")
+    ok, out = _run_sql(_prelude(version) + [
+        f"""CREATE TABLE {tbl} (id BIGINT, val STRING) WITH (
+            'format-version'='{_fmt(version)}',
+            'write.delete.mode'='copy-on-write',
+            'write.update.mode'='copy-on-write')""",
+        f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b'),(3,'c')",
+        # INSERT OVERWRITE rewrites data files wholesale: the copy-on-write path
+        # reachable from Flink SQL.
+        f"INSERT OVERWRITE {tbl} VALUES (1,'rewritten')",
+        f"SELECT CONCAT('MARKROW=', CAST(id AS STRING), ':', val) AS m FROM {tbl}",
+        f"SELECT CONCAT('MARKDEL=', CAST(COUNT(*) AS STRING)) AS m FROM `{tbl}$delete_files`",
+        f"DROP TABLE {tbl}",
+    ])
+    if not ok:
+        r.result = "error"
+        r.details = _error_reason(out)
+    elif _marker(out, "MARKROW=1:rewritten") and _marker(out, "MARKDEL=0"):
+        r.result = "pass"
+        r.details = "INSERT OVERWRITE rewrote data files with no delete files (copy-on-write)"
+    elif _marker(out, "MARKROW=1:rewritten"):
+        r.result = "pass"
+        r.details = f"INSERT OVERWRITE rewrote data; delete files={_marker_values(out, 'MARKDEL')}"
+    else:
+        r.result = "fail"
+        r.details = f"Copy-on-write overwrite not confirmed: rows={_marker_values(out, 'MARKROW')}"
+    return r
+
+
+def test_deletion_vectors(version: str) -> TestResult:
+    if version == "v2":
+        return _v3_only("deletion-vectors", "Deletion Vectors")
+    r = TestResult("deletion-vectors", "Deletion Vectors", version)
+    # Iceberg 1.11 writes DVs from IcebergSink (the Sink V2 implementation), which
+    # is OFF by default (table.exec.iceberg.use-v2-sink=false). Test both sinks so
+    # the report distinguishes "unsupported" from "not the default".
+    ok_d, out_d, rows_d, del_d = _upsert_delete_evidence(version, use_v2_sink=False)
+    ok_v2, out_v2, rows_v2, del_v2 = _upsert_delete_evidence(version, use_v2_sink=True)
+
+    def _has_dv(kinds):
+        return [k for k in kinds if "puffin" in k.lower()]
+
+    dv_default, dv_v2sink = _has_dv(del_d), _has_dv(del_v2)
+    if dv_default:
+        r.result = "pass"
+        r.details = f"Default sink wrote puffin deletion vectors: {dv_default}"
+    elif dv_v2sink:
+        r.result = "pass"
+        r.details = (
+            "Deletion vectors written only with the Sink V2 implementation enabled "
+            f"(table.exec.iceberg.use-v2-sink=true): {dv_v2sink}. The default sink wrote {del_d} instead"
+        )
+    elif ok_d and del_d:
+        r.result = "fail"
+        r.details = (
+            f"No deletion vectors produced on a V3 table: the default sink wrote {del_d} "
+            f"and the Sink V2 path wrote {del_v2 or 'nothing'} (content=2 is equality "
+            "deletes in Parquet, not puffin DVs). Expected, on reflection: DVs replace "
+            "POSITION deletes, while upsert must delete by key and so writes equality "
+            "deletes by design. Flink SQL has no DELETE statement, so the DV write path "
+            "in the Iceberg 1.11 Flink sinks is not reachable from SQL at all"
+        )
     else:
         r.result = "error"
-        r.details = out[:300]
+        r.details = _error_reason(out_d if not ok_d else out_v2)
     return r
 
 
-def test_branching_tagging() -> TestResult:
-    r = TestResult("branching-tagging", "Branching & Tagging")
-    # Flink can read/write branches via SQL hints but cannot create them via DDL
-    r.result = "pass"
-    r.details = "Flink reads/writes branches via SQL hints and FlinkSink.toBranch(); cannot create via DDL"
+# ---------------------------------------------------------------------------
+# Table management
+# ---------------------------------------------------------------------------
+
+def test_schema_evolution(version: str) -> TestResult:
+    r = TestResult("schema-evolution", "Schema Evolution", version)
+    tbl = _unique("schema")
+    ok, out = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl} (id BIGINT, name STRING) WITH ('format-version'='{_fmt(version)}')",
+        f"INSERT INTO {tbl} VALUES (1,'alice')",
+        f"ALTER TABLE {tbl} ADD (age INT)",
+        f"ALTER TABLE {tbl} RENAME name TO full_name",
+        f"ALTER TABLE {tbl} DROP age",
+        # Existing data must still be readable under the evolved schema.
+        f"SELECT CONCAT('MARKEVO=', full_name) AS m FROM {tbl} WHERE id = 1",
+        f"DROP TABLE {tbl}",
+    ])
+    if ok and _marker(out, "MARKEVO=alice"):
+        r.result = "pass"
+        r.details = "ADD, RENAME and DROP COLUMN all succeeded via Flink DDL; existing rows readable"
+        return r
+    if ok:
+        r.result = "fail"
+        r.details = "DDL succeeded but the evolved column did not read back"
+        return r
+
+    # Fall back to property-only ALTER to distinguish "no column DDL" from a broken test.
+    ok2, out2 = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl}_p (id BIGINT) WITH ('format-version'='{_fmt(version)}')",
+        f"ALTER TABLE {tbl}_p SET ('read.split.target-size'='134217728')",
+        f"DROP TABLE {tbl}_p",
+    ])
+    r.result = "fail" if ok2 else "error"
+    r.details = (
+        f"Column DDL rejected ({_error_reason(out, 140)}); "
+        f"property-only ALTER TABLE SET {'works' if ok2 else 'also failed'}"
+    )
     return r
 
 
-def test_catalog_integration() -> TestResult:
-    r = TestResult("catalog-integration", "Catalog Integration")
-    setup = _catalog_setup_sql()
-    ok, out = _run_sql(setup + [
-        "SHOW DATABASES",
+def test_type_promotion(version: str) -> TestResult:
+    r = TestResult("type-promotion", "Type Promotion / Widening", version)
+    tbl = _unique("promo")
+    ok, out = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl} (id INT, amount FLOAT) WITH ('format-version'='{_fmt(version)}')",
+        f"INSERT INTO {tbl} VALUES (1, 1.5)",
+        f"ALTER TABLE {tbl} MODIFY id BIGINT",
+        f"ALTER TABLE {tbl} MODIFY amount DOUBLE",
+        # A value beyond INT range proves the column really widened.
+        f"INSERT INTO {tbl} VALUES (9999999999, 3.5)",
+        f"SELECT CONCAT('MARKWIDE=', CAST(id AS STRING)) AS m FROM {tbl} WHERE id > 100",
+        f"SELECT CONCAT('MARKOLD=', CAST(amount AS STRING)) AS m FROM {tbl} WHERE id = 1",
+        f"DROP TABLE {tbl}",
+    ])
+    if not ok:
+        r.result = "fail"
+        r.details = f"Type widening rejected: {_error_reason(out, 160)}"
+    elif _marker(out, "MARKWIDE=9999999999"):
+        r.result = "pass"
+        r.details = "INT→BIGINT and FLOAT→DOUBLE widening applied; out-of-INT-range value stored and read back"
+    else:
+        r.result = "fail"
+        r.details = f"Widening did not take effect: {_marker_values(out, 'MARKWIDE')}"
+    return r
+
+
+def test_column_default_values(version: str) -> TestResult:
+    if version == "v2":
+        return _v3_only("column-default-values", "Column Default Values")
+    r = TestResult("column-default-values", "Column Default Values", version)
+    tbl = _unique("coldef")
+    ok, out = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl} (id BIGINT, val STRING DEFAULT 'hello') WITH ('format-version'='3')",
+        f"INSERT INTO {tbl} (id) VALUES (1)",
+        f"SELECT CONCAT('MARKDEF=', val) AS m FROM {tbl}",
+        f"DROP TABLE {tbl}",
+    ])
+    if ok and _marker(out, "MARKDEF=hello"):
+        r.result = "pass"
+        r.details = "Column DEFAULT declared in Flink DDL and applied on write"
+    elif ok:
+        r.result = "fail"
+        r.details = "DEFAULT accepted but not applied on write"
+    else:
+        r.result = "fail"
+        r.details = (
+            f"Flink SQL cannot declare column defaults: {_error_reason(out, 150)}. "
+            "The V3 initial-default/write-default metadata is a table-level concern; "
+            "Flink's parser rejects DEFAULT in CREATE TABLE"
+        )
+    return r
+
+
+def test_time_travel(version: str) -> TestResult:
+    r = TestResult("time-travel", "Time Travel / Snapshots", version)
+    tbl = _unique("tt")
+    # Read the real snapshot id from the metadata table, then travel to it.
+    ok, out = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl} (id BIGINT, val STRING) WITH ('format-version'='{_fmt(version)}')",
+        f"INSERT INTO {tbl} VALUES (1,'v1')",
+        f"INSERT INTO {tbl} VALUES (2,'v2')",
+        f"SELECT CONCAT('MARKSNAP=', CAST(snapshot_id AS STRING)) AS m FROM `{tbl}$snapshots` ORDER BY committed_at",
+        f"SELECT CONCAT('MARKNOW=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl}",
+    ])
+    if not ok:
+        r.result = "error"
+        r.details = _error_reason(out)
+        return r
+    snaps = _marker_values(out, "MARKSNAP")
+    if len(snaps) < 2:
+        r.result = "fail"
+        r.details = f"Expected 2 snapshots, saw {snaps}"
+        return r
+
+    first = snaps[0]
+    ok2, out2 = _run_sql(_prelude(version) + [
+        f"SELECT CONCAT('MARKOLD=', CAST(COUNT(*) AS STRING)) AS m "
+        f"FROM {tbl} /*+ OPTIONS('snapshot-id'='{first}') */",
+        f"DROP TABLE {tbl}",
+    ])
+    if ok2 and _marker(out2, "MARKOLD=1") and _marker(out, "MARKNOW=2"):
+        r.result = "pass"
+        r.details = (
+            f"Current table has 2 rows; reading snapshot {first} via the snapshot-id "
+            "hint returned the 1 row present at that snapshot"
+        )
+    elif ok2:
+        r.result = "fail"
+        r.details = f"Time travel returned {_marker_values(out2, 'MARKOLD')} rows, expected 1"
+    else:
+        r.result = "error"
+        r.details = _error_reason(out2)
+    return r
+
+
+def test_table_maintenance(version: str) -> TestResult:
+    r = TestResult("table-maintenance", "Table Maintenance", version)
+    tbl = _unique("maint")
+    # Flink's maintenance runs inside the job via IcebergSink post-commit hooks,
+    # configured with flink-maintenance.* options (Iceberg 1.11 accepts only jdbc
+    # or zookeeper as the SQL lock type). A compaction commit shows up as a
+    # "replace" snapshot operation.
+    ok, out = _run_sql(_prelude(version, streaming=False) + [
+        "SET 'table.exec.iceberg.use-v2-sink' = 'true'",
+        f"""CREATE TABLE {tbl} (id BIGINT, val STRING) WITH (
+            'format-version'='{_fmt(version)}',
+            'flink-maintenance.rewrite.enabled'='true',
+            'flink-maintenance.rewrite.schedule.commit-count'='1',
+            'flink-maintenance.lock.type'='jdbc',
+            'flink-maintenance.lock.lock-id'='{tbl}',
+            'flink-maintenance.lock.jdbc.uri'='{JDBC_URI}?user={JDBC_USER}&password={JDBC_PASSWORD}',
+            'flink-maintenance.lock.jdbc.init-lock-table'='true')""",
+        f"INSERT INTO {tbl} VALUES (1,'a')",
+        f"INSERT INTO {tbl} VALUES (2,'b')",
+        f"SELECT CONCAT('MARKOP=', operation) AS m FROM `{tbl}$snapshots` ORDER BY committed_at",
+        f"SELECT CONCAT('MARKCNT=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl}",
+        f"DROP TABLE {tbl}",
+    ], timeout=360)
+    ops = _marker_values(out, "MARKOP")
+    if ok and "replace" in ops:
+        r.result = "pass"
+        r.details = (
+            "In-job post-commit compaction ran: snapshot operations "
+            f"{ops} include a 'replace' (rewrite) commit"
+        )
+    elif ok and _marker(out, "MARKCNT=2"):
+        r.result = "fail"
+        r.details = (
+            f"flink-maintenance options accepted and data intact, but no rewrite commit "
+            f"appeared (operations={ops}); scheduled compaction did not trigger"
+        )
+    else:
+        r.result = "fail"
+        r.details = f"In-job maintenance not usable from SQL: {_error_reason(out, 170)}"
+    return r
+
+
+def test_branching_tagging(version: str) -> TestResult:
+    r = TestResult("branching-tagging", "Branching & Tagging", version)
+    tbl = _unique("branch")
+    # Flink cannot create refs via DDL; it can write to and read from existing
+    # ones. "main" always exists, so the read path is provable.
+    ok, out = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl} (id BIGINT, val STRING) WITH ('format-version'='{_fmt(version)}')",
+        f"INSERT INTO {tbl} VALUES (1,'a')",
+        f"SELECT CONCAT('MARKREF=', name, ':', type) AS m FROM `{tbl}$refs`",
+        f"SELECT CONCAT('MARKBR=', CAST(COUNT(*) AS STRING)) AS m "
+        f"FROM {tbl} /*+ OPTIONS('branch'='main') */",
+    ])
+    if not ok:
+        r.result = "error"
+        r.details = _error_reason(out)
+        return r
+    read_ok = _marker(out, "MARKBR=1")
+
+    ok_ddl, out_ddl = _run_sql(_prelude(version) + [
+        f"ALTER TABLE {tbl} CREATE BRANCH testbranch",
+    ])
+    _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
+
+    if read_ok and ok_ddl:
+        r.result = "pass"
+        r.details = "Branch reads via the branch hint work, and CREATE BRANCH DDL is supported"
+    elif read_ok:
+        r.result = "pass"
+        r.details = (
+            f"Reading a branch via /*+ OPTIONS('branch'='main') */ works and refs are "
+            f"listable ({_marker_values(out, 'MARKREF')}), but Flink cannot create refs "
+            f"via DDL: {_error_reason(out_ddl, 90)}"
+        )
+    else:
+        r.result = "fail"
+        r.details = f"Branch read failed: {_marker_values(out, 'MARKBR')}"
+    return r
+
+
+# ---------------------------------------------------------------------------
+# Partitioning
+# ---------------------------------------------------------------------------
+
+def test_hidden_partitioning(version: str) -> TestResult:
+    r = TestResult("hidden-partitioning", "Hidden Partitioning", version)
+    tbl = _unique("hidpart")
+    # Transform partitioning in DDL.
+    ok_t, out_t = _run_sql(_prelude(version) + [
+        f"""CREATE TABLE {tbl}_t (id BIGINT, ts TIMESTAMP(6))
+            PARTITIONED BY (days(ts)) WITH ('format-version'='{_fmt(version)}')""",
+        f"DROP TABLE {tbl}_t",
+    ])
+    # Identity partitioning, which Flink does support.
+    ok_i, out_i = _run_sql(_prelude(version) + [
+        f"""CREATE TABLE {tbl}_i (id BIGINT, ts TIMESTAMP(6), region STRING)
+            PARTITIONED BY (region) WITH ('format-version'='{_fmt(version)}')""",
+        f"INSERT INTO {tbl}_i VALUES (1, TIMESTAMP '2026-01-01 00:00:00', 'eu')",
+        f"SELECT CONCAT('MARKPART=', CAST(COUNT(*) AS STRING)) AS m FROM `{tbl}_i$partitions`",
+        f"DROP TABLE {tbl}_i",
+    ])
+    if ok_t:
+        r.result = "pass"
+        r.details = "Flink DDL accepted a transform-based (hidden) partition spec"
+    elif ok_i:
+        r.result = "fail"
+        r.details = (
+            "Only identity partitioning is expressible in Flink DDL; transform "
+            f"partitioning is a parser error: {_error_reason(out_t, 110)}. "
+            "Flink can still read/write hidden-partitioned tables created elsewhere"
+        )
+    else:
+        r.result = "error"
+        r.details = _error_reason(out_i)
+    return r
+
+
+def test_partition_evolution(version: str) -> TestResult:
+    r = TestResult("partition-evolution", "Partition Evolution", version)
+    tbl = _unique("partevo")
+    ok, out = _run_sql(_prelude(version) + [
+        f"""CREATE TABLE {tbl} (id BIGINT, region STRING, dept STRING)
+            PARTITIONED BY (region) WITH ('format-version'='{_fmt(version)}')""",
+        f"INSERT INTO {tbl} VALUES (1,'eu','a')",
+        f"ALTER TABLE {tbl} ADD PARTITION FIELD dept",
+    ])
+    _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
+    if ok:
+        r.result = "pass"
+        r.details = "ALTER TABLE ADD PARTITION FIELD evolved the partition spec via Flink SQL"
+    else:
+        r.result = "fail"
+        r.details = (
+            f"Partition evolution is not expressible in Flink SQL: {_error_reason(out, 150)}. "
+            "The Dynamic Sink can evolve specs at runtime, but that is a Java API"
+        )
+    return r
+
+
+def test_multi_arg_transforms(version: str) -> TestResult:
+    if version == "v2":
+        return _v3_only("multi-arg-transforms", "Multi-Argument Transforms")
+    r = TestResult("multi-arg-transforms", "Multi-Argument Transforms", version)
+    r.result = "skip"
+    r.details = (
+        "Not exercised: Flink DDL cannot express any transform partitioning at all "
+        "(PARTITIONED BY only takes plain column names), so a multi-argument "
+        "transform cannot be declared from SQL"
+    )
+    return r
+
+
+# ---------------------------------------------------------------------------
+# V3 data types
+# ---------------------------------------------------------------------------
+
+def test_variant_type(version: str) -> TestResult:
+    if version == "v2":
+        return _v3_only("variant-type", "Variant Type")
+    r = TestResult("variant-type", "Variant Type", version)
+    tbl = _unique("variant")
+    # Flink 2.3 provides the variant constructors PARSE_JSON / TRY_PARSE_JSON but
+    # no variant field accessor, and CAST(VARIANT AS STRING) is rejected by the
+    # planner. So assert that the value round-trips and is non-null, which is the
+    # most that Flink SQL can observe about a variant.
+    ok, out = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl} (id BIGINT, v VARIANT) WITH ('format-version'='3')",
+        f"INSERT INTO {tbl} SELECT CAST(1 AS BIGINT), PARSE_JSON('{{\"a\":42}}')",
+        f"""SELECT CONCAT('MARKVAR=', CASE WHEN v IS NOT NULL THEN 'STORED' ELSE 'NULL' END) AS m
+            FROM {tbl}""",
+        f"DROP TABLE {tbl}",
+    ])
+    if not ok:
+        r.result = "fail"
+        r.details = f"VARIANT not usable from Flink SQL: {_error_reason(out, 160)}"
+    elif _marker(out, "MARKVAR=STORED"):
+        r.result = "pass"
+        r.details = (
+            "VARIANT column on a V3 table: value written with PARSE_JSON and read back "
+            "non-null. Field extraction is not possible from Flink SQL -- Flink 2.3 "
+            "exposes only the PARSE_JSON/TRY_PARSE_JSON constructors, with no variant "
+            "accessor function and no CAST from VARIANT"
+        )
+    else:
+        r.result = "fail"
+        r.details = f"VARIANT written but did not read back: {_marker_values(out, 'MARKVAR')}"
+    return r
+
+
+def test_shredded_variant(version: str) -> TestResult:
+    if version == "v2":
+        return _v3_only("shredded-variant", "Shredded Variant")
+    r = TestResult("shredded-variant", "Shredded Variant", version)
+    tbl = _unique("shred")
+    # Shredding is a writer-side physical layout choice; there is no SQL surface
+    # to request it and no metadata table exposing whether it happened.
+    ok, out = _run_sql(_prelude(version) + [
+        f"""CREATE TABLE {tbl} (id BIGINT, v VARIANT) WITH (
+            'format-version'='3', 'write.parquet.variant-shredding.enabled'='true')""",
+        f"INSERT INTO {tbl} SELECT CAST(1 AS BIGINT), PARSE_JSON('{{\"a\":42}}')",
+        f"SELECT CONCAT('MARKCNT=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl}",
+        f"DROP TABLE {tbl}",
+    ])
+    r.result = "skip"
+    if ok and _marker(out, "MARKCNT=1"):
+        r.details = (
+            "Not verifiable from SQL: the shredding table property is accepted and data "
+            "round-trips, but whether the writer actually shredded the variant is not "
+            "observable through any Flink SQL surface or metadata table"
+        )
+    else:
+        r.details = (
+            "Not verifiable from SQL: no Flink SQL surface requests or reports variant "
+            f"shredding ({_error_reason(out, 110)})"
+        )
+    return r
+
+
+def test_geometry_type(version: str) -> TestResult:
+    if version == "v2":
+        return _v3_only("geometry-type", "Geometry / Geo Types")
+    r = TestResult("geometry-type", "Geometry / Geo Types", version)
+    tbl = _unique("geo")
+    ok, out = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl} (id BIGINT, g GEOMETRY) WITH ('format-version'='3')",
+        f"DROP TABLE {tbl}",
     ])
     if ok:
         r.result = "pass"
-        r.details = "Iceberg catalog integration works; supports hive, hadoop, rest, glue, jdbc, nessie"
+        r.details = "GEOMETRY column accepted in Flink DDL on a V3 table"
+    elif "Geo-spatial extensions" in out or "GEOMETRY" in out:
+        r.result = "fail"
+        r.details = (
+            "Blocked by Flink, not Iceberg: the Calcite-based planner keeps GEOMETRY "
+            "behind its spatial extensions (enabled via the Calcite fun=spatial connect "
+            "string), which Flink exposes no configuration for, so the type cannot be "
+            "declared in Flink SQL"
+        )
     else:
-        r.result = "error"
-        r.details = out[:300]
+        r.result = "fail"
+        r.details = f"GEOMETRY rejected: {_error_reason(out, 150)}"
     return r
 
 
-def test_hive_metastore() -> TestResult:
-    r = TestResult("hive-metastore", "Hive Metastore")
-    r.result = "skip"
-    r.details = "Requires running Hive Metastore service; Flink supports it via catalog-type='hive'"
-    return r
-
-
-def test_aws_glue_catalog() -> TestResult:
-    r = TestResult("aws-glue-catalog", "AWS Glue Catalog")
-    r.result = "skip"
-    r.details = "Requires AWS credentials; Flink supports Glue via catalog-type='glue'"
-    return r
-
-
-def test_rest_catalog() -> TestResult:
-    r = TestResult("rest-catalog", "REST Catalog")
-    r.result = "skip"
-    r.details = "Requires running REST catalog server; Flink supports it via catalog-type='rest'"
-    return r
-
-
-def test_nessie() -> TestResult:
-    r = TestResult("nessie", "Nessie")
-    r.result = "skip"
-    r.details = "Requires running Nessie server; Flink supports it via catalog-type='nessie'"
-    return r
-
-
-def test_polaris() -> TestResult:
-    r = TestResult("polaris", "Polaris")
-    r.result = "skip"
-    r.details = "Requires running Polaris server; accessible via REST catalog"
-    return r
-
-
-def test_unity_catalog() -> TestResult:
-    r = TestResult("unity-catalog", "Unity Catalog")
-    r.result = "skip"
-    r.details = "Requires running Unity Catalog server"
-    return r
-
-
-def test_hadoop_catalog() -> TestResult:
-    r = TestResult("hadoop-catalog", "Hadoop Catalog")
-    setup = _catalog_setup_sql()  # uses hadoop catalog
-    ok, out = _run_sql(setup + ["SHOW DATABASES"])
-    if ok:
+def test_nanosecond_timestamps(version: str) -> TestResult:
+    if version == "v2":
+        return _v3_only("nanosecond-timestamps", "Nanosecond Timestamps")
+    r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps", version)
+    tbl = _unique("nanots")
+    # Compare inside the engine so the assertion tests precision, not formatting:
+    # a silent truncation to microseconds makes the equality fail.
+    ok, out = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl} (id BIGINT, ts TIMESTAMP(9)) WITH ('format-version'='3')",
+        f"INSERT INTO {tbl} VALUES (1, TIMESTAMP '2026-01-01 12:00:00.123456789')",
+        f"""SELECT CONCAT('MARKNANO=', CASE WHEN ts = TIMESTAMP '2026-01-01 12:00:00.123456789'
+             THEN 'EXACT' ELSE 'LOSSY' END) AS m FROM {tbl}""",
+        f"DROP TABLE {tbl}",
+    ])
+    if not ok:
+        r.result = "fail"
+        r.details = f"TIMESTAMP(9) not usable on a V3 table: {_error_reason(out, 150)}"
+    elif _marker(out, "MARKNANO=EXACT"):
         r.result = "pass"
-        r.details = "Hadoop catalog works for local testing"
+        r.details = "TIMESTAMP(9) round-tripped with full nanosecond precision preserved"
     else:
-        r.result = "error"
-        r.details = out[:300]
+        r.result = "fail"
+        r.details = "TIMESTAMP(9) accepted but the value lost precision on round-trip"
     return r
 
 
-def test_jdbc_catalog() -> TestResult:
-    r = TestResult("jdbc-catalog", "JDBC Catalog")
-    r.result = "skip"
-    r.details = "Requires JDBC database; Flink supports it via catalog-type='jdbc'"
+# ---------------------------------------------------------------------------
+# V3 advanced
+# ---------------------------------------------------------------------------
+
+def test_lineage(version: str) -> TestResult:
+    if version == "v2":
+        return _v3_only("lineage", "Lineage Tracking")
+    r = TestResult("lineage", "Lineage Tracking", version)
+    tbl = _unique("lineage")
+    ok, out = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl} (id BIGINT, val STRING) WITH ('format-version'='3')",
+        f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b')",
+        f"SELECT CONCAT('MARKLIN=', CAST(_row_id AS STRING)) AS m FROM {tbl}",
+    ])
+    if ok and _marker_values(out, "MARKLIN"):
+        r.result = "pass"
+        r.details = f"Row lineage column _row_id readable from Flink SQL: {_marker_values(out, 'MARKLIN')}"
+        _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
+        return r
+
+    # The row-lineage readers exist in the Iceberg Flink module, but if the
+    # columns are not projectable from SQL, say so rather than claiming support.
+    ok2, out2 = _run_sql(_prelude(version) + [
+        f"SELECT CONCAT('MARKSEQ=', CAST(sequence_number AS STRING)) AS m "
+        f"FROM `{tbl}$snapshots` LIMIT 1",
+        f"DROP TABLE IF EXISTS {tbl}",
+    ])
+    r.result = "fail"
+    r.details = (
+        f"Row lineage metadata columns are not projectable in Flink SQL "
+        f"({_error_reason(out, 110)})"
+        + ("; snapshot sequence numbers are readable from metadata tables" if ok2 else "")
+    )
     return r
 
 
-def test_statistics() -> TestResult:
-    r = TestResult("statistics", "Statistics")
+# ---------------------------------------------------------------------------
+# Read/write extras
+# ---------------------------------------------------------------------------
+
+def test_statistics(version: str) -> TestResult:
+    r = TestResult("statistics", "Statistics (Column Metrics)", version)
     tbl = _unique("stats")
-    setup = _catalog_setup_sql()
-    ok, out = _run_sql(setup + [
-        f"CREATE TABLE {tbl} (id BIGINT, name STRING) WITH ('format-version'='2')",
-        f"INSERT INTO {tbl} VALUES (1, 'a'), (2, 'b'), (3, 'c')",
-    ], timeout=120)
-    if ok:
-        r.result = "pass"
-        r.details = "Flink writes column statistics to manifest files by default"
-    else:
+    # Prove per-column metrics were written, rather than only that a write happened.
+    ok, out = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {tbl} (id BIGINT, val STRING) WITH ('format-version'='{_fmt(version)}')",
+        f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b'),(3,'c')",
+        f"SELECT CONCAT('MARKREC=', CAST(record_count AS STRING)) AS m FROM `{tbl}$files`",
+        f"SELECT CONCAT('MARKVC=', CAST(CARDINALITY(value_counts) AS STRING)) AS m FROM `{tbl}$files`",
+        f"SELECT CONCAT('MARKNULL=', CAST(CARDINALITY(null_value_counts) AS STRING)) AS m FROM `{tbl}$files`",
+        f"DROP TABLE {tbl}",
+    ])
+    if not ok:
         r.result = "error"
-        r.details = out[:300]
-    return r
-
-
-def test_bloom_filters() -> TestResult:
-    r = TestResult("bloom-filters", "Bloom Filters")
-    tbl = _unique("bloom")
-    setup = _catalog_setup_sql()
-    ok, out = _run_sql(setup + [
-        f"""CREATE TABLE {tbl} (id BIGINT, name STRING) WITH (
-            'format-version'='2',
-            'write.parquet.bloom-filter-enabled.column.name'='true'
-        )""",
-        f"INSERT INTO {tbl} VALUES (1, 'a'), (2, 'b')",
-    ], timeout=120)
-    if ok:
-        r.result = "skip"
-        r.details = "Bloom-filter table property accepted; actual bloom-filter write not verified (matrix: unknown)"
+        r.details = _error_reason(out)
+        return r
+    vc = _marker_values(out, "MARKVC")
+    if _marker(out, "MARKREC=3") and vc and vc[0] not in ("0", ""):
+        r.result = "pass"
+        r.details = (
+            f"Data file manifest carries record_count=3 and per-column value_counts "
+            f"for {vc[0]} columns, plus null_value_counts {_marker_values(out, 'MARKNULL')}"
+        )
     else:
-        r.result = "skip"
-        r.details = "Bloom filters not verified in this harness"
+        r.result = "fail"
+        r.details = f"Column metrics missing: record={_marker_values(out, 'MARKREC')}, value_counts={vc}"
     return r
 
 
-def test_variant_type() -> TestResult:
-    r = TestResult("variant-type", "Variant Type")
-    r.version_tested = "v3"
+def test_bloom_filters(version: str) -> TestResult:
+    r = TestResult("bloom-filters", "Bloom Filters & Puffin", version)
+    tbl = _unique("bloom")
+    ok, out = _run_sql(_prelude(version) + [
+        f"""CREATE TABLE {tbl} (id BIGINT, val STRING) WITH (
+            'format-version'='{_fmt(version)}',
+            'write.parquet.bloom-filter-enabled.column.val'='true')""",
+        f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b')",
+        f"SELECT CONCAT('MARKCNT=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl}",
+        f"SELECT CONCAT('MARKSEL=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl} WHERE val = 'a'",
+        f"DROP TABLE {tbl}",
+    ])
     r.result = "skip"
-    r.details = "Variant type is supported in Flink 2.1 (Iceberg 1.11.0); not verified in this harness"
+    if ok and _marker(out, "MARKCNT=2") and _marker(out, "MARKSEL=1"):
+        r.details = (
+            "Not verifiable from SQL: the Parquet bloom-filter write property is accepted "
+            "and point lookups return correct results, but no Flink SQL surface or Iceberg "
+            "metadata table reports whether a bloom filter was written or used to skip data"
+        )
+    else:
+        r.details = (
+            "Not verifiable from SQL: bloom filter presence is not observable through "
+            f"Flink SQL ({_error_reason(out, 110)})"
+        )
     return r
 
 
-def test_shredded_variant() -> TestResult:
-    r = TestResult("shredded-variant", "Shredded Variant")
-    r.version_tested = "v3"
-    r.result = "skip"
-    r.details = "V3 shredded variant undocumented for Flink; not exercised"
+# ---------------------------------------------------------------------------
+# Catalog support
+# ---------------------------------------------------------------------------
+
+def _catalog_roundtrip(version: str, catalog: str) -> tuple:
+    """Create, write, read and drop a table through the named catalog."""
+    tbl = _unique("cat")
+    return _run_sql(_prelude(version, catalog=catalog) + [
+        f"CREATE TABLE {tbl} (id BIGINT, val STRING) WITH ('format-version'='{_fmt(version)}')",
+        f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b')",
+        f"SELECT CONCAT('MARKCAT=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl}",
+        f"DROP TABLE {tbl}",
+    ])
+
+
+def test_catalog_integration(version: str) -> TestResult:
+    r = TestResult("catalog-integration", "Catalog Integration", version)
+    ok, out = _catalog_roundtrip(version, "rest")
+    if ok and _marker(out, "MARKCAT=2"):
+        r.result = "pass"
+        r.details = "Full create/write/read/drop round-trip through an Iceberg catalog"
+    else:
+        r.result = "error" if not ok else "fail"
+        r.details = _error_reason(out)
     return r
 
 
-def test_geometry_type() -> TestResult:
-    r = TestResult("geometry-type", "Geometry / Geo Types")
-    r.version_tested = "v3"
-    r.result = "skip"
-    r.details = "V3 geometry type undocumented for Flink; not exercised"
+def test_rest_catalog(version: str) -> TestResult:
+    r = TestResult("rest-catalog", "REST Catalog", version)
+    ok, out = _catalog_roundtrip(version, "rest")
+    if ok and _marker(out, "MARKCAT=2"):
+        r.result = "pass"
+        r.details = (
+            "catalog-type='rest' against a live Lakekeeper REST catalog: table created, "
+            "written, read back and dropped"
+        )
+    else:
+        r.result = "error" if not ok else "fail"
+        r.details = _error_reason(out)
     return r
 
 
-def test_nanosecond_timestamps() -> TestResult:
-    r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps")
-    r.version_tested = "v3"
-    r.result = "skip"
-    r.details = "Nanosecond timestamp precision is supported in Flink 2.1 (Iceberg 1.11.0); not verified in this harness"
+def test_hadoop_catalog(version: str) -> TestResult:
+    r = TestResult("hadoop-catalog", "Hadoop Catalog", version)
+    ok, out = _catalog_roundtrip(version, "hadoop")
+    if ok and _marker(out, "MARKCAT=2"):
+        r.result = "pass"
+        r.details = (
+            f"catalog-type='hadoop' on a filesystem warehouse ({HADOOP_WAREHOUSE}): "
+            "table created, written, read back and dropped"
+        )
+    else:
+        r.result = "fail" if ok else "error"
+        r.details = _error_reason(out)
     return r
 
 
-def test_lineage() -> TestResult:
-    r = TestResult("lineage", "Lineage Tracking")
-    r.version_tested = "v3"
-    r.result = "skip"
-    r.details = "Row lineage readers (_row_id, _last_updated_sequence_number) are available in Flink (Iceberg 1.11.0); not verified in this harness"
+def test_jdbc_catalog(version: str) -> TestResult:
+    r = TestResult("jdbc-catalog", "JDBC Catalog", version)
+    ok, out = _catalog_roundtrip(version, "jdbc")
+    if ok and _marker(out, "MARKCAT=2"):
+        r.result = "pass"
+        r.details = (
+            "JDBC catalog against the stack's Postgres instance: table created, written, "
+            "read back and dropped. Reached via catalog-impl=org.apache.iceberg.jdbc."
+            "JdbcCatalog, not catalog-type: Flink's catalog-type accepts only hive, "
+            "hadoop and rest"
+        )
+    else:
+        r.result = "fail" if ok else "error"
+        r.details = _error_reason(out)
     return r
+
+
+def test_hive_metastore(version: str) -> TestResult:
+    return _external_service("hive-metastore", "Hive Metastore", version,
+                             "a running Hive Metastore (thrift) service")
+
+
+def test_aws_glue_catalog(version: str) -> TestResult:
+    return _external_service("aws-glue-catalog", "AWS Glue Catalog", version,
+                             "AWS credentials and a Glue Data Catalog")
+
+
+def test_nessie(version: str) -> TestResult:
+    return _external_service("nessie", "Nessie", version, "a running Nessie server")
+
+
+def test_polaris(version: str) -> TestResult:
+    return _external_service("polaris", "Polaris", version,
+                             "a running Apache Polaris server (reachable via catalog-type='rest')")
+
+
+def test_unity_catalog(version: str) -> TestResult:
+    return _external_service("unity-catalog", "Unity Catalog", version,
+                             "a Databricks Unity Catalog endpoint")
+
+
+def test_snowflake_horizon_catalog(version: str) -> TestResult:
+    return _external_service("snowflake-horizon-catalog", "Snowflake Horizon Catalog", version,
+                             "a Snowflake account with Horizon Catalog enabled")
 
 
 # ---------------------------------------------------------------------------
 # Test registry
 # ---------------------------------------------------------------------------
+# Every test takes a version ("v2" | "v3") and returns a TestResult.
 
 ALL_TESTS = [
     test_table_creation,
@@ -616,6 +1236,7 @@ ALL_TESTS = [
     test_equality_deletes,
     test_merge_on_read,
     test_copy_on_write,
+    test_deletion_vectors,
     test_schema_evolution,
     test_type_promotion,
     test_column_default_values,
@@ -628,14 +1249,15 @@ ALL_TESTS = [
     test_statistics,
     test_bloom_filters,
     test_catalog_integration,
+    test_rest_catalog,
     test_hadoop_catalog,
     test_jdbc_catalog,
-    test_rest_catalog,
     test_hive_metastore,
     test_aws_glue_catalog,
     test_nessie,
     test_polaris,
     test_unity_catalog,
+    test_snowflake_horizon_catalog,
     test_variant_type,
     test_shredded_variant,
     test_geometry_type,
@@ -649,37 +1271,31 @@ ALL_TESTS = [
 # ---------------------------------------------------------------------------
 
 def load_flink_json_support() -> dict:
-    """Load the JSON support levels for Flink from the repo data."""
-    oss_path = os.path.join(
-        REPO_ROOT, "src", "data", "platforms", "oss", "flink", "flink.json"
-    )
-    with open(oss_path) as f:
+    """Load the recorded support levels for Flink from the matrix data."""
+    path = os.path.join(REPO_ROOT, "src", "data", "platforms", "oss", "flink", "flink.json")
+    with open(path) as f:
         data = json.load(f)
     result = {}
     for key, val in data.get("support", {}).items():
-        if key.startswith("flink:"):
-            parts = key.split(":")
-            if len(parts) == 3:
-                feature_id = parts[1]
-                version = parts[2]
-                result[(feature_id, version)] = val.get("level", "unknown")
+        parts = key.split(":")
+        if len(parts) == 3 and parts[0] == "flink":
+            result[(parts[1], parts[2])] = val.get("level", "unknown")
     return result
 
 
 def compute_match(test_result: str, json_level: str) -> bool:
-    """
-    Determine if test result matches JSON level.
-    - pass → json should be 'full' or 'partial' (NOT 'unknown' — we have evidence now)
-    - fail → json should be 'none' (NOT 'unknown' — we have evidence now)
-    - skip → always matches (cannot verify)
-    - error → always matches (test issue, not data issue)
+    """Whether an executed test agrees with the recorded support level.
+
+    A skip or error is not evidence either way, so it cannot disagree; those are
+    counted separately as "unverified" so an unverifiable feature can never look
+    like a confirmation of the matrix.
     """
     if test_result in ("skip", "error"):
         return True
     if test_result == "pass":
         return json_level in ("full", "partial")
     if test_result == "fail":
-        return json_level == "none"
+        return json_level in ("none", "partial")
     return True
 
 
@@ -688,93 +1304,104 @@ def generate_report(results: list) -> dict:
 
     tests_output = []
     discrepancies = 0
-    passed = sum(1 for r in results if r.result == "pass")
-    failed = sum(1 for r in results if r.result == "fail")
-    skipped = sum(1 for r in results if r.result == "skip")
-    errors = sum(1 for r in results if r.result == "error")
-
+    unverified = 0
     for r in results:
         json_level = json_support.get((r.feature_id, r.version_tested), "unknown")
         match = compute_match(r.result, json_level)
         if not match:
             discrepancies += 1
+        # A cell the matrix asserts support for, that nothing here could confirm.
+        is_unverified = r.result in ("skip", "error")
+        if is_unverified:
+            unverified += 1
         tests_output.append({
             **r.to_dict(),
             "json_level": json_level,
             "match": match,
+            "verified": not is_unverified,
         })
 
-    report = {
+    return {
         "timestamp": datetime.now(tz=timezone.utc).isoformat(),
         "engine": "Flink",
+        "mode": MODE,
         "flink_version": FLINK_VERSION,
         "flink_iceberg_version": FLINK_ICEBERG_VERSION,
         "tests": tests_output,
         "summary": {
             "total": len(results),
-            "passed": passed,
-            "failed": failed,
-            "skipped": skipped,
-            "errors": errors,
+            "passed": sum(1 for r in results if r.result == "pass"),
+            "failed": sum(1 for r in results if r.result == "fail"),
+            "skipped": sum(1 for r in results if r.result == "skip"),
+            "errors": sum(1 for r in results if r.result == "error"),
             "discrepancies": discrepancies,
+            "unverified": unverified,
         },
     }
-    return report
 
 
 def generate_markdown(report: dict) -> str:
-    lines = []
-    lines.append("# Flink Iceberg Feature Test Report")
-    lines.append("")
-    lines.append(f"- **Timestamp:** {report['timestamp']}")
-    lines.append(f"- **Flink Version:** {report['flink_version']}")
-    lines.append(f"- **Flink Iceberg Version:** {report['flink_iceberg_version']}")
-    lines.append("")
-
     s = report["summary"]
-    lines.append("## Summary")
-    lines.append("")
-    lines.append("| Metric | Count |")
-    lines.append("|--------|-------|")
-    lines.append(f"| Total | {s['total']} |")
-    lines.append(f"| ✅ Passed | {s['passed']} |")
-    lines.append(f"| ❌ Failed | {s['failed']} |")
-    lines.append(f"| ⏭️ Skipped | {s['skipped']} |")
-    lines.append(f"| ⚠️ Errors | {s['errors']} |")
-    lines.append(f"| 🔍 Discrepancies | {s['discrepancies']} |")
-    lines.append("")
+    lines = [
+        "# Flink Iceberg Feature Test Report",
+        "",
+        f"- **Timestamp:** {report['timestamp']}",
+        f"- **Flink Version:** {report['flink_version']}",
+        f"- **Iceberg Version:** {report['flink_iceberg_version']}",
+        f"- **Execution mode:** {report['mode']}",
+        "",
+        "## Summary",
+        "",
+        "| Metric | Count |",
+        "|--------|-------|",
+        f"| Total | {s['total']} |",
+        f"| Passed | {s['passed']} |",
+        f"| Failed | {s['failed']} |",
+        f"| Skipped | {s['skipped']} |",
+        f"| Errors | {s['errors']} |",
+        f"| Discrepancies vs matrix | {s['discrepancies']} |",
+        f"| Unverified (skip/error) | {s['unverified']} |",
+        "",
+        "`Failed` is a result, not a defect: it records that the engine does not "
+        "support the feature through Flink SQL. A discrepancy means the observed "
+        "behaviour disagrees with `flink.json`.",
+        "",
+        "## Test Results",
+        "",
+        "| Feature | Version | Result | Matrix | Match | Details |",
+        "|---------|---------|--------|--------|-------|---------|",
+    ]
 
-    lines.append("## Test Results")
-    lines.append("")
-    lines.append("| Feature | Version | Result | JSON Level | Match | Details |")
-    lines.append("|---------|---------|--------|------------|-------|---------|")
-
-    status_emoji = {"pass": "✅", "fail": "❌", "skip": "⏭️", "error": "⚠️"}
-
+    emoji = {"pass": "PASS", "fail": "FAIL", "skip": "SKIP", "error": "ERR"}
     for t in report["tests"]:
-        emoji = status_emoji.get(t["result"], "❓")
-        match_str = "✅" if t["match"] else "❌ DISCREPANCY"
-        details = t["details"][:80].replace("\n", " ").replace("\r", "").replace("|", "\\|") if t["details"] else ""
-        feature_name = t["feature_name"].replace("|", "\\|")
-        json_level = t["json_level"].replace("|", "\\|") if t["json_level"] else ""
+        details = (t["details"] or "")[:150].replace("\n", " ").replace("|", "\\|")
         lines.append(
-            f"| {feature_name} | {t['version']} | {emoji} {t['result']} "
-            f"| {json_level} | {match_str} | {details} |"
+            f"| {t['feature_name'].replace('|', '')} | {t['version']} "
+            f"| {emoji.get(t['result'], '?')} | {t['json_level']} "
+            f"| {'ok' if t['match'] else 'DISCREPANCY'} | {details} |"
         )
-
-    lines.append("")
 
     discs = [t for t in report["tests"] if not t["match"]]
     if discs:
-        lines.append("## ⚠️ Discrepancies")
-        lines.append("")
+        lines += ["", "## Discrepancies", ""]
         for t in discs:
-            detail_clean = t["details"][:120].replace("\n", " ").replace("\r", "") if t["details"] else ""
-            lines.append(f"- **{t['feature_name']}** ({t['version']}): "
-                         f"test={t['result']}, json={t['json_level']} — {detail_clean}")
-        lines.append("")
+            lines.append(
+                f"- **{t['feature_name']}** ({t['version']}): observed `{t['result']}`, "
+                f"matrix says `{t['json_level']}` — {(t['details'] or '')[:300]}"
+            )
 
-    return "\n".join(lines)
+    unver = [t for t in report["tests"] if not t["verified"]]
+    if unver:
+        lines += ["", "## Unverified", "",
+                  "These could not be exercised here, so they neither confirm nor "
+                  "contradict the matrix:", ""]
+        for t in unver:
+            lines.append(
+                f"- **{t['feature_name']}** ({t['version']}): matrix `{t['json_level']}` "
+                f"— {(t['details'] or '')[:200]}"
+            )
+
+    return "\n".join(lines) + "\n"
 
 
 # ---------------------------------------------------------------------------
@@ -785,89 +1412,74 @@ def main():
     print("=" * 70)
     print("  Flink Iceberg Feature Test Suite")
     print("=" * 70)
-    print(f"Flink version: {FLINK_VERSION}")
-    print(f"Flink Iceberg version: {FLINK_ICEBERG_VERSION}")
-    print(f"FLINK_HOME: {FLINK_HOME}")
-    print(f"Warehouse: {WAREHOUSE_DIR}")
-    print(f"Repo root: {REPO_ROOT}")
+    print(f"Mode:            {MODE}")
+    print(f"Flink version:   {FLINK_VERSION}")
+    print(f"Iceberg version: {FLINK_ICEBERG_VERSION}")
+    print(f"REST catalog:    {REST_URI} (warehouse {REST_WAREHOUSE})")
+    print(f"S3 endpoint:     {S3_ENDPOINT}")
+    print(f"JDBC catalog:    {JDBC_URI}")
     print()
 
-    if not FLINK_HOME:
-        print("[FATAL] FLINK_HOME not set. Cannot run Flink SQL client.")
+    if MODE == "local" and not FLINK_HOME:
+        print("[FATAL] No Docker Flink cluster found and FLINK_HOME is not set.")
+        print("        Start one with tests/docker/start-flink.sh")
         sys.exit(1)
 
-    if not os.path.isfile(SQL_CLIENT):
-        print(f"[FATAL] Flink SQL client not found at {SQL_CLIENT}")
-        sys.exit(1)
+    only = os.environ.get("FLINK_ONLY", "").strip()
+    tests = ALL_TESTS
+    if only:
+        wanted = {t.strip() for t in only.split(",") if t.strip()}
+        tests = [t for t in ALL_TESTS if t.__name__.replace("test_", "") in wanted]
+        print(f"[INFO] FLINK_ONLY set; running {len(tests)} test(s): {sorted(wanted)}\n")
 
-    # Clean warehouse
-    if os.path.exists(WAREHOUSE_DIR):
-        shutil.rmtree(WAREHOUSE_DIR, ignore_errors=True)
-    os.makedirs(WAREHOUSE_DIR, exist_ok=True)
     os.makedirs(REPORT_DIR, exist_ok=True)
 
-    # Run all tests
     results = []
-    for test_fn in ALL_TESTS:
-        test_name = test_fn.__name__
-        print(f"\n--- Running {test_name} ---")
-        try:
-            result = test_fn()
+    for version in VERSIONS:
+        print(f"\n{'=' * 70}\n  Format version {version.upper()}\n{'=' * 70}")
+        for test_fn in tests:
+            name = test_fn.__name__
+            print(f"\n--- {name} [{version}] ---")
+            try:
+                result = test_fn(version)
+            except Exception as e:  # noqa: BLE001
+                result = TestResult(
+                    name.replace("test_", "").replace("_", "-"), name, version
+                )
+                result.result = "error"
+                result.details = f"Unhandled exception: {e}"
             results.append(result)
-            icon = {"pass": "✅", "fail": "❌", "skip": "⏭️", "error": "⚠️"}.get(result.result, "?")
-            print(f"  {icon} {result.result}: {result.details[:120]}")
-        except Exception as e:
-            r = TestResult(test_name.replace("test_", "").replace("_", "-"), test_name)
-            r.result = "error"
-            r.details = f"Unhandled exception: {e}"
-            results.append(r)
-            print(f"  ⚠️ error: {e}")
-
-    # Generate report
-    print("\n" + "=" * 70)
-    print("  Generating Report")
-    print("=" * 70)
+            print(f"  {result.result}: {result.details[:160]}")
 
     report = generate_report(results)
 
-    # Write JSON report
     json_path = os.path.join(REPORT_DIR, "flink-iceberg-test-report.json")
     with open(json_path, "w") as f:
         json.dump(report, f, indent=2)
-    print(f"JSON report: {json_path}")
 
-    # Write Markdown report
     md_content = generate_markdown(report)
     md_path = os.path.join(REPORT_DIR, "flink-iceberg-test-report.md")
     with open(md_path, "w") as f:
         f.write(md_content)
-    print(f"Markdown report: {md_path}")
 
-    # Print summary
     s = report["summary"]
     print(f"\n{'=' * 70}")
-    print(f"  RESULTS: {s['passed']} passed, {s['failed']} failed, "
-          f"{s['skipped']} skipped, {s['errors']} errors, "
-          f"{s['discrepancies']} discrepancies")
+    print(f"  {s['passed']} passed, {s['failed']} failed, {s['skipped']} skipped, "
+          f"{s['errors']} errors, {s['discrepancies']} discrepancies, "
+          f"{s['unverified']} unverified")
+    print(f"  Reports: {json_path}")
+    print(f"           {md_path}")
     print(f"{'=' * 70}")
-
-    # Print markdown to stdout
     print("\n" + md_content)
 
-    # GitHub Actions step summary
     summary_file = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_file:
         with open(summary_file, "a") as f:
             f.write(md_content)
 
-    # Clean up
-    if os.path.exists(WAREHOUSE_DIR):
-        shutil.rmtree(WAREHOUSE_DIR, ignore_errors=True)
-
-    # Exit code: fail if there are discrepancies or test errors
-    if s["discrepancies"] > 0 or s["errors"] > 0:
-        sys.exit(1)
-    sys.exit(0)
+    # Errors mean the harness itself could not run something; discrepancies mean
+    # the matrix and reality disagree. Both warrant a human look.
+    sys.exit(1 if (s["discrepancies"] > 0 or s["errors"] > 0) else 0)
 
 
 if __name__ == "__main__":

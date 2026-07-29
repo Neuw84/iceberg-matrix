@@ -29,3 +29,5 @@ tests/flink-venv/
 __pycache__/
 tests/iceberg-flink-runtime-*.jar
 test-reports/
+# SQL scripts the Flink harness hands to the Dockerized cluster via bind mount
+tests/docker/flink-work/

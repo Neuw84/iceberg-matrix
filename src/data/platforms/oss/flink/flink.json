@@ -12,15 +12,29 @@
   "support": {
     "flink:position-deletes:v2": {
       "level": "full",
-      "notes": "Flink supports reading and writing position deletes in both batch and streaming modes",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/"
+      "notes": "Flink reads position deletes, and the Iceberg Flink writer emits them for rows superseded within a single writer task. They cannot be produced on demand from Flink SQL, which has no DELETE statement: an upsert writes equality delete files (observed as content=2 Parquet files), so this harness could not exercise the position-delete write path directly.",
+      "caveats": [
+        "Cannot be requested from Flink SQL; upsert emits equality deletes instead"
+      ],
+      "links": [
+        {
+          "label": "Flink writes",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
+        }
+      ]
     },
     "flink:position-deletes:v3": {
       "level": "full",
-      "notes": "Position deletes supported via Iceberg library V3 support (iceberg-flink-runtime 1.10.x+)",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/"
+      "notes": "Flink reads position deletes, and the Iceberg Flink writer emits them for rows superseded within a single writer task. They cannot be produced on demand from Flink SQL, which has no DELETE statement: an upsert writes equality delete files (observed as content=2 Parquet files), so this harness could not exercise the position-delete write path directly.",
+      "caveats": [
+        "Cannot be requested from Flink SQL; upsert emits equality deletes instead"
+      ],
+      "links": [
+        {
+          "label": "Flink writes",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
+        }
+      ]
     },
     "flink:equality-deletes:v2": {
       "level": "full",
@@ -59,20 +73,28 @@
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
     },
     "flink:schema-evolution:v2": {
-      "level": "partial",
-      "notes": "Flink can read tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes are not supported via Flink DDL",
-      "caveats": [
-        "ALTER TABLE only supports changing table properties; column additions, renames, drops, and reordering not supported via Flink SQL"
-      ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table"
+      "level": "full",
+      "notes": "Verified on Flink 2.3 + Iceberg 1.11: ALTER TABLE ADD, RENAME, DROP and MODIFY (including repositioning with AFTER) all succeed via Flink SQL DDL, and rows written before the change still read back correctly.",
+      "caveats": [],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table",
+      "links": [
+        {
+          "label": "Flink DDL",
+          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        }
+      ]
     },
     "flink:schema-evolution:v3": {
-      "level": "partial",
-      "notes": "Flink can read V3 tables with evolved schemas, but ALTER TABLE only supports changing table properties — column and partition changes are not supported via Flink DDL",
-      "caveats": [
-        "ALTER TABLE only supports changing table properties; column additions, renames, drops, and reordering not supported via Flink SQL"
-      ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table"
+      "level": "full",
+      "notes": "Verified on Flink 2.3 + Iceberg 1.11: ALTER TABLE ADD, RENAME, DROP and MODIFY (including repositioning with AFTER) all succeed via Flink SQL DDL, and rows written before the change still read back correctly.",
+      "caveats": [],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#alter-table",
+      "links": [
+        {
+          "label": "Flink DDL",
+          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        }
+      ]
     },
     "flink:column-default-values:v2": {
       "level": "none",
@@ -80,10 +102,16 @@
       "caveats": []
     },
     "flink:column-default-values:v3": {
-      "level": "unknown",
-      "notes": "Column default values are a V3 feature; Flink Iceberg integration has not explicitly documented support",
+      "level": "none",
+      "notes": "Not expressible in Flink SQL: the parser rejects DEFAULT in CREATE TABLE (ParseException on \"DEFAULT\"), so a V3 initial-default/write-default cannot be declared from Flink.",
       "caveats": [
-        "No explicit documentation for Flink support of V3 column default values"
+        "Flink SQL DDL has no column DEFAULT clause"
+      ],
+      "links": [
+        {
+          "label": "Flink DDL",
+          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        }
       ]
     },
     "flink:nanosecond-timestamps:v2": {
@@ -104,43 +132,53 @@
     },
     "flink:hidden-partitioning:v2": {
       "level": "partial",
-      "notes": "Flink can read and write to tables with hidden partitions created by other engines, but Flink DDL does not support creating tables with transform-based (hidden) partitioning",
+      "notes": "Flink DDL accepts only plain column names in PARTITIONED BY; a transform such as days(ts) is a parser error, so hidden-partitioned tables must be created by another engine. Flink reads and writes such tables correctly once they exist.",
       "caveats": [
-        "Flink DDL PARTITION BY does not support transform functions (e.g., days(), hours(), bucket()); use Spark or another engine to create hidden-partitioned tables"
-      ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#partitioned-by"
-    },
-    "flink:hidden-partitioning:v3": {
-      "level": "partial",
-      "notes": "Flink can read and write to V3 tables with hidden partitions created by other engines, but Flink DDL does not support creating tables with transform-based (hidden) partitioning",
-      "caveats": [
-        "Flink DDL PARTITION BY does not support transform functions (e.g., days(), hours(), bucket()); use Spark or another engine to create hidden-partitioned tables"
-      ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#partitioned-by"
-    },
-    "flink:partition-evolution:v2": {
-      "level": "partial",
-      "notes": "Partition evolution supported via the Dynamic Sink (Sink V2-based implementation)",
-      "caveats": [
-        "Requires Dynamic Sink (Sink V2-based implementation)"
+        "Flink DDL cannot declare transform (hidden) partitioning; identity columns only"
       ],
       "links": [
         {
-          "label": "Flink Sink V2-based implementation",
-          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#sink-v2-based-implementation"
+          "label": "Flink DDL",
+          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        }
+      ]
+    },
+    "flink:hidden-partitioning:v3": {
+      "level": "partial",
+      "notes": "Flink DDL accepts only plain column names in PARTITIONED BY; a transform such as days(ts) is a parser error, so hidden-partitioned tables must be created by another engine. Flink reads and writes such tables correctly once they exist.",
+      "caveats": [
+        "Flink DDL cannot declare transform (hidden) partitioning; identity columns only"
+      ],
+      "links": [
+        {
+          "label": "Flink DDL",
+          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        }
+      ]
+    },
+    "flink:partition-evolution:v2": {
+      "level": "partial",
+      "notes": "Not expressible in Flink SQL: ALTER TABLE ... ADD PARTITION FIELD is a parser error. Partition specs can be evolved at runtime by the Dynamic Sink, which is a Java API (Iceberg 1.10+), so evolution is available to Flink jobs but not to SQL users.",
+      "caveats": [
+        "No SQL syntax for partition evolution; requires the Dynamic Sink Java API"
+      ],
+      "links": [
+        {
+          "label": "Flink Dynamic Iceberg Sink",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#flink-dynamic-iceberg-sink"
         }
       ]
     },
     "flink:partition-evolution:v3": {
       "level": "partial",
-      "notes": "Partition evolution supported via the Dynamic Sink (Sink V2-based implementation) for V3 tables",
+      "notes": "Not expressible in Flink SQL: ALTER TABLE ... ADD PARTITION FIELD is a parser error. Partition specs can be evolved at runtime by the Dynamic Sink, which is a Java API (Iceberg 1.10+), so evolution is available to Flink jobs but not to SQL users.",
       "caveats": [
-        "Requires Dynamic Sink (Sink V2-based implementation)"
+        "No SQL syntax for partition evolution; requires the Dynamic Sink Java API"
       ],
       "links": [
         {
-          "label": "Flink Sink V2-based implementation",
-          "url": "https://iceberg.apache.org/docs/nightly/flink-writes/#sink-v2-based-implementation"
+          "label": "Flink Dynamic Iceberg Sink",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#flink-dynamic-iceberg-sink"
         }
       ]
     },
@@ -151,9 +189,15 @@
     },
     "flink:multi-arg-transforms:v3": {
       "level": "unknown",
-      "notes": "Multi-argument transforms are a V3 feature; Flink Iceberg integration has not explicitly documented support",
+      "notes": "Undeclarable from Flink SQL: PARTITIONED BY accepts only plain column names, so no transform -- single or multi-argument -- can be expressed in Flink DDL. Whether Flink reads tables partitioned this way by another engine is untested.",
       "caveats": [
-        "No explicit documentation for Flink support of V3 multi-argument transforms"
+        "Cannot be declared in Flink DDL; read path untested"
+      ],
+      "links": [
+        {
+          "label": "Flink DDL",
+          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        }
       ]
     },
     "flink:time-travel:v2": {
@@ -166,27 +210,46 @@
     },
     "flink:time-travel:v3": {
       "level": "full",
-      "notes": "Time travel supported for V3 tables via snapshot-id, as-of-timestamp, branch, and tag read options",
+      "notes": "Verified on a V3 table: snapshot ids read from the $snapshots metadata table, then SELECT with the snapshot-id hint returned exactly the rows present at that snapshot.",
       "caveats": [
         "Uses SQL hint syntax (/*+ OPTIONS('snapshot-id'='...') */) rather than native SQL time travel syntax"
       ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/#reading-branches-and-tags-with-sql"
+      "links": [
+        {
+          "label": "Flink queries",
+          "url": "https://iceberg.apache.org/docs/latest/flink-queries/"
+        }
+      ]
     },
     "flink:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Flink supports the rewrite files action (compaction) but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests — use Spark for full maintenance",
+      "notes": "Flink is the only engine that runs Iceberg maintenance inside its own job: IcebergSink post-commit tasks are configured from SQL with flink-maintenance.* options (RewriteDataFiles, ExpireSnapshots, DeleteOrphanFiles). The options are accepted, but no rewrite commit was observed from a batch SQL INSERT in this harness. There is no RewriteManifests task in 1.11, and the standalone TableMaintenance API is Java-only.",
       "caveats": [
-        "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported"
+        "Post-commit maintenance is configured from SQL but was not observed to trigger in batch mode",
+        "No rewrite_manifests equivalent in the Flink maintenance API (1.11)",
+        "Requires the Sink V2 implementation (table.exec.iceberg.use-v2-sink=true); SQL lock type accepts only jdbc or zookeeper"
       ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink/"
+      "links": [
+        {
+          "label": "Flink maintenance",
+          "url": "https://iceberg.apache.org/docs/latest/flink-maintenance/"
+        }
+      ]
     },
     "flink:table-maintenance:v3": {
       "level": "partial",
-      "notes": "Flink supports the rewrite files action (compaction) for V3 tables but does not support expire_snapshots, remove_orphan_files, or rewrite_manifests",
+      "notes": "Flink is the only engine that runs Iceberg maintenance inside its own job: IcebergSink post-commit tasks are configured from SQL with flink-maintenance.* options (RewriteDataFiles, ExpireSnapshots, DeleteOrphanFiles). The options are accepted, but no rewrite commit was observed from a batch SQL INSERT in this harness. There is no RewriteManifests task in 1.11, and the standalone TableMaintenance API is Java-only.",
       "caveats": [
-        "Only rewrite files action available; expire_snapshots, remove_orphan_files, rewrite_manifests not supported"
+        "Post-commit maintenance is configured from SQL but was not observed to trigger in batch mode",
+        "No rewrite_manifests equivalent in the Flink maintenance API (1.11)",
+        "Requires the Sink V2 implementation (table.exec.iceberg.use-v2-sink=true); SQL lock type accepts only jdbc or zookeeper"
       ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink/"
+      "links": [
+        {
+          "label": "Flink maintenance",
+          "url": "https://iceberg.apache.org/docs/latest/flink-maintenance/"
+        }
+      ]
     },
     "flink:branching-tagging:v2": {
       "level": "partial",
@@ -234,33 +297,57 @@
     },
     "flink:write-merge-update-delete:v2": {
       "level": "partial",
-      "notes": "Flink supports UPSERT mode via equality deletes (requires V2 format and primary key) but does not support SQL MERGE INTO, UPDATE, or DELETE statements",
+      "notes": "Verified: Flink SQL rejects both DELETE and UPDATE against Iceberg tables (UnsupportedOperationException), and has no MERGE INTO. Upsert mode with equality deletes is the only row-level write path, and it was verified to replace a row by primary key.",
       "caveats": [
-        "No SQL MERGE INTO, UPDATE, or DELETE syntax; uses streaming upsert mode with equality deletes instead",
-        "UPSERT requires V2+ format and a PRIMARY KEY defined on the table"
+        "No SQL MERGE INTO, UPDATE or DELETE; upsert mode via equality deletes instead",
+        "UPSERT requires a PRIMARY KEY NOT ENFORCED and format-version 2 or higher"
       ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
+      "links": [
+        {
+          "label": "Flink upsert",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
+        }
+      ]
     },
     "flink:write-merge-update-delete:v3": {
       "level": "partial",
-      "notes": "Flink supports UPSERT mode via equality deletes (requires primary key) but does not support SQL MERGE INTO, UPDATE, or DELETE statements",
+      "notes": "Verified: Flink SQL rejects both DELETE and UPDATE against Iceberg tables (UnsupportedOperationException), and has no MERGE INTO. Upsert mode with equality deletes is the only row-level write path, and it was verified to replace a row by primary key.",
       "caveats": [
-        "No SQL MERGE INTO, UPDATE, or DELETE syntax; uses streaming upsert mode with equality deletes instead",
-        "UPSERT requires a PRIMARY KEY defined on the table"
+        "No SQL MERGE INTO, UPDATE or DELETE; upsert mode via equality deletes instead",
+        "UPSERT requires a PRIMARY KEY NOT ENFORCED and format-version 2 or higher"
       ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
+      "links": [
+        {
+          "label": "Flink upsert",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
+        }
+      ]
     },
     "flink:catalog-integration:v2": {
       "level": "full",
-      "notes": "Supports built-in catalog types: hive, hadoop, rest, glue, jdbc, nessie, plus custom catalog implementations via catalog-impl",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+      "notes": "Verified end to end against a REST catalog, a filesystem Hadoop catalog and a JDBC catalog on Postgres. Flink's catalog-type option accepts only hive, hadoop and rest; every other Iceberg catalog (glue, jdbc, nessie, custom) is reached through catalog-impl, and setting both at once is rejected.",
+      "caveats": [
+        "catalog-type is limited to hive/hadoop/rest; others require catalog-impl"
+      ],
+      "links": [
+        {
+          "label": "Flink catalog configuration",
+          "url": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+        }
+      ]
     },
     "flink:catalog-integration:v3": {
       "level": "full",
-      "notes": "Supports built-in catalog types: hive, hadoop, rest, glue, jdbc, nessie, plus custom catalog implementations via catalog-impl",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+      "notes": "Verified end to end against a REST catalog, a filesystem Hadoop catalog and a JDBC catalog on Postgres. Flink's catalog-type option accepts only hive, hadoop and rest; every other Iceberg catalog (glue, jdbc, nessie, custom) is reached through catalog-impl, and setting both at once is rejected.",
+      "caveats": [
+        "catalog-type is limited to hive/hadoop/rest; others require catalog-impl"
+      ],
+      "links": [
+        {
+          "label": "Flink catalog configuration",
+          "url": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+        }
+      ]
     },
     "flink:hive-metastore:v2": {
       "level": "full",
@@ -276,15 +363,29 @@
     },
     "flink:aws-glue-catalog:v2": {
       "level": "full",
-      "notes": "Built-in AWS Glue Catalog support via catalog-type='glue'",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+      "notes": "Supported via catalog-impl=org.apache.iceberg.aws.glue.GlueCatalog with the iceberg-aws bundle on the classpath. Flink's catalog-type option accepts only hive, hadoop and rest, so Glue is not selectable with catalog-type='glue'. Not exercised here (needs AWS credentials).",
+      "caveats": [
+        "Configured via catalog-impl, not catalog-type"
+      ],
+      "links": [
+        {
+          "label": "Flink catalog configuration",
+          "url": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+        }
+      ]
     },
     "flink:aws-glue-catalog:v3": {
       "level": "full",
-      "notes": "Built-in AWS Glue Catalog support via catalog-type='glue'",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+      "notes": "Supported via catalog-impl=org.apache.iceberg.aws.glue.GlueCatalog with the iceberg-aws bundle on the classpath. Flink's catalog-type option accepts only hive, hadoop and rest, so Glue is not selectable with catalog-type='glue'. Not exercised here (needs AWS credentials).",
+      "caveats": [
+        "Configured via catalog-impl, not catalog-type"
+      ],
+      "links": [
+        {
+          "label": "Flink catalog configuration",
+          "url": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+        }
+      ]
     },
     "flink:rest-catalog:v2": {
       "level": "full",
@@ -300,15 +401,29 @@
     },
     "flink:nessie:v2": {
       "level": "full",
-      "notes": "Built-in Nessie catalog support via catalog-type='nessie'",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+      "notes": "Supported via catalog-impl=org.apache.iceberg.nessie.NessieCatalog. Flink's catalog-type option accepts only hive, hadoop and rest, so Nessie is not selectable with catalog-type='nessie'. Not exercised here (needs a Nessie server).",
+      "caveats": [
+        "Configured via catalog-impl, not catalog-type"
+      ],
+      "links": [
+        {
+          "label": "Flink catalog configuration",
+          "url": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+        }
+      ]
     },
     "flink:nessie:v3": {
       "level": "full",
-      "notes": "Built-in Nessie catalog support via catalog-type='nessie'",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+      "notes": "Supported via catalog-impl=org.apache.iceberg.nessie.NessieCatalog. Flink's catalog-type option accepts only hive, hadoop and rest, so Nessie is not selectable with catalog-type='nessie'. Not exercised here (needs a Nessie server).",
+      "caveats": [
+        "Configured via catalog-impl, not catalog-type"
+      ],
+      "links": [
+        {
+          "label": "Flink catalog configuration",
+          "url": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+        }
+      ]
     },
     "flink:polaris:v2": {
       "level": "full",
@@ -346,21 +461,42 @@
     },
     "flink:hadoop-catalog:v3": {
       "level": "full",
-      "notes": "Built-in Hadoop catalog support via catalog-type='hadoop'",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#hadoop-catalog"
+      "notes": "Verified on a V3 table: create, write, read and drop through catalog-type='hadoop' on a filesystem warehouse. Requires Hadoop 3.3+ client jars -- Iceberg 1.11's Hadoop file IO calls FileSystem.openFile(), which is absent from the older flink-shaded-hadoop-2 uber jar and makes every read fail with NoSuchMethodError.",
+      "caveats": [
+        "Needs Hadoop 3.3+ jars on the Flink classpath"
+      ],
+      "links": [
+        {
+          "label": "Flink DDL",
+          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        }
+      ]
     },
     "flink:jdbc-catalog:v2": {
       "level": "full",
-      "notes": "Built-in JDBC catalog support via catalog-type='jdbc'",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+      "notes": "Verified against Postgres: create, write, read and drop through the JDBC catalog. Configured with catalog-impl=org.apache.iceberg.jdbc.JdbcCatalog -- Flink's catalog-type option accepts only hive, hadoop and rest.",
+      "caveats": [
+        "Configured via catalog-impl, not catalog-type"
+      ],
+      "links": [
+        {
+          "label": "Flink catalog configuration",
+          "url": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+        }
+      ]
     },
     "flink:jdbc-catalog:v3": {
       "level": "full",
-      "notes": "Built-in JDBC catalog support via catalog-type='jdbc'",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+      "notes": "Verified against Postgres on a V3 table: create, write, read and drop through the JDBC catalog, configured with catalog-impl=org.apache.iceberg.jdbc.JdbcCatalog.",
+      "caveats": [
+        "Configured via catalog-impl, not catalog-type"
+      ],
+      "links": [
+        {
+          "label": "Flink catalog configuration",
+          "url": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
+        }
+      ]
     },
     "flink:table-creation:v2": {
       "level": "full",
@@ -385,9 +521,10 @@
     },
     "flink:variant-type:v3": {
       "level": "partial",
-      "notes": "Variant type is supported in Flink 2.1 (Iceberg 1.11.0), enabling semi-structured data ingestion and processing in Flink pipelines. Shredded Variant reads/writes are not yet documented.",
+      "notes": "Verified on Flink 2.3 + Iceberg 1.11: a VARIANT column can be declared on a V3 table and written with PARSE_JSON, and the value reads back non-null. Field extraction is not possible from Flink SQL, which offers only the PARSE_JSON/TRY_PARSE_JSON constructors with no variant accessor and no CAST from VARIANT.",
       "caveats": [
-        "Shredded Variant support is not yet documented for Flink"
+        "No variant field accessor in Flink SQL; values are opaque once stored",
+        "Shredded Variant reads/writes are not observable from Flink SQL"
       ],
       "links": [
         {
@@ -403,8 +540,16 @@
     },
     "flink:shredded-variant:v3": {
       "level": "unknown",
-      "notes": "OSS Flink V3 shredded variant support is not yet documented",
-      "caveats": []
+      "notes": "Not observable from Flink SQL: the Parquet variant-shredding write property is accepted and data round-trips, but no Flink SQL surface or Iceberg metadata table reports whether the writer actually shredded the variant.",
+      "caveats": [
+        "Not observable through Flink SQL or metadata tables"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
+        }
+      ]
     },
     "flink:geometry-type:v2": {
       "level": "none",
@@ -412,9 +557,17 @@
       "caveats": []
     },
     "flink:geometry-type:v3": {
-      "level": "unknown",
-      "notes": "OSS Flink V3 geometry type support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Blocked by Flink rather than Iceberg: Flink's Calcite-based planner keeps GEOMETRY behind Calcite's spatial extensions, which are enabled by a JDBC connect-string property (fun=spatial) that Flink exposes no configuration for. CREATE TABLE with a GEOMETRY column fails with \"Geo-spatial extensions and the GEOMETRY data type are not enabled\".",
+      "caveats": [
+        "Flink's planner gates the GEOMETRY type; not a limitation of the Iceberg Flink module"
+      ],
+      "links": [
+        {
+          "label": "Apache Calcite spatial",
+          "url": "https://calcite.apache.org/docs/spatial.html"
+        }
+      ]
     },
     "flink:lineage:v2": {
       "level": "none",
@@ -422,9 +575,11 @@
       "caveats": []
     },
     "flink:lineage:v3": {
-      "level": "full",
-      "notes": "Flink provides row lineage readers for _row_id and _last_updated_sequence_number, with row lineage preserved through RewriteDataFiles compaction (Iceberg 1.11.0).",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Iceberg 1.11 added row lineage readers to the Flink module and preserves lineage through RewriteDataFiles compaction, but the lineage columns are not projectable from Flink SQL: selecting _row_id fails with \"Column '_row_id' not found in any table\" on a V3 table. Snapshot sequence numbers remain readable from metadata tables.",
+      "caveats": [
+        "_row_id and _last_updated_sequence_number cannot be selected in Flink SQL"
+      ],
       "links": [
         {
           "label": "Apache Iceberg 1.11.0 release notes",
@@ -449,27 +604,27 @@
     },
     "flink:statistics:v3": {
       "level": "full",
-      "notes": "Column statistics supported for V3 tables via iceberg-flink-runtime",
+      "notes": "Verified on a V3 table: the $files metadata table reports record_count plus per-column value_counts and null_value_counts for every column after a plain INSERT.",
       "caveats": [],
       "links": [
         {
-          "label": "Flink Writes",
+          "label": "Flink writes",
           "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
         }
       ]
     },
     "flink:bloom-filters:v2": {
       "level": "unknown",
-      "notes": "Bloom filter support requires further testing to confirm",
+      "notes": "Not observable from Flink SQL: the Parquet bloom-filter write property is accepted and point lookups return correct results, but neither Flink nor the Iceberg metadata tables report whether a bloom filter was written or used to skip data.",
       "caveats": [
-        "Needs further testing to confirm support"
+        "Not observable through Flink SQL or metadata tables"
       ]
     },
     "flink:bloom-filters:v3": {
       "level": "unknown",
-      "notes": "Bloom filter support requires further testing to confirm",
+      "notes": "Not observable from Flink SQL: the Parquet bloom-filter write property is accepted and point lookups return correct results, but neither Flink nor the Iceberg metadata tables report whether a bloom filter was written or used to skip data.",
       "caveats": [
-        "Needs further testing to confirm support"
+        "Not observable through Flink SQL or metadata tables"
       ]
     },
     "flink:type-promotion:v2": {
@@ -525,9 +680,12 @@
       "links": []
     },
     "flink:deletion-vectors:v3": {
-      "level": "full",
-      "notes": "The Flink Dynamic Sink supports Iceberg V3 deletion vectors, enabling efficient row-level deletes without rewriting data files (Iceberg 1.11.0).",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Iceberg 1.11 added deletion vector writes to the Flink sinks, but the path is not reachable from Flink SQL: DVs replace position deletes, whereas upsert deletes by key and so writes equality deletes, and Flink SQL has no DELETE statement. Verified on a V3 table: both the default sink and the Sink V2 implementation wrote Parquet equality delete files (content=2), never puffin DVs.",
+      "caveats": [
+        "Not reachable from Flink SQL; requires the Java sink APIs",
+        "Upsert mode writes equality deletes by design, not deletion vectors"
+      ],
       "links": [
         {
           "label": "Apache Iceberg 1.11.0 release notes",
