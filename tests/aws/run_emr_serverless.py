@@ -54,7 +54,17 @@ ENGINE = "emr"
 
 # Iceberg ships inside the EMR image; this is a local path in the container, not
 # a download. See the EMR Serverless "Using Apache Iceberg" documentation.
-ICEBERG_JAR = "/usr/share/aws/iceberg/lib/iceberg-spark3-runtime.jar"
+#
+# The documented path is the default below. It is overridable because the layout
+# is release-dependent: this exact value does not exist on emr-spark-8.0.0 (the
+# jar name carries "spark3", and EMR 8 runs Spark 4), where the job fails with
+# NoSuchFileException. Set ICEBERG_JAR_PATH to the real path for your release,
+# or to an empty string to omit spark.jars entirely when Iceberg is already on
+# the default classpath. Run with PROBE=1 to have the image report its layout.
+ICEBERG_JAR = os.environ.get(
+    "ICEBERG_JAR_PATH", "/usr/share/aws/iceberg/lib/iceberg-spark3-runtime.jar"
+)
+PROBE = os.environ.get("PROBE", "").lower() in ("1", "true", "yes")
 
 # Catalog implementations per storage mode.
 GLUE_CATALOG_IMPL = "org.apache.iceberg.aws.glue.GlueCatalog"
@@ -141,10 +151,12 @@ def _wait_for(get_state, want: set, bad: set, what: str, timeout_s: int = 600) -
 def spark_submit_params(mode: str, catalog_impl: str, warehouse: str) -> str:
     jars = ICEBERG_JAR
     if mode == "s3tables" and S3TABLES_EXTRA_JARS:
-        jars = f"{jars},{S3TABLES_EXTRA_JARS}"
+        jars = ",".join(j for j in (jars, S3TABLES_EXTRA_JARS) if j)
 
-    params = [
-        f"--conf spark.jars={jars}",
+    params = []
+    if jars:
+        params.append(f"--conf spark.jars={jars}")
+    params += [
         "--conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
         "--conf spark.sql.catalog.local=org.apache.iceberg.spark.SparkCatalog",
         f"--conf spark.sql.catalog.local.catalog-impl={catalog_impl}",
@@ -157,6 +169,43 @@ def spark_submit_params(mode: str, catalog_impl: str, warehouse: str) -> str:
             "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
         )
     return " ".join(params)
+
+
+def run_probe(app_id: str, probe_uri: str) -> int:
+    """Submit the diagnostic job and print where its output landed.
+
+    Cheap way to settle release-dependent questions (jar path, whether Iceberg is
+    already on the classpath, whether the S3 Tables catalog exists) instead of
+    guessing across job runs. Output goes to the driver stdout log in S3.
+    """
+    print("\n[driver] === probe: reporting the image layout ===")
+    resp = emr.start_job_run(
+        applicationId=app_id,
+        executionRoleArn=JOB_ROLE_ARN,
+        name=f"{RESOURCE_PREFIX}-probe"[:64],
+        executionTimeoutMinutes=15,
+        jobDriver={"sparkSubmit": {"entryPoint": probe_uri, "entryPointArguments": [],
+                                   "sparkSubmitParameters": ""}},
+        configurationOverrides={
+            "monitoringConfiguration": {
+                "s3MonitoringConfiguration": {"logUri": s3_uri(ENGINE, "logs", RUN_TAG) + "/"}
+            }
+        },
+        tags={"project": "iceberg-matrix", "run": RUN_TAG, "mode": "probe"},
+    )
+    job_id = resp["jobRunId"]
+    state = _wait_for(
+        lambda: emr.get_job_run(applicationId=app_id, jobRunId=job_id)["jobRun"]["state"],
+        want={"SUCCESS", "FAILED", "CANCELLED"}, bad=set(),
+        what=f"probe job {job_id}", timeout_s=1200,
+    )
+    log_prefix = f"{ENGINE}/logs/{RUN_TAG}/applications/{app_id}/jobs/{job_id}/"
+    print(f"[driver] probe {state}")
+    print(f"[driver] read the PROBE lines from the driver stdout under:")
+    print(f"[driver]   s3://{DATA_BUCKET}/{log_prefix}SPARK_DRIVER/stdout.gz")
+    print(f"[driver] e.g. aws s3 cp s3://{DATA_BUCKET}/{log_prefix}SPARK_DRIVER/stdout.gz - "
+          "| gunzip | grep '^PROBE'")
+    return 0 if state == "SUCCESS" else 1
 
 
 def run_mode(app_id: str, mode: str, bundle_uri: str, entry_uri: str) -> dict:
@@ -293,6 +342,16 @@ def summarise(results: list, reports: dict) -> int:
 def main() -> int:
     modes = ["s3buckets", "s3tables"] if MODES == "both" else [MODES]
     print(f"[driver] region={REGION} bucket={DATA_BUCKET} modes={modes}")
+
+    if PROBE:
+        probe_uri = upload(Path(__file__).with_name("emr_probe.py"),
+                           f"{ENGINE}/scripts/{RUN_TAG}/emr_probe.py")
+        app_id = create_application()
+        Path("/tmp/emr-application-id").write_text(app_id)
+        if os.environ.get("GITHUB_ENV"):
+            with open(os.environ["GITHUB_ENV"], "a") as f:
+                f.write(f"EMR_APPLICATION_ID={app_id}\n")
+        return run_probe(app_id, probe_uri)
 
     bundle = build_bundle(Path("/tmp") / f"{RUN_TAG}-bundle.zip")
     bundle_uri = upload(bundle, f"{ENGINE}/scripts/{RUN_TAG}/bundle.zip")
