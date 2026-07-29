@@ -1120,8 +1120,37 @@ def test_hive_metastore(version: str) -> TestResult:
 
 def test_aws_glue_catalog(version: str) -> TestResult:
     r = TestResult("aws-glue-catalog", "AWS Glue Catalog", version)
-    r.result = "skip"
-    r.details = "AWS Glue test skipped in CI (requires AWS credentials and Glue service)"
+    # On the AWS platform runs (EMR Serverless / Glue in s3buckets mode) the
+    # primary "local" catalog IS the Glue Data Catalog, so exercise it for real
+    # the same way test_rest_catalog does. Anywhere else there is no Glue
+    # endpoint to talk to and the honest answer is "not measured".
+    if "glue" not in CATALOG_IMPL.lower():
+        r.result = "skip"
+        r.details = "AWS Glue test skipped in CI (requires AWS credentials and Glue service)"
+        return r
+    spark = get_spark()
+    ns = _ns()
+    try:
+        spark.sql(f"CREATE NAMESPACE IF NOT EXISTS local.{ns}")
+        tbl = f"local.{ns}.{_unique('glue')}"
+        spark.sql(f"""
+            CREATE TABLE {tbl} (id BIGINT, val STRING)
+            USING iceberg TBLPROPERTIES ('format-version'='{_fmt(version)}')
+        """)
+        spark.sql(f"INSERT INTO {tbl} VALUES (1,'glue'),(2,'catalog')")
+        cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
+        assert cnt == 2, f"expected 2 rows, got {cnt}"
+        spark.sql(f"UPDATE {tbl} SET val='updated' WHERE id=1")
+        val = spark.sql(f"SELECT val FROM {tbl} WHERE id=1").collect()[0][0]
+        assert val == "updated", f"expected 'updated', got {val!r}"
+        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
+        r.result = "pass"
+        r.details = (f"AWS Glue Data Catalog ({CATALOG_IMPL}): namespace and table "
+                     "creation, write, row-level update, read, and drop all work")
+    except Exception as e:
+        r.result = "error"
+        r.details = str(e)[:300]
     return r
 
 

@@ -33,10 +33,11 @@ on:
         default: emr-spark-8.0.0
       iceberg-jar-path:
         description: >
-          In-image Iceberg jar for spark.jars. Release-dependent; leave empty to
-          omit spark.jars when Iceberg is already on the classpath.
+          Optional in-image Iceberg jar for spark.jars. Empty is correct on EMR
+          Serverless, where Iceberg is already on the classpath; only set this
+          for a release that needs an explicit jar.
         type: string
-        default: /usr/share/aws/iceberg/lib/iceberg-spark3-runtime.jar
+        default: ''
       probe:
         description: Run only the diagnostic job (reports the image layout)
         type: boolean

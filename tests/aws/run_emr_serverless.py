@@ -52,18 +52,18 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 LOCAL_REPORT_DIR = REPO_ROOT / "test-reports"
 ENGINE = "emr"
 
-# Iceberg ships inside the EMR image; this is a local path in the container, not
-# a download. See the EMR Serverless "Using Apache Iceberg" documentation.
+# Iceberg is on the default classpath in the EMR Serverless image, so no
+# spark.jars is passed: the extension and catalog configuration below is enough.
 #
-# The documented path is the default below. It is overridable because the layout
-# is release-dependent: this exact value does not exist on emr-spark-8.0.0 (the
-# jar name carries "spark3", and EMR 8 runs Spark 4), where the job fails with
-# NoSuchFileException. Set ICEBERG_JAR_PATH to the real path for your release,
-# or to an empty string to omit spark.jars entirely when Iceberg is already on
-# the default classpath. Run with PROBE=1 to have the image report its layout.
-ICEBERG_JAR = os.environ.get(
-    "ICEBERG_JAR_PATH", "/usr/share/aws/iceberg/lib/iceberg-spark3-runtime.jar"
-)
+# Do not reinstate the path from the EMR Serverless "Using Apache Iceberg" docs
+# (/usr/share/aws/iceberg/lib/iceberg-spark3-runtime.jar). That page describes
+# the 7.x images -- the jar name carries "spark3" while EMR 8 runs Spark 4 -- and
+# on emr-spark-8.0.0 it fails the job with NoSuchFileException.
+#
+# ICEBERG_JAR_PATH stays overridable for releases that do need an explicit jar;
+# empty (the default) omits spark.jars. PROBE=1 makes the image report its own
+# layout if this ever needs revisiting.
+ICEBERG_JAR = os.environ.get("ICEBERG_JAR_PATH", "")
 PROBE = os.environ.get("PROBE", "").lower() in ("1", "true", "yes")
 
 # Catalog implementations per storage mode.
@@ -109,6 +109,18 @@ def upload(local: Path, key: str) -> str:
 
 
 def create_application() -> str:
+    # Reuse an existing application when asked. Useful when iterating locally:
+    # an idle application costs nothing, and skipping creation saves a minute
+    # per attempt.
+    existing = os.environ.get("EMR_APPLICATION_ID", "")
+    if existing:
+        state = emr.get_application(applicationId=existing)["application"]["state"]
+        print(f"[driver] reusing application {existing} ({state})")
+        return existing
+    return _create_application()
+
+
+def _create_application() -> str:
     # RUN_TAG already carries the prefix in CI (icebergmatrix-<run_id>); don't
     # repeat it, and leave room for the 64-char limit.
     name = RUN_TAG if RUN_TAG.startswith(RESOURCE_PREFIX) else f"{RESOURCE_PREFIX}-{RUN_TAG}"
@@ -184,8 +196,9 @@ def run_probe(app_id: str, probe_uri: str) -> int:
         executionRoleArn=JOB_ROLE_ARN,
         name=f"{RESOURCE_PREFIX}-probe"[:64],
         executionTimeoutMinutes=15,
-        jobDriver={"sparkSubmit": {"entryPoint": probe_uri, "entryPointArguments": [],
-                                   "sparkSubmitParameters": ""}},
+        # sparkSubmitParameters must be non-empty if present, so omit it: the
+        # probe deliberately runs with the image defaults and no Iceberg config.
+        jobDriver={"sparkSubmit": {"entryPoint": probe_uri, "entryPointArguments": []}},
         configurationOverrides={
             "monitoringConfiguration": {
                 "s3MonitoringConfiguration": {"logUri": s3_uri(ENGINE, "logs", RUN_TAG) + "/"}

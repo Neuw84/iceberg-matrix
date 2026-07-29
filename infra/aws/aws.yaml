@@ -121,6 +121,11 @@ Resources:
                   - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:catalog'
                   - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:database/${ResourcePrefix}*'
                   - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:table/${ResourcePrefix}*/*'
+                  # DeleteDatabase cascades to user-defined functions, so Glue
+                  # authorises it against this resource type as well. Without it
+                  # every namespace drop fails with AccessDeniedException on
+                  # glue:DeleteDatabase for userDefinedFunction/<db>/*.
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:userDefinedFunction/${ResourcePrefix}*/*'
 
         # S3 Tables as the Iceberg catalog for the s3tables mode. Deliberately
         # broad on the one table bucket for the first runs; narrow this once you
@@ -241,6 +246,7 @@ Resources:
                   - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:catalog'
                   - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:database/${ResourcePrefix}*'
                   - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:table/${ResourcePrefix}*/*'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:userDefinedFunction/${ResourcePrefix}*/*'
               - Effect: Allow
                 Action:
                   - s3tables:GetTableBucket

@@ -97,3 +97,57 @@ Then run `modes: s3buckets` on its own before `both`, so the first real run has
 one variable. Teardown runs under `always()` and prints either
 `all billable resources removed` or a `COULD NOT CLEAN` list naming what to
 check by hand.
+
+## 7. Known limitation: s3tables mode does not work on EMR Serverless
+
+`modes: s3buckets` passes end to end. `modes: s3tables` currently cannot work on
+EMR Serverless, and the failure is a networking limitation rather than anything
+in this repo. Every test fails with:
+
+```
+S3TablesCatalog: Failed to load namespace metadata
+SdkClientException: Unable to execute HTTP request:
+  Connect to s3tables.us-east-1.amazonaws.com:443 ... failed: Connect timed out
+```
+
+DNS resolves and the credentials are fine; there is simply no route. An
+EMR Serverless application with no `networkConfiguration` reaches only S3, Glue,
+CloudWatch Logs, KMS, STS, DynamoDB, and Secrets Manager. S3 Tables is not on
+that list, so the open-source `S3TablesCatalog` client cannot reach its control
+plane. AWS names this exact timeout as the symptom:
+
+- https://aws.amazon.com/blogs/big-data/top-10-best-practices-for-amazon-emr-serverless/
+- https://repost.aws/knowledge-center/emr-serverless-resource-access
+
+Do not debug this as an IAM problem. The job role already has the required
+`s3tables:*` permissions, and adding more will not change the timeout.
+
+Note that each test absorbs the full ~57s connect timeout before moving on, so a
+whole suite takes about an hour of billed capacity and produces nothing. Cancel
+the run as soon as the first `Connect timed out` appears:
+
+```bash
+aws emr-serverless cancel-job-run \
+  --application-id "$EMR_APPLICATION_ID" --job-run-id "$JOB_RUN_ID"
+```
+
+### Options, none of them yet chosen
+
+1. **VPC + PrivateLink.** Give the application a `networkConfiguration` and an
+   interface endpoint for `com.amazonaws.<region>.s3tables`. Keeps the native
+   catalog and needs no code change. The catch is that entering a VPC forfeits
+   the default managed access above, so it also needs an S3 gateway endpoint and
+   interface endpoints for Glue, STS, and CloudWatch Logs: roughly six extra
+   resources, about $0.04/hr while they exist, and a new teardown surface that
+   `teardown.py` does not cover today.
+2. **Glue Data Catalog federation.** Enable the S3 Tables integration so the
+   table bucket is mounted as `s3tablescatalog`, then point the suite at
+   `GlueCatalog` with `glue.id = <account>:s3tablescatalog/<bucket>`. Metadata
+   goes through Glue and data through S3, both already reachable, so no VPC is
+   needed and it costs nothing extra. It does require Lake Formation grants,
+   which persist in the account, and it measures a genuinely different
+   integration path -- arguably its own matrix cell rather than EMR's.
+3. **Cover S3 Tables from another engine** (Glue ETL or Athena) and leave EMR as
+   s3buckets-only. Free. Worth checking first, because Glue ETL jobs without a
+   network connection are not restricted the way EMR Serverless is, so the
+   s3tables mode may simply work there and make options 1 and 2 unnecessary.
