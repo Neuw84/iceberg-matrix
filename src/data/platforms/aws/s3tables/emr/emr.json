@@ -208,9 +208,12 @@
       "caveats": []
     },
     "aws-emr:column-default-values:v3": {
-      "level": "full",
-      "notes": "V3 column default values supported via Spark on EMR with S3 Tables",
-      "caveats": []
+      "level": "none",
+      "notes": "Not settable from Spark SQL on EMR against S3 Tables: the Iceberg Spark connector does not declare the column-default capability, so a DEFAULT clause is rejected during analysis.",
+      "caveats": [
+        "Inferred from the OSS Spark result (Spark 4.1.2 + Iceberg 1.11.0 reject a DEFAULT clause with UNSUPPORTED_FEATURE.TABLE_OPERATION), not measured on EMR itself",
+        "EMR reaches Iceberg through the same Spark connector"
+      ]
     },
     "aws-emr:table-creation:v3": {
       "level": "full",
@@ -342,9 +345,12 @@
       ]
     },
     "aws-emr:nanosecond-timestamps:v3": {
-      "level": "unknown",
-      "notes": "Nanosecond timestamp support with S3 Tables not explicitly documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Spark SQL has no nanosecond timestamp type, so TIMESTAMP_NS columns cannot be declared on EMR against S3 Tables either.",
+      "caveats": [
+        "Inferred from the OSS Spark result (Spark 4.1.2 rejects TIMESTAMP_NS with UNSUPPORTED_DATATYPE), not measured on EMR itself",
+        "EMR reaches Iceberg through the same Spark connector"
+      ]
     },
     "aws-emr:lineage:v3": {
       "level": "full",

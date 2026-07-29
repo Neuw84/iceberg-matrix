@@ -136,11 +136,13 @@
       "caveats": []
     },
     "spark:column-default-values:v3": {
-      "level": "partial",
-      "notes": "Iceberg V3 spec supports initial-default and write-default at the metadata level. Spark's Iceberg integration can read/write tables with column defaults, but Spark SQL DDL does not yet expose full syntax for managing column defaults on Iceberg tables",
+      "level": "none",
+      "notes": "The V3 spec carries initial-default and write-default at the metadata level, but Spark SQL cannot set them: the Iceberg Spark connector does not declare the column-default capability, so a DEFAULT clause is rejected during analysis.",
       "caveats": [
+        "Verified on Spark 4.1.2 with iceberg-spark-runtime-4.1_2.13:1.11.0: CREATE TABLE ... val STRING DEFAULT 'hello' fails with UNSUPPORTED_FEATURE.TABLE_OPERATION, 'does not support column default value'",
         "No Spark SQL DDL syntax for setting Iceberg column defaults",
-        "Requires Iceberg 1.6+ with format-version 3"
+        "Engines that write table metadata directly can still populate defaults; this cell is about the Spark SQL path",
+        "Requires format-version 3"
       ],
       "links": [
         {
@@ -155,10 +157,11 @@
       "caveats": []
     },
     "spark:nanosecond-timestamps:v3": {
-      "level": "full",
-      "notes": "OSS Spark with Iceberg V3 supports the nanosecond timestamp types (timestamp_ns, timestamptz_ns), allowing ingestion from sources that emit nanosecond-precision timestamps without truncating at the storage boundary. The microsecond TIMESTAMP type remains the default.",
+      "level": "none",
+      "notes": "The V3 spec defines timestamp_ns and timestamptz_ns, but Spark SQL has no nanosecond timestamp type to map them to. TIMESTAMP_NS is not a recognised Spark data type, so the DDL fails in the parser before Iceberg is involved; Spark's TIMESTAMP stays microsecond precision.",
       "caveats": [
-        "Microsecond TIMESTAMP remains the default; only switch when nanosecond precision is required",
+        "Verified on Spark 4.1.2 with iceberg-spark-runtime-4.1_2.13:1.11.0: CREATE TABLE ... ts TIMESTAMP_NS fails with UNSUPPORTED_DATATYPE, 'Unsupported data type \"TIMESTAMP_NS\"'",
+        "Spark TIMESTAMP is microsecond precision, so nanosecond values written by another engine would be truncated on read",
         "Requires format-version 3"
       ],
       "links": [

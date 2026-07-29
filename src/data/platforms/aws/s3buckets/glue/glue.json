@@ -142,9 +142,11 @@
       "caveats": []
     },
     "aws-glue:column-default-values:v3": {
-      "level": "full",
-      "notes": "Supported via Spark on Glue 5.0+ (Iceberg 1.7.1+); requires format-version=3",
+      "level": "none",
+      "notes": "Not settable from Spark SQL on Glue: the Iceberg Spark connector does not declare the column-default capability, so a DEFAULT clause is rejected during analysis. The V3 metadata fields themselves are unaffected.",
       "caveats": [
+        "Inferred from the OSS Spark result (Spark 4.1.2 + Iceberg 1.11.0 reject a DEFAULT clause with UNSUPPORTED_FEATURE.TABLE_OPERATION), not measured on Glue itself",
+        "Glue reaches Iceberg through the same Spark connector",
         "Requires Glue 5.0+ with V3 format tables"
       ],
       "links": [
@@ -160,9 +162,11 @@
       "caveats": []
     },
     "aws-glue:nanosecond-timestamps:v3": {
-      "level": "full",
-      "notes": "Supported via Spark on Glue 5.0+ (Iceberg 1.7.1+); requires format-version=3",
+      "level": "none",
+      "notes": "Spark SQL has no nanosecond timestamp type, so TIMESTAMP_NS columns cannot be declared on Glue either; Spark's TIMESTAMP stays microsecond precision.",
       "caveats": [
+        "Inferred from the OSS Spark result (Spark 4.1.2 rejects TIMESTAMP_NS with UNSUPPORTED_DATATYPE), not measured on Glue itself",
+        "Glue reaches Iceberg through the same Spark connector",
         "Requires Glue 5.0+ with V3 format tables"
       ],
       "links": [
