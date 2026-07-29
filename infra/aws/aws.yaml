@@ -195,6 +195,18 @@ Resources:
                   StringEquals:
                     'iam:PassedToService': emr-serverless.amazonaws.com
 
+              # The first CreateApplication in an account has to create the
+              # service-linked role AWSServiceRoleForAmazonEMRServerless, which
+              # otherwise fails with "Access denied when calling
+              # CreateServiceLinkedRole". The condition means this can only ever
+              # create that one role, for that one service.
+              - Effect: Allow
+                Action: iam:CreateServiceLinkedRole
+                Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/aws-service-role/ops.emr-serverless.amazonaws.com/AWSServiceRoleForAmazonEMRServerless'
+                Condition:
+                  StringEquals:
+                    'iam:AWSServiceName': ops.emr-serverless.amazonaws.com
+
         - PolicyName: s3-scripts-and-reports
           PolicyDocument:
             Version: '2012-10-17'
