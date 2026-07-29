@@ -31,6 +31,16 @@ on:
         description: EMR release label
         type: string
         default: emr-spark-8.0.0
+      iceberg-jar-path:
+        description: >
+          In-image Iceberg jar for spark.jars. Release-dependent; leave empty to
+          omit spark.jars when Iceberg is already on the classpath.
+        type: string
+        default: /usr/share/aws/iceberg/lib/iceberg-spark3-runtime.jar
+      probe:
+        description: Run only the diagnostic job (reports the image layout)
+        type: boolean
+        default: false
       dry-run:
         description: Assume the role and stop (proves OIDC without spending)
         type: boolean
@@ -102,6 +112,8 @@ jobs:
         env:
           MODES: ${{ inputs.modes }}
           EMR_RELEASE_LABEL: ${{ inputs.release-label }}
+          ICEBERG_JAR_PATH: ${{ inputs.iceberg-jar-path }}
+          PROBE: ${{ inputs.probe }}
         run: uv run --with boto3 python tests/aws/run_emr_serverless.py
 
       - name: Tear down billable resources
