@@ -263,15 +263,20 @@
     },
     "flink:time-travel:v2": {
       "level": "full",
-      "notes": "Flink supports time travel via snapshot-id and as-of-timestamp read options in batch mode, plus branch and tag reads via SQL hints",
+      "notes": "Time travel via SQL hints: snapshot-id and as-of-timestamp for point-in-time reads, branch and tag for ref reads, and start/end-snapshot-id or start/end-tag for incremental scans between two table states. Snapshot ids and refs are discoverable through the $snapshots and $refs metadata tables.",
       "caveats": [
         "Uses SQL hint syntax (/*+ OPTIONS('snapshot-id'='...') */) rather than native SQL time travel syntax"
       ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/#reading-branches-and-tags-with-sql"
+      "links": [
+        {
+          "label": "Flink queries",
+          "url": "https://iceberg.apache.org/docs/latest/flink-queries/"
+        }
+      ]
     },
     "flink:time-travel:v3": {
       "level": "full",
-      "notes": "Snapshot ids are readable from the $snapshots metadata table, and reads at a specific snapshot, timestamp, branch or tag use SQL hints (snapshot-id, as-of-timestamp, branch, tag).",
+      "notes": "Time travel via SQL hints: snapshot-id and as-of-timestamp for point-in-time reads, branch and tag for ref reads, and start/end-snapshot-id or start/end-tag for incremental scans between two table states. Snapshot ids and refs are discoverable through the $snapshots and $refs metadata tables.",
       "caveats": [
         "Uses SQL hint syntax (/*+ OPTIONS('snapshot-id'='...') */) rather than native SQL time travel syntax"
       ],
@@ -316,19 +321,29 @@
     },
     "flink:branching-tagging:v2": {
       "level": "partial",
-      "notes": "Flink can write to branches via FlinkSink.toBranch() and read from branches/tags via SQL hints, including incremental scan between tags. Cannot create or manage branches/tags via DDL",
+      "notes": "Flink reads branches and tags via SQL hints (branch, tag), supports tag-to-tag incremental scans (start-tag/end-tag), and can write to branches via FlinkSink.toBranch() in the Java API. It cannot create or manage refs: there is no branch or tag DDL, so refs must be created by another engine or the catalog.",
       "caveats": [
-        "Cannot create or manage branches/tags; read and write to existing branches/tags only"
+        "Cannot create or manage branches/tags from Flink; read via hints and write via the Java API only"
       ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/#reading-branches-and-tags-with-sql"
+      "links": [
+        {
+          "label": "Flink queries",
+          "url": "https://iceberg.apache.org/docs/latest/flink-queries/"
+        }
+      ]
     },
     "flink:branching-tagging:v3": {
       "level": "partial",
-      "notes": "Flink can write to branches via FlinkSink.toBranch() and read from branches/tags via SQL hints for V3 tables. Cannot create or manage branches/tags via DDL",
+      "notes": "Flink reads branches and tags via SQL hints (branch, tag), supports tag-to-tag incremental scans (start-tag/end-tag), and can write to branches via FlinkSink.toBranch() in the Java API. It cannot create or manage refs: there is no branch or tag DDL, so refs must be created by another engine or the catalog.",
       "caveats": [
-        "Cannot create or manage branches/tags; read and write to existing branches/tags only"
+        "Cannot create or manage branches/tags from Flink; read via hints and write via the Java API only"
       ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/#reading-branches-and-tags-with-sql"
+      "links": [
+        {
+          "label": "Flink queries",
+          "url": "https://iceberg.apache.org/docs/latest/flink-queries/"
+        }
+      ]
     },
     "flink:read-support:v2": {
       "level": "full",
@@ -550,9 +565,16 @@
     },
     "flink:hadoop-catalog:v2": {
       "level": "full",
-      "notes": "Built-in Hadoop catalog support via catalog-type='hadoop'; ships with Hadoop jars by default",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#hadoop-catalog"
+      "notes": "Full support via catalog-type='hadoop' on a filesystem warehouse. Flink does not ship Hadoop jars; Hadoop 3.3+ client jars must be added to the classpath, since Iceberg 1.11's Hadoop file IO calls FileSystem.openFile(), absent from older Hadoop 2 jars.",
+      "caveats": [
+        "Needs Hadoop 3.3+ jars on the Flink classpath"
+      ],
+      "links": [
+        {
+          "label": "Flink DDL",
+          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
+        }
+      ]
     },
     "flink:hadoop-catalog:v3": {
       "level": "full",

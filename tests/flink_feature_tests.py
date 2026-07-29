@@ -426,6 +426,36 @@ def _rest_evolve_spec(table: str, namespace: str = "test_db") -> bool:
         return False
 
 
+def _rest_set_tags(table: str, tags: dict, namespace: str = "test_db") -> bool:
+    """Create tags on existing snapshots through the catalog.
+
+    Flink has no ref DDL, so tags for the tag-read and tag-to-tag scan tests have
+    to come from the catalog itself.
+    """
+    import urllib.request
+    try:
+        base = REST_URI.rstrip("/")
+        md = _rest_table_metadata(table, namespace)
+        body = {
+            "requirements": [{"type": "assert-table-uuid", "uuid": md["table-uuid"]}],
+            "updates": [
+                {"action": "set-snapshot-ref", "ref-name": name,
+                 "type": "tag", "snapshot-id": snap_id}
+                for name, snap_id in tags.items()
+            ],
+        }
+        req = urllib.request.Request(
+            f"{base}/v1/{_rest_prefix()}/namespaces/{namespace}/tables/{table}",
+            data=json.dumps(body).encode(),
+            headers={"Content-Type": "application/json"}, method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            json.load(resp)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def _rest_create_transform_partitioned(version: str, namespace: str = "test_db"):
     """Create a day(ts)-partitioned table straight through the REST catalog API.
 
@@ -1147,17 +1177,43 @@ def test_branching_tagging(version: str) -> TestResult:
     ok_ddl, out_ddl = _run_sql(_prelude(version) + [
         f"ALTER TABLE {tbl} CREATE BRANCH testbranch",
     ])
+
+    # Flink cannot create refs, so make a tag through the catalog and verify the
+    # tag read and tag-to-tag incremental scan hints against it.
+    tag_ok = False
+    ok_s, out_s = _run_sql(_prelude(version) + [
+        f"INSERT INTO {tbl} VALUES (2,'b')",
+        f"SELECT CONCAT('MARKSNAP=', CAST(snapshot_id AS STRING)) AS m "
+        f"FROM `{tbl}$snapshots` ORDER BY committed_at",
+    ])
+    snaps = _marker_values(out_s, "MARKSNAP")
+    if ok_s and len(snaps) >= 2 and _rest_set_tags(tbl, {"tag1": int(snaps[0]), "tag2": int(snaps[1])}):
+        ok_t, out_t = _run_sql(_prelude(version) + [
+            f"SELECT CONCAT('MARKTAG=', CAST(COUNT(*) AS STRING)) AS m "
+            f"FROM {tbl} /*+ OPTIONS('tag'='tag1') */",
+            f"SELECT CONCAT('MARKT2T=', val) AS m "
+            f"FROM {tbl} /*+ OPTIONS('start-tag'='tag1','end-tag'='tag2') */",
+        ])
+        tag_ok = ok_t and _marker(out_t, "MARKTAG=1") \
+            and _marker_values(out_t, "MARKT2T") == ["b"]
     _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
 
     if read_ok and ok_ddl:
         r.result = "pass"
         r.details = "Branch reads via the branch hint work, and CREATE BRANCH DDL is supported"
+    elif read_ok and tag_ok:
+        r.result = "pass"
+        r.details = (
+            "Branch reads via the branch hint, tag reads via the tag hint, and tag-to-tag "
+            "incremental scans (start-tag/end-tag) all work against refs created through "
+            f"the catalog; Flink cannot create refs via DDL ({_error_reason(out_ddl, 80)})"
+        )
     elif read_ok:
         r.result = "pass"
         r.details = (
             f"Reading a branch via /*+ OPTIONS('branch'='main') */ works and refs are "
-            f"listable ({_marker_values(out, 'MARKREF')}), but Flink cannot create refs "
-            f"via DDL: {_error_reason(out_ddl, 90)}"
+            f"listable ({_marker_values(out, 'MARKREF')}); tag hints could not be verified "
+            "and Flink cannot create refs via DDL"
         )
     else:
         r.result = "fail"
@@ -1417,17 +1473,36 @@ def test_nanosecond_timestamps(version: str) -> TestResult:
         f"INSERT INTO {tbl} VALUES (1, TIMESTAMP '2026-01-01 12:00:00.123456789')",
         f"""SELECT CONCAT('MARKNANO=', CASE WHEN ts = TIMESTAMP '2026-01-01 12:00:00.123456789'
              THEN 'EXACT' ELSE 'LOSSY' END) AS m FROM {tbl}""",
-        f"DROP TABLE {tbl}",
     ])
+    # The round-trip alone could in principle be satisfied by Flink comparing two
+    # equally-truncated values; confirm the column is genuinely the V3 timestamp_ns
+    # type by reading the Iceberg schema from the catalog.
+    meta = _rest_table_metadata(tbl)
+    stored = ""
+    if meta:
+        for f in meta.get("schemas", [{}])[-1].get("fields", []):
+            if f.get("name") == "ts":
+                stored = str(f.get("type"))
+    _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
+
     if not ok:
         r.result = "fail"
         r.details = f"TIMESTAMP(9) not usable on a V3 table: {_error_reason(out, 150)}"
+    elif _marker(out, "MARKNANO=EXACT") and stored == "timestamp_ns":
+        r.result = "pass"
+        r.details = (
+            "TIMESTAMP(9) maps to the Iceberg V3 timestamp_ns type (confirmed in the table "
+            "schema) and a nanosecond-precision value round-trips exactly"
+        )
     elif _marker(out, "MARKNANO=EXACT"):
         r.result = "pass"
-        r.details = "TIMESTAMP(9) round-tripped with full nanosecond precision preserved"
+        r.details = (
+            f"Nanosecond value round-tripped exactly, but the stored Iceberg type reads as "
+            f"'{stored or 'unavailable'}' rather than timestamp_ns"
+        )
     else:
         r.result = "fail"
-        r.details = "TIMESTAMP(9) accepted but the value lost precision on round-trip"
+        r.details = f"TIMESTAMP(9) accepted but the value lost precision (stored type: {stored})"
     return r
 
 
