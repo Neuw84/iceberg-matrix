@@ -621,9 +621,13 @@
       "caveats": []
     },
     "aws-emr:geometry-type:v3": {
-      "level": "full",
-      "notes": "EMR 8.0 / Spark 4.0.2 ships with Iceberg 1.10.1, which adds native Geometry and Geography data type support, enabling geospatial workloads on Iceberg V3 tables.",
-      "caveats": [],
+      "level": "none",
+      "notes": "EMR 8.0 / Spark 4.0.2 ships Iceberg 1.10.1, whose release notes cite Geometry and Geography support at the library level, but that support is not reachable from Spark SQL: the Iceberg Spark connector has no type mapping for GEOMETRY/GEOGRAPHY and rejects the CREATE TABLE.",
+      "caveats": [
+        "Inferred from the OSS Spark result (Spark 4.1.2 + Iceberg 1.11.0 reject 'geometry(4326)'), not measured on EMR itself",
+        "The library-level claim in the AWS docs does not imply a working Spark SQL path",
+        "Spark 4.0/4.1 also gate the types behind spark.sql.geospatial.enabled and require the SRID form GEOMETRY(4326)"
+      ],
       "links": [
         {
           "label": "Iceberg V3 on AWS",

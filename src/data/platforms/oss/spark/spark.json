@@ -646,9 +646,12 @@
       "caveats": []
     },
     "spark:geometry-type:v3": {
-      "level": "full",
-      "notes": "OSS Spark with Iceberg V3 supports the geospatial GEOMETRY (planar) and GEOGRAPHY (spheroidal) types as the standardized storage layer; spatial query operators are provided by engine-side libraries such as Apache Sedona.",
+      "level": "none",
+      "notes": "Not reachable through Spark SQL as of Iceberg 1.11.0. The V3 spec defines GEOMETRY (planar) and GEOGRAPHY (spheroidal), and Spark 4.1 parses the SRID-parameterised types once spark.sql.geospatial.enabled is set, but the Iceberg Spark connector has no mapping for them and rejects the CREATE TABLE.",
       "caveats": [
+        "Verified on Spark 4.1.2 with iceberg-spark-runtime-4.1_2.13:1.11.0: CREATE TABLE ... GEOMETRY(4326) fails with UnsupportedOperationException 'Not a supported type: geometry(4326)'",
+        "Spark 4.1 gates GEOMETRY/GEOGRAPHY behind spark.sql.geospatial.enabled; without it the DDL fails with UNSUPPORTED_FEATURE.GEOSPATIAL_DISABLED (default-on from Spark 4.2)",
+        "Unparameterised GEOMETRY/GEOGRAPHY is a parse error in Spark 4.1 regardless of that flag; the SRID form GEOMETRY(4326) is required",
         "Spatial query operators come from engine-side libraries (e.g. Apache Sedona), not Spark core",
         "Requires format-version 3"
       ],

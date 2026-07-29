@@ -632,10 +632,12 @@
       "caveats": []
     },
     "aws-glue:geometry-type:v3": {
-      "level": "unknown",
-      "notes": "Geometry type support in AWS Glue is not yet documented",
+      "level": "none",
+      "notes": "No geospatial path through Glue's Spark runtime: the Iceberg Spark connector has no type mapping for GEOMETRY/GEOGRAPHY, so creating a V3 table with those columns fails.",
       "caveats": [
-        "Not yet documented for AWS Glue"
+        "Inferred from the OSS Spark result (Spark 4.1.2 + Iceberg 1.11.0 reject 'geometry(4326)'), not measured on Glue itself",
+        "Glue 5.1 ships Iceberg 1.10.0, older than the version tested",
+        "Not documented for AWS Glue"
       ]
     },
     "aws-glue:lineage:v2": {

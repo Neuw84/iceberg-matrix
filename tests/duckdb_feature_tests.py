@@ -9,18 +9,20 @@ MinIO S3 storage), then compares results with the DuckDB entries from
 DuckDB's Iceberg *write* path (CREATE TABLE, INSERT, UPDATE, DELETE, MERGE INTO,
 ALTER TABLE and all V3 features) only works through an attached Iceberg REST
 catalog -- the path-based ``iceberg_scan`` interface is read-only. This suite
-therefore attaches to a REST catalog when one is configured and exercises the
-features for real; when no catalog is configured the catalog-dependent tests are
-reported as ``skip`` (never as a fabricated pass/fail).
+therefore attaches to a REST catalog by default and exercises the features for
+real; when no catalog answers the catalog-dependent tests are reported as
+``skip`` (never as a fabricated pass/fail).
 
 Usage:
-    # Point at a running Iceberg REST catalog (see .github/workflows/duckdb-tests.yml
-    # for a docker recipe using apache/iceberg-rest-fixture + MinIO):
-    export ICEBERG_REST_URI=http://127.0.0.1:8181
+    # A REST catalog at http://127.0.0.1:8181 is the default; start one first
+    # (see .github/workflows/duckdb-tests.yml for a docker recipe using
+    # apache/iceberg-rest-fixture + MinIO):
     python tests/duckdb_feature_tests.py
 
 Environment variables:
-    ICEBERG_REST_URI        - Iceberg REST catalog endpoint. When unset, all
+    ICEBERG_REST_URI        - Iceberg REST catalog endpoint
+                              (default: "http://127.0.0.1:8181"). When nothing
+                              answers there and this was not set explicitly,
                               catalog-dependent tests are skipped.
     ICEBERG_REST_WAREHOUSE  - Warehouse identifier to attach (default: "warehouse")
     ICEBERG_S3_ENDPOINT     - S3 endpoint for data files (default: "127.0.0.1:9000")
@@ -38,6 +40,8 @@ import json
 import os
 import sys
 import shutil
+import urllib.error
+import urllib.request
 import uuid
 import traceback
 from datetime import datetime
@@ -62,9 +66,14 @@ REPO_ROOT = os.environ.get(
 REPORT_DIR = os.environ.get("REPORT_DIR", os.path.join(os.getcwd(), "test-reports"))
 DUCKDB_VERSION = os.environ.get("DUCKDB_VERSION", duckdb.__version__)
 
-# Iceberg REST catalog configuration. Writes require an attached REST catalog;
-# when ICEBERG_REST_URI is unset the catalog-dependent tests are skipped.
-REST_URI = os.environ.get("ICEBERG_REST_URI")
+# Iceberg REST catalog configuration. Writes require an attached REST catalog,
+# so one is the default: the suite targets DEFAULT_REST_URI unless
+# ICEBERG_REST_URI says otherwise. If nothing answers there and no catalog was
+# requested explicitly, the catalog-dependent tests are skipped rather than
+# reported as failures.
+DEFAULT_REST_URI = "http://127.0.0.1:8181"
+REST_URI_EXPLICIT = "ICEBERG_REST_URI" in os.environ
+REST_URI = os.environ.get("ICEBERG_REST_URI", DEFAULT_REST_URI)
 REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "warehouse")
 S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", "127.0.0.1:9000")
 S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "admin")
@@ -84,8 +93,47 @@ def _unique(prefix: str = "t") -> str:
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
 
 
+def _rest_reachable(uri: str, timeout: float = 2.0) -> bool:
+    """True when something answers the Iceberg REST config endpoint at ``uri``."""
+    if not uri:
+        return False
+    url = f"{uri.rstrip('/')}/v1/config"
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as resp:  # noqa: S310
+            return resp.status < 500
+    except urllib.error.HTTPError as e:
+        # 4xx still means a catalog is listening (e.g. missing warehouse param).
+        return e.code < 500
+    except Exception:
+        return False
+
+
+def _resolve_rest_uri() -> str:
+    """Return the REST URI to use, or "" when the catalog tests must be skipped.
+
+    An explicitly requested catalog is never silently dropped: if
+    ICEBERG_REST_URI was set and nothing answers, the URI is kept so the tests
+    report errors instead of quietly skipping.
+    """
+    if not REST_URI:
+        return ""
+    if _rest_reachable(REST_URI):
+        return REST_URI
+    if REST_URI_EXPLICIT:
+        print(f"[WARN] No Iceberg REST catalog answering at {REST_URI}, but it was "
+              "requested explicitly via ICEBERG_REST_URI; continuing so the failure is visible")
+        return REST_URI
+    print(f"[INFO] No Iceberg REST catalog at {REST_URI}; catalog-dependent tests will be skipped")
+    return ""
+
+
+# Resolved once at import: the REST catalog when one answers (the default),
+# otherwise "" meaning the catalog-dependent tests are skipped.
+REST_URI = _resolve_rest_uri()
+
+
 def _rest_available() -> bool:
-    """True when an Iceberg REST catalog endpoint has been configured."""
+    """True when an Iceberg REST catalog is configured and usable."""
     return bool(REST_URI)
 
 

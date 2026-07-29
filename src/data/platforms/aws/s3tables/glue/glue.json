@@ -330,9 +330,12 @@
       "caveats": []
     },
     "aws-glue:geometry-type:v3": {
-      "level": "unknown",
-      "notes": "Geometry type support with S3 Tables not explicitly documented",
-      "caveats": []
+      "level": "none",
+      "notes": "No geospatial path through Glue's Spark runtime against S3 Tables: the Iceberg Spark connector has no type mapping for GEOMETRY/GEOGRAPHY, so creating a V3 table with those columns fails.",
+      "caveats": [
+        "Inferred from the OSS Spark result (Spark 4.1.2 + Iceberg 1.11.0 reject 'geometry(4326)'), not measured on Glue itself",
+        "Not documented for AWS Glue with S3 Tables"
+      ]
     },
     "aws-glue:nanosecond-timestamps:v3": {
       "level": "unknown",
