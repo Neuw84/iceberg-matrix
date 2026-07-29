@@ -30,7 +30,7 @@ on:
       release-label:
         description: EMR release label
         type: string
-        default: emr-8.0.0
+        default: emr-spark-8.0.0
       dry-run:
         description: Assume the role and stop (proves OIDC without spending)
         type: boolean
