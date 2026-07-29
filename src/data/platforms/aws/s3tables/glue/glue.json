@@ -208,9 +208,12 @@
       "caveats": []
     },
     "aws-glue:column-default-values:v3": {
-      "level": "full",
-      "notes": "V3 column default values supported via Glue ETL with S3 Tables",
-      "caveats": []
+      "level": "none",
+      "notes": "Not settable from Spark SQL on Glue against S3 Tables: the Iceberg Spark connector does not declare the column-default capability, so a DEFAULT clause is rejected during analysis.",
+      "caveats": [
+        "Inferred from the OSS Spark result (Spark 4.1.2 + Iceberg 1.11.0 reject a DEFAULT clause with UNSUPPORTED_FEATURE.TABLE_OPERATION), not measured on Glue itself",
+        "Glue reaches Iceberg through the same Spark connector"
+      ]
     },
     "aws-glue:table-creation:v3": {
       "level": "full",
@@ -338,9 +341,12 @@
       ]
     },
     "aws-glue:nanosecond-timestamps:v3": {
-      "level": "unknown",
-      "notes": "Nanosecond timestamp support with S3 Tables not explicitly documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Spark SQL has no nanosecond timestamp type, so TIMESTAMP_NS columns cannot be declared on Glue against S3 Tables either.",
+      "caveats": [
+        "Inferred from the OSS Spark result (Spark 4.1.2 rejects TIMESTAMP_NS with UNSUPPORTED_DATATYPE), not measured on Glue itself",
+        "Glue reaches Iceberg through the same Spark connector"
+      ]
     },
     "aws-glue:lineage:v3": {
       "level": "unknown",

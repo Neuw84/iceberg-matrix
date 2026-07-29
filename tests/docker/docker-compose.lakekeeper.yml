@@ -1,0 +1,207 @@
+# Shared Lakekeeper (Iceberg REST catalog) + MinIO stack used by every
+# catalog-backed engine feature-test suite under tests/.
+#
+# Modeled on the Lakekeeper walkthrough at
+# https://github.com/mattmartin14/dream_machine/tree/main/substack/articles/2026.07.20-lakekeeper
+#
+# Topology:
+#   db              - Postgres, Lakekeeper's metadata store
+#   minio           - S3-compatible object storage holding the table data files
+#   minio-init      - creates the warehouse bucket
+#   migrate         - runs Lakekeeper's schema migration, then exits
+#   lakekeeper      - serves the Iceberg REST API on :8181/catalog
+#   bootstrap       - one-shot server bootstrap (accepts terms of use)
+#   warehouse-init  - one-shot creation of the "demo" warehouse on MinIO
+#
+# Bring it up with tests/docker/start-lakekeeper.sh, which waits for the
+# one-shot jobs to finish and verifies the catalog answers from the host.
+#
+# NOTE on the storage endpoint: Iceberg's Java REST client lets the storage
+# config the server returns on loadTable override the client's own, so Spark and
+# Flink end up using whatever endpoint the warehouse advertises. A compose-
+# internal name like http://minio:9000 is therefore unusable -- engines run on
+# the host and cannot resolve it (UnknownHostException: minio). The warehouse
+# instead advertises the host's own IP, which both the Lakekeeper container
+# (via MinIO's published port) and host-side engines can reach, with no
+# /etc/hosts entry or root access needed. start-lakekeeper.sh detects it and
+# exports LAKEKEEPER_S3_HOST.
+#
+# Changing the storage profile of an existing warehouse is not supported here:
+# run stop-lakekeeper.sh first (it drops the volumes) so the warehouse is
+# recreated with the new endpoint.
+
+name: iceberg-promise-lakekeeper
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 2s
+      timeout: 10s
+      retries: 20
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - iceberg_net
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${LAKEKEEPER_S3_KEY_ID:-minio}
+      MINIO_ROOT_PASSWORD: ${LAKEKEEPER_S3_SECRET:-minio12345}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 2s
+      timeout: 10s
+      retries: 20
+    volumes:
+      - minio_data:/data
+    networks:
+      - iceberg_net
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${LAKEKEEPER_S3_KEY_ID:-minio} ${LAKEKEEPER_S3_SECRET:-minio12345} &&
+      mc mb -p local/${LAKEKEEPER_BUCKET:-warehouse}
+      "
+    networks:
+      - iceberg_net
+
+  migrate:
+    image: quay.io/lakekeeper/catalog:latest
+    command: ["migrate"]
+    environment:
+      LAKEKEEPER__PG_ENCRYPTION_KEY: "This-is-NOT-Secure!"
+      LAKEKEEPER__PG_DATABASE_URL_READ: "postgresql://postgres:postgres@db:5432/postgres"
+      LAKEKEEPER__PG_DATABASE_URL_WRITE: "postgresql://postgres:postgres@db:5432/postgres"
+      LAKEKEEPER__AUTHZ_BACKEND: "allowall"
+      RUST_LOG: "info"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - iceberg_net
+
+  lakekeeper:
+    image: quay.io/lakekeeper/catalog:latest
+    command: ["serve"]
+    environment:
+      LAKEKEEPER__PG_ENCRYPTION_KEY: "This-is-NOT-Secure!"
+      LAKEKEEPER__PG_DATABASE_URL_READ: "postgresql://postgres:postgres@db:5432/postgres"
+      LAKEKEEPER__PG_DATABASE_URL_WRITE: "postgresql://postgres:postgres@db:5432/postgres"
+      LAKEKEEPER__AUTHZ_BACKEND: "allowall"
+      # Clients run on the host, so advertise the published address.
+      LAKEKEEPER__BASE_URI: "http://localhost:8181"
+      RUST_LOG: "info"
+    ports:
+      - "8181:8181"
+    healthcheck:
+      test: ["CMD", "/home/nonroot/lakekeeper", "healthcheck"]
+      interval: 2s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    networks:
+      - iceberg_net
+
+  # Idempotent: a stack brought back up on an existing Postgres volume is
+  # already bootstrapped, which Lakekeeper reports as 400
+  # CatalogAlreadyBootstrapped. That is a success for our purposes.
+  bootstrap:
+    image: curlimages/curl:latest
+    depends_on:
+      lakekeeper:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        code=$$(curl -sS -o /tmp/out -w '%{http_code}' \
+          -X POST http://lakekeeper:8181/management/v1/bootstrap \
+          -H 'Content-Type: application/json' \
+          --data '{"accept-terms-of-use": true}')
+        cat /tmp/out; echo
+        case "$$code" in
+          2*) echo "[bootstrap] ok ($$code)"; exit 0 ;;
+        esac
+        if grep -q 'CatalogAlreadyBootstrapped' /tmp/out; then
+          echo "[bootstrap] already bootstrapped, continuing"; exit 0
+        fi
+        echo "[bootstrap] failed ($$code)" >&2; exit 1
+    networks:
+      - iceberg_net
+
+  # Idempotent for the same reason as bootstrap: re-creating the warehouse on an
+  # existing volume returns 400 CreateWarehouseStorageProfileOverlap (or a name
+  # conflict), both of which mean the warehouse we want is already there.
+  warehouse-init:
+    image: curlimages/curl:latest
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        code=$$(curl -sS -o /tmp/out -w '%{http_code}' \
+          -X POST http://lakekeeper:8181/management/v1/warehouse \
+          -H 'Content-Type: application/json' \
+          --data '{
+            "warehouse-name": "${LAKEKEEPER_WAREHOUSE:-demo}",
+            "project-id": "00000000-0000-0000-0000-000000000000",
+            "storage-profile": {
+              "type": "s3",
+              "bucket": "${LAKEKEEPER_BUCKET:-warehouse}",
+              "key-prefix": "",
+              "endpoint": "http://${LAKEKEEPER_S3_HOST:-minio}:9000",
+              "region": "${LAKEKEEPER_S3_REGION:-us-east-1}",
+              "path-style-access": true,
+              "flavor": "minio",
+              "sts-enabled": false
+            },
+            "storage-credential": {
+              "type": "s3",
+              "credential-type": "access-key",
+              "aws-access-key-id": "${LAKEKEEPER_S3_KEY_ID:-minio}",
+              "aws-secret-access-key": "${LAKEKEEPER_S3_SECRET:-minio12345}"
+            }
+          }')
+        cat /tmp/out; echo
+        case "$$code" in
+          2*) echo "[warehouse-init] created ($$code)"; exit 0 ;;
+        esac
+        if grep -qE 'StorageProfileOverlap|already exists|WarehouseNameAlreadyExists' /tmp/out; then
+          echo "[warehouse-init] warehouse already present, continuing"; exit 0
+        fi
+        echo "[warehouse-init] failed ($$code)" >&2; exit 1
+    networks:
+      - iceberg_net
+
+volumes:
+  postgres_data:
+  minio_data:
+
+networks:
+  iceberg_net:
+    driver: bridge

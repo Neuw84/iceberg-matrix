@@ -47,12 +47,14 @@ FLINK_ICEBERG_VERSION = os.environ.get("FLINK_ICEBERG_VERSION", "unknown")
 
 # Iceberg REST catalog + S3 (MinIO) configuration. DuckDB-style: writes go through
 # an attached REST catalog and Iceberg's own S3FileIO, which avoids the Hadoop
-# catalog. When ICEBERG_REST_URI is unset the defaults target a local catalog.
-REST_URI = os.environ.get("ICEBERG_REST_URI", "http://127.0.0.1:8181")
-REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "s3://warehouse/")
+# catalog. The defaults match the Lakekeeper + MinIO stack in tests/docker
+# (Lakekeeper serves the Iceberg REST API under /catalog and addresses
+# warehouses by name).
+REST_URI = os.environ.get("ICEBERG_REST_URI", "http://127.0.0.1:8181/catalog")
+REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "demo")
 S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", "http://127.0.0.1:9000")
-S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "admin")
-S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "password")
+S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "minio")
+S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "minio12345")
 
 
 # ---------------------------------------------------------------------------
