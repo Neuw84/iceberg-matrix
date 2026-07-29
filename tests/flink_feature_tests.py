@@ -45,6 +45,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -98,6 +99,11 @@ JDBC_PASSWORD = os.environ.get("ICEBERG_JDBC_PASSWORD", "postgres")
 HADOOP_WAREHOUSE = os.environ.get("ICEBERG_HADOOP_WAREHOUSE", "file:///work/hadoop-warehouse")
 
 VERSIONS = ["v2", "v3"]
+
+# How long to wait for in-job compaction to produce a rewrite commit. Sized off
+# the 5s checkpoint interval configured in docker-compose.flink.yml: a rewrite
+# was observed within ~90s locally.
+MAINTENANCE_POLL_SECONDS = int(os.environ.get("FLINK_MAINTENANCE_POLL_SECONDS", "180"))
 
 
 def _detect_mode() -> str:
@@ -198,6 +204,33 @@ def _run_sql(statements: list, timeout: int = 240) -> tuple:
         return False, str(e)
 
 
+def _submit_streaming(statements: list, timeout: int = 240) -> tuple:
+    """Submit an unbounded streaming job and return (ok, out, job_id).
+
+    Deliberately does NOT set table.dml-sync: an unbounded INSERT would never
+    return. The SQL client submits the job detached and prints its Job ID, which
+    the caller polls against and must cancel afterwards.
+    """
+    ok, out = _run_sql(statements, timeout=timeout)
+    m = re.search(r"Job ID:\s*([0-9a-f]{32})", out)
+    return ok, out, (m.group(1) if m else None)
+
+
+def _cancel_job(job_id: str) -> None:
+    """Cancel a running Flink job so it cannot leak into later tests."""
+    if not job_id:
+        return
+    try:
+        if MODE == "docker":
+            cmd = ["docker", "compose", "-f", COMPOSE_FILE, "exec", "-T", "jobmanager",
+                   "/opt/flink/bin/flink", "cancel", job_id]
+        else:
+            cmd = [os.path.join(FLINK_HOME, "bin", "flink"), "cancel", job_id]
+        subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def _marker(out: str, expected: str) -> bool:
     """True when a MARK... token appears in the client's tableau output.
 
@@ -240,15 +273,18 @@ def _error_reason(out: str, limit: int = 220) -> str:
     return flat[:limit]
 
 
-def _prelude(version: str = "v3", catalog: str = "rest", streaming: bool = False) -> list:
-    """Session setup: result mode, synchronous DML, and the requested catalog.
+def _prelude(version: str = "v3", catalog: str = "rest", streaming: bool = False,
+             dml_sync: bool = True) -> list:
+    """Session setup: result mode, DML sync mode, and the requested catalog.
 
-    table.dml-sync is essential: without it the SQL client submits INSERT jobs
-    detached and a following SELECT races the write, silently reading zero rows.
+    table.dml-sync is essential for bounded work: without it the SQL client
+    submits INSERT jobs detached and a following SELECT races the write, silently
+    reading zero rows. It must be OFF for an unbounded streaming INSERT, which
+    would otherwise never return and hang the client until its timeout.
     """
     stmts = [
         "SET 'sql-client.execution.result-mode' = 'tableau'",
-        "SET 'table.dml-sync' = 'true'",
+        f"SET 'table.dml-sync' = '{str(dml_sync).lower()}'",
         "SET 'table.dynamic-table-options.enabled' = 'true'",
         f"SET 'execution.runtime-mode' = '{'streaming' if streaming else 'batch'}'",
     ]
@@ -755,42 +791,75 @@ def test_time_travel(version: str) -> TestResult:
 def test_table_maintenance(version: str) -> TestResult:
     r = TestResult("table-maintenance", "Table Maintenance", version)
     tbl = _unique("maint")
-    # Flink's maintenance runs inside the job via IcebergSink post-commit hooks,
-    # configured with flink-maintenance.* options (Iceberg 1.11 accepts only jdbc
-    # or zookeeper as the SQL lock type). A compaction commit shows up as a
-    # "replace" snapshot operation.
-    ok, out = _run_sql(_prelude(version, streaming=False) + [
+    # Flink is the only engine that runs Iceberg maintenance inside its own job:
+    # IcebergSink post-commit tasks, configured from SQL with flink-maintenance.*
+    # options (Iceberg 1.11 accepts only jdbc or zookeeper for the SQL lock type).
+    #
+    # It has to be a STREAMING job. Scheduling counts commits, and a bounded batch
+    # INSERT produces a single commit and then the job ends, so compaction never
+    # fires. A datagen source with periodic checkpointing commits repeatedly, and a
+    # compaction shows up as a "replace" snapshot operation.
+    src = "default_catalog.default_database." + _unique("src")
+    ok, out, job_id = _submit_streaming(_prelude(version, streaming=True, dml_sync=False) + [
         "SET 'table.exec.iceberg.use-v2-sink' = 'true'",
         f"""CREATE TABLE {tbl} (id BIGINT, val STRING) WITH (
             'format-version'='{_fmt(version)}',
             'flink-maintenance.rewrite.enabled'='true',
-            'flink-maintenance.rewrite.schedule.commit-count'='1',
+            'flink-maintenance.rewrite.schedule.commit-count'='2',
             'flink-maintenance.lock.type'='jdbc',
             'flink-maintenance.lock.lock-id'='{tbl}',
             'flink-maintenance.lock.jdbc.uri'='{JDBC_URI}?user={JDBC_USER}&password={JDBC_PASSWORD}',
             'flink-maintenance.lock.jdbc.init-lock-table'='true')""",
-        f"INSERT INTO {tbl} VALUES (1,'a')",
-        f"INSERT INTO {tbl} VALUES (2,'b')",
-        f"SELECT CONCAT('MARKOP=', operation) AS m FROM `{tbl}$snapshots` ORDER BY committed_at",
-        f"SELECT CONCAT('MARKCNT=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl}",
-        f"DROP TABLE {tbl}",
-    ], timeout=360)
-    ops = _marker_values(out, "MARKOP")
-    if ok and "replace" in ops:
-        r.result = "pass"
-        r.details = (
-            "In-job post-commit compaction ran: snapshot operations "
-            f"{ops} include a 'replace' (rewrite) commit"
-        )
-    elif ok and _marker(out, "MARKCNT=2"):
+        f"""CREATE TEMPORARY TABLE {src} (id BIGINT, val STRING) WITH (
+            'connector'='datagen', 'rows-per-second'='20', 'fields.val.length'='8')""",
+        f"INSERT INTO {tbl} SELECT id, val FROM {src}",
+    ])
+    if not ok or not job_id:
         r.result = "fail"
         r.details = (
-            f"flink-maintenance options accepted and data intact, but no rewrite commit "
-            f"appeared (operations={ops}); scheduled compaction did not trigger"
+            f"In-job maintenance not usable from SQL: {_error_reason(out, 170)}"
+            if not ok else "Streaming job was accepted but no Job ID was reported"
+        )
+        return r
+
+    ops = []
+    try:
+        # Poll until a rewrite commit appears. Checkpointing is every 5s, so a
+        # few commits accumulate quickly; give it generous headroom regardless.
+        deadline = MAINTENANCE_POLL_SECONDS
+        waited = 0
+        while waited < deadline:
+            time.sleep(15)
+            waited += 15
+            ok_p, out_p = _run_sql(_prelude(version) + [
+                f"SELECT CONCAT('MARKOP=', operation) AS m "
+                f"FROM `{tbl}$snapshots` ORDER BY committed_at",
+            ])
+            if ok_p:
+                ops = _marker_values(out_p, "MARKOP")
+                if "replace" in ops:
+                    break
+    finally:
+        _cancel_job(job_id)
+        _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
+
+    appends = ops.count("append")
+    if "replace" in ops:
+        r.result = "pass"
+        r.details = (
+            f"In-job post-commit compaction ran in a streaming job: {appends} append "
+            "commits plus a 'replace' (rewrite) snapshot, with no external scheduler "
+            "and no Spark. Configured entirely from SQL via flink-maintenance.* options"
+        )
+    elif ops:
+        r.result = "fail"
+        r.details = (
+            f"Streaming job committed {appends} snapshots but no rewrite commit appeared "
+            f"within {MAINTENANCE_POLL_SECONDS}s (operations={sorted(set(ops))})"
         )
     else:
         r.result = "fail"
-        r.details = f"In-job maintenance not usable from SQL: {_error_reason(out, 170)}"
+        r.details = "Streaming job started but no snapshots were committed"
     return r
 
 

@@ -223,11 +223,13 @@
     },
     "flink:table-maintenance:v2": {
       "level": "partial",
-      "notes": "Flink is the only engine that runs Iceberg maintenance inside its own job: IcebergSink post-commit tasks are configured from SQL with flink-maintenance.* options (RewriteDataFiles, ExpireSnapshots, DeleteOrphanFiles). The options are accepted, but no rewrite commit was observed from a batch SQL INSERT in this harness. There is no RewriteManifests task in 1.11, and the standalone TableMaintenance API is Java-only.",
+      "notes": "Flink is the only engine that runs Iceberg maintenance inside its own job. Verified on a streaming job writing to MinIO: with IcebergSink post-commit tasks configured purely from SQL (flink-maintenance.rewrite.*), 17 append commits were followed by a 'replace' snapshot, i.e. compaction ran with no external scheduler and no Spark. Requires a streaming job -- a bounded batch INSERT makes a single commit and ends, so scheduling never fires. Partial because there is no batch entry point from SQL and no rewrite_manifests task.",
       "caveats": [
-        "Post-commit maintenance is configured from SQL but was not observed to trigger in batch mode",
-        "No rewrite_manifests equivalent in the Flink maintenance API (1.11)",
-        "Requires the Sink V2 implementation (table.exec.iceberg.use-v2-sink=true); SQL lock type accepts only jdbc or zookeeper"
+        "Requires a streaming job and the Sink V2 implementation (table.exec.iceberg.use-v2-sink=true)",
+        "No SQL CALL procedures: Iceberg 1.11's Flink module implements no Flink Procedure SPI, so there is no equivalent to Spark's CALL system.rewrite_data_files",
+        "Batch maintenance is Java-only (org.apache.iceberg.flink.actions.Actions.rewriteDataFiles) and covers rewrite only",
+        "No rewrite_manifests task in the Flink maintenance API (1.11); ExpireSnapshots and DeleteOrphanFiles are available",
+        "SQL lock type accepts only jdbc or zookeeper"
       ],
       "links": [
         {
@@ -238,11 +240,13 @@
     },
     "flink:table-maintenance:v3": {
       "level": "partial",
-      "notes": "Flink is the only engine that runs Iceberg maintenance inside its own job: IcebergSink post-commit tasks are configured from SQL with flink-maintenance.* options (RewriteDataFiles, ExpireSnapshots, DeleteOrphanFiles). The options are accepted, but no rewrite commit was observed from a batch SQL INSERT in this harness. There is no RewriteManifests task in 1.11, and the standalone TableMaintenance API is Java-only.",
+      "notes": "Flink is the only engine that runs Iceberg maintenance inside its own job. Verified on a streaming job writing to MinIO: with IcebergSink post-commit tasks configured purely from SQL (flink-maintenance.rewrite.*), 17 append commits were followed by a 'replace' snapshot, i.e. compaction ran with no external scheduler and no Spark. Requires a streaming job -- a bounded batch INSERT makes a single commit and ends, so scheduling never fires. Partial because there is no batch entry point from SQL and no rewrite_manifests task.",
       "caveats": [
-        "Post-commit maintenance is configured from SQL but was not observed to trigger in batch mode",
-        "No rewrite_manifests equivalent in the Flink maintenance API (1.11)",
-        "Requires the Sink V2 implementation (table.exec.iceberg.use-v2-sink=true); SQL lock type accepts only jdbc or zookeeper"
+        "Requires a streaming job and the Sink V2 implementation (table.exec.iceberg.use-v2-sink=true)",
+        "No SQL CALL procedures: Iceberg 1.11's Flink module implements no Flink Procedure SPI, so there is no equivalent to Spark's CALL system.rewrite_data_files",
+        "Batch maintenance is Java-only (org.apache.iceberg.flink.actions.Actions.rewriteDataFiles) and covers rewrite only",
+        "No rewrite_manifests task in the Flink maintenance API (1.11); ExpireSnapshots and DeleteOrphanFiles are available",
+        "SQL lock type accepts only jdbc or zookeeper"
       ],
       "links": [
         {
