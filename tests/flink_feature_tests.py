@@ -359,6 +359,45 @@ def _v3_only(feature_id: str, feature_name: str) -> TestResult:
     return r
 
 
+def _rest_create_transform_partitioned(version: str, namespace: str = "test_db"):
+    """Create a day(ts)-partitioned table straight through the REST catalog API.
+
+    Flink DDL cannot express transform partitioning, so a table that exercises the
+    hidden-partitioning read/write path has to be created by something else. Going
+    to the catalog's own HTTP API avoids adding an engine or library just for this.
+    Returns the table name, or None if the catalog rejected the request.
+    """
+    import urllib.error
+    import urllib.request
+    base = REST_URI.rstrip("/")
+    name = _unique("hpext")
+    try:
+        with urllib.request.urlopen(f"{base}/v1/config?warehouse={REST_WAREHOUSE}", timeout=15) as resp:
+            prefix = json.load(resp)["defaults"]["prefix"]
+        body = {
+            "name": name,
+            "schema": {"type": "struct", "schema-id": 0, "fields": [
+                {"id": 1, "name": "id", "required": False, "type": "long"},
+                {"id": 2, "name": "ts", "required": False, "type": "timestamptz"},
+            ]},
+            "partition-spec": {"spec-id": 0, "fields": [
+                {"source-id": 2, "field-id": 1000, "name": "ts_day", "transform": "day"},
+            ]},
+            "stage-create": False,
+            "properties": {"format-version": _fmt(version)},
+        }
+        req = urllib.request.Request(
+            f"{base}/v1/{prefix}/namespaces/{namespace}/tables",
+            data=json.dumps(body).encode(),
+            headers={"Content-Type": "application/json"}, method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            json.load(resp)
+        return name
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def _external_service(feature_id: str, feature_name: str, version: str, what: str) -> TestResult:
     """Honest skip for a catalog that needs a service or credentials we lack."""
     r = TestResult(feature_id, feature_name, version)
@@ -490,22 +529,35 @@ def test_write_merge_update_delete(version: str) -> TestResult:
 # Row-level operations
 # ---------------------------------------------------------------------------
 
-def _upsert_delete_evidence(version: str, use_v2_sink: bool):
+def _upsert_delete_evidence(version: str, use_v2_sink: bool, same_batch: bool = False):
     """Run an upsert that must replace a row, and report the delete files written.
 
     Returns (ok, out, rows, delete_kinds). delete_kinds holds "<content>:<format>"
-    per delete file: content 1 = position deletes, 2 = equality deletes; a puffin
-    format means a V3 deletion vector.
+    per delete file: content 1 = position deletes, 2 = equality deletes, and a
+    puffin format on a position delete means a V3 deletion vector.
+
+    same_batch controls which delete flavour the writer produces, and the
+    distinction matters:
+      False - the duplicate key arrives in a later commit, so the writer can only
+              delete by key and emits an equality delete file.
+      True  - both versions of the key arrive in one statement, so the superseded
+              row is deleted by position within the file being written. On a V3
+              table that position delete is written as a deletion vector.
     """
     tbl = _unique("ups")
     stmts = _prelude(version)
     if use_v2_sink:
         stmts.append("SET 'table.exec.iceberg.use-v2-sink' = 'true'")
-    stmts += [
+    stmts.append(
         f"""CREATE TABLE {tbl} (id BIGINT, name STRING, PRIMARY KEY (id) NOT ENFORCED)
-            WITH ('format-version'='{_fmt(version)}', 'write.upsert.enabled'='true')""",
-        f"INSERT INTO {tbl} VALUES (1,'first'),(2,'second')",
-        f"INSERT INTO {tbl} VALUES (1,'updated')",
+            WITH ('format-version'='{_fmt(version)}', 'write.upsert.enabled'='true')"""
+    )
+    if same_batch:
+        stmts.append(f"INSERT INTO {tbl} VALUES (1,'first'),(1,'updated'),(2,'second')")
+    else:
+        stmts.append(f"INSERT INTO {tbl} VALUES (1,'first'),(2,'second')")
+        stmts.append(f"INSERT INTO {tbl} VALUES (1,'updated')")
+    stmts += [
         f"SELECT CONCAT('MARKROW=', CAST(id AS STRING), ':', name) AS m FROM {tbl} ORDER BY id",
         f"SELECT CONCAT('MARKDEL=', CAST(content AS STRING), ':', file_format) AS m FROM `{tbl}$delete_files`",
         f"DROP TABLE {tbl}",
@@ -618,38 +670,43 @@ def test_deletion_vectors(version: str) -> TestResult:
     if version == "v2":
         return _v3_only("deletion-vectors", "Deletion Vectors")
     r = TestResult("deletion-vectors", "Deletion Vectors", version)
-    # Iceberg 1.11 writes DVs from IcebergSink (the Sink V2 implementation), which
-    # is OFF by default (table.exec.iceberg.use-v2-sink=false). Test both sinks so
-    # the report distinguishes "unsupported" from "not the default".
-    ok_d, out_d, rows_d, del_d = _upsert_delete_evidence(version, use_v2_sink=False)
-    ok_v2, out_v2, rows_v2, del_v2 = _upsert_delete_evidence(version, use_v2_sink=True)
+    # Deletion vectors replace POSITION deletes, so the write has to produce a
+    # position delete to produce a DV. An upsert whose duplicate key arrives in a
+    # later commit can only delete by key and yields an equality delete file; when
+    # both versions arrive in the same statement, the superseded row is deleted by
+    # position and a V3 table records that as a puffin DV. Test the same-batch path
+    # under both sinks, and keep the cross-commit run for contrast.
+    ok_b, out_b, rows_b, del_b = _upsert_delete_evidence(version, False, same_batch=True)
+    ok_v2, out_v2, _, del_v2 = _upsert_delete_evidence(version, True, same_batch=True)
+    _, _, _, del_cross = _upsert_delete_evidence(version, False, same_batch=False)
 
-    def _has_dv(kinds):
+    def _dv(kinds):
+        # content 1 = position deletes; puffin on a position delete is a DV.
         return [k for k in kinds if "puffin" in k.lower()]
 
-    dv_default, dv_v2sink = _has_dv(del_d), _has_dv(del_v2)
-    if dv_default:
-        r.result = "pass"
-        r.details = f"Default sink wrote puffin deletion vectors: {dv_default}"
-    elif dv_v2sink:
+    dv_default, dv_sink2 = _dv(del_b), _dv(del_v2)
+    if not ok_b:
+        r.result = "error"
+        r.details = _error_reason(out_b)
+    elif dv_default and "1:updated" in rows_b:
         r.result = "pass"
         r.details = (
-            "Deletion vectors written only with the Sink V2 implementation enabled "
-            f"(table.exec.iceberg.use-v2-sink=true): {dv_v2sink}. The default sink wrote {del_d} instead"
+            f"V3 deletion vectors written from plain Flink SQL: {dv_default} "
+            f"(content=1 position deletes in puffin), alongside equality deletes for the "
+            f"key-based part ({[k for k in del_b if k not in dv_default]}), and the upsert "
+            f"result is correct (rows={rows_b}). Same-batch duplicate keys are required: an "
+            f"upsert split across commits writes only equality deletes ({del_cross}). "
+            f"The Sink V2 path behaves the same ({dv_sink2 or 'no DVs'})"
         )
-    elif ok_d and del_d:
+    elif del_b:
         r.result = "fail"
         r.details = (
-            f"No deletion vectors produced on a V3 table: the default sink wrote {del_d} "
-            f"and the Sink V2 path wrote {del_v2 or 'nothing'} (content=2 is equality "
-            "deletes in Parquet, not puffin DVs). Expected, on reflection: DVs replace "
-            "POSITION deletes, while upsert must delete by key and so writes equality "
-            "deletes by design. Flink SQL has no DELETE statement, so the DV write path "
-            "in the Iceberg 1.11 Flink sinks is not reachable from SQL at all"
+            f"No puffin deletion vectors on a V3 table; writer produced {del_b} "
+            f"(same batch) and {del_cross} (across commits)"
         )
     else:
-        r.result = "error"
-        r.details = _error_reason(out_d if not ok_d else out_v2)
+        r.result = "fail"
+        r.details = f"No delete files produced at all; rows={rows_b}"
     return r
 
 
@@ -915,27 +972,62 @@ def test_hidden_partitioning(version: str) -> TestResult:
             PARTITIONED BY (days(ts)) WITH ('format-version'='{_fmt(version)}')""",
         f"DROP TABLE {tbl}_t",
     ])
-    # Identity partitioning, which Flink does support.
-    ok_i, out_i = _run_sql(_prelude(version) + [
-        f"""CREATE TABLE {tbl}_i (id BIGINT, ts TIMESTAMP(6), region STRING)
-            PARTITIONED BY (region) WITH ('format-version'='{_fmt(version)}')""",
-        f"INSERT INTO {tbl}_i VALUES (1, TIMESTAMP '2026-01-01 00:00:00', 'eu')",
-        f"SELECT CONCAT('MARKPART=', CAST(COUNT(*) AS STRING)) AS m FROM `{tbl}_i$partitions`",
-        f"DROP TABLE {tbl}_i",
-    ])
     if ok_t:
         r.result = "pass"
         r.details = "Flink DDL accepted a transform-based (hidden) partition spec"
-    elif ok_i:
+        return r
+
+    # Flink cannot declare it, so create a day(ts)-partitioned table through the
+    # catalog API and check the half that actually matters: can Flink write into a
+    # hidden-partitioned table, honour the transform, and prune on it?
+    ext = _rest_create_transform_partitioned(version)
+    if not ext:
         r.result = "fail"
         r.details = (
-            "Only identity partitioning is expressible in Flink DDL; transform "
-            f"partitioning is a parser error: {_error_reason(out_t, 110)}. "
-            "Flink can still read/write hidden-partitioned tables created elsewhere"
+            f"Transform partitioning is a parser error in Flink DDL "
+            f"({_error_reason(out_t, 110)}); could not create a hidden-partitioned "
+            "table through the catalog API to test the read/write path"
+        )
+        return r
+
+    ok_e, out_e = _run_sql(_prelude(version) + [
+        f"""INSERT INTO {ext} VALUES
+            (1, TIMESTAMP '2026-01-01 10:00:00'),
+            (2, TIMESTAMP '2026-01-02 10:00:00'),
+            (3, TIMESTAMP '2026-01-01 20:00:00')""",
+        f"SELECT CONCAT('MARKALL=', CAST(COUNT(*) AS STRING)) AS m FROM {ext}",
+        # 3 rows across 2 distinct days: 2 partitions proves the day() transform
+        # was applied by Flink on write, not ignored.
+        f"SELECT CONCAT('MARKPARTS=', CAST(COUNT(*) AS STRING)) AS m FROM `{ext}$partitions`",
+        # Filtering on the source column must prune via the hidden partition.
+        f"SELECT CONCAT('MARKPRUNE=', CAST(COUNT(*) AS STRING)) AS m FROM {ext} "
+        f"WHERE ts < TIMESTAMP '2026-01-02 00:00:00'",
+        f"DROP TABLE {ext}",
+    ])
+    wrote = _marker(out_e, "MARKALL=3") and _marker(out_e, "MARKPARTS=2")
+    if ok_e and wrote and _marker(out_e, "MARKPRUNE=2"):
+        r.result = "pass"
+        r.details = (
+            "Flink cannot declare transform partitioning (PARTITIONED BY (days(ts)) is a "
+            "parser error), but on a day(ts)-partitioned table created through the catalog "
+            "API it wrote 3 rows into the correct 2 day-partitions and pruned correctly "
+            "when filtering the source column. So the gap is DDL-only: hidden-partitioned "
+            "tables must be created elsewhere, then Flink reads and writes them properly"
+        )
+    elif ok_e:
+        r.result = "fail"
+        r.details = (
+            "Flink cannot declare transform partitioning, and on an externally created "
+            f"hidden-partitioned table the write did not honour it: rows="
+            f"{_marker_values(out_e, 'MARKALL')}, partitions={_marker_values(out_e, 'MARKPARTS')}, "
+            f"pruned={_marker_values(out_e, 'MARKPRUNE')}"
         )
     else:
-        r.result = "error"
-        r.details = _error_reason(out_i)
+        r.result = "fail"
+        r.details = (
+            f"Transform partitioning not declarable in Flink DDL, and writing to an "
+            f"externally created hidden-partitioned table failed: {_error_reason(out_e, 130)}"
+        )
     return r
 
 

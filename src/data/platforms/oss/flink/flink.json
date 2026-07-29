@@ -132,9 +132,9 @@
     },
     "flink:hidden-partitioning:v2": {
       "level": "partial",
-      "notes": "Flink DDL accepts only plain column names in PARTITIONED BY; a transform such as days(ts) is a parser error, so hidden-partitioned tables must be created by another engine. Flink reads and writes such tables correctly once they exist.",
+      "notes": "The gap is DDL-only. Flink cannot declare transform partitioning -- PARTITIONED BY (days(ts)) is a parser error, and PARTITIONED BY accepts only plain column names. Verified against a day(ts)-partitioned table created through the catalog REST API: Flink wrote 3 rows into the correct 2 day partitions and pruned correctly when filtering the source column, so hidden partitioning works fully once the table is created by another engine.",
       "caveats": [
-        "Flink DDL cannot declare transform (hidden) partitioning; identity columns only"
+        "Hidden-partitioned tables must be created by another engine; Flink DDL supports identity partition columns only"
       ],
       "links": [
         {
@@ -145,9 +145,9 @@
     },
     "flink:hidden-partitioning:v3": {
       "level": "partial",
-      "notes": "Flink DDL accepts only plain column names in PARTITIONED BY; a transform such as days(ts) is a parser error, so hidden-partitioned tables must be created by another engine. Flink reads and writes such tables correctly once they exist.",
+      "notes": "The gap is DDL-only. Flink cannot declare transform partitioning -- PARTITIONED BY (days(ts)) is a parser error, and PARTITIONED BY accepts only plain column names. Verified against a day(ts)-partitioned table created through the catalog REST API: Flink wrote 3 rows into the correct 2 day partitions and pruned correctly when filtering the source column, so hidden partitioning works fully once the table is created by another engine.",
       "caveats": [
-        "Flink DDL cannot declare transform (hidden) partitioning; identity columns only"
+        "Hidden-partitioned tables must be created by another engine; Flink DDL supports identity partition columns only"
       ],
       "links": [
         {
@@ -684,11 +684,11 @@
       "links": []
     },
     "flink:deletion-vectors:v3": {
-      "level": "partial",
-      "notes": "Iceberg 1.11 added deletion vector writes to the Flink sinks, but the path is not reachable from Flink SQL: DVs replace position deletes, whereas upsert deletes by key and so writes equality deletes, and Flink SQL has no DELETE statement. Verified on a V3 table: both the default sink and the Sink V2 implementation wrote Parquet equality delete files (content=2), never puffin DVs.",
+      "level": "full",
+      "notes": "Verified from plain Flink SQL on a V3 table: an upsert whose duplicate key arrives in the same statement deletes the superseded row by position, and that position delete is written as a puffin deletion vector (content=1, file_format=PUFFIN), alongside a Parquet equality delete for the key-based part. Both the default sink and the Sink V2 implementation behave the same.",
       "caveats": [
-        "Not reachable from Flink SQL; requires the Java sink APIs",
-        "Upsert mode writes equality deletes by design, not deletion vectors"
+        "Deletion vectors replace position deletes only; the key-based part of an upsert still writes Parquet equality delete files",
+        "An upsert split across commits produces equality deletes with no DV, since there is no position to delete by"
       ],
       "links": [
         {
