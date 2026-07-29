@@ -1,0 +1,112 @@
+name: AWS Platform Tests
+
+# Runs the Iceberg feature suite against managed AWS engines and compares the
+# results with the matrix cells, the same way the OSS engine workflows do.
+#
+# Deliberately NOT triggered by pull_request: this spends real money and assumes
+# an IAM role. Dispatch only, gated by the aws-live environment (required
+# reviewer), and the OIDC trust policy is scoped to that environment so a token
+# minted anywhere else cannot assume the role.
+#
+# Only EMR Serverless is implemented. The engine input exists so Athena and Glue
+# can be added without restructuring; they fail fast until then.
+
+on:
+  workflow_dispatch:
+    inputs:
+      engine:
+        description: Engine to test
+        type: choice
+        default: emr-serverless
+        options:
+          - emr-serverless
+          - athena       # not implemented
+          - glue         # not implemented
+      modes:
+        description: Storage mode(s)
+        type: choice
+        default: both
+        options: [both, s3buckets, s3tables]
+      release-label:
+        description: EMR release label
+        type: string
+        default: emr-8.0.0
+      dry-run:
+        description: Assume the role and stop (proves OIDC without spending)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  # Shared AWS resources: never let two runs overlap.
+  group: aws-live
+  cancel-in-progress: false
+
+jobs:
+  platform-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: aws-live
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      RUN_TAG: icebergmatrix-${{ github.run_id }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_DATA_BUCKET: ${{ secrets.AWS_DATA_BUCKET }}
+      AWS_EMR_JOB_ROLE_ARN: ${{ secrets.AWS_EMR_JOB_ROLE_ARN }}
+      AWS_TABLE_BUCKET_ARN: ${{ secrets.AWS_TABLE_BUCKET_ARN }}
+      RESOURCE_PREFIX: icebergmatrix
+      ENGINE: emr
+
+    steps:
+      - name: Reject unimplemented engines
+        if: inputs.engine != 'emr-serverless'
+        run: |
+          echo "::error::'${{ inputs.engine }}' is not implemented yet; only emr-serverless is."
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: ${{ github.run_id }}
+
+      - name: Verify assumed identity
+        run: aws sts get-caller-identity
+
+      - name: Stop here on dry run
+        if: inputs.dry-run
+        run: 'echo "Dry run complete: OIDC trust and environment gate verified, nothing provisioned."'
+
+      # No continue-on-error: the driver exits non-zero when a job run fails or
+      # a report contains discrepancies or errors, and that should fail the job.
+      # Teardown still runs because it is guarded with always().
+      - name: Run feature suite on EMR Serverless
+        if: '!inputs.dry-run'
+        env:
+          MODES: ${{ inputs.modes }}
+          EMR_RELEASE_LABEL: ${{ inputs.release-label }}
+        run: uv run --with boto3 python tests/aws/run_emr_serverless.py
+
+      - name: Tear down billable resources
+        if: always() && !inputs.dry-run
+        run: uv run --with boto3 python tests/aws/teardown.py
+
+      - name: Upload reports
+        if: always() && !inputs.dry-run
+        uses: actions/upload-artifact@v4
+        with:
+          name: aws-emr-platform-test-report
+          path: test-reports/
+          if-no-files-found: warn

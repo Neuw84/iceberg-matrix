@@ -1,0 +1,286 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  OIDC trust and IAM roles for iceberg-matrix platform tests on EMR Serverless.
+  Creates a CI role assumed by GitHub Actions via OIDC (scoped to a single
+  GitHub environment) and a job execution role assumed by EMR Serverless.
+  Deploy with: --capabilities CAPABILITY_NAMED_IAM
+
+Parameters:
+  GitHubRepo:
+    Type: String
+    Default: Neuw84/iceberg-matrix
+    Description: owner/repo allowed to assume the CI role
+  EnvironmentName:
+    Type: String
+    Default: aws-live
+    Description: >
+      GitHub environment name. Must match the environment used by the workflow
+      job: the OIDC subject claim is scoped to it, so tokens minted from any
+      other context (pull requests, other branches) cannot assume the role.
+  DataBucket:
+    Type: String
+    Description: Existing S3 bucket for warehouse data, job scripts, logs and reports
+  TableBucketArn:
+    Type: String
+    Description: Existing S3 Tables bucket ARN, e.g. arn:aws:s3tables:eu-west-1:123456789012:bucket/my-tables
+  ResourcePrefix:
+    Type: String
+    Default: icebergmatrix
+    Description: Prefix for created Glue databases and S3 Tables namespaces; IAM is scoped to it
+  ExistingOidcProviderArn:
+    Type: String
+    Default: ''
+    Description: >
+      Leave empty to create the GitHub OIDC provider. If your account already
+      has one, paste its ARN here (a second provider for the same URL fails).
+  MonthlyBudgetUsd:
+    Type: Number
+    Default: 20
+    Description: Monthly cost budget for the account
+  BudgetNotificationEmail:
+    Type: String
+    Default: ''
+    Description: Optional email for budget alerts at 80% of the limit
+
+Conditions:
+  CreateOidcProvider: !Equals [!Ref ExistingOidcProviderArn, '']
+  HasBudgetEmail: !Not [!Equals [!Ref BudgetNotificationEmail, '']]
+
+Resources:
+
+  # ---------------------------------------------------------------------------
+  # GitHub Actions OIDC provider. Both thumbprints are GitHub's published
+  # intermediate CA fingerprints; IAM validates the chain itself, but the
+  # property is expected here.
+  # ---------------------------------------------------------------------------
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: CreateOidcProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+      ThumbprintList:
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+        - 1c58a3a8518e8759bf075b76b750d4f2df264fcd
+
+  # ---------------------------------------------------------------------------
+  # Job execution role: assumed by EMR Serverless, not by GitHub. This is the
+  # identity that actually reads and writes table data.
+  # ---------------------------------------------------------------------------
+  EmrJobRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ResourcePrefix}-emr-job'
+      Description: Execution role for iceberg-matrix EMR Serverless jobs
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: emr-serverless.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Ref AWS::AccountId
+      Policies:
+
+        - PolicyName: s3-data-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${DataBucket}/*'
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${DataBucket}'
+
+        # Glue Data Catalog as the Iceberg catalog for the s3buckets mode.
+        - PolicyName: glue-catalog-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:GetDatabase
+                  - glue:GetDatabases
+                  - glue:CreateDatabase
+                  - glue:DeleteDatabase
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:CreateTable
+                  - glue:UpdateTable
+                  - glue:DeleteTable
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:catalog'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:database/${ResourcePrefix}*'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:table/${ResourcePrefix}*/*'
+
+        # S3 Tables as the Iceberg catalog for the s3tables mode. Deliberately
+        # broad on the one table bucket for the first runs; narrow this once you
+        # have seen which calls the writes actually make.
+        - PolicyName: s3tables-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3tables:*
+                Resource:
+                  - !Ref TableBucketArn
+                  - !Sub '${TableBucketArn}/*'
+
+  # ---------------------------------------------------------------------------
+  # CI role: assumed by GitHub Actions via OIDC. Drives EMR Serverless and
+  # cleans up afterwards. It never touches table data directly.
+  # ---------------------------------------------------------------------------
+  CiRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ResourcePrefix}-ci'
+      Description: Assumed by GitHub Actions to run iceberg-matrix platform tests
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If
+                - CreateOidcProvider
+                - !Ref GitHubOidcProvider
+                - !Ref ExistingOidcProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'token.actions.githubusercontent.com:aud': sts.amazonaws.com
+                # Environment-scoped: this is the enforcement point.
+                'token.actions.githubusercontent.com:sub': !Sub 'repo:${GitHubRepo}:environment:${EnvironmentName}'
+      Policies:
+
+        - PolicyName: drive-emr-serverless
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # CreateApplication and List* cannot be scoped to a resource.
+              - Effect: Allow
+                Action:
+                  - emr-serverless:CreateApplication
+                  - emr-serverless:ListApplications
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - emr-serverless:GetApplication
+                  - emr-serverless:StartApplication
+                  - emr-serverless:StopApplication
+                  - emr-serverless:DeleteApplication
+                  - emr-serverless:TagResource
+                  - emr-serverless:UntagResource
+                  - emr-serverless:StartJobRun
+                  - emr-serverless:GetJobRun
+                  - emr-serverless:ListJobRuns
+                  - emr-serverless:CancelJobRun
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:emr-serverless:${AWS::Region}:${AWS::AccountId}:/applications/*'
+
+              # Hand the job role to EMR Serverless, and nothing else.
+              - Effect: Allow
+                Action: iam:PassRole
+                Resource: !GetAtt EmrJobRole.Arn
+                Condition:
+                  StringEquals:
+                    'iam:PassedToService': emr-serverless.amazonaws.com
+
+        - PolicyName: s3-scripts-and-reports
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${DataBucket}/*'
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${DataBucket}'
+
+        # Teardown of catalog objects the job created. Read + delete only:
+        # the CI role must not be able to create tables.
+        - PolicyName: teardown-catalog-objects
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:GetDatabase
+                  - glue:GetDatabases
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:DeleteTable
+                  - glue:DeleteDatabase
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:catalog'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:database/${ResourcePrefix}*'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:table/${ResourcePrefix}*/*'
+              - Effect: Allow
+                Action:
+                  - s3tables:GetTableBucket
+                  - s3tables:ListNamespaces
+                  - s3tables:GetNamespace
+                  - s3tables:ListTables
+                  - s3tables:GetTable
+                  - s3tables:GetTableMetadataLocation
+                  - s3tables:DeleteTable
+                  - s3tables:DeleteNamespace
+                Resource:
+                  - !Ref TableBucketArn
+                  - !Sub '${TableBucketArn}/*'
+
+  # ---------------------------------------------------------------------------
+  # Cost guard. Not a limit, only an alarm: AWS budgets cannot stop spend.
+  # ---------------------------------------------------------------------------
+  CostGuard:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName: !Sub '${ResourcePrefix}-ci'
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit:
+          Amount: !Ref MonthlyBudgetUsd
+          Unit: USD
+      NotificationsWithSubscribers: !If
+        - HasBudgetEmail
+        - - Notification:
+              NotificationType: ACTUAL
+              ComparisonOperator: GREATER_THAN
+              Threshold: 80
+              ThresholdType: PERCENTAGE
+            Subscribers:
+              - SubscriptionType: EMAIL
+                Address: !Ref BudgetNotificationEmail
+        - !Ref AWS::NoValue
+
+Outputs:
+  CiRoleArn:
+    Description: Set as the AWS_CI_ROLE_ARN environment secret in GitHub
+    Value: !GetAtt CiRole.Arn
+  EmrJobRoleArn:
+    Description: Set as the AWS_EMR_JOB_ROLE_ARN environment secret in GitHub
+    Value: !GetAtt EmrJobRole.Arn
+  DataBucketName:
+    Description: Set as the AWS_DATA_BUCKET environment secret in GitHub
+    Value: !Ref DataBucket
+  TableBucketArnOut:
+    Description: Set as the AWS_TABLE_BUCKET_ARN environment secret in GitHub
+    Value: !Ref TableBucketArn
+  ResourcePrefixOut:
+    Description: Glue databases and S3 Tables namespaces must start with this
+    Value: !Ref ResourcePrefix
