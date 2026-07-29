@@ -334,9 +334,12 @@
       ]
     },
     "aws-emr:geometry-type:v3": {
-      "level": "unknown",
-      "notes": "Geometry type support with S3 Tables not explicitly documented",
-      "caveats": []
+      "level": "none",
+      "notes": "No geospatial path through EMR's Spark runtime against S3 Tables: the Iceberg Spark connector has no type mapping for GEOMETRY/GEOGRAPHY, so creating a V3 table with those columns fails.",
+      "caveats": [
+        "Inferred from the OSS Spark result (Spark 4.1.2 + Iceberg 1.11.0 reject 'geometry(4326)'), not measured on EMR itself",
+        "Not documented for AWS EMR with S3 Tables"
+      ]
     },
     "aws-emr:nanosecond-timestamps:v3": {
       "level": "unknown",
