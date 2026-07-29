@@ -1,0 +1,44 @@
+{
+  "Rules": [
+    {
+      "ID": "abort-incomplete-multipart-uploads",
+      "Status": "Enabled",
+      "Filter": { "Prefix": "" },
+      "AbortIncompleteMultipartUpload": { "DaysAfterInitiation": 1 }
+    },
+    {
+      "ID": "clean-noncurrent-versions-and-delete-markers",
+      "Status": "Enabled",
+      "Filter": { "Prefix": "" },
+      "NoncurrentVersionExpiration": { "NoncurrentDays": 1 },
+      "Expiration": { "ExpiredObjectDeleteMarker": true }
+    },
+
+    { "ID": "emr-warehouse-1d", "Status": "Enabled",
+      "Filter": { "Prefix": "emr/warehouse/" }, "Expiration": { "Days": 1 } },
+    { "ID": "emr-logs-1d", "Status": "Enabled",
+      "Filter": { "Prefix": "emr/logs/" }, "Expiration": { "Days": 1 } },
+    { "ID": "emr-scripts-7d", "Status": "Enabled",
+      "Filter": { "Prefix": "emr/scripts/" }, "Expiration": { "Days": 7 } },
+    { "ID": "emr-reports-30d", "Status": "Enabled",
+      "Filter": { "Prefix": "emr/reports/" }, "Expiration": { "Days": 30 } },
+
+    { "ID": "glue-warehouse-1d", "Status": "Enabled",
+      "Filter": { "Prefix": "glue/warehouse/" }, "Expiration": { "Days": 1 } },
+    { "ID": "glue-logs-1d", "Status": "Enabled",
+      "Filter": { "Prefix": "glue/logs/" }, "Expiration": { "Days": 1 } },
+    { "ID": "glue-scripts-7d", "Status": "Enabled",
+      "Filter": { "Prefix": "glue/scripts/" }, "Expiration": { "Days": 7 } },
+    { "ID": "glue-reports-30d", "Status": "Enabled",
+      "Filter": { "Prefix": "glue/reports/" }, "Expiration": { "Days": 30 } },
+
+    { "ID": "athena-warehouse-1d", "Status": "Enabled",
+      "Filter": { "Prefix": "athena/warehouse/" }, "Expiration": { "Days": 1 } },
+    { "ID": "athena-results-1d", "Status": "Enabled",
+      "Filter": { "Prefix": "athena/results/" }, "Expiration": { "Days": 1 } },
+    { "ID": "athena-scripts-7d", "Status": "Enabled",
+      "Filter": { "Prefix": "athena/scripts/" }, "Expiration": { "Days": 7 } },
+    { "ID": "athena-reports-30d", "Status": "Enabled",
+      "Filter": { "Prefix": "athena/reports/" }, "Expiration": { "Days": 30 } }
+  ]
+}

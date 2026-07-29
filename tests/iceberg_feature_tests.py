@@ -55,6 +55,27 @@ ICEBERG_JAR = os.environ.get(
     f"iceberg-spark-runtime-{SPARK_VERSION_SHORT}_2.13-{ICEBERG_VERSION}.jar",
 )
 
+# ---------------------------------------------------------------------------
+# Platform targeting. By default this suite measures OSS Spark and compares
+# against the spark cells. A managed platform (EMR Serverless, Glue, ...) reuses
+# the same tests by pointing these at its own catalog and matrix cells.
+# ---------------------------------------------------------------------------
+# Which matrix cells to compare against.
+MATRIX_PLATFORM_ID = os.environ.get("MATRIX_PLATFORM_ID", "spark")
+MATRIX_DATA_PATH = os.environ.get(
+    "MATRIX_DATA_PATH", "src/data/platforms/oss/spark/spark.json"
+)
+# Free-text label for the runtime under test, recorded in the report so a cell
+# that changes later is attributable (e.g. "emr-8.0.0 / s3buckets").
+PLATFORM_LABEL = os.environ.get("PLATFORM_LABEL", "")
+# When set, the primary catalog is built from a catalog-impl rather than REST or
+# Hadoop, and spark-submit owns the jars and the master.
+CATALOG_IMPL = os.environ.get("ICEBERG_CATALOG_IMPL", "")
+CATALOG_WAREHOUSE = os.environ.get("ICEBERG_CATALOG_WAREHOUSE", "")
+# Namespace/database prefix. Managed catalogs are usually IAM-scoped to a name
+# prefix, so this has to be overridable.
+NS_PREFIX = os.environ.get("MATRIX_NS_PREFIX", "ns_")
+
 # REST catalog configuration. An Iceberg REST catalog is the default: the suite
 # targets DEFAULT_REST_URI unless ICEBERG_REST_URI says otherwise. Setting
 # ICEBERG_REST_URI to an empty string opts out and uses the Hadoop catalog.
@@ -138,8 +159,13 @@ def _unique(prefix: str = "t") -> str:
 
 
 def _ns() -> str:
-    """Return a unique namespace (database) name."""
-    return f"ns_{uuid.uuid4().hex[:8]}"
+    """Return a unique namespace (database) name.
+
+    Prefixed with MATRIX_NS_PREFIX so runs against an IAM-scoped catalog (for
+    example Glue, where the CI role is limited to a name prefix) create objects
+    the role is actually allowed to touch.
+    """
+    return f"{NS_PREFIX}{uuid.uuid4().hex[:8]}"
 
 
 def _fmt(version: str) -> str:
@@ -207,10 +233,14 @@ def get_spark():
         jar_coord = None
         print(f"[INFO] Using JARs: {', '.join(jar_paths)}")
 
+    builder = SparkSession.builder.appName("IcebergFeatureTests")
+    if not CATALOG_IMPL:
+        # Local runs need an explicit master. Under spark-submit on a managed
+        # platform the runtime supplies it, and forcing local[*] there would
+        # quietly run the whole job inside the driver container.
+        builder = builder.master("local[*]")
     builder = (
-        SparkSession.builder
-        .appName("IcebergFeatureTests")
-        .master("local[*]")
+        builder
         .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
         .config("spark.sql.defaultCatalog", "local")
         .config("spark.sql.adaptive.enabled", "false")
@@ -229,7 +259,15 @@ def get_spark():
         .config("spark.sql.catalog.hadoop_local.warehouse", WAREHOUSE_URI)
     )
 
-    if REST_URI:
+    if CATALOG_IMPL:
+        print(f"[INFO] Primary catalog: {CATALOG_IMPL} (warehouse {CATALOG_WAREHOUSE})")
+        builder = (
+            builder
+            .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
+            .config("spark.sql.catalog.local.catalog-impl", CATALOG_IMPL)
+            .config("spark.sql.catalog.local.warehouse", CATALOG_WAREHOUSE)
+        )
+    elif REST_URI:
         print(f"[INFO] Primary catalog: REST at {REST_URI} (warehouse {REST_WAREHOUSE})")
         builder = (
             builder
@@ -1432,20 +1470,20 @@ ALL_TESTS = [
 # ---------------------------------------------------------------------------
 
 def load_spark_json_support() -> dict:
-    """Load the JSON support levels for Spark from the nested matrix data.
+    """Load the matrix support levels for the platform under test.
 
     Returns a dict keyed by (feature_id, version) -> level. Reads the nested
-    per-engine file src/data/platforms/oss/spark/spark.json.
+    per-engine file at MATRIX_DATA_PATH and keeps only the keys belonging to
+    MATRIX_PLATFORM_ID, so the same suite can be compared against oss/spark or
+    against a managed platform such as aws/s3buckets/emr.
     """
-    spark_path = os.path.join(
-        REPO_ROOT, "src", "data", "platforms", "oss", "spark", "spark.json"
-    )
-    with open(spark_path) as f:
+    path = os.path.join(REPO_ROOT, *MATRIX_DATA_PATH.split("/"))
+    with open(path) as f:
         data = json.load(f)
     result = {}
     for key, val in data.get("support", {}).items():
         parts = key.split(":")
-        if len(parts) == 3 and parts[0] == "spark":
+        if len(parts) == 3 and parts[0] == MATRIX_PLATFORM_ID:
             feature_id = parts[1]
             version = parts[2]
             result[(feature_id, version)] = val.get("level", "unknown")
@@ -1536,7 +1574,13 @@ def generate_report(results: list[TestResult]) -> dict:
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "spark_version": spark_version,
         "iceberg_version": ICEBERG_VERSION,
-        "catalog_mode": f"REST ({REST_URI})" if REST_URI else "Hadoop (local filesystem)",
+        "platform": MATRIX_PLATFORM_ID,
+        "platform_label": PLATFORM_LABEL,
+        "catalog_mode": (
+            f"{CATALOG_IMPL} ({CATALOG_WAREHOUSE})" if CATALOG_IMPL
+            else f"REST ({REST_URI})" if REST_URI
+            else "Hadoop (local filesystem)"
+        ),
         "versions_tested": VERSIONS,
         "coverage": compute_coverage(results),
         "tests": tests_output,
@@ -1561,6 +1605,8 @@ def generate_markdown(report: dict) -> str:
     lines.append(f"- **Spark Version:** {report['spark_version']}")
     lines.append(f"- **Iceberg Version:** {report['iceberg_version']}")
     lines.append(f"- **Catalog:** {report.get('catalog_mode', 'unknown')}")
+    if report.get("platform_label"):
+        lines.append(f"- **Platform:** {report['platform_label']}")
     lines.append(f"- **Format Versions Tested:** {', '.join(report.get('versions_tested', []))}")
     lines.append("")
 
@@ -1639,7 +1685,11 @@ def main():
     print(f"Warehouse: {WAREHOUSE_DIR}")
     print(f"Repo root: {REPO_ROOT}")
     print(f"Iceberg version: {ICEBERG_VERSION}")
-    print(f"Catalog: {'REST at ' + REST_URI if REST_URI else 'Hadoop (local filesystem)'}")
+    if CATALOG_IMPL:
+        print(f"Catalog: {CATALOG_IMPL} (warehouse {CATALOG_WAREHOUSE})")
+    else:
+        print(f"Catalog: {'REST at ' + REST_URI if REST_URI else 'Hadoop (local filesystem)'}")
+    print(f"Matrix target: {MATRIX_PLATFORM_ID} from {MATRIX_DATA_PATH}")
     print(f"Versions under test: {', '.join(VERSIONS)}")
     print()
 
