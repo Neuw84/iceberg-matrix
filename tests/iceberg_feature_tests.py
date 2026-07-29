@@ -11,13 +11,25 @@ The goal is parity: the test outcome for every (feature, version) pair should
 agree with the support level recorded in the matrix data. Any disagreement is
 reported as a "discrepancy".
 
+The primary catalog ("local") is an Iceberg REST catalog by default (e.g.
+apache/iceberg-rest-fixture backed by MinIO, which is what CI runs). The suite
+looks for one at http://127.0.0.1:8181 unless ICEBERG_REST_URI points
+elsewhere. If no catalog answers there and none was explicitly requested, the
+suite falls back to a local Hadoop catalog so it still runs standalone; when
+ICEBERG_REST_URI *was* set explicitly, an unreachable catalog is left to fail
+loudly rather than silently downgrading CI. Set ICEBERG_REST_URI to an empty
+string to ask for the Hadoop catalog on purpose. A secondary local-filesystem
+Hadoop catalog ("hadoop_local") is always configured for the hadoop-catalog
+feature test.
+
 Usage:
     python tests/iceberg_feature_tests.py
 
 Requirements:
     - Java 17
-    - PySpark 4.0.x
+    - PySpark 4.1.x
     - iceberg-spark-runtime JAR on classpath (or downloaded automatically)
+    - iceberg-aws-bundle JAR when using the REST catalog with S3/MinIO
 """
 
 import json
@@ -25,6 +37,8 @@ import os
 import sys
 import traceback
 import shutil
+import urllib.error
+import urllib.request
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -32,12 +46,26 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-SPARK_VERSION_SHORT = "4.0"
-ICEBERG_VERSION = os.environ.get("ICEBERG_VERSION", "1.10.1")
+SPARK_VERSION_SHORT = os.environ.get("SPARK_VERSION", "4.1")
+ICEBERG_VERSION = os.environ.get("ICEBERG_VERSION", "1.11.0")
+# ICEBERG_JAR may be a comma-separated list of local JARs (e.g. the Spark
+# runtime plus the AWS bundle needed for S3FileIO against MinIO).
 ICEBERG_JAR = os.environ.get(
     "ICEBERG_JAR",
     f"iceberg-spark-runtime-{SPARK_VERSION_SHORT}_2.13-{ICEBERG_VERSION}.jar",
 )
+
+# REST catalog configuration. An Iceberg REST catalog is the default: the suite
+# targets DEFAULT_REST_URI unless ICEBERG_REST_URI says otherwise. Setting
+# ICEBERG_REST_URI to an empty string opts out and uses the Hadoop catalog.
+DEFAULT_REST_URI = "http://127.0.0.1:8181"
+REST_URI_EXPLICIT = "ICEBERG_REST_URI" in os.environ
+REST_URI = os.environ.get("ICEBERG_REST_URI", DEFAULT_REST_URI)
+REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "s3://warehouse/")
+S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", "http://127.0.0.1:9000")
+S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "admin")
+S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "password")
+S3_REGION = os.environ.get("ICEBERG_S3_REGION", "us-east-1")
 WAREHOUSE_DIR = os.path.abspath(
     os.environ.get(
         "ICEBERG_WAREHOUSE", os.path.join(os.getcwd(), "iceberg-test-warehouse")
@@ -61,6 +89,47 @@ VERSIONS = ["v2", "v3"]
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+def _rest_reachable(uri: str, timeout: float = 2.0) -> bool:
+    """True when something answers the Iceberg REST config endpoint at ``uri``."""
+    if not uri:
+        return False
+    url = f"{uri.rstrip('/')}/v1/config"
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as resp:  # noqa: S310
+            return resp.status < 500
+    except urllib.error.HTTPError as e:
+        # 4xx still means a catalog is listening (e.g. missing warehouse param).
+        return e.code < 500
+    except Exception:
+        return False
+
+
+def _resolve_rest_uri() -> str:
+    """Decide whether to run against the REST catalog or the Hadoop fallback.
+
+    Returns the REST URI to use, or "" to signal the Hadoop catalog. An
+    explicitly requested catalog is never silently dropped: if ICEBERG_REST_URI
+    was set and nothing answers, the URI is kept so the failure surfaces
+    instead of CI quietly testing a different catalog.
+    """
+    if not REST_URI:
+        print("[INFO] ICEBERG_REST_URI is empty; using the local Hadoop catalog")
+        return ""
+    if _rest_reachable(REST_URI):
+        return REST_URI
+    if REST_URI_EXPLICIT:
+        print(f"[WARN] No Iceberg REST catalog answering at {REST_URI}, but it was "
+              "requested explicitly via ICEBERG_REST_URI; continuing so the failure is visible")
+        return REST_URI
+    print(f"[INFO] No Iceberg REST catalog at {REST_URI}; falling back to the local Hadoop catalog")
+    return ""
+
+
+# Resolved once at import: the REST catalog when one answers (the default),
+# otherwise "" meaning the local Hadoop catalog.
+REST_URI = _resolve_rest_uri()
+
 
 def _unique(prefix: str = "t") -> str:
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
@@ -112,35 +181,35 @@ def get_spark():
 
     from pyspark.sql import SparkSession
 
-    # Locate the JAR
-    jar_path = None
-    candidates = [
-        ICEBERG_JAR,
-        os.path.join(os.getcwd(), ICEBERG_JAR),
-        os.path.join(os.path.dirname(__file__), ICEBERG_JAR),
-        os.path.join(os.path.dirname(__file__), "..", ICEBERG_JAR),
-    ]
-    for c in candidates:
-        if os.path.isfile(c):
-            jar_path = os.path.abspath(c)
-            break
+    # Locate the JAR(s). ICEBERG_JAR may be a comma-separated list.
+    jar_paths = []
+    for jar in [j.strip() for j in ICEBERG_JAR.split(",") if j.strip()]:
+        candidates = [
+            jar,
+            os.path.join(os.getcwd(), jar),
+            os.path.join(os.path.dirname(__file__), jar),
+            os.path.join(os.path.dirname(__file__), "..", jar),
+        ]
+        for c in candidates:
+            if os.path.isfile(c):
+                jar_paths.append(os.path.abspath(c))
+                break
 
-    if jar_path is None:
+    if not jar_paths:
         # Try Maven coordinates
         jar_coord = f"org.apache.iceberg:iceberg-spark-runtime-{SPARK_VERSION_SHORT}_2.13:{ICEBERG_VERSION}"
+        if REST_URI:
+            jar_coord += f",org.apache.iceberg:iceberg-aws-bundle:{ICEBERG_VERSION}"
         print(f"[INFO] JAR not found locally, using Maven coordinates: {jar_coord}")
     else:
         jar_coord = None
-        print(f"[INFO] Using JAR: {jar_path}")
+        print(f"[INFO] Using JARs: {', '.join(jar_paths)}")
 
     builder = (
         SparkSession.builder
         .appName("IcebergFeatureTests")
         .master("local[*]")
         .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
-        .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
-        .config("spark.sql.catalog.local.type", "hadoop")
-        .config("spark.sql.catalog.local.warehouse", WAREHOUSE_URI)
         .config("spark.sql.defaultCatalog", "local")
         .config("spark.sql.adaptive.enabled", "false")
         .config("spark.driver.memory", "2g")
@@ -151,10 +220,39 @@ def get_spark():
         # consulted, so the V3 geometry test would report a Spark gate as a
         # missing Iceberg feature.
         .config("spark.sql.geospatial.enabled", "true")
+        # Secondary local-filesystem Hadoop catalog, always available, used by
+        # the hadoop-catalog feature test.
+        .config("spark.sql.catalog.hadoop_local", "org.apache.iceberg.spark.SparkCatalog")
+        .config("spark.sql.catalog.hadoop_local.type", "hadoop")
+        .config("spark.sql.catalog.hadoop_local.warehouse", WAREHOUSE_URI)
     )
 
-    if jar_path:
-        builder = builder.config("spark.jars", jar_path)
+    if REST_URI:
+        print(f"[INFO] Primary catalog: REST at {REST_URI} (warehouse {REST_WAREHOUSE})")
+        builder = (
+            builder
+            .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
+            .config("spark.sql.catalog.local.type", "rest")
+            .config("spark.sql.catalog.local.uri", REST_URI)
+            .config("spark.sql.catalog.local.warehouse", REST_WAREHOUSE)
+            .config("spark.sql.catalog.local.io-impl", "org.apache.iceberg.aws.s3.S3FileIO")
+            .config("spark.sql.catalog.local.s3.endpoint", S3_ENDPOINT)
+            .config("spark.sql.catalog.local.s3.path-style-access", "true")
+            .config("spark.sql.catalog.local.s3.access-key-id", S3_KEY_ID)
+            .config("spark.sql.catalog.local.s3.secret-access-key", S3_SECRET)
+            .config("spark.sql.catalog.local.client.region", S3_REGION)
+        )
+    else:
+        print("[INFO] ICEBERG_REST_URI not set; primary catalog falls back to local Hadoop")
+        builder = (
+            builder
+            .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
+            .config("spark.sql.catalog.local.type", "hadoop")
+            .config("spark.sql.catalog.local.warehouse", WAREHOUSE_URI)
+        )
+
+    if jar_paths:
+        builder = builder.config("spark.jars", ",".join(jar_paths))
     elif jar_coord:
         builder = builder.config("spark.jars.packages", jar_coord)
 
@@ -905,8 +1003,10 @@ def test_hadoop_catalog(version: str) -> TestResult:
     spark = get_spark()
     ns = _ns()
     try:
-        spark.sql(f"CREATE NAMESPACE IF NOT EXISTS local.{ns}")
-        tbl = f"local.{ns}.{_unique('hadoop')}"
+        # Always exercised against the dedicated local-filesystem Hadoop
+        # catalog, regardless of what the primary catalog is.
+        spark.sql(f"CREATE NAMESPACE IF NOT EXISTS hadoop_local.{ns}")
+        tbl = f"hadoop_local.{ns}.{_unique('hadoop')}"
         spark.sql(f"""
             CREATE TABLE {tbl} (id BIGINT, val STRING)
             USING iceberg TBLPROPERTIES ('format-version'='{_fmt(version)}')
@@ -915,7 +1015,7 @@ def test_hadoop_catalog(version: str) -> TestResult:
         cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
         assert cnt == 1
         spark.sql(f"DROP TABLE IF EXISTS {tbl}")
-        spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
+        spark.sql(f"DROP NAMESPACE IF EXISTS hadoop_local.{ns}")
         r.result = "pass"
         r.details = "Hadoop catalog: create, write, read, drop all work on local filesystem"
     except Exception as e:
@@ -935,8 +1035,34 @@ def test_jdbc_catalog(version: str) -> TestResult:
 
 def test_rest_catalog(version: str) -> TestResult:
     r = TestResult("rest-catalog", "REST Catalog", version)
-    r.result = "skip"
-    r.details = "REST catalog test skipped in CI (requires running REST catalog server)"
+    if not REST_URI:
+        r.result = "skip"
+        r.details = "REST catalog test skipped (ICEBERG_REST_URI not set)"
+        return r
+    spark = get_spark()
+    ns = _ns()
+    try:
+        # The primary "local" catalog IS the REST catalog in CI; exercise full
+        # CRUD through it.
+        spark.sql(f"CREATE NAMESPACE IF NOT EXISTS local.{ns}")
+        tbl = f"local.{ns}.{_unique('rest')}"
+        spark.sql(f"""
+            CREATE TABLE {tbl} (id BIGINT, val STRING)
+            USING iceberg TBLPROPERTIES ('format-version'='{_fmt(version)}')
+        """)
+        spark.sql(f"INSERT INTO {tbl} VALUES (1,'rest'),(2,'catalog')")
+        cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
+        assert cnt == 2
+        spark.sql(f"UPDATE {tbl} SET val='updated' WHERE id=1")
+        val = spark.sql(f"SELECT val FROM {tbl} WHERE id=1").collect()[0][0]
+        assert val == "updated"
+        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
+        r.result = "pass"
+        r.details = f"REST catalog ({REST_URI}): namespace/table CRUD, write, and read all work"
+    except Exception as e:
+        r.result = "error"
+        r.details = str(e)[:300]
     return r
 
 
@@ -1403,6 +1529,7 @@ def generate_report(results: list[TestResult]) -> dict:
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "spark_version": spark_version,
         "iceberg_version": ICEBERG_VERSION,
+        "catalog_mode": f"REST ({REST_URI})" if REST_URI else "Hadoop (local filesystem)",
         "versions_tested": VERSIONS,
         "coverage": compute_coverage(results),
         "tests": tests_output,
@@ -1426,6 +1553,7 @@ def generate_markdown(report: dict) -> str:
     lines.append(f"- **Timestamp:** {report['timestamp']}")
     lines.append(f"- **Spark Version:** {report['spark_version']}")
     lines.append(f"- **Iceberg Version:** {report['iceberg_version']}")
+    lines.append(f"- **Catalog:** {report.get('catalog_mode', 'unknown')}")
     lines.append(f"- **Format Versions Tested:** {', '.join(report.get('versions_tested', []))}")
     lines.append("")
 
@@ -1504,6 +1632,7 @@ def main():
     print(f"Warehouse: {WAREHOUSE_DIR}")
     print(f"Repo root: {REPO_ROOT}")
     print(f"Iceberg version: {ICEBERG_VERSION}")
+    print(f"Catalog: {'REST at ' + REST_URI if REST_URI else 'Hadoop (local filesystem)'}")
     print(f"Versions under test: {', '.join(VERSIONS)}")
     print()
 
