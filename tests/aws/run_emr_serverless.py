@@ -23,7 +23,8 @@ Environment:
     AWS_TABLE_BUCKET_ARN  (required for s3tables mode)
     RUN_TAG               (required) unique per run, e.g. icebergmatrix-<run_id>
     MODES                 both|s3buckets|s3tables      (default: both)
-    EMR_RELEASE_LABEL     (default: emr-8.0.0)
+    EMR_RELEASE_LABEL     (default: emr-spark-8.0.0) EMR 8 labels are
+                          engine-specific, unlike the emr-7.x.y form
     RESOURCE_PREFIX       (default: icebergmatrix) must match the IAM scope
     JOB_TIMEOUT_MINUTES   (default: 30)
 """
@@ -43,7 +44,7 @@ JOB_ROLE_ARN = os.environ["AWS_EMR_JOB_ROLE_ARN"]
 TABLE_BUCKET_ARN = os.environ.get("AWS_TABLE_BUCKET_ARN", "")
 RUN_TAG = os.environ["RUN_TAG"]
 MODES = os.environ.get("MODES", "both")
-RELEASE_LABEL = os.environ.get("EMR_RELEASE_LABEL", "emr-8.0.0")
+RELEASE_LABEL = os.environ.get("EMR_RELEASE_LABEL", "emr-spark-8.0.0")
 RESOURCE_PREFIX = os.environ.get("RESOURCE_PREFIX", "icebergmatrix")
 JOB_TIMEOUT_MINUTES = int(os.environ.get("JOB_TIMEOUT_MINUTES", "30"))
 
