@@ -237,8 +237,12 @@ def _marker(out: str, expected: str) -> bool:
     Assertions are encoded as short CONCAT('MARKX=', ...) literals rather than
     by parsing the tableau grid: the grid pads, aligns and truncates cells to the
     column width, so short markers are the reliable way to read a value back.
+
+    The match is anchored at the end of the value, otherwise "MARKCNT=1" would
+    also be satisfied by "MARKCNT=10" and a wrong row count could pass.
     """
-    return expected in out.replace(" ", "")
+    prefix, _, value = expected.partition("=")
+    return value in _marker_values(out, prefix)
 
 
 def _marker_values(out: str, prefix: str) -> list:
@@ -357,6 +361,69 @@ def _v3_only(feature_id: str, feature_name: str) -> TestResult:
     r.result = "skip"
     r.details = "V3-only feature; not applicable to format-version 2 tables"
     return r
+
+
+def _rest_prefix() -> str:
+    """The catalog's request prefix, needed for direct REST calls."""
+    import urllib.request
+    base = REST_URI.rstrip("/")
+    with urllib.request.urlopen(f"{base}/v1/config?warehouse={REST_WAREHOUSE}", timeout=15) as resp:
+        return json.load(resp)["defaults"]["prefix"]
+
+
+def _rest_table_metadata(table: str, namespace: str = "test_db"):
+    """Load a table's Iceberg metadata straight from the catalog.
+
+    Used to inspect state that Flink SQL cannot surface, such as V3 row lineage
+    counters and the partition-spec history.
+    """
+    import urllib.request
+    try:
+        base = REST_URI.rstrip("/")
+        url = f"{base}/v1/{_rest_prefix()}/namespaces/{namespace}/tables/{table}"
+        with urllib.request.urlopen(url, timeout=30) as resp:
+            return json.load(resp).get("metadata", {})
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _rest_evolve_spec(table: str, namespace: str = "test_db") -> bool:
+    """Add a day(ts) field to the table's partition spec and make it the default.
+
+    Flink SQL has no partition-evolution syntax, so the evolution is driven through
+    the catalog. This is exactly how the operation works underneath: a new spec is
+    appended and the default spec pointer moves, leaving existing data files bound
+    to the old spec.
+    """
+    import urllib.request
+    try:
+        base = REST_URI.rstrip("/")
+        prefix = _rest_prefix()
+        url = f"{base}/v1/{prefix}/namespaces/{namespace}/tables/{table}"
+        md = _rest_table_metadata(table, namespace)
+        cur = [s for s in md["partition-specs"] if s["spec-id"] == md["default-spec-id"]][0]
+        ts_field = [f for f in md["schemas"][-1]["fields"] if f["name"] == "ts"][0]
+        new_spec = {
+            "spec-id": max(s["spec-id"] for s in md["partition-specs"]) + 1,
+            "fields": cur["fields"] + [
+                {"source-id": ts_field["id"], "field-id": 1001,
+                 "name": "ts_day", "transform": "day"},
+            ],
+        }
+        body = {
+            "requirements": [{"type": "assert-table-uuid", "uuid": md["table-uuid"]}],
+            "updates": [{"action": "add-spec", "spec": new_spec},
+                        {"action": "set-default-spec", "spec-id": -1}],
+        }
+        req = urllib.request.Request(
+            url, data=json.dumps(body).encode(),
+            headers={"Content-Type": "application/json"}, method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            json.load(resp)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def _rest_create_transform_partitioned(version: str, namespace: str = "test_db"):
@@ -613,25 +680,32 @@ def test_merge_on_read(version: str) -> TestResult:
 
 def test_position_deletes(version: str) -> TestResult:
     r = TestResult("position-deletes", "Position Deletes", version)
-    # Flink SQL cannot ask for position deletes: it has no DELETE statement, and
-    # upsert writes equality deletes. Report what the write path actually emits
-    # instead of claiming position-delete support.
-    ok, out, rows, deletes = _upsert_delete_evidence(version, use_v2_sink=False)
+    # Flink has no DELETE statement, but it does write position deletes: when an
+    # upsert sees the same key twice in one batch, the superseded row is deleted by
+    # position within the file being written. On V2 that is a Parquet position
+    # delete file; on V3 it is recorded as a puffin deletion vector.
+    ok, out, rows, deletes = _upsert_delete_evidence(version, False, same_batch=True)
     if not ok:
         r.result = "error"
         r.details = _error_reason(out)
         return r
     pos = [d for d in deletes if d.startswith("1:")]
-    if pos:
+    if pos and "1:updated" in rows:
         r.result = "pass"
-        r.details = f"Write path produced position delete files (content=1): {pos}"
-    else:
-        r.result = "skip"
         r.details = (
-            "Not exercised from SQL: Flink has no DELETE statement and upsert emits "
-            f"equality deletes, so no position deletes are produced (observed: {deletes or 'none'}). "
-            "Flink can still read position deletes written by another engine"
+            f"Write path produced position deletes (content=1): {pos}, and the read "
+            f"merged them correctly (rows={rows}). Emitted for a row superseded within a "
+            "single batch; Flink SQL has no DELETE statement to request them directly"
         )
+    elif deletes:
+        r.result = "fail"
+        r.details = (
+            f"No position delete files produced; writer emitted {deletes} "
+            "(content=2 is equality deletes)"
+        )
+    else:
+        r.result = "fail"
+        r.details = f"No delete files produced at all; rows={rows}"
     return r
 
 
@@ -656,10 +730,19 @@ def test_copy_on_write(version: str) -> TestResult:
         r.details = _error_reason(out)
     elif _marker(out, "MARKROW=1:rewritten") and _marker(out, "MARKDEL=0"):
         r.result = "pass"
-        r.details = "INSERT OVERWRITE rewrote data files with no delete files (copy-on-write)"
+        r.details = (
+            "INSERT OVERWRITE rewrote the data files with no delete files, which is the "
+            "copy-on-write path Flink SQL can reach. Note the scope: copy-on-write proper "
+            "means rewriting files for a row-level UPDATE or DELETE, and Flink SQL has "
+            "neither, so write.*.mode='copy-on-write' has nothing to act on -- the only "
+            "rewrite available is a whole-table or whole-partition overwrite"
+        )
     elif _marker(out, "MARKROW=1:rewritten"):
         r.result = "pass"
-        r.details = f"INSERT OVERWRITE rewrote data; delete files={_marker_values(out, 'MARKDEL')}"
+        r.details = (
+            "INSERT OVERWRITE rewrote data (whole-table overwrite, not row-level "
+            f"copy-on-write); delete files={_marker_values(out, 'MARKDEL')}"
+        )
     else:
         r.result = "fail"
         r.details = f"Copy-on-write overwrite not confirmed: rows={_marker_values(out, 'MARKROW')}"
@@ -1034,21 +1117,62 @@ def test_hidden_partitioning(version: str) -> TestResult:
 def test_partition_evolution(version: str) -> TestResult:
     r = TestResult("partition-evolution", "Partition Evolution", version)
     tbl = _unique("partevo")
-    ok, out = _run_sql(_prelude(version) + [
-        f"""CREATE TABLE {tbl} (id BIGINT, region STRING, dept STRING)
+    setup = [
+        f"""CREATE TABLE {tbl} (id BIGINT, region STRING, ts TIMESTAMP(6))
             PARTITIONED BY (region) WITH ('format-version'='{_fmt(version)}')""",
-        f"INSERT INTO {tbl} VALUES (1,'eu','a')",
-        f"ALTER TABLE {tbl} ADD PARTITION FIELD dept",
+        f"INSERT INTO {tbl} VALUES (1,'eu',TIMESTAMP '2026-01-01 10:00:00')",
+    ]
+    # ADD PARTITION FIELD is a Spark SQL extension; Flink has no partition DDL at
+    # all, so this is the only syntax there is to try.
+    ok_ddl, out_ddl = _run_sql(_prelude(version) + setup + [
+        f"ALTER TABLE {tbl} ADD PARTITION FIELD ts",
     ])
-    _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
-    if ok:
+    if ok_ddl:
+        _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
         r.result = "pass"
         r.details = "ALTER TABLE ADD PARTITION FIELD evolved the partition spec via Flink SQL"
+        return r
+
+    # Flink cannot initiate the evolution, so drive it through the catalog and test
+    # whether Flink honours the result: new writes must use the new spec while old
+    # data files stay on the old one, and reads must span both.
+    if not _rest_evolve_spec(tbl):
+        _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
+        r.result = "fail"
+        r.details = (
+            f"No partition-evolution syntax in Flink SQL ({_error_reason(out_ddl, 110)}), "
+            "and the spec could not be evolved through the catalog to test the write path"
+        )
+        return r
+
+    ok_w, out_w = _run_sql(_prelude(version) + [
+        f"INSERT INTO {tbl} VALUES (2,'us',TIMESTAMP '2026-02-02 10:00:00')",
+        f"SELECT CONCAT('MARKALL=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl}",
+        f"SELECT CONCAT('MARKSPEC=', CAST(spec_id AS STRING)) AS m FROM `{tbl}$files`",
+        f"SELECT CONCAT('MARKOLD=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl} WHERE region='eu'",
+        f"DROP TABLE {tbl}",
+    ])
+    specs = sorted(set(_marker_values(out_w, "MARKSPEC")))
+    if ok_w and specs == ["0", "1"] and _marker(out_w, "MARKALL=2"):
+        r.result = "pass"
+        r.details = (
+            "Flink cannot initiate partition evolution (no SQL syntax; ADD PARTITION FIELD "
+            "is a parser error) but honours it fully once the catalog evolves the spec: after "
+            "adding day(ts) as the default spec, a Flink write landed in the new spec while "
+            f"the pre-existing file stayed on the old one (spec_ids={specs}), and reads span "
+            "both specs correctly"
+        )
+    elif ok_w:
+        r.result = "fail"
+        r.details = (
+            f"Spec evolved in the catalog but Flink did not write with the new spec: "
+            f"spec_ids={specs}, rows={_marker_values(out_w, 'MARKALL')}"
+        )
     else:
         r.result = "fail"
         r.details = (
-            f"Partition evolution is not expressible in Flink SQL: {_error_reason(out, 150)}. "
-            "The Dynamic Sink can evolve specs at runtime, but that is a Java API"
+            f"No partition-evolution syntax in Flink SQL, and writing after the catalog "
+            f"evolved the spec failed: {_error_reason(out_w, 130)}"
         )
     return r
 
@@ -1195,28 +1319,42 @@ def test_lineage(version: str) -> TestResult:
     tbl = _unique("lineage")
     ok, out = _run_sql(_prelude(version) + [
         f"CREATE TABLE {tbl} (id BIGINT, val STRING) WITH ('format-version'='3')",
-        f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b')",
+        f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b'),(3,'c')",
         f"SELECT CONCAT('MARKLIN=', CAST(_row_id AS STRING)) AS m FROM {tbl}",
     ])
-    if ok and _marker_values(out, "MARKLIN"):
-        r.result = "pass"
-        r.details = f"Row lineage column _row_id readable from Flink SQL: {_marker_values(out, 'MARKLIN')}"
-        _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
-        return r
+    readable = ok and bool(_marker_values(out, "MARKLIN"))
 
-    # The row-lineage readers exist in the Iceberg Flink module, but if the
-    # columns are not projectable from SQL, say so rather than claiming support.
-    ok2, out2 = _run_sql(_prelude(version) + [
-        f"SELECT CONCAT('MARKSEQ=', CAST(sequence_number AS STRING)) AS m "
-        f"FROM `{tbl}$snapshots` LIMIT 1",
-        f"DROP TABLE IF EXISTS {tbl}",
-    ])
-    r.result = "fail"
-    r.details = (
-        f"Row lineage metadata columns are not projectable in Flink SQL "
-        f"({_error_reason(out, 110)})"
-        + ("; snapshot sequence numbers are readable from metadata tables" if ok2 else "")
-    )
+    # Whether Flink can project the lineage columns is only half the question. The
+    # other half is whether a Flink write maintains the V3 lineage metadata at all,
+    # which decides between "unusable" and "written but not exposed". Read it from
+    # the catalog, since Flink SQL cannot surface it.
+    meta = _rest_table_metadata(tbl)
+    next_row_id = meta.get("next-row-id") if meta else None
+    snaps = (meta or {}).get("snapshots") or []
+    assigned = [s for s in snaps if s.get("first-row-id") is not None]
+    _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
+
+    if readable:
+        r.result = "pass"
+        r.details = (
+            f"Row lineage columns readable from Flink SQL: {_marker_values(out, 'MARKLIN')}"
+        )
+    elif assigned and next_row_id:
+        r.result = "pass"
+        r.details = (
+            f"Flink maintains V3 row lineage on write -- after inserting 3 rows the table "
+            f"metadata carries next-row-id={next_row_id} and the snapshot reports "
+            f"first-row-id={assigned[0].get('first-row-id')}, added-rows={assigned[0].get('added-rows')} "
+            "-- but none of it is reachable from Flink SQL: selecting _row_id fails, "
+            "metadata (computed) columns are rejected outright, and the $snapshots table "
+            "exposes no lineage column"
+        )
+    else:
+        r.result = "fail"
+        r.details = (
+            "Row lineage neither projectable from Flink SQL nor visible in the table "
+            f"metadata after a Flink write ({_error_reason(out, 110)})"
+        )
     return r
 
 

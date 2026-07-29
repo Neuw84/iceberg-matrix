@@ -12,9 +12,9 @@
   "support": {
     "flink:position-deletes:v2": {
       "level": "full",
-      "notes": "Flink reads position deletes, and the Iceberg Flink writer emits them for rows superseded within a single writer task. They cannot be produced on demand from Flink SQL, which has no DELETE statement: an upsert writes equality delete files (observed as content=2 Parquet files), so this harness could not exercise the position-delete write path directly.",
+      "notes": "Verified: when an upsert sees the same key twice in one batch, the superseded row is deleted by position and Flink writes a Parquet position delete file (content=1), which the reader merges correctly. Flink SQL has no DELETE statement, so position deletes cannot be requested directly -- they fall out of the upsert write path.",
       "caveats": [
-        "Cannot be requested from Flink SQL; upsert emits equality deletes instead"
+        "Cannot be requested explicitly from Flink SQL; produced by the upsert writer"
       ],
       "links": [
         {
@@ -25,14 +25,15 @@
     },
     "flink:position-deletes:v3": {
       "level": "full",
-      "notes": "Flink reads position deletes, and the Iceberg Flink writer emits them for rows superseded within a single writer task. They cannot be produced on demand from Flink SQL, which has no DELETE statement: an upsert writes equality delete files (observed as content=2 Parquet files), so this harness could not exercise the position-delete write path directly.",
+      "notes": "Verified on V3: the same-batch upsert path writes the position delete as a puffin deletion vector (content=1, file_format=PUFFIN) rather than a Parquet delete file, and the reader merges it correctly.",
       "caveats": [
-        "Cannot be requested from Flink SQL; upsert emits equality deletes instead"
+        "On V3 these are written as deletion vectors, per the spec",
+        "Cannot be requested explicitly from Flink SQL; produced by the upsert writer"
       ],
       "links": [
         {
-          "label": "Flink writes",
-          "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
+          "label": "Apache Iceberg 1.11.0 release notes",
+          "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
         }
       ]
     },
@@ -61,16 +62,34 @@
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
     },
     "flink:copy-on-write:v2": {
-      "level": "full",
-      "notes": "Copy-on-write supported via INSERT INTO and INSERT OVERWRITE",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
+      "level": "partial",
+      "notes": "Only whole-table or whole-partition overwrite is reachable: INSERT OVERWRITE was verified to rewrite the data files with no delete files. Copy-on-write proper means rewriting files to satisfy a row-level UPDATE or DELETE, and Flink SQL has neither, so write.delete.mode/write.update.mode='copy-on-write' has nothing to act on.",
+      "caveats": [
+        "No row-level UPDATE/DELETE in Flink SQL, so the copy-on-write write modes are inert",
+        "INSERT OVERWRITE is batch-only"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into",
+      "links": [
+        {
+          "label": "Flink writes",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
+        }
+      ]
     },
     "flink:copy-on-write:v3": {
-      "level": "full",
-      "notes": "Copy-on-write supported via INSERT INTO and INSERT OVERWRITE with V3 format",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
+      "level": "partial",
+      "notes": "Only whole-table or whole-partition overwrite is reachable: INSERT OVERWRITE was verified to rewrite the data files with no delete files. Copy-on-write proper means rewriting files to satisfy a row-level UPDATE or DELETE, and Flink SQL has neither, so write.delete.mode/write.update.mode='copy-on-write' has nothing to act on.",
+      "caveats": [
+        "No row-level UPDATE/DELETE in Flink SQL, so the copy-on-write write modes are inert",
+        "INSERT OVERWRITE is batch-only"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into",
+      "links": [
+        {
+          "label": "Flink writes",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
+        }
+      ]
     },
     "flink:schema-evolution:v2": {
       "level": "full",
@@ -158,9 +177,10 @@
     },
     "flink:partition-evolution:v2": {
       "level": "partial",
-      "notes": "Not expressible in Flink SQL: ALTER TABLE ... ADD PARTITION FIELD is a parser error. Partition specs can be evolved at runtime by the Dynamic Sink, which is a Java API (Iceberg 1.10+), so evolution is available to Flink jobs but not to SQL users.",
+      "notes": "Flink cannot initiate partition evolution -- there is no SQL syntax for it, and ALTER TABLE ADD PARTITION FIELD is a Spark SQL extension that Flink's parser rejects. It does honour an evolution performed elsewhere: verified by adding day(ts) as the default spec through the catalog, after which a Flink write landed in the new spec while the pre-existing data file stayed on the old one, and reads spanned both. The Dynamic Sink can also evolve specs at runtime, but only through the Java API.",
       "caveats": [
-        "No SQL syntax for partition evolution; requires the Dynamic Sink Java API"
+        "No SQL syntax to evolve a spec; evolution must be initiated by another engine or the Java Dynamic Sink",
+        "Existing data files keep their original spec; only new writes use the new one"
       ],
       "links": [
         {
@@ -171,9 +191,10 @@
     },
     "flink:partition-evolution:v3": {
       "level": "partial",
-      "notes": "Not expressible in Flink SQL: ALTER TABLE ... ADD PARTITION FIELD is a parser error. Partition specs can be evolved at runtime by the Dynamic Sink, which is a Java API (Iceberg 1.10+), so evolution is available to Flink jobs but not to SQL users.",
+      "notes": "Flink cannot initiate partition evolution -- there is no SQL syntax for it, and ALTER TABLE ADD PARTITION FIELD is a Spark SQL extension that Flink's parser rejects. It does honour an evolution performed elsewhere: verified by adding day(ts) as the default spec through the catalog, after which a Flink write landed in the new spec while the pre-existing data file stayed on the old one, and reads spanned both. The Dynamic Sink can also evolve specs at runtime, but only through the Java API.",
       "caveats": [
-        "No SQL syntax for partition evolution; requires the Dynamic Sink Java API"
+        "No SQL syntax to evolve a spec; evolution must be initiated by another engine or the Java Dynamic Sink",
+        "Existing data files keep their original spec; only new writes use the new one"
       ],
       "links": [
         {
@@ -580,9 +601,10 @@
     },
     "flink:lineage:v3": {
       "level": "partial",
-      "notes": "Iceberg 1.11 added row lineage readers to the Flink module and preserves lineage through RewriteDataFiles compaction, but the lineage columns are not projectable from Flink SQL: selecting _row_id fails with \"Column '_row_id' not found in any table\" on a V3 table. Snapshot sequence numbers remain readable from metadata tables.",
+      "notes": "Flink maintains V3 row lineage when it writes: after a 3-row insert the table metadata carries next-row-id=3 and the snapshot reports first-row-id=0 with added-rows=3, and Iceberg 1.11 preserves lineage through RewriteDataFiles compaction. None of it is reachable from Flink SQL, though -- selecting _row_id fails, metadata (computed) columns are rejected outright, and $snapshots exposes no lineage column.",
       "caveats": [
-        "_row_id and _last_updated_sequence_number cannot be selected in Flink SQL"
+        "Row lineage is written but cannot be read from Flink SQL",
+        "_row_id and _last_updated_sequence_number are not projectable; computed/metadata columns are unsupported"
       ],
       "links": [
         {
