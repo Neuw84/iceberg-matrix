@@ -65,6 +65,24 @@ def upload_reports(report_uri: str) -> None:
             print(f"[entrypoint] uploaded s3://{bucket}/{key}")
 
 
+def detect_iceberg_version() -> str:
+    """Read the Iceberg version out of the runtime jar shipped in the image.
+
+    The jar is named iceberg-spark-runtime-<spark>_<scala>-<version>.jar, e.g.
+    iceberg-spark-runtime-4.0_2.13-1.10.1-amzn-0.jar on emr-spark-8.0.0. Falls
+    back to "in-image" rather than guessing.
+    """
+    import glob
+    import re
+
+    for path in sorted(glob.glob("/usr/share/aws/iceberg/lib/iceberg-spark-runtime-*.jar")):
+        m = re.search(r"iceberg-spark-runtime-[\d.]+_[\d.]+-(.+)\.jar$", os.path.basename(path))
+        if m:
+            print(f"[entrypoint] iceberg runtime: {os.path.basename(path)}")
+            return m.group(1)
+    return "in-image"
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--bundle", required=True)
@@ -82,6 +100,9 @@ def main() -> int:
     os.environ.update({
         "REPO_ROOT": repo_root,
         "REPORT_DIR": REPORT_DIR,
+        # Report the Iceberg version actually in the image rather than the
+        # suite's default, which only describes the OSS Maven coordinates.
+        "ICEBERG_VERSION": detect_iceberg_version(),
         "ICEBERG_WAREHOUSE": os.path.join(WORK_DIR, "hadoop-warehouse"),
         # Compare against the AWS EMR cells for this storage mode.
         "MATRIX_PLATFORM_ID": "aws-emr",
