@@ -39,27 +39,55 @@
     },
     "flink:equality-deletes:v2": {
       "level": "full",
-      "notes": "Flink supports equality deletes via UPSERT mode with primary keys; used for streaming CDC and upsert workloads",
+      "notes": "Verified in the streaming runtime (the CDC usage pattern): an upsert keyed on the primary key replaced the row and wrote Parquet equality delete files (content=2), which reads merge correctly.",
       "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert",
+      "links": [
+        {
+          "label": "Flink upsert",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
+        }
+      ]
     },
     "flink:equality-deletes:v3": {
       "level": "full",
-      "notes": "Equality deletes supported via Iceberg library V3 support (iceberg-flink-runtime 1.10.x+)",
+      "notes": "Verified in the streaming runtime (the CDC usage pattern): an upsert keyed on the primary key replaced the row and wrote Parquet equality delete files (content=2), which reads merge correctly.",
       "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert",
+      "links": [
+        {
+          "label": "Flink upsert",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
+        }
+      ]
     },
     "flink:merge-on-read:v2": {
       "level": "full",
-      "notes": "Flink supports merge-on-read via streaming upsert mode using equality deletes",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
+      "notes": "Verified in the streaming runtime: upsert writes delete files that the reader merges at scan time. Merge-on-read is also the ONLY write path for upsert -- with write.delete.mode, write.update.mode and write.merge.mode all set to copy-on-write the writer still emitted delete files, silently ignoring the setting.",
+      "caveats": [
+        "Upsert is MoR-only; the copy-on-write write modes are ignored for upsert tables"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert",
+      "links": [
+        {
+          "label": "Flink upsert",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
+        }
+      ]
     },
     "flink:merge-on-read:v3": {
       "level": "full",
-      "notes": "Merge-on-read supported via Iceberg library V3 support including deletion vectors",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
+      "notes": "Verified in the streaming runtime: upsert writes delete files that the reader merges at scan time. Merge-on-read is also the ONLY write path for upsert -- with write.delete.mode, write.update.mode and write.merge.mode all set to copy-on-write the writer still emitted delete files, silently ignoring the setting.",
+      "caveats": [
+        "Upsert is MoR-only; the copy-on-write write modes are ignored for upsert tables"
+      ],
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert",
+      "links": [
+        {
+          "label": "Flink upsert",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/#upsert"
+        }
+      ]
     },
     "flink:copy-on-write:v2": {
       "level": "partial",
@@ -294,31 +322,55 @@
     },
     "flink:read-support:v2": {
       "level": "full",
-      "notes": "Full read support in both batch and streaming modes, including incremental reads from snapshots and FLIP-27 source",
+      "notes": "Verified in both runtimes. Batch: predicate pushdown and column projection return correct results. Streaming: a continuous read (streaming=true with a monitor-interval) delivered the source's initial snapshot and a row committed AFTER the job started into a second Iceberg table, confirming incremental snapshot tailing via the FLIP-27 source (the Flink SQL default).",
       "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/"
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/",
+      "links": [
+        {
+          "label": "Flink queries",
+          "url": "https://iceberg.apache.org/docs/latest/flink-queries/"
+        }
+      ]
     },
     "flink:read-support:v3": {
       "level": "full",
-      "notes": "Full read support for V3 tables in both batch and streaming modes via Iceberg library V3 support",
+      "notes": "Verified in both runtimes. Batch: predicate pushdown and column projection return correct results. Streaming: a continuous read (streaming=true with a monitor-interval) delivered the source's initial snapshot and a row committed AFTER the job started into a second Iceberg table, confirming incremental snapshot tailing via the FLIP-27 source (the Flink SQL default).",
       "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/"
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-queries/",
+      "links": [
+        {
+          "label": "Flink queries",
+          "url": "https://iceberg.apache.org/docs/latest/flink-queries/"
+        }
+      ]
     },
     "flink:write-insert:v2": {
       "level": "full",
-      "notes": "INSERT INTO supported for both batch and streaming modes; INSERT OVERWRITE supported in batch mode only",
+      "notes": "Verified in both runtimes. Batch: INSERT INTO appends across commits and INSERT OVERWRITE replaces the table contents. Streaming: an unbounded INSERT from a continuous source committed multiple append snapshots on checkpoints while the job was still running, with the data readable mid-flight -- the exactly-once checkpoint-commit loop that Flink streaming ingestion relies on.",
       "caveats": [
-        "INSERT OVERWRITE is not supported in streaming mode"
+        "INSERT OVERWRITE is batch-only"
       ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into",
+      "links": [
+        {
+          "label": "Flink writes",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
+        }
+      ]
     },
     "flink:write-insert:v3": {
       "level": "full",
-      "notes": "INSERT INTO and INSERT OVERWRITE supported with V3 format; INSERT OVERWRITE is batch-only",
+      "notes": "Verified in both runtimes. Batch: INSERT INTO appends across commits and INSERT OVERWRITE replaces the table contents. Streaming: an unbounded INSERT from a continuous source committed multiple append snapshots on checkpoints while the job was still running, with the data readable mid-flight -- the exactly-once checkpoint-commit loop that Flink streaming ingestion relies on.",
       "caveats": [
-        "INSERT OVERWRITE is not supported in streaming mode"
+        "INSERT OVERWRITE is batch-only"
       ],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into"
+      "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into",
+      "links": [
+        {
+          "label": "Flink writes",
+          "url": "https://iceberg.apache.org/docs/latest/flink-writes/"
+        }
+      ]
     },
     "flink:write-merge-update-delete:v2": {
       "level": "partial",

@@ -523,12 +523,62 @@ def test_read_support(version: str) -> TestResult:
     if not ok:
         r.result = "error"
         r.details = _error_reason(out)
-    elif _marker(out, "MARKALL=3") and _marker(out, "MARKPRED=2") and _marker(out, "MARKPROJ=b"):
-        r.result = "pass"
-        r.details = "Read 3 rows; predicate filter returned 2; column projection correct"
-    else:
+        return r
+    if not (_marker(out, "MARKALL=3") and _marker(out, "MARKPRED=2") and _marker(out, "MARKPROJ=b")):
         r.result = "fail"
         r.details = f"Unexpected read results: {_marker_values(out, 'MARKALL')} {_marker_values(out, 'MARKPRED')}"
+        return r
+
+    # Streaming is what Flink is for, so batch reads alone are weak evidence.
+    # Verify the continuous read path: an iceberg-to-iceberg tail with a
+    # monitor-interval must deliver the initial snapshot AND rows committed to the
+    # source after the job started.
+    src, tgt = _unique("ssrc"), _unique("stgt")
+    ok_s, _ = _run_sql(_prelude(version) + [
+        f"CREATE TABLE {src} (id BIGINT, val STRING) WITH ('format-version'='{_fmt(version)}')",
+        f"CREATE TABLE {tgt} (id BIGINT, val STRING) WITH ('format-version'='{_fmt(version)}')",
+        f"INSERT INTO {src} VALUES (1,'a'),(2,'b')",
+    ])
+    job_id = None
+    late_arrived = False
+    if ok_s:
+        ok_j, _, job_id = _submit_streaming(
+            _prelude(version, streaming=True, dml_sync=False) + [
+                f"INSERT INTO {tgt} SELECT id, val FROM {src} "
+                f"/*+ OPTIONS('streaming'='true','monitor-interval'='2s') */",
+            ])
+        if ok_j and job_id:
+            try:
+                time.sleep(10)
+                _run_sql(_prelude(version) + [f"INSERT INTO {src} VALUES (3,'late')"])
+                for _ in range(9):
+                    time.sleep(10)
+                    ok_p, out_p = _run_sql(_prelude(version) + [
+                        f"SELECT CONCAT('MARKT=', CAST(id AS STRING), ':', val) AS m "
+                        f"FROM {tgt} ORDER BY id",
+                    ])
+                    if ok_p and "3:late" in _marker_values(out_p, "MARKT"):
+                        late_arrived = True
+                        break
+            finally:
+                _cancel_job(job_id)
+    _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {src}",
+                                  f"DROP TABLE IF EXISTS {tgt}"])
+
+    if late_arrived:
+        r.result = "pass"
+        r.details = (
+            "Batch: read 3 rows with correct predicate filtering and projection. "
+            "Streaming: a continuous read (streaming=true, monitor-interval) delivered "
+            "the initial snapshot and a row committed to the source AFTER the job "
+            "started, into a second Iceberg table"
+        )
+    else:
+        r.result = "fail"
+        r.details = (
+            "Batch reads verified, but the continuous streaming read did not deliver a "
+            "row committed after the job started"
+        )
     return r
 
 
@@ -548,15 +598,64 @@ def test_write_insert(version: str) -> TestResult:
     if not ok:
         r.result = "error"
         r.details = _error_reason(out)
-    elif _marker(out, "MARKAPP=3") and _marker(out, "MARKOVW=1"):
-        r.result = "pass"
-        r.details = "INSERT INTO appended across 2 commits (3 rows); INSERT OVERWRITE replaced them (1 row)"
-    elif _marker(out, "MARKAPP=3"):
-        r.result = "pass"
-        r.details = f"INSERT INTO verified; INSERT OVERWRITE gave {_marker_values(out, 'MARKOVW')}"
-    else:
+        return r
+    if not _marker(out, "MARKAPP=3"):
         r.result = "fail"
         r.details = f"Unexpected counts: append={_marker_values(out, 'MARKAPP')}"
+        return r
+    batch_detail = (
+        "Batch: INSERT INTO appended across 2 commits (3 rows)"
+        + ("; INSERT OVERWRITE replaced them (1 row)" if _marker(out, "MARKOVW=1")
+           else f"; INSERT OVERWRITE gave {_marker_values(out, 'MARKOVW')}")
+    )
+
+    # Streaming writes are Flink's primary use, and their contract differs from a
+    # bounded insert: commits are driven by checkpoints while the job keeps
+    # running. Assert that an unbounded INSERT produces MULTIPLE append snapshots
+    # and that the data is readable mid-flight, before the job ever finishes.
+    stbl = _unique("swrite")
+    src = "default_catalog.default_database." + _unique("sgen")
+    ok_j, out_j, job_id = _submit_streaming(
+        _prelude(version, streaming=True, dml_sync=False) + [
+            f"CREATE TABLE {stbl} (id BIGINT, val STRING) WITH ('format-version'='{_fmt(version)}')",
+            f"""CREATE TEMPORARY TABLE {src} (id BIGINT, val STRING) WITH (
+                'connector'='datagen', 'rows-per-second'='10', 'fields.val.length'='8')""",
+            f"INSERT INTO {stbl} SELECT id, val FROM {src}",
+        ])
+    commits, mid_rows = 0, 0
+    if ok_j and job_id:
+        try:
+            for _ in range(9):
+                time.sleep(10)
+                ok_p, out_p = _run_sql(_prelude(version) + [
+                    f"SELECT CONCAT('MARKSN=', CAST(COUNT(*) AS STRING)) AS m FROM `{stbl}$snapshots`",
+                    f"SELECT CONCAT('MARKCNT=', CAST(COUNT(*) AS STRING)) AS m FROM {stbl}",
+                ])
+                if ok_p:
+                    sn = _marker_values(out_p, "MARKSN")
+                    cnt = _marker_values(out_p, "MARKCNT")
+                    commits = int(sn[0]) if sn else 0
+                    mid_rows = int(cnt[0]) if cnt else 0
+                    if commits >= 3 and mid_rows > 0:
+                        break
+        finally:
+            _cancel_job(job_id)
+    _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {stbl}"])
+
+    if commits >= 3 and mid_rows > 0:
+        r.result = "pass"
+        r.details = (
+            f"{batch_detail}. Streaming: an unbounded INSERT committed {commits} append "
+            f"snapshots on checkpoints while the job was still running, with {mid_rows} "
+            "rows already readable mid-flight (exactly-once checkpoint commit loop)"
+        )
+    else:
+        r.result = "fail"
+        r.details = (
+            f"{batch_detail}. Streaming write did not demonstrate checkpoint commits: "
+            f"snapshots={commits}, rows readable mid-job={mid_rows}"
+            + ("" if ok_j and job_id else f" ({_error_reason(out_j, 120)})")
+        )
     return r
 
 
@@ -610,9 +709,14 @@ def _upsert_delete_evidence(version: str, use_v2_sink: bool, same_batch: bool = 
       True  - both versions of the key arrive in one statement, so the superseded
               row is deleted by position within the file being written. On a V3
               table that position delete is written as a deletion vector.
+
+    The inserts run in the STREAMING runtime, since upsert exists for streaming
+    CDC pipelines; the verification SELECTs run in the same session after
+    switching back to batch. Bounded VALUES sources work under dml-sync in
+    either runtime, so the session stays synchronous throughout.
     """
     tbl = _unique("ups")
-    stmts = _prelude(version)
+    stmts = _prelude(version, streaming=True)
     if use_v2_sink:
         stmts.append("SET 'table.exec.iceberg.use-v2-sink' = 'true'")
     stmts.append(
@@ -625,6 +729,7 @@ def _upsert_delete_evidence(version: str, use_v2_sink: bool, same_batch: bool = 
         stmts.append(f"INSERT INTO {tbl} VALUES (1,'first'),(2,'second')")
         stmts.append(f"INSERT INTO {tbl} VALUES (1,'updated')")
     stmts += [
+        "SET 'execution.runtime-mode' = 'batch'",
         f"SELECT CONCAT('MARKROW=', CAST(id AS STRING), ':', name) AS m FROM {tbl} ORDER BY id",
         f"SELECT CONCAT('MARKDEL=', CAST(content AS STRING), ':', file_format) AS m FROM `{tbl}$delete_files`",
         f"DROP TABLE {tbl}",
@@ -663,18 +768,36 @@ def test_merge_on_read(version: str) -> TestResult:
     if not ok:
         r.result = "error"
         r.details = _error_reason(out)
-    elif deletes and "1:updated" in rows:
-        r.result = "pass"
-        r.details = (
-            "Write produced delete files that the reader merged at scan time "
-            f"(deletes={deletes}, rows={rows})"
-        )
-    elif "1:updated" in rows:
-        r.result = "fail"
-        r.details = f"Row was replaced but no delete files were written: rows={rows}"
-    else:
+        return r
+    if not (deletes and "1:updated" in rows):
         r.result = "fail"
         r.details = f"Merge-on-read not demonstrated: rows={rows}, deletes={deletes}"
+        return r
+
+    # Upsert is not just capable of MoR -- it is MoR-only. Prove it by setting all
+    # copy-on-write modes on the table: the writer must ignore them and still
+    # produce delete files.
+    tbl = _unique("morcow")
+    ok2, out2 = _run_sql(_prelude(version) + [
+        f"""CREATE TABLE {tbl} (id BIGINT, val STRING, PRIMARY KEY (id) NOT ENFORCED)
+            WITH ('format-version'='{_fmt(version)}', 'write.upsert.enabled'='true',
+                  'write.delete.mode'='copy-on-write', 'write.update.mode'='copy-on-write',
+                  'write.merge.mode'='copy-on-write')""",
+        f"INSERT INTO {tbl} VALUES (1,'first'),(2,'second')",
+        f"INSERT INTO {tbl} VALUES (1,'updated')",
+        f"SELECT CONCAT('MARKDEL=', CAST(content AS STRING), ':', file_format) AS m FROM `{tbl}$delete_files`",
+        f"DROP TABLE {tbl}",
+    ])
+    cow_ignored = ok2 and bool(_marker_values(out2, "MARKDEL"))
+    r.result = "pass"
+    r.details = (
+        "Upsert produced delete files that the reader merged at scan time "
+        f"(deletes={deletes}, rows={rows})."
+        + (" Merge-on-read is also the ONLY write path for upsert: with all "
+           "write.*.mode properties set to copy-on-write the writer still emitted "
+           f"delete files ({_marker_values(out2, 'MARKDEL')}), ignoring the setting"
+           if cow_ignored else "")
+    )
     return r
 
 
