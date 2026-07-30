@@ -68,13 +68,35 @@ PROBE = os.environ.get("PROBE", "").lower() in ("1", "true", "yes")
 
 # Catalog implementations per storage mode.
 GLUE_CATALOG_IMPL = "org.apache.iceberg.aws.glue.GlueCatalog"
-# NOTE: unverified against EMR 8.0. If the s3tables job fails to resolve this
-# class, override with S3TABLES_CATALOG_IMPL and add the client jar via
-# S3TABLES_EXTRA_JARS.
-S3TABLES_CATALOG_IMPL = os.environ.get(
-    "S3TABLES_CATALOG_IMPL", "software.amazon.s3tables.iceberg.S3TablesCatalog"
-)
+# S3 Tables goes through the Glue Data Catalog federation, not the native
+# software.amazon.s3tables.iceberg.S3TablesCatalog client.
+#
+# The client catalog talks straight to s3tables.<region>.amazonaws.com, and an
+# EMR Serverless application with no networkConfiguration has no route there:
+# every call dies with "Connect timed out" after about 57 seconds. S3 Tables is
+# not among the services EMR Serverless reaches by default. The federation keeps
+# all metadata traffic on Glue, which it does reach, so no VPC is needed.
+# See infra/aws/README.MD section 7 for the full diagnosis.
+#
+# Requires the table bucket to be integrated with AWS analytics services, which
+# creates the s3tablescatalog federated catalog.
 S3TABLES_EXTRA_JARS = os.environ.get("S3TABLES_EXTRA_JARS", "")
+
+
+def s3tables_glue_id() -> str:
+    """The federated catalog id that identifies the table bucket to Glue.
+
+    Format <account>:s3tablescatalog/<table-bucket-name>, derived from the table
+    bucket ARN so there is one source of truth.
+    """
+    account = TABLE_BUCKET_ARN.split(":")[4]
+    bucket = TABLE_BUCKET_ARN.rsplit("/", 1)[-1]
+    return f"{account}:s3tablescatalog/{bucket}"
+
+
+def s3tables_catalog_props() -> str:
+    """Properties addressing the federated S3 Tables catalog through Glue."""
+    return f"glue.id={s3tables_glue_id()},client.region={REGION}"
 
 emr = boto3.client("emr-serverless", region_name=REGION)
 s3 = boto3.client("s3", region_name=REGION)
@@ -160,7 +182,8 @@ def _wait_for(get_state, want: set, bad: set, what: str, timeout_s: int = 600) -
     raise TimeoutError(f"{what} still {last} after {timeout_s}s")
 
 
-def spark_submit_params(mode: str, catalog_impl: str, warehouse: str) -> str:
+def spark_submit_params(mode: str, catalog_impl: str, warehouse: str,
+                        catalog_props: str = "", catalog_type: str = "") -> str:
     jars = ICEBERG_JAR
     if mode == "s3tables" and S3TABLES_EXTRA_JARS:
         jars = ",".join(j for j in (jars, S3TABLES_EXTRA_JARS) if j)
@@ -171,10 +194,18 @@ def spark_submit_params(mode: str, catalog_impl: str, warehouse: str) -> str:
     params += [
         "--conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
         "--conf spark.sql.catalog.local=org.apache.iceberg.spark.SparkCatalog",
-        f"--conf spark.sql.catalog.local.catalog-impl={catalog_impl}",
-        f"--conf spark.sql.catalog.local.warehouse={warehouse}",
+        # type and catalog-impl are mutually exclusive; Iceberg rejects both.
+        (f"--conf spark.sql.catalog.local.type={catalog_type}" if catalog_type
+         else f"--conf spark.sql.catalog.local.catalog-impl={catalog_impl}"),
         "--conf spark.sql.defaultCatalog=local",
     ]
+    # A catalog that owns its storage takes no warehouse. S3 Tables through the
+    # federation is one: the table bucket decides table locations and the
+    # documented configuration sets glue.id in place of a warehouse.
+    if warehouse:
+        params.append(f"--conf spark.sql.catalog.local.warehouse={warehouse}")
+    for prop in (p.strip() for p in catalog_props.split(",") if p.strip()):
+        params.append(f"--conf spark.sql.catalog.local.{prop}")
     if mode == "s3buckets":
         params.append(
             "--conf spark.hadoop.hive.metastore.client.factory.class="
@@ -222,17 +253,24 @@ def run_probe(app_id: str, probe_uri: str) -> int:
 
 
 def run_mode(app_id: str, mode: str, bundle_uri: str, entry_uri: str) -> dict:
+    catalog_type = ""
+    catalog_impl = GLUE_CATALOG_IMPL
+    # Both modes talk to Glue; they differ in which catalog and where the data
+    # lands. s3buckets writes to the warehouse path below. For s3tables the
+    # warehouse is never written to -- S3 Tables assigns a service-managed
+    # location -- but GlueCatalog still derives one client-side before calling
+    # Glue and fails on an empty value, so a real, permitted path must be given.
+    warehouse = s3_uri(ENGINE, "warehouse", RUN_TAG) + "/"
     if mode == "s3buckets":
-        catalog_impl = GLUE_CATALOG_IMPL
-        warehouse = s3_uri(ENGINE, "warehouse", RUN_TAG) + "/"
+        catalog_props = ""
     else:
         if not TABLE_BUCKET_ARN:
             raise SystemExit("AWS_TABLE_BUCKET_ARN is required for the s3tables mode")
-        catalog_impl = S3TABLES_CATALOG_IMPL
-        warehouse = TABLE_BUCKET_ARN
+        catalog_props = s3tables_catalog_props()
 
     report_uri = s3_uri(ENGINE, "reports", RUN_TAG, mode) + "/"
-    print(f"\n[driver] === {mode}: {catalog_impl} -> {warehouse} ===")
+    target = catalog_props or warehouse
+    print(f"\n[driver] === {mode}: {catalog_impl} -> {target} ===")
 
     resp = emr.start_job_run(
         applicationId=app_id,
@@ -247,11 +285,14 @@ def run_mode(app_id: str, mode: str, bundle_uri: str, entry_uri: str) -> dict:
                     "--report-uri", report_uri,
                     "--mode", mode,
                     "--catalog-impl", catalog_impl,
+                    "--catalog-type", catalog_type,
                     "--warehouse", warehouse,
+                    "--catalog-props", catalog_props,
                     "--ns-prefix", f"{RESOURCE_PREFIX}_",
                     "--platform-label", f"{RELEASE_LABEL} / {mode}",
                 ],
-                "sparkSubmitParameters": spark_submit_params(mode, catalog_impl, warehouse),
+                "sparkSubmitParameters": spark_submit_params(
+                    mode, catalog_impl, warehouse, catalog_props, catalog_type),
             }
         },
         configurationOverrides={

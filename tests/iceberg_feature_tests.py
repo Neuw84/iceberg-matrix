@@ -68,10 +68,55 @@ MATRIX_DATA_PATH = os.environ.get(
 # Free-text label for the runtime under test, recorded in the report so a cell
 # that changes later is attributable (e.g. "emr-8.0.0 / s3buckets").
 PLATFORM_LABEL = os.environ.get("PLATFORM_LABEL", "")
+# Storage mode on platforms that offer more than one, currently "s3buckets" or
+# "s3tables" on AWS. A few features are only meaningful in one of them, so the
+# mode is passed explicitly rather than inferred from catalog configuration.
+STORAGE_MODE = os.environ.get("MATRIX_STORAGE_MODE", "")
 # When set, the primary catalog is built from a catalog-impl rather than REST or
 # Hadoop, and spark-submit owns the jars and the master.
 CATALOG_IMPL = os.environ.get("ICEBERG_CATALOG_IMPL", "")
+# Alternative to CATALOG_IMPL for catalogs selected by a built-in type rather
+# than a class name, i.e. "rest". The AWS Glue Iceberg REST endpoint is one:
+# S3 Tables has to be written through it, because it is the server that assigns
+# table locations, whereas catalog-impl=GlueCatalog derives them client-side and
+# fails with "Cannot derive default warehouse location".
+CATALOG_TYPE = os.environ.get("ICEBERG_CATALOG_TYPE", "")
 CATALOG_WAREHOUSE = os.environ.get("ICEBERG_CATALOG_WAREHOUSE", "")
+# Extra properties for the primary catalog, as "key=value,key=value". Needed by
+# catalogs that take more than an impl and a warehouse: S3 Tables through the
+# Glue Data Catalog federation, for instance, is addressed by glue.id rather
+# than by a warehouse path.
+CATALOG_PROPS = [
+    p for p in os.environ.get("ICEBERG_CATALOG_PROPS", "").split(",") if p.strip()
+]
+# Whether DROP TABLE has to say PURGE. Required by S3 Tables, which manages the
+# storage and refuses a metadata-only drop. See _drop_table.
+DROP_PURGE = os.environ.get("ICEBERG_DROP_PURGE", "").lower() in ("1", "true", "yes")
+
+
+# True when a managed platform supplies the catalog, in which case spark-submit
+# also owns the jars and the master.
+PLATFORM_CATALOG = bool(CATALOG_IMPL or CATALOG_TYPE)
+
+
+def _catalog_name() -> str:
+    """How to describe the primary catalog: a class name or a built-in type."""
+    return CATALOG_IMPL or f"type={CATALOG_TYPE}"
+
+
+def _catalog_target() -> str:
+    """Describe what the primary catalog points at, for the report and the banner.
+
+    Both parts matter, so both are reported when present. With S3 Tables the
+    warehouse is a required but unused formality -- the service assigns the real
+    location -- and the property that actually identifies the catalog is glue.id.
+    Recording only the warehouse there would make the report look like a plain
+    S3 warehouse run.
+    """
+    parts = [p.strip() for p in CATALOG_PROPS]
+    if CATALOG_WAREHOUSE:
+        parts.insert(0, f"warehouse={CATALOG_WAREHOUSE}")
+    return ", ".join(parts) or "no warehouse"
 # Namespace/database prefix. Managed catalogs are usually IAM-scoped to a name
 # prefix, so this has to be overridable.
 NS_PREFIX = os.environ.get("MATRIX_NS_PREFIX", "ns_")
@@ -173,6 +218,18 @@ def _fmt(version: str) -> str:
     return "3" if version == "v3" else "2"
 
 
+def _drop_table(spark, table: str) -> None:
+    """Drop a table, purging when the catalog requires it.
+
+    S3 Tables rejects a plain DROP with "S3 managed Iceberg table must be purged
+    when dropped", because the service owns the storage and will not leave
+    orphaned data behind. PURGE is gated rather than unconditional: elsewhere it
+    would turn a metadata-only drop into a data delete, which is a much wider
+    blast radius than these tests need.
+    """
+    spark.sql(f"DROP TABLE IF EXISTS {table}" + (" PURGE" if DROP_PURGE else ""))
+
+
 # ---------------------------------------------------------------------------
 # Result classes
 # ---------------------------------------------------------------------------
@@ -210,31 +267,42 @@ def get_spark():
     from pyspark.sql import SparkSession
 
     # Locate the JAR(s). ICEBERG_JAR may be a comma-separated list.
+    #
+    # On a managed platform spark-submit already owns the classpath and Iceberg
+    # is in the image, so the suite must not add jars of its own. Doing so is
+    # actively harmful: ICEBERG_VERSION there is the vendor build (1.10.1-amzn-0),
+    # which does not exist on Maven Central, and requesting it pulled a second,
+    # different Iceberg onto the classpath. That is what silently turned a
+    # type=rest catalog into a GlueCatalog and made every S3 Tables table
+    # creation fail in defaultWarehouseLocation.
     jar_paths = []
-    for jar in [j.strip() for j in ICEBERG_JAR.split(",") if j.strip()]:
-        candidates = [
-            jar,
-            os.path.join(os.getcwd(), jar),
-            os.path.join(os.path.dirname(__file__), jar),
-            os.path.join(os.path.dirname(__file__), "..", jar),
-        ]
-        for c in candidates:
-            if os.path.isfile(c):
-                jar_paths.append(os.path.abspath(c))
-                break
-
-    if not jar_paths:
-        # Try Maven coordinates
-        jar_coord = f"org.apache.iceberg:iceberg-spark-runtime-{SPARK_VERSION_SHORT}_2.13:{ICEBERG_VERSION}"
-        if REST_URI:
-            jar_coord += f",org.apache.iceberg:iceberg-aws-bundle:{ICEBERG_VERSION}"
-        print(f"[INFO] JAR not found locally, using Maven coordinates: {jar_coord}")
+    jar_coord = None
+    if PLATFORM_CATALOG:
+        print("[INFO] Platform-managed catalog: leaving the classpath to spark-submit")
     else:
-        jar_coord = None
-        print(f"[INFO] Using JARs: {', '.join(jar_paths)}")
+        for jar in [j.strip() for j in ICEBERG_JAR.split(",") if j.strip()]:
+            candidates = [
+                jar,
+                os.path.join(os.getcwd(), jar),
+                os.path.join(os.path.dirname(__file__), jar),
+                os.path.join(os.path.dirname(__file__), "..", jar),
+            ]
+            for c in candidates:
+                if os.path.isfile(c):
+                    jar_paths.append(os.path.abspath(c))
+                    break
+
+        if not jar_paths:
+            # Try Maven coordinates
+            jar_coord = f"org.apache.iceberg:iceberg-spark-runtime-{SPARK_VERSION_SHORT}_2.13:{ICEBERG_VERSION}"
+            if REST_URI:
+                jar_coord += f",org.apache.iceberg:iceberg-aws-bundle:{ICEBERG_VERSION}"
+            print(f"[INFO] JAR not found locally, using Maven coordinates: {jar_coord}")
+        else:
+            print(f"[INFO] Using JARs: {', '.join(jar_paths)}")
 
     builder = SparkSession.builder.appName("IcebergFeatureTests")
-    if not CATALOG_IMPL:
+    if not PLATFORM_CATALOG:
         # Local runs need an explicit master. Under spark-submit on a managed
         # platform the runtime supplies it, and forcing local[*] there would
         # quietly run the whole job inside the driver container.
@@ -259,14 +327,29 @@ def get_spark():
         .config("spark.sql.catalog.hadoop_local.warehouse", WAREHOUSE_URI)
     )
 
-    if CATALOG_IMPL:
-        print(f"[INFO] Primary catalog: {CATALOG_IMPL} (warehouse {CATALOG_WAREHOUSE})")
-        builder = (
-            builder
-            .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
-            .config("spark.sql.catalog.local.catalog-impl", CATALOG_IMPL)
-            .config("spark.sql.catalog.local.warehouse", CATALOG_WAREHOUSE)
-        )
+    if PLATFORM_CATALOG:
+        print(f"[INFO] Primary catalog: {_catalog_name()} "
+              f"(warehouse {CATALOG_WAREHOUSE or '(none)'})")
+        builder = builder.config(
+            "spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
+        # catalog-impl and type are mutually exclusive; Iceberg rejects both.
+        if CATALOG_TYPE:
+            builder = builder.config("spark.sql.catalog.local.type", CATALOG_TYPE)
+        else:
+            builder = builder.config("spark.sql.catalog.local.catalog-impl", CATALOG_IMPL)
+        # Some catalogs own their storage and take no warehouse at all. S3 Tables
+        # via the Glue federation is one: the table bucket decides the location,
+        # and the documented configuration sets glue.id instead.
+        if CATALOG_WAREHOUSE:
+            builder = builder.config("spark.sql.catalog.local.warehouse", CATALOG_WAREHOUSE)
+        for prop in CATALOG_PROPS:
+            key, sep, value = prop.partition("=")
+            if not sep:
+                print(f"[WARN] ignoring malformed ICEBERG_CATALOG_PROPS entry {prop!r}; "
+                      "expected key=value")
+                continue
+            print(f"[INFO]   {key.strip()}={value.strip()}")
+            builder = builder.config(f"spark.sql.catalog.local.{key.strip()}", value.strip())
     elif REST_URI:
         print(f"[INFO] Primary catalog: REST at {REST_URI} (warehouse {REST_WAREHOUSE})")
         builder = (
@@ -347,7 +430,7 @@ def test_table_creation(version: str) -> TestResult:
         """)
         desc = spark.sql(f"DESCRIBE TABLE {tbl}").collect()
         assert len(desc) >= 4, f"Expected >=4 columns, got {len(desc)}"
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = f"Created Iceberg {version.upper()} table with multiple column types"
@@ -375,7 +458,7 @@ def test_read_support(version: str) -> TestResult:
         assert len(rows2) == 2
         rows3 = spark.sql(f"SELECT name FROM {tbl}").collect()
         assert len(rows3) == 3
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "SELECT with predicate pushdown and column projection works"
@@ -402,7 +485,7 @@ def test_write_insert(version: str) -> TestResult:
         spark.sql(f"INSERT INTO {tbl} VALUES (3,'more')")
         cnt2 = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
         assert cnt2 == 3
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "INSERT INTO works correctly with multiple batches"
@@ -449,8 +532,8 @@ def test_write_merge_update_delete(version: str) -> TestResult:
         merged = spark.sql(f"SELECT val FROM {tbl} WHERE id=1").collect()[0][0]
         assert merged == "merged"
 
-        spark.sql(f"DROP TABLE IF EXISTS {src}")
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, src)
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "UPDATE, DELETE, and MERGE INTO all work correctly"
@@ -501,7 +584,7 @@ def test_position_deletes(version: str) -> TestResult:
                 r.result = "error"
                 r.details = "Expected delete files or delete evidence in snapshots"
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
     except Exception as e:
         r.result = "error"
@@ -529,7 +612,7 @@ def test_equality_deletes(version: str) -> TestResult:
         spark.sql(f"DELETE FROM {tbl} WHERE id=2")
         cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
         assert cnt == 2
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "Equality deletes readable; Spark SQL DELETE in MoR works correctly"
@@ -564,7 +647,7 @@ def test_merge_on_read(version: str) -> TestResult:
         val = spark.sql(f"SELECT val FROM {tbl} WHERE id=2").collect()[0][0]
         assert val == "x"
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "Merge-on-read produces delete files/DVs on UPDATE; reads merge correctly"
@@ -599,7 +682,7 @@ def test_copy_on_write(version: str) -> TestResult:
         val = spark.sql(f"SELECT val FROM {tbl} WHERE id=2").collect()[0][0]
         assert val == "x"
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "Copy-on-write rewrites data files (no delete files) on UPDATE"
@@ -635,7 +718,7 @@ def test_schema_evolution(version: str) -> TestResult:
         cols = [c[0] for c in spark.sql(f"DESCRIBE TABLE {tbl}").collect()]
         assert "age" not in cols
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "ADD COLUMNS, RENAME COLUMN, DROP COLUMN all work correctly"
@@ -666,7 +749,7 @@ def test_type_promotion(version: str) -> TestResult:
         assert len(rows) == 2
         assert rows[1][0] == 9999999999
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "INT→BIGINT and FLOAT→DOUBLE promotions work correctly"
@@ -699,7 +782,7 @@ def test_column_default_values(version: str) -> TestResult:
             # consistent with partial support.
             r.result = "pass"
             r.details = f"V3 table created with default; value not auto-applied via SQL (got {row}) — partial"
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
     except Exception as e:
         emsg = str(e).lower()
         if any(t in emsg for t in ("unsupported", "not supported", "format version", "default")):
@@ -741,7 +824,7 @@ def test_time_travel(version: str) -> TestResult:
         cur_rows = spark.sql(f"SELECT * FROM {tbl}").collect()
         assert len(cur_rows) == 2
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "VERSION AS OF time travel works correctly with snapshot IDs"
@@ -779,7 +862,7 @@ def test_table_maintenance(version: str) -> TestResult:
         cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
         assert cnt == 3
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "rewrite_data_files and expire_snapshots procedures work correctly"
@@ -815,7 +898,7 @@ def test_branching_tagging(version: str) -> TestResult:
         tag_cnt = spark.sql(f"SELECT count(*) FROM {tbl}.tag_v1_release").collect()[0][0]
         assert tag_cnt == 1
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "CREATE BRANCH, CREATE TAG, write to branch, and read from tag all work"
@@ -852,7 +935,7 @@ def test_hidden_partitioning(version: str) -> TestResult:
         assert len(rows) == 1
         assert rows[0][0] == 3
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "Hidden partitioning with year(), bucket(), truncate() transforms works"
@@ -888,7 +971,7 @@ def test_partition_evolution(version: str) -> TestResult:
         cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
         assert cnt == 2
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "Partition evolution (ADD PARTITION FIELD) works without rewriting data"
@@ -912,22 +995,37 @@ def test_multi_arg_transforms(version: str) -> TestResult:
             USING iceberg
             TBLPROPERTIES ('format-version'='3')
         """)
-        # Single-column transforms are fully supported; true multi-source-column
-        # transforms are still evolving — consistent with the 'partial' rating.
-        spark.sql(f"ALTER TABLE {tbl} ADD PARTITION FIELD bucket(4, id)")
+        # The V3 feature is a transform over more than one *source column*: the
+        # spec gained source-ids (plural), relaxing the older rule that every
+        # transform applies to a single column.
+        #
+        # So this has to declare a genuinely multi-source transform. An earlier
+        # version used bucket(4, id) -- one source column plus a literal -- which
+        # passed everywhere, including on format-version 2, and therefore
+        # measured nothing about this feature.
+        spark.sql(f"ALTER TABLE {tbl} ADD PARTITION FIELD bucket(4, a, b)")
         spark.sql(f"INSERT INTO {tbl} VALUES (1,'x','y')")
         cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
         assert cnt == 1
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
-        r.details = "V3 table with partition transforms works; multi-source-column transforms still evolving (partial)"
+        r.details = ("Multi-source-column partition transform bucket(4, a, b) "
+                     "accepted on a V3 table, and writes and reads work")
     except Exception as e:
         emsg = str(e).lower()
-        if "format version" in emsg or "unsupported" in emsg:
+        # Rejection counts as unsupported: the engine cannot express a
+        # multi-source transform at all, which is the thing being measured.
+        # Iceberg's Spark integration says "Cannot convert transform with more
+        # than one column reference"; other engines fail in the parser.
+        if any(s in emsg for s in ("format version", "unsupported", "parse",
+                                   "mismatched input", "cannot resolve",
+                                   "extraneous input", "invalid",
+                                   "more than one column reference",
+                                   "cannot convert transform")):
             r.result = "fail"
-            r.details = f"Multi-arg transforms not supported: {str(e)[:200]}"
+            r.details = f"Multi-source-column transforms not supported: {str(e)[:250]}"
         else:
             r.result = "error"
             r.details = str(e)
@@ -969,7 +1067,7 @@ def test_statistics(version: str) -> TestResult:
             assert f["lower_bounds"] is not None, "lower_bounds should not be null"
             assert f["upper_bounds"] is not None, "upper_bounds should not be null"
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "Column statistics (record_count, value_counts, bounds) present in manifest files"
@@ -1003,7 +1101,7 @@ def test_bloom_filters(version: str) -> TestResult:
         row = spark.sql(f"SELECT val FROM {tbl} WHERE id = 3").collect()
         assert len(row) == 1 and row[0][0] == "c"
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = (
@@ -1033,7 +1131,7 @@ def test_catalog_integration(version: str) -> TestResult:
         tbls = spark.sql(f"SHOW TABLES IN local.{ns}").collect()
         assert len(tbls) >= 1
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "Catalog integration works (SHOW NAMESPACES, SHOW TABLES, CREATE/DROP)"
@@ -1045,6 +1143,16 @@ def test_catalog_integration(version: str) -> TestResult:
 
 def test_hadoop_catalog(version: str) -> TestResult:
     r = TestResult("hadoop-catalog", "Hadoop Catalog", version)
+    # With S3 Tables the table bucket *is* the catalog, so a Hadoop catalog is
+    # not an option there at all. The suite's hadoop_local catalog would still
+    # pass, because it is a local-filesystem catalog inside the container, but
+    # that says nothing about the platform under test -- it would report a
+    # capability S3 Tables does not have.
+    if STORAGE_MODE == "s3tables":
+        r.result = "skip"
+        r.details = ("Not applicable: S3 Tables is the catalog, so the suite's "
+                     "local-filesystem Hadoop catalog is not evidence about this platform")
+        return r
     spark = get_spark()
     ns = _ns()
     try:
@@ -1059,7 +1167,7 @@ def test_hadoop_catalog(version: str) -> TestResult:
         spark.sql(f"INSERT INTO {tbl} VALUES (1,'test')")
         cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
         assert cnt == 1
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS hadoop_local.{ns}")
         r.result = "pass"
         r.details = "Hadoop catalog: create, write, read, drop all work on local filesystem"
@@ -1101,7 +1209,7 @@ def test_rest_catalog(version: str) -> TestResult:
         spark.sql(f"UPDATE {tbl} SET val='updated' WHERE id=1")
         val = spark.sql(f"SELECT val FROM {tbl} WHERE id=1").collect()[0][0]
         assert val == "updated"
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = f"REST catalog ({REST_URI}): namespace/table CRUD, write, and read all work"
@@ -1143,7 +1251,7 @@ def test_aws_glue_catalog(version: str) -> TestResult:
         spark.sql(f"UPDATE {tbl} SET val='updated' WHERE id=1")
         val = spark.sql(f"SELECT val FROM {tbl} WHERE id=1").collect()[0][0]
         assert val == "updated", f"expected 'updated', got {val!r}"
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = (f"AWS Glue Data Catalog ({CATALOG_IMPL}): namespace and table "
@@ -1200,7 +1308,7 @@ def test_variant_type(version: str) -> TestResult:
         spark.sql(f"INSERT INTO {tbl} SELECT 1, parse_json('{{\"a\":1}}')")
         cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
         assert cnt == 1
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "VARIANT type column created and written on V3 table"
@@ -1241,7 +1349,7 @@ def test_shredded_variant(version: str) -> TestResult:
         spark.sql(f"INSERT INTO {tbl} SELECT 1, parse_json('{{\"user\":\"alice\",\"n\":2}}')")
         cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
         assert cnt == 1
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "VARIANT column with shredding property created and written on V3 table"
@@ -1276,7 +1384,7 @@ def test_geometry_type(version: str) -> TestResult:
         """)
         cols = [c[0] for c in spark.sql(f"DESCRIBE TABLE {tbl}").collect()]
         assert "g" in cols and "gg" in cols
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "GEOMETRY(4326) and GEOGRAPHY(4326) columns created on V3 table"
@@ -1328,7 +1436,7 @@ def test_nanosecond_timestamps(version: str) -> TestResult:
         """)
         cols = [c[0] for c in spark.sql(f"DESCRIBE TABLE {tbl}").collect()]
         assert "ts" in cols
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "TIMESTAMP_NS column created on V3 table"
@@ -1367,7 +1475,7 @@ def test_lineage(version: str) -> TestResult:
             f"SELECT _row_id, _last_updated_sequence_number FROM {tbl}"
         ).collect()
         assert len(rows) == 2
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
         r.details = "Row lineage metadata columns (_row_id, _last_updated_sequence_number) readable on V3"
@@ -1436,7 +1544,7 @@ def test_deletion_vectors(version: str) -> TestResult:
                 r.result = "error"
                 r.details = "Expected deletion vector / delete file evidence on V3 DELETE"
 
-        spark.sql(f"DROP TABLE IF EXISTS {tbl}")
+        _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
     except Exception as e:
         r.result = "error"
@@ -1606,7 +1714,7 @@ def generate_report(results: list[TestResult]) -> dict:
         "platform": MATRIX_PLATFORM_ID,
         "platform_label": PLATFORM_LABEL,
         "catalog_mode": (
-            f"{CATALOG_IMPL} ({CATALOG_WAREHOUSE})" if CATALOG_IMPL
+            f"{_catalog_name()} ({_catalog_target()})" if PLATFORM_CATALOG
             else f"REST ({REST_URI})" if REST_URI
             else "Hadoop (local filesystem)"
         ),
@@ -1714,8 +1822,8 @@ def main():
     print(f"Warehouse: {WAREHOUSE_DIR}")
     print(f"Repo root: {REPO_ROOT}")
     print(f"Iceberg version: {ICEBERG_VERSION}")
-    if CATALOG_IMPL:
-        print(f"Catalog: {CATALOG_IMPL} (warehouse {CATALOG_WAREHOUSE})")
+    if PLATFORM_CATALOG:
+        print(f"Catalog: {_catalog_name()} ({_catalog_target()})")
     else:
         print(f"Catalog: {'REST at ' + REST_URI if REST_URI else 'Hadoop (local filesystem)'}")
     print(f"Matrix target: {MATRIX_PLATFORM_ID} from {MATRIX_DATA_PATH}")

@@ -98,56 +98,97 @@ one variable. Teardown runs under `always()` and prints either
 `all billable resources removed` or a `COULD NOT CLEAN` list naming what to
 check by hand.
 
-## 7. Known limitation: s3tables mode does not work on EMR Serverless
+## 7. How the s3tables mode reaches S3 Tables
 
-`modes: s3buckets` passes end to end. `modes: s3tables` currently cannot work on
-EMR Serverless, and the failure is a networking limitation rather than anything
-in this repo. Every test fails with:
+Both modes talk to the AWS Glue Data Catalog. They differ in which catalog and
+where the data lands:
+
+| | `s3buckets` | `s3tables` |
+|---|---|---|
+| catalog-impl | `GlueCatalog` | `GlueCatalog` |
+| catalog | default Glue catalog | federated `s3tablescatalog` via `glue.id` |
+| table data | the `warehouse` path | service-managed by S3 Tables |
+| `DROP TABLE` | plain | must say `PURGE` |
+
+The s3tables configuration is:
 
 ```
-S3TablesCatalog: Failed to load namespace metadata
-SdkClientException: Unable to execute HTTP request:
-  Connect to s3tables.us-east-1.amazonaws.com:443 ... failed: Connect timed out
+--conf spark.sql.catalog.local=org.apache.iceberg.spark.SparkCatalog
+--conf spark.sql.catalog.local.catalog-impl=org.apache.iceberg.aws.glue.GlueCatalog
+--conf spark.sql.catalog.local.glue.id=<account>:s3tablescatalog/<table-bucket>
+--conf spark.sql.catalog.local.client.region=<region>
+--conf spark.sql.catalog.local.warehouse=s3://<bucket>/emr/warehouse/<run>/
 ```
 
-DNS resolves and the credentials are fine; there is simply no route. An
-EMR Serverless application with no `networkConfiguration` reaches only S3, Glue,
-CloudWatch Logs, KMS, STS, DynamoDB, and Secrets Manager. S3 Tables is not on
-that list, so the open-source `S3TablesCatalog` client cannot reach its control
-plane. AWS names this exact timeout as the symptom:
+Prerequisite: the table bucket must be integrated with AWS analytics services,
+which creates the `s3tablescatalog` federated catalog. Check with
+`aws glue get-catalog --catalog-id s3tablescatalog`. Ours is in IAM mode
+(`CreateTableDefaultPermissions` granting `ALL` to `IAM_ALLOWED_PRINCIPALS`), so
+no Lake Formation grants are needed.
 
-- https://aws.amazon.com/blogs/big-data/top-10-best-practices-for-amazon-emr-serverless/
-- https://repost.aws/knowledge-center/emr-serverless-resource-access
+### Four things that are not obvious
 
-Do not debug this as an IAM problem. The job role already has the required
-`s3tables:*` permissions, and adding more will not change the timeout.
+**The warehouse is required but never used.** S3 Tables assigns its own
+service-managed location, yet `GlueCatalog` derives a table location on the
+client *before* calling Glue and rejects an empty warehouse with
+`Cannot derive default warehouse location, warehouse path must not be null or
+empty`. So a real, permitted S3 path has to be configured. Nothing is ever
+written there -- verified: the probe created a table and the path stayed empty
+while the table appeared under `aws s3tables list-tables`.
 
-Note that each test absorbs the full ~57s connect timeout before moving on, so a
-whole suite takes about an hour of billed capacity and produces nothing. Cancel
-the run as soon as the first `Connect timed out` appears:
+**`DROP TABLE` must say `PURGE`.** S3 Tables owns the storage and refuses a
+metadata-only drop: `S3 managed Iceberg table must be purged when dropped`. The
+suite handles this through `_drop_table()`, gated on `ICEBERG_DROP_PURGE` so that
+other platforms keep a plain drop rather than silently deleting data.
 
-```bash
-aws emr-serverless cancel-job-run \
-  --application-id "$EMR_APPLICATION_ID" --job-run-id "$JOB_RUN_ID"
+**`type=rest` does not work on this image.** The AWS Glue Iceberg REST endpoint
+configuration (`type=rest`, `uri=https://glue.<region>.amazonaws.com/iceberg`,
+sigv4) looks like the natural fit, and namespace listing even succeeds, but the
+EMR 8 Iceberg build ignores it and constructs a `GlueCatalog` anyway. Unwrapping
+the catalog with `tests/aws/s3tables_probe.py` shows
+`SparkCatalog -> CachingCatalog -> GlueCatalog` regardless. Table creation then
+fails in `defaultWarehouseLocation`. Confirmed under two different catalog names,
+so it is not a name collision.
+
+**The native client needs a VPC.** `software.amazon.s3tables.iceberg.S3TablesCatalog`
+calls `s3tables.<region>.amazonaws.com` directly, and an EMR Serverless
+application with no `networkConfiguration` has no route there -- every call dies
+with `Connect timed out` after about 57 seconds, which makes a whole suite take
+an hour and produce nothing. S3 Tables is not among the services EMR Serverless
+reaches by default. Using it would mean a VPC plus a PrivateLink interface
+endpoint, and then also endpoints for S3, Glue, STS and CloudWatch Logs, since
+entering a VPC forfeits the default managed access. The Glue federation above
+avoids all of that.
+
+### IAM
+
+Federated catalogs sit in their own ARN hierarchy, with the catalog and bucket as
+extra leading segments, so they need policy entries of their own:
+
+```
+catalog/s3tablescatalog
+catalog/s3tablescatalog/<bucket>
+database/s3tablescatalog/<bucket>/<prefix>*
+table/s3tablescatalog/<bucket>/<prefix>*/*
+userDefinedFunction/s3tablescatalog/<bucket>/<prefix>*/*
 ```
 
-### Options, none of them yet chosen
+Three separate permission failures were needed to find all of that, so if a run
+fails with `AccessDeniedException`, read the resource ARN in the message rather
+than assuming which entry is missing:
 
-1. **VPC + PrivateLink.** Give the application a `networkConfiguration` and an
-   interface endpoint for `com.amazonaws.<region>.s3tables`. Keeps the native
-   catalog and needs no code change. The catch is that entering a VPC forfeits
-   the default managed access above, so it also needs an S3 gateway endpoint and
-   interface endpoints for Glue, STS, and CloudWatch Logs: roughly six extra
-   resources, about $0.04/hr while they exist, and a new teardown surface that
-   `teardown.py` does not cover today.
-2. **Glue Data Catalog federation.** Enable the S3 Tables integration so the
-   table bucket is mounted as `s3tablescatalog`, then point the suite at
-   `GlueCatalog` with `glue.id = <account>:s3tablescatalog/<bucket>`. Metadata
-   goes through Glue and data through S3, both already reachable, so no VPC is
-   needed and it costs nothing extra. It does require Lake Formation grants,
-   which persist in the account, and it measures a genuinely different
-   integration path -- arguably its own matrix cell rather than EMR's.
-3. **Cover S3 Tables from another engine** (Glue ETL or Athena) and leave EMR as
-   s3buckets-only. Free. Worth checking first, because Glue ETL jobs without a
-   network connection are not restricted the way EMR Serverless is, so the
-   s3tables mode may simply work there and make options 1 and 2 unnecessary.
+- `glue:GetCatalog` is needed on the **root** `:catalog` as well, not just the
+  federated one: resolving a federated catalog walks the hierarchy from the top.
+- `glue:DeleteDatabase` is authorised against `userDefinedFunction` too, under
+  the federated path, or `DROP NAMESPACE` fails.
+- `lakeformation:GetDataAccess` is needed because credential vending for
+  federated tables goes through Lake Formation even in IAM mode.
+
+### Diagnosing catalog problems
+
+`tests/aws/s3tables_probe.py` reports the effective configuration, unwraps the
+catalog chain to the real implementation class, and walks
+create/insert/select/drop. Reading the configuration alone is misleading, because
+the configuration can be exactly right while the resolved class is something
+else entirely. Note that the probe must use a namespace carrying the resource
+prefix; any other name fails on IAM and hides the real result.

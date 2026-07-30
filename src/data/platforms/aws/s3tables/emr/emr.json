@@ -118,9 +118,13 @@
       "caveats": []
     },
     "aws-emr:aws-glue-catalog:v2": {
-      "level": "none",
-      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
-      "caveats": []
+      "level": "full",
+      "notes": "The Glue Data Catalog is how EMR Serverless reaches S3 Tables: the table bucket is mounted as the federated s3tablescatalog and addressed with catalog-impl=GlueCatalog plus glue.id=<account>:s3tablescatalog/<bucket>. Measured: namespace and table creation, insert, row-level update, read, and drop.",
+      "caveats": [
+        "Requires the table bucket to be integrated with AWS analytics services, which creates the s3tablescatalog federated catalog.",
+        "A warehouse must still be configured even though it is never written to. GlueCatalog derives a table location on the client and rejects an empty warehouse, while S3 Tables overrides it with a service-managed location.",
+        "The native S3TablesCatalog client is not usable from EMR Serverless without VPC access: it calls s3tables.<region>.amazonaws.com directly, which the default EMR network cannot route to."
+      ]
     },
     "aws-emr:rest-catalog:v2": {
       "level": "full",
@@ -231,9 +235,12 @@
       "caveats": []
     },
     "aws-emr:multi-arg-transforms:v3": {
-      "level": "unknown",
-      "notes": "Multi-argument transforms support with S3 Tables not explicitly documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Measured on emr-spark-8.0.0 (Spark 4.0.2, Iceberg 1.10.1-amzn-0) against S3 Tables: declaring a transform over more than one source column is rejected with \"Cannot convert transform with more than one column reference: bucket(4, a, b)\". Iceberg's Spark integration cannot express the V3 multi-argument transform.",
+      "caveats": [
+        "Single-source transforms such as bucket(4, id), year(ts) and truncate(4, s) work, but those are not this feature: they work on format-version 2 as well.",
+        "This is a limitation of the Iceberg Spark integration rather than of S3 Tables, so it applies equally to the s3buckets mode."
+      ]
     },
     "aws-emr:time-travel:v3": {
       "level": "full",
@@ -288,9 +295,13 @@
       "caveats": []
     },
     "aws-emr:aws-glue-catalog:v3": {
-      "level": "none",
-      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
-      "caveats": []
+      "level": "full",
+      "notes": "The Glue Data Catalog is how EMR Serverless reaches S3 Tables: the table bucket is mounted as the federated s3tablescatalog and addressed with catalog-impl=GlueCatalog plus glue.id=<account>:s3tablescatalog/<bucket>. Measured on V3 tables: namespace and table creation, insert, row-level update, read, and drop.",
+      "caveats": [
+        "Requires the table bucket to be integrated with AWS analytics services, which creates the s3tablescatalog federated catalog.",
+        "A warehouse must still be configured even though it is never written to. GlueCatalog derives a table location on the client and rejects an empty warehouse, while S3 Tables overrides it with a service-managed location.",
+        "The native S3TablesCatalog client is not usable from EMR Serverless without VPC access: it calls s3tables.<region>.amazonaws.com directly, which the default EMR network cannot route to."
+      ]
     },
     "aws-emr:rest-catalog:v3": {
       "level": "full",

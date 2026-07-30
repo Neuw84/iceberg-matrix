@@ -106,9 +106,12 @@
       "caveats": []
     },
     "google-dataproc:multi-arg-transforms:v3": {
-      "level": "full",
-      "notes": "Supported via Spark on Dataproc with Iceberg V3",
-      "caveats": []
+      "level": "none",
+      "notes": "V3 transforms over multiple source columns cannot be expressed by Iceberg's Spark integration, which rejects them with \"Cannot convert transform with more than one column reference\". Dataproc runs that same integration.",
+      "caveats": [
+        "Inferred from the measured EMR Serverless and OSS Spark results, not measured on Dataproc itself; it is a limitation of the Iceberg Spark integration rather than of the platform.",
+        "Single-source transforms (bucket, truncate, year, month, day, hour) work, but they are not this feature: they work on format-version 2 as well."
+      ]
     },
     "google-dataproc:time-travel:v2": {
       "level": "full",
