@@ -88,8 +88,14 @@ def main() -> int:
     p.add_argument("--bundle", required=True)
     p.add_argument("--report-uri", required=True)
     p.add_argument("--mode", required=True, choices=["s3buckets", "s3tables"])
-    p.add_argument("--catalog-impl", required=True)
-    p.add_argument("--warehouse", required=True)
+    # Exactly one of these: a catalog-impl class name, or a built-in type such as
+    # "rest" for the Glue Iceberg REST endpoint used by the s3tables mode.
+    p.add_argument("--catalog-impl", default="")
+    p.add_argument("--catalog-type", default="")
+    p.add_argument("--warehouse", default="")
+    # Extra catalog properties as "key=value,key=value", e.g. glue.id and
+    # client.region for the S3 Tables federation.
+    p.add_argument("--catalog-props", default="")
     p.add_argument("--ns-prefix", default="icebergmatrix_")
     p.add_argument("--platform-label", default="")
     args = p.parse_args()
@@ -108,10 +114,16 @@ def main() -> int:
         "MATRIX_PLATFORM_ID": "aws-emr",
         "MATRIX_DATA_PATH": f"src/data/platforms/aws/{args.mode}/emr/emr.json",
         "MATRIX_NS_PREFIX": args.ns_prefix,
+        "MATRIX_STORAGE_MODE": args.mode,
         "PLATFORM_LABEL": args.platform_label,
         # Platform catalog: no REST, no jar wiring, no master override.
         "ICEBERG_CATALOG_IMPL": args.catalog_impl,
+        "ICEBERG_CATALOG_TYPE": args.catalog_type,
         "ICEBERG_CATALOG_WAREHOUSE": args.warehouse,
+        "ICEBERG_CATALOG_PROPS": args.catalog_props,
+        # S3 Tables owns the storage and rejects a metadata-only DROP TABLE with
+        # "S3 managed Iceberg table must be purged when dropped".
+        "ICEBERG_DROP_PURGE": "1" if args.mode == "s3tables" else "",
         "ICEBERG_REST_URI": "",
     })
 
