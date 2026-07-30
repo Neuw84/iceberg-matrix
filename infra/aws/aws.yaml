@@ -108,6 +108,12 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  # GetCatalog is needed on the account's root catalog, not only
+                  # on the federated one: resolving a federated catalog such as
+                  # s3tablescatalog walks the hierarchy from the root down, so
+                  # the s3tables mode fails every test with AccessDeniedException
+                  # on glue:GetCatalog for the bare :catalog resource without it.
+                  - glue:GetCatalog
                   - glue:GetDatabase
                   - glue:GetDatabases
                   - glue:CreateDatabase
@@ -139,6 +145,59 @@ Resources:
                 Resource:
                   - !Ref TableBucketArn
                   - !Sub '${TableBucketArn}/*'
+
+        # The s3tables mode reaches S3 Tables through the Glue Data Catalog
+        # federation, not the native S3TablesCatalog client: EMR Serverless has
+        # no route to the s3tables endpoint, so the catalog is addressed as
+        # glue.id=<account>:s3tablescatalog/<bucket> and every metadata call goes
+        # to Glue instead.
+        #
+        # Federated catalogs sit in their own ARN hierarchy, with the catalog and
+        # bucket as extra leading segments -- database/s3tablescatalog/<bucket>/<ns>
+        # rather than database/<ns>. The default-catalog statement above does not
+        # match those, so they need their own entry, and glue:GetCatalog is only
+        # required on this path.
+        - PolicyName: glue-s3tables-federation
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:GetCatalog
+                  - glue:GetDatabase
+                  - glue:GetDatabases
+                  - glue:CreateDatabase
+                  - glue:DeleteDatabase
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:CreateTable
+                  - glue:UpdateTable
+                  - glue:DeleteTable
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:catalog/s3tablescatalog'
+                  - !Sub
+                    - 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:catalog/s3tablescatalog/${TableBucketName}'
+                    - TableBucketName: !Select [1, !Split ['/', !Ref TableBucketArn]]
+                  - !Sub
+                    - 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:database/s3tablescatalog/${TableBucketName}/${ResourcePrefix}*'
+                    - TableBucketName: !Select [1, !Split ['/', !Ref TableBucketArn]]
+                  - !Sub
+                    - 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:table/s3tablescatalog/${TableBucketName}/${ResourcePrefix}*/*'
+                    - TableBucketName: !Select [1, !Split ['/', !Ref TableBucketArn]]
+                  # As in the default catalog, DeleteDatabase is also authorised
+                  # against userDefinedFunction, here under the federated path.
+                  # Without it DROP NAMESPACE fails with AccessDeniedException on
+                  # userDefinedFunction/s3tablescatalog/<bucket>/<ns>/*.
+                  - !Sub
+                    - 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:userDefinedFunction/s3tablescatalog/${TableBucketName}/${ResourcePrefix}*/*'
+                    - TableBucketName: !Select [1, !Split ['/', !Ref TableBucketArn]]
+              # Vending temporary data credentials for federated catalog tables
+              # goes through Lake Formation, so the caller needs GetDataAccess
+              # even when the catalog is governed by IAM rather than by Lake
+              # Formation grants. It takes no resource qualifier.
+              - Effect: Allow
+                Action: lakeformation:GetDataAccess
+                Resource: '*'
 
   # ---------------------------------------------------------------------------
   # CI role: assumed by GitHub Actions via OIDC. Drives EMR Serverless and
