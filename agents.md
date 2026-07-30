@@ -169,8 +169,11 @@ Firehose (`aws/s3buckets/firehose` and `aws/s3tables/firehose`) and Kafka Connec
 
 - PRs trigger lint → test → build validation.
 - Pushes to `main` trigger test → build → deploy to GitHub Pages.
-- The `BASE_URL` env var is set during deploy to handle the repo subpath.
-- CI and Deploy workflows run on Node 24 (`actions/setup-node@v4` with `node-version: 24`). Node 20 is deprecated on GitHub Actions runners — keep the build and deploy pipelines on Node 24 and do not fall back to `ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION`.
+- The deploy workflow sets a `BASE_URL` env var, but it has no effect: `vite.config.ts` hard-codes `base: '/'`, which is what the custom domain needs. The site is served from the apex, not a repo subpath.
+- Node 24 has to be kept in two independent places, which is easy to get wrong:
+  1. `node-version: 24` on `actions/setup-node` — the Node that runs *our* build and tests.
+  2. The action versions themselves — each action declares its own `runs.using`, and older majors are pinned to the deprecated `node20`. Setting `node-version` does nothing for these.
+  Both are on Node 24 today. When bumping, check the runtime rather than assuming a version number implies it: `curl -s https://raw.githubusercontent.com/<owner>/<repo>/<tag>/action.yml | grep 'using:'`. Do not fall back to `ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION`.
 
 ### Data Integrity
 
