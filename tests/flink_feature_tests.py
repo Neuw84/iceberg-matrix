@@ -85,62 +85,66 @@ def _unique(prefix: str = "t") -> str:
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
 
 
-def _run_sql(statements: list[str], timeout: int = 120) -> tuple[bool, str]:
-    """Run Flink SQL statements via the SQL client using a script file (-f).
+# ---------------------------------------------------------------------------
+# Execution backends
+#
+# The tests below are written purely against _run_sql() and _catalog_setup_sql().
+# Everything engine-specific lives in a backend, so the same test SQL can run on
+# an OSS Flink cluster (via bin/sql-client.sh) and on a managed runtime that has
+# no SQL client and must go through a TableEnvironment. The tests themselves are
+# identical in both cases, which is the point: they cannot drift apart.
+# ---------------------------------------------------------------------------
 
-    Returns (success, output). (The `-e` inline flag does not exist in the Flink
-    2.x SQL client; statements are written to a temp .sql file and run with -f.)
-    """
-    sql_text = "\n".join(s.rstrip(";") + ";" for s in statements)
+CATALOG_NAME = "test_catalog"
+DATABASE_NAME = "test_db"
 
-    if not FLINK_HOME:
-        return False, f"Flink SQL client not found at {SQL_CLIENT}"
-
-    import tempfile
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            "w", suffix=".sql", delete=False, dir=os.environ.get("TMPDIR", "/tmp")
-        ) as fh:
-            fh.write(sql_text)
-            script_path = fh.name
-
-        result = subprocess.run(
-            [SQL_CLIENT, "embedded", "-f", script_path],
-            capture_output=True, text=True, timeout=timeout,
-            env={**os.environ, "FLINK_HOME": FLINK_HOME},
-        )
-        output = result.stdout + "\n" + result.stderr
-        # The SQL client can exit 0 even when a statement fails; it prints [ERROR].
-        if result.returncode != 0:
-            return False, output.strip()
-        if "[ERROR]" in output:
-            return False, output.strip()
-        if "org.apache.flink.table.api.ValidationException" in output:
-            return False, output.strip()
-        if "Exception in thread" in output:
-            return False, output.strip()
-        return True, output.strip()
-    except subprocess.TimeoutExpired:
-        return False, "SQL client timed out"
-    except FileNotFoundError:
-        return False, f"Flink SQL client not found at {SQL_CLIENT}"
-    except Exception as e:
-        return False, str(e)
-    finally:
-        if script_path and os.path.exists(script_path):
-            os.unlink(script_path)
+# Statements whose rows the tests inspect; the backend must materialise them.
+_QUERY_KEYWORDS = ("SELECT", "SHOW", "DESCRIBE", "DESC", "EXPLAIN", "WITH")
+# Statements that launch a job and must complete before the next statement runs.
+_JOB_KEYWORDS = ("INSERT", "CALL")
+# Rows collected per query. The tests use tiny tables; this only guards against
+# a runaway result set holding the run open.
+_MAX_COLLECT_ROWS = 50
 
 
-def _catalog_setup_sql() -> list[str]:
-    """Return SQL to create and use an Iceberg REST catalog backed by S3 (MinIO).
+def _statement_kind(statement: str) -> str:
+    """Classify a statement as 'query', 'job' or 'ddl' from its leading keyword."""
+    head = statement.strip().lstrip("(").lstrip().upper()
+    for kw in _JOB_KEYWORDS:
+        if head.startswith(kw):
+            return "job"
+    for kw in _QUERY_KEYWORDS:
+        if head.startswith(kw):
+            return "query"
+    # CREATE TABLE ... AS SELECT / REPLACE TABLE ... AS SELECT launch a job.
+    if head.startswith(("CREATE", "REPLACE")) and " AS " in head and "SELECT" in head:
+        return "job"
+    return "ddl"
 
-    Uses catalog-type=rest with Iceberg's S3FileIO for data files, which avoids
-    the Hadoop catalog. Storage credentials are passed inline for the catalog.
-    """
-    return [
-        "SET 'sql-client.execution.result-mode' = 'tableau'",
-        f"""CREATE CATALOG test_catalog WITH (
+
+class SqlClientBackend:
+    """Run statements through the Flink SQL client (OSS clusters)."""
+
+    name = "sql-client"
+
+    def preflight(self) -> str | None:
+        """Return a fatal error message, or None when the backend can run."""
+        if not FLINK_HOME:
+            return "FLINK_HOME not set. Cannot run Flink SQL client."
+        if not os.path.isfile(SQL_CLIENT):
+            return f"Flink SQL client not found at {SQL_CLIENT}"
+        return None
+
+    def catalog_setup_sql(self) -> list[str]:
+        """Create and use an Iceberg REST catalog backed by S3 (MinIO).
+
+        Uses catalog-type=rest with Iceberg's S3FileIO for data files, which
+        avoids the Hadoop catalog. Storage credentials are passed inline for the
+        catalog.
+        """
+        return [
+            "SET 'sql-client.execution.result-mode' = 'tableau'",
+            f"""CREATE CATALOG {CATALOG_NAME} WITH (
             'type'='iceberg',
             'catalog-type'='rest',
             'uri'='{REST_URI}',
@@ -151,10 +155,225 @@ def _catalog_setup_sql() -> list[str]:
             's3.access-key-id'='{S3_KEY_ID}',
             's3.secret-access-key'='{S3_SECRET}'
         )""",
-        "USE CATALOG test_catalog",
-        "CREATE DATABASE IF NOT EXISTS test_db",
-        "USE test_db",
-    ]
+            f"USE CATALOG {CATALOG_NAME}",
+            f"CREATE DATABASE IF NOT EXISTS {DATABASE_NAME}",
+            f"USE {DATABASE_NAME}",
+        ]
+
+    def run_sql(self, statements: list[str], timeout: int = 120) -> tuple[bool, str]:
+        """Run statements as a script file (-f).
+
+        Returns (success, output). (The `-e` inline flag does not exist in the
+        Flink 2.x SQL client; statements are written to a temp .sql file.)
+        """
+        sql_text = "\n".join(s.rstrip(";") + ";" for s in statements)
+
+        if not FLINK_HOME:
+            return False, f"Flink SQL client not found at {SQL_CLIENT}"
+
+        import tempfile
+        script_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                "w", suffix=".sql", delete=False, dir=os.environ.get("TMPDIR", "/tmp")
+            ) as fh:
+                fh.write(sql_text)
+                script_path = fh.name
+
+            result = subprocess.run(
+                [SQL_CLIENT, "embedded", "-f", script_path],
+                capture_output=True, text=True, timeout=timeout,
+                env={**os.environ, "FLINK_HOME": FLINK_HOME},
+            )
+            output = result.stdout + "\n" + result.stderr
+            # The SQL client can exit 0 even when a statement fails; it prints [ERROR].
+            if result.returncode != 0:
+                return False, output.strip()
+            if "[ERROR]" in output:
+                return False, output.strip()
+            if "org.apache.flink.table.api.ValidationException" in output:
+                return False, output.strip()
+            if "Exception in thread" in output:
+                return False, output.strip()
+            return True, output.strip()
+        except subprocess.TimeoutExpired:
+            return False, "SQL client timed out"
+        except FileNotFoundError:
+            return False, f"Flink SQL client not found at {SQL_CLIENT}"
+        except Exception as e:
+            return False, str(e)
+        finally:
+            if script_path and os.path.exists(script_path):
+                os.unlink(script_path)
+
+
+class TableEnvBackend:
+    """Run statements through a PyFlink TableEnvironment.
+
+    For runtimes with no SQL client (AWS Managed Service for Apache Flink runs a
+    packaged application, not an interactive client). Statements execute one at a
+    time in order, stopping at the first failure, and the collected output is
+    concatenated so the assertions in the tests see the same shape of text they
+    see from the SQL client.
+
+    Catalog properties come from FLINK_CATALOG_PROPS (a JSON object) so this
+    class carries no AWS specifics; the driver decides whether that is Glue,
+    S3 Tables or anything else.
+    """
+
+    name = "table-env"
+
+    def __init__(self, t_env=None, catalog_props: dict | None = None):
+        self._t_env = t_env
+        self._catalog_props = catalog_props
+        self._setup_done = False
+
+    def preflight(self) -> str | None:
+        """Return a fatal error message, or None when the backend can run.
+
+        Checks the catalog properties parse before any test runs, so a bad
+        FLINK_CATALOG_PROPS fails once with a clear message instead of turning
+        every test into an error.
+        """
+        try:
+            props = self.catalog_props
+        except Exception as e:  # noqa: BLE001 - report any config problem
+            return str(e)
+        if not props:
+            return "FLINK_CATALOG_PROPS is empty; no catalog to test against"
+        return None
+
+    # -- lazily built so importing this module never requires PyFlink ----------
+    @property
+    def t_env(self):
+        if self._t_env is None:
+            from pyflink.table import EnvironmentSettings, TableEnvironment
+            self._t_env = TableEnvironment.create(
+                EnvironmentSettings.in_batch_mode()
+            )
+        return self._t_env
+
+    @property
+    def catalog_props(self) -> dict:
+        if self._catalog_props is None:
+            raw = os.environ.get("FLINK_CATALOG_PROPS", "")
+            if not raw:
+                raise RuntimeError(
+                    "FLINK_CATALOG_PROPS must be set (JSON object of Iceberg "
+                    "catalog properties) when using the table-env backend"
+                )
+            self._catalog_props = json.loads(raw)
+        return self._catalog_props
+
+    def catalog_setup_sql(self) -> list[str]:
+        """Create and use the Iceberg catalog described by FLINK_CATALOG_PROPS.
+
+        No sql-client SET statements here: those options do not exist in a
+        TableEnvironment and would fail the run.
+        """
+        props = ",\n            ".join(
+            f"'{k}'='{v}'" for k, v in sorted(self.catalog_props.items())
+        )
+        return [
+            f"""CREATE CATALOG {CATALOG_NAME} WITH (
+            {props}
+        )""",
+            f"USE CATALOG {CATALOG_NAME}",
+            f"CREATE DATABASE IF NOT EXISTS {DATABASE_NAME}",
+            f"USE {DATABASE_NAME}",
+        ]
+
+    def run_sql(self, statements: list[str], timeout: int = 120) -> tuple[bool, str]:
+        """Execute statements in order, returning (success, combined output).
+
+        ``timeout`` is accepted for signature parity with the SQL-client backend
+        but is not enforced here: a TableEnvironment job is bounded by the
+        managed application's own timeout, and the driver polls that.
+        """
+        chunks: list[str] = []
+        for statement in statements:
+            stmt = statement.rstrip(";").strip()
+            if not stmt:
+                continue
+            kind = _statement_kind(stmt)
+            try:
+                result = self.t_env.execute_sql(stmt)
+                if kind == "job":
+                    # Batch mode: block until the job finishes, so a following
+                    # SELECT observes the rows this statement wrote.
+                    result.wait()
+                elif kind == "query":
+                    chunks.extend(self._collect(result))
+            except Exception as e:  # noqa: BLE001 - any engine error is a result
+                # Deliberately not echoing the failing statement: several tests
+                # substring-match the output (e.g. "upsert" in err) and the
+                # statement text would create false matches.
+                chunks.append(self._error_text(e))
+                return False, "\n".join(chunks).strip()
+        return True, "\n".join(chunks).strip()
+
+    @staticmethod
+    def _collect(result) -> list[str]:
+        """Materialise result rows as text, including the column names.
+
+        Column names matter: tests assert on DESCRIBE output such as
+        `"id" in out`, and for a DESCRIBE the names appear in the rows anyway,
+        but for a SELECT they only appear in the schema.
+        """
+        lines: list[str] = []
+        try:
+            schema = result.get_table_schema()
+            lines.append(" ".join(schema.get_field_names()))
+        except Exception:  # noqa: BLE001 - schema is best-effort context
+            pass
+        with result.collect() as rows:
+            for i, row in enumerate(rows):
+                if i >= _MAX_COLLECT_ROWS:
+                    lines.append(f"... truncated at {_MAX_COLLECT_ROWS} rows")
+                    break
+                lines.append(str(row))
+        return lines
+
+    @staticmethod
+    def _error_text(exc: Exception) -> str:
+        """Flatten an exception (including a Py4J Java stack) into text.
+
+        The tests match on phrases that appear in the Java message, so the
+        cause chain is included rather than just str(exc).
+        """
+        parts = [str(exc)]
+        cause = getattr(exc, "__cause__", None)
+        seen = 0
+        while cause is not None and seen < 5:
+            parts.append(str(cause))
+            cause = getattr(cause, "__cause__", None)
+            seen += 1
+        return "\n".join(p for p in parts if p)
+
+
+def _make_backend():
+    """Pick the execution backend from FLINK_SQL_BACKEND."""
+    choice = os.environ.get("FLINK_SQL_BACKEND", "sql-client").strip().lower()
+    if choice in ("table-env", "tableenv", "table_env"):
+        return TableEnvBackend()
+    if choice in ("sql-client", "sqlclient", "sql_client"):
+        return SqlClientBackend()
+    raise RuntimeError(
+        f"Unknown FLINK_SQL_BACKEND '{choice}' (use 'sql-client' or 'table-env')"
+    )
+
+
+BACKEND = _make_backend()
+
+
+def _run_sql(statements: list[str], timeout: int = 120) -> tuple[bool, str]:
+    """Run SQL through the active backend. Returns (success, output)."""
+    return BACKEND.run_sql(statements, timeout)
+
+
+def _catalog_setup_sql() -> list[str]:
+    """Return the statements that create and select the catalog under test."""
+    return BACKEND.catalog_setup_sql()
 
 
 # ---------------------------------------------------------------------------
@@ -904,6 +1123,7 @@ def main():
     print(f"FLINK_HOME: {FLINK_HOME}")
     print(f"Warehouse: {WAREHOUSE_DIR}")
     print(f"Repo root: {REPO_ROOT}")
+    print(f"SQL backend: {BACKEND.name}")
     print(f"Catalog: {CATALOG_MODE}")
     print(f"Matrix platform: {MATRIX_PLATFORM_ID} ({MATRIX_DATA_PATH})")
     if PLATFORM_LABEL:
@@ -911,12 +1131,9 @@ def main():
     print(f"Versions under test: {', '.join(VERSIONS)}")
     print()
 
-    if not FLINK_HOME:
-        print("[FATAL] FLINK_HOME not set. Cannot run Flink SQL client.")
-        sys.exit(1)
-
-    if not os.path.isfile(SQL_CLIENT):
-        print(f"[FATAL] Flink SQL client not found at {SQL_CLIENT}")
+    problem = BACKEND.preflight()
+    if problem:
+        print(f"[FATAL] {problem}")
         sys.exit(1)
 
     # Clean warehouse
