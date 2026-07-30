@@ -10,6 +10,8 @@ application is stopped before it is deleted, otherwise the delete is rejected.
 What is billable, and therefore what this removes:
   - EMR Serverless job runs      billed per vCPU/memory-hour while RUNNING
   - EMR Serverless application   free while idle (no pre-init capacity), removed anyway
+  - Glue job runs                billed per DPU-hour while active, one minute minimum
+  - Glue job definitions         free to keep, removed so they do not accumulate
   - S3 objects                   warehouse data, logs, scripts
   - Glue databases and tables    catalog storage and requests
   - S3 Tables namespaces/tables  storage plus automatic maintenance, which bills
@@ -99,6 +101,44 @@ def kill_emr(app_id: str) -> None:
         emr.delete_application(applicationId=app_id)
     except ClientError as e:
         failed(f"delete application {app_id}", e)
+
+
+def kill_glue_jobs() -> None:
+    """Stop and delete the ETL job definitions a Glue run created.
+
+    A job definition costs nothing to keep, but an *active run* bills per
+    DPU-hour, so running ones are stopped first. Prefix-scoped and run-agnostic,
+    so this also sweeps up definitions left behind by a crashed earlier run.
+    """
+    glue = boto3.client("glue", region_name=REGION)
+    try:
+        names = [
+            n for page in glue.get_paginator("list_jobs").paginate()
+            for n in page.get("JobNames", [])
+            if n.startswith(RESOURCE_PREFIX)
+        ]
+    except ClientError as e:
+        failed("list glue jobs", e)
+        return
+
+    live = {"STARTING", "RUNNING", "STOPPING", "WAITING"}
+    for name in names:
+        try:
+            running = [
+                r["Id"] for page in glue.get_paginator("get_job_runs").paginate(JobName=name)
+                for r in page.get("JobRuns", [])
+                if r.get("JobRunState") in live
+            ]
+            if running:
+                note(f"stopping {len(running)} run(s) of glue job {name}")
+                glue.batch_stop_job_run(JobName=name, JobRunIds=running)
+        except ClientError as e:
+            failed(f"stop runs of glue job {name}", e)
+        try:
+            glue.delete_job(JobName=name)
+            note(f"deleted glue job {name}")
+        except ClientError as e:
+            failed(f"delete glue job {name}", e)
 
 
 def drop_glue_databases() -> None:
@@ -192,6 +232,7 @@ def delete_s3_prefixes() -> None:
 def main() -> int:
     note(f"run={RUN_TAG or '(unset)'} engine={ENGINE} region={REGION}")
     kill_emr(application_id())
+    kill_glue_jobs()
     drop_glue_databases()
     drop_s3tables_namespaces()
     delete_s3_prefixes()

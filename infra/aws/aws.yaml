@@ -68,11 +68,14 @@ Resources:
   # Job execution role: assumed by EMR Serverless, not by GitHub. This is the
   # identity that actually reads and writes table data.
   # ---------------------------------------------------------------------------
+  # Shared job execution role for every engine under test. The resource name
+  # still says "emr-job" because renaming it would replace the role and break the
+  # AWS_EMR_JOB_ROLE_ARN environment secret; the permissions are engine-neutral.
   EmrJobRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub '${ResourcePrefix}-emr-job'
-      Description: Execution role for iceberg-matrix EMR Serverless jobs
+      Description: Execution role for iceberg-matrix platform test jobs (EMR Serverless and Glue)
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -83,6 +86,16 @@ Resources:
             Condition:
               StringEquals:
                 'aws:SourceAccount': !Ref AWS::AccountId
+          # Glue ETL assumes this role to run the job script. Deliberately no
+          # aws:SourceAccount condition: Glue does not reliably populate it on
+          # the AssumeRole call for job execution roles, and a condition that
+          # never matches fails the job with an AccessDenied that looks like a
+          # permissions bug elsewhere. The real control is on the other side --
+          # the CI role may only pass this role to glue.amazonaws.com.
+          - Effect: Allow
+            Principal:
+              Service: glue.amazonaws.com
+            Action: sts:AssumeRole
       Policies:
 
         - PolicyName: s3-data-access
@@ -100,6 +113,20 @@ Resources:
                   - s3:ListBucket
                   - s3:GetBucketLocation
                 Resource: !Sub 'arn:${AWS::Partition}:s3:::${DataBucket}'
+
+        # Glue writes job output to CloudWatch Logs rather than to S3 the way EMR
+        # Serverless does, and a job whose role cannot write them fails to start.
+        - PolicyName: cloudwatch-logs-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:AssociateKmsKey
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws-glue/*'
 
         # Glue Data Catalog as the Iceberg catalog for the s3buckets mode.
         - PolicyName: glue-catalog-access
@@ -251,13 +278,40 @@ Resources:
                 Resource:
                   - !Sub 'arn:${AWS::Partition}:emr-serverless:${AWS::Region}:${AWS::AccountId}:/applications/*'
 
-              # Hand the job role to EMR Serverless, and nothing else.
+              # Manage the ephemeral Glue ETL job definition for a run. Scoped to
+              # the resource prefix so this cannot touch anyone else's jobs.
+              # CreateJob and the List/Get pair cannot be resource-scoped.
+              - Effect: Allow
+                Action:
+                  - glue:CreateJob
+                  - glue:ListJobs
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - glue:GetJob
+                  - glue:GetJobs
+                  - glue:UpdateJob
+                  - glue:DeleteJob
+                  - glue:StartJobRun
+                  - glue:GetJobRun
+                  - glue:GetJobRuns
+                  - glue:BatchStopJobRun
+                  - glue:TagResource
+                  - glue:UntagResource
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:job/${ResourcePrefix}*'
+
+              # Hand the job role to the two engines that run jobs, and nothing
+              # else. This condition is what keeps the Glue trust statement above
+              # safe without an aws:SourceAccount check on the trust side.
               - Effect: Allow
                 Action: iam:PassRole
                 Resource: !GetAtt EmrJobRole.Arn
                 Condition:
                   StringEquals:
-                    'iam:PassedToService': emr-serverless.amazonaws.com
+                    'iam:PassedToService':
+                      - emr-serverless.amazonaws.com
+                      - glue.amazonaws.com
 
               # The first CreateApplication in an account has to create the
               # service-linked role AWSServiceRoleForAmazonEMRServerless, which
