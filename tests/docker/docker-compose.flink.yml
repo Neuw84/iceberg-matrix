@@ -1,0 +1,75 @@
+# Dockerized Flink cluster used by tests/flink_feature_tests.py.
+#
+# Runs a standalone Flink 2.3 cluster (one JobManager, one TaskManager) from an
+# image that already carries the Iceberg Flink runtime jars (see flink/Dockerfile).
+# The harness drives it with the SQL client inside the JobManager container:
+#
+#   docker compose -f docker-compose.flink.yml exec -T jobmanager \
+#     /opt/flink/bin/sql-client.sh embedded -f /work/<script>.sql
+#
+# Catalog connectivity: the cluster talks to the Lakekeeper REST catalog and
+# MinIO from tests/docker/docker-compose.lakekeeper.yml over the host's own IP
+# (published ports) rather than over a shared compose network. That is required,
+# not just convenient -- Lakekeeper returns a storage endpoint on loadTable that
+# overrides the client's own, and the warehouse advertises the host IP so that
+# both host-side engines and containers resolve the same address. See the note at
+# the top of docker-compose.lakekeeper.yml.
+#
+# Bring it up with tests/docker/start-flink.sh (which detects the host IP), and
+# tear it down with tests/docker/stop-flink.sh.
+
+name: iceberg-promise-flink
+
+services:
+  jobmanager:
+    build:
+      context: ./flink
+      args:
+        FLINK_IMAGE: ${FLINK_IMAGE:-flink:2.3.0-scala_2.12-java17}
+        ICEBERG_VERSION: ${ICEBERG_VERSION:-1.11.0}
+        ICEBERG_FLINK_MAJOR: ${ICEBERG_FLINK_MAJOR:-2.1}
+    image: iceberg-promise-flink:${FLINK_VERSION:-2.3.0}-iceberg${ICEBERG_VERSION:-1.11.0}
+    command: jobmanager
+    ports:
+      - "8081:8081"
+    environment:
+      # rest.address is what the in-container SQL client dials; rest.bind-address
+      # keeps the published port reachable from the host.
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        rest.address: jobmanager
+        rest.bind-address: 0.0.0.0
+        taskmanager.numberOfTaskSlots: 4
+        parallelism.default: 1
+        execution.checkpointing.interval: 5s
+        execution.checkpointing.min-pause: 1s
+        table.exec.sink.upsert-materialize: NONE
+    volumes:
+      - ./flink-work:/work
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8081/overview || exit 1"]
+      interval: 3s
+      timeout: 10s
+      retries: 30
+      start_period: 10s
+
+  taskmanager:
+    image: iceberg-promise-flink:${FLINK_VERSION:-2.3.0}-iceberg${ICEBERG_VERSION:-1.11.0}
+    command: taskmanager
+    depends_on:
+      jobmanager:
+        condition: service_started
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 4
+        parallelism.default: 1
+        execution.checkpointing.interval: 5s
+        execution.checkpointing.min-pause: 1s
+        table.exec.sink.upsert-materialize: NONE
+    volumes:
+      - ./flink-work:/work
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
