@@ -130,6 +130,7 @@ jobs:
           export REPORT_DIR="${GITHUB_WORKSPACE}/test-reports"
           export FLINK_VERSION="${FLINK_VERSION}"
           export FLINK_ICEBERG_VERSION="${ICEBERG_VERSION}"
+          export PLATFORM_LABEL="Apache Flink ${FLINK_VERSION} (OSS) + Iceberg ${ICEBERG_VERSION}"
           python tests/flink_feature_tests.py
         continue-on-error: true
 
