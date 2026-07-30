@@ -118,9 +118,12 @@
       "caveats": []
     },
     "aws-glue:aws-glue-catalog:v2": {
-      "level": "none",
-      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
-      "caveats": []
+      "level": "full",
+      "notes": "The Glue Data Catalog is how Glue reaches S3 Tables: the table bucket is mounted as the federated s3tablescatalog and addressed with catalog-impl=GlueCatalog plus glue.id=<account>:s3tablescatalog/<bucket>. Measured: namespace and table creation, insert, row-level update, read, and drop.",
+      "caveats": [
+        "Requires the table bucket to be integrated with AWS analytics services, which creates the s3tablescatalog federated catalog.",
+        "A warehouse must still be configured even though it is never written to. GlueCatalog derives a table location on the client and rejects an empty warehouse, while S3 Tables overrides it with a service-managed location."
+      ]
     },
     "aws-glue:rest-catalog:v2": {
       "level": "full",
@@ -231,9 +234,11 @@
       "caveats": []
     },
     "aws-glue:multi-arg-transforms:v3": {
-      "level": "unknown",
-      "notes": "Multi-argument transforms support with S3 Tables not explicitly documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Measured on Glue 5.1 (Spark 3.5.6-amzn-1, Iceberg 1.10.0-amzn-0). A transform over more than one source column is rejected with \"Cannot convert transform with more than one column reference\". Iceberg's Spark integration cannot express the V3 multi-argument transform.",
+      "caveats": [
+        "Single-source transforms such as bucket(4, id) work, but those are not this feature: they work on format-version 2 as well."
+      ]
     },
     "aws-glue:time-travel:v3": {
       "level": "full",
@@ -288,9 +293,12 @@
       "caveats": []
     },
     "aws-glue:aws-glue-catalog:v3": {
-      "level": "none",
-      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
-      "caveats": []
+      "level": "full",
+      "notes": "The Glue Data Catalog is how Glue reaches S3 Tables: the table bucket is mounted as the federated s3tablescatalog and addressed with catalog-impl=GlueCatalog plus glue.id=<account>:s3tablescatalog/<bucket>. Measured: namespace and table creation, insert, row-level update, read, and drop. Measured on V3 tables.",
+      "caveats": [
+        "Requires the table bucket to be integrated with AWS analytics services, which creates the s3tablescatalog federated catalog.",
+        "A warehouse must still be configured even though it is never written to. GlueCatalog derives a table location on the client and rejects an empty warehouse, while S3 Tables overrides it with a service-managed location."
+      ]
     },
     "aws-glue:rest-catalog:v3": {
       "level": "full",
@@ -323,14 +331,18 @@
       "caveats": []
     },
     "aws-glue:variant-type:v3": {
-      "level": "unknown",
-      "notes": "Variant type support with S3 Tables not explicitly documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Measured on Glue 5.1 (Spark 3.5.6-amzn-1, Iceberg 1.10.0-amzn-0). Declaring a VARIANT column is rejected with UNSUPPORTED_DATATYPE. Glue 5.1 runs Spark 3.5.6, which has no VARIANT SQL type -- the type arrived in Spark 4. Iceberg 1.10.0 supports variant at the format level, so this is an engine limitation, not an Iceberg one: the same test passes on EMR Serverless, which runs Spark 4.0.2 with the same Iceberg version.",
+      "caveats": [
+        "Expected to change when a Glue release ships Spark 4."
+      ]
     },
     "aws-glue:shredded-variant:v3": {
-      "level": "unknown",
-      "notes": "Shredded variant support with S3 Tables not explicitly documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Measured on Glue 5.1 (Spark 3.5.6-amzn-1, Iceberg 1.10.0-amzn-0). Blocked by the missing VARIANT type: shredding is a write-side optimisation of a type this engine cannot declare.",
+      "caveats": [
+        "Blocked by the missing VARIANT type rather than by shredding support; see variant-type."
+      ]
     },
     "aws-glue:geometry-type:v3": {
       "level": "none",
@@ -349,8 +361,8 @@
       ]
     },
     "aws-glue:lineage:v3": {
-      "level": "unknown",
-      "notes": "Lineage tracking support with S3 Tables not explicitly documented",
+      "level": "full",
+      "notes": "Measured on Glue 5.1 (Spark 3.5.6-amzn-1, Iceberg 1.10.0-amzn-0). The V3 row lineage metadata columns (_row_id, _last_updated_sequence_number) are readable on S3 Tables. Previously unknown because AWS does not document it for S3 Tables.",
       "caveats": []
     },
     "aws-glue:snowflake-horizon-catalog:v2": {

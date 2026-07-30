@@ -1354,8 +1354,18 @@ def test_shredded_variant(version: str) -> TestResult:
         r.result = "pass"
         r.details = "VARIANT column with shredding property created and written on V3 table"
     except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
+        emsg = str(e).lower()
+        # Classified the same way as test_variant_type. An engine without the
+        # VARIANT type rejects the DDL outright, and that is a measured "not
+        # supported", not a malfunction -- reporting it as an error made a known
+        # gap look like a broken harness. Spark 3.5 (Glue 5.1) is exactly this
+        # case: Iceberg 1.10 supports variant, the engine cannot express it.
+        if any(t in emsg for t in ("variant", "unsupported", "format")):
+            r.result = "fail"
+            r.details = f"Shredded variant not supported: {str(e)[:200]}"
+        else:
+            r.result = "error"
+            r.details = str(e)[:300]
     finally:
         try:
             spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
