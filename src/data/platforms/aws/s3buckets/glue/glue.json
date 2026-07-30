@@ -224,10 +224,11 @@
       "caveats": []
     },
     "aws-glue:multi-arg-transforms:v3": {
-      "level": "full",
-      "notes": "Supported via Spark on Glue 5.0+ (Iceberg 1.7.1+); requires format-version=3",
+      "level": "none",
+      "notes": "V3 transforms over multiple source columns cannot be expressed by Iceberg's Spark integration, which rejects them with \"Cannot convert transform with more than one column reference\". Glue runs that same integration.",
       "caveats": [
-        "Requires Glue 5.0+ with V3 format tables"
+        "Inferred from the measured EMR Serverless and OSS Spark results, not measured on Glue itself; it is a limitation of the Iceberg Spark integration rather than of the platform.",
+        "Single-source transforms (bucket, truncate, year, month, day, hour) work, but they are not this feature: they work on format-version 2 as well."
       ],
       "links": [
         {

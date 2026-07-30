@@ -220,10 +220,11 @@
       "caveats": []
     },
     "aws-emr:multi-arg-transforms:v3": {
-      "level": "full",
-      "notes": "Supported via Spark 4.0.2 on EMR 8.0; requires format-version=3",
+      "level": "none",
+      "notes": "Measured on emr-spark-8.0.0 (Spark 4.0.2, Iceberg 1.10.1-amzn-0): declaring a transform over more than one source column is rejected with \"Cannot convert transform with more than one column reference: bucket(4, a, b)\". Iceberg's Spark integration cannot express the V3 multi-argument transform.",
       "caveats": [
-        "Requires EMR 8.0 with V3 format tables"
+        "Single-source transforms such as bucket(4, id), year(ts) and truncate(4, s) work, but those are not this feature: they work on format-version 2 as well.",
+        "This is a limitation of the Iceberg Spark integration rather than of EMR, so it applies to any Spark-based platform on this Iceberg version."
       ],
       "links": [
         {

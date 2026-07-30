@@ -229,11 +229,11 @@
       "caveats": []
     },
     "spark:multi-arg-transforms:v3": {
-      "level": "partial",
-      "notes": "V3 introduces multi-argument transforms that can reference multiple source columns. Spark support is being developed; single-column transforms (bucket, truncate, year, month, day, hour) are fully supported",
+      "level": "none",
+      "notes": "V3 introduces transforms that reference multiple source columns. Iceberg's Spark integration cannot express them: declaring one is rejected with \"Cannot convert transform with more than one column reference\". Measured on Iceberg 1.10 with Spark 4.",
       "caveats": [
-        "Multi-source-column transforms are a new V3 capability with evolving Spark support",
-        "Requires Spark 4.0+ for full V3 transform support"
+        "Single-source transforms (bucket, truncate, year, month, day, hour) are fully supported, but they are not this feature: they work on format-version 2 as well.",
+        "Previously recorded as partial on the strength of those single-source transforms, which overstated it."
       ],
       "links": [
         {
