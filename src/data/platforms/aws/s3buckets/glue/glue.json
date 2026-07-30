@@ -606,11 +606,10 @@
       "caveats": []
     },
     "aws-glue:variant-type:v3": {
-      "level": "full",
-      "notes": "Variant type supported via Spark on AWS EMR with Iceberg V3. Glue: Variant type introduced in Iceberg V3; basic support available on Glue 5.1 (Iceberg 1.10.0) but the spec is still evolving",
+      "level": "none",
+      "notes": "Measured on Glue 5.1 (Spark 3.5.6-amzn-1, Iceberg 1.10.0-amzn-0). Declaring a VARIANT column is rejected with UNSUPPORTED_DATATYPE. Glue 5.1 runs Spark 3.5.6, which has no VARIANT SQL type -- the type arrived in Spark 4. Iceberg 1.10.0 supports variant at the format level, so this is an engine limitation, not an Iceberg one: the same test passes on EMR Serverless, which runs Spark 4.0.2 with the same Iceberg version. Previously recorded as full, on a note that described EMR rather than Glue.",
       "caveats": [
-        "Requires Glue 5.1 (Iceberg 1.10.0)",
-        "Variant type support is still maturing in the Iceberg ecosystem"
+        "Expected to change when a Glue release ships Spark 4."
       ],
       "links": [
         {
@@ -625,10 +624,10 @@
       "caveats": []
     },
     "aws-glue:shredded-variant:v3": {
-      "level": "unknown",
-      "notes": "Shredded variant support in AWS Glue is not yet documented; depends on Iceberg library support",
+      "level": "none",
+      "notes": "Measured on Glue 5.1 (Spark 3.5.6-amzn-1, Iceberg 1.10.0-amzn-0). Shredding is a write-side optimisation of VARIANT, so it cannot be reached while the VARIANT type itself is unavailable: the DDL fails with UNSUPPORTED_DATATYPE.",
       "caveats": [
-        "Not yet documented for AWS Glue"
+        "Blocked by the missing VARIANT type rather than by shredding support; see variant-type."
       ]
     },
     "aws-glue:geometry-type:v2": {

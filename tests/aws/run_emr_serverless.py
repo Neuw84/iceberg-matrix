@@ -32,24 +32,30 @@ Environment:
 import json
 import os
 import sys
-import time
-import zipfile
 from pathlib import Path
 
 import boto3
 
-REGION = os.environ["AWS_REGION"]
-DATA_BUCKET = os.environ["AWS_DATA_BUCKET"]
-JOB_ROLE_ARN = os.environ["AWS_EMR_JOB_ROLE_ARN"]
-TABLE_BUCKET_ARN = os.environ.get("AWS_TABLE_BUCKET_ARN", "")
-RUN_TAG = os.environ["RUN_TAG"]
-MODES = os.environ.get("MODES", "both")
-RELEASE_LABEL = os.environ.get("EMR_RELEASE_LABEL", "emr-spark-8.0.0")
-RESOURCE_PREFIX = os.environ.get("RESOURCE_PREFIX", "icebergmatrix")
-JOB_TIMEOUT_MINUTES = int(os.environ.get("JOB_TIMEOUT_MINUTES", "30"))
+from platform_common import (  # noqa: E402 - sibling module, not a package
+    DATA_BUCKET,
+    GLUE_CATALOG_IMPL,
+    JOB_TIMEOUT_MINUTES,
+    REGION,
+    RESOURCE_PREFIX,
+    RUN_TAG,
+    TABLE_BUCKET_ARN,
+    build_bundle,
+    download_reports,
+    modes_to_run,
+    s3_uri,
+    s3tables_catalog_props,
+    summarise,
+    upload,
+    wait_for,
+)
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-LOCAL_REPORT_DIR = REPO_ROOT / "test-reports"
+JOB_ROLE_ARN = os.environ["AWS_EMR_JOB_ROLE_ARN"]
+RELEASE_LABEL = os.environ.get("EMR_RELEASE_LABEL", "emr-spark-8.0.0")
 ENGINE = "emr"
 
 # Iceberg is on the default classpath in the EMR Serverless image, so no
@@ -66,8 +72,6 @@ ENGINE = "emr"
 ICEBERG_JAR = os.environ.get("ICEBERG_JAR_PATH", "")
 PROBE = os.environ.get("PROBE", "").lower() in ("1", "true", "yes")
 
-# Catalog implementations per storage mode.
-GLUE_CATALOG_IMPL = "org.apache.iceberg.aws.glue.GlueCatalog"
 # S3 Tables goes through the Glue Data Catalog federation, not the native
 # software.amazon.s3tables.iceberg.S3TablesCatalog client.
 #
@@ -82,52 +86,7 @@ GLUE_CATALOG_IMPL = "org.apache.iceberg.aws.glue.GlueCatalog"
 # creates the s3tablescatalog federated catalog.
 S3TABLES_EXTRA_JARS = os.environ.get("S3TABLES_EXTRA_JARS", "")
 
-
-def s3tables_glue_id() -> str:
-    """The federated catalog id that identifies the table bucket to Glue.
-
-    Format <account>:s3tablescatalog/<table-bucket-name>, derived from the table
-    bucket ARN so there is one source of truth.
-    """
-    account = TABLE_BUCKET_ARN.split(":")[4]
-    bucket = TABLE_BUCKET_ARN.rsplit("/", 1)[-1]
-    return f"{account}:s3tablescatalog/{bucket}"
-
-
-def s3tables_catalog_props() -> str:
-    """Properties addressing the federated S3 Tables catalog through Glue."""
-    return f"glue.id={s3tables_glue_id()},client.region={REGION}"
-
 emr = boto3.client("emr-serverless", region_name=REGION)
-s3 = boto3.client("s3", region_name=REGION)
-
-
-def s3_uri(*parts: str) -> str:
-    return f"s3://{DATA_BUCKET}/" + "/".join(p.strip("/") for p in parts)
-
-
-def build_bundle(dest: Path) -> Path:
-    """Zip the suite and the matrix data the suite needs to compare against."""
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    includes = [REPO_ROOT / "tests" / "iceberg_feature_tests.py",
-                REPO_ROOT / "src" / "data" / "features.json"]
-    for mode in ("s3buckets", "s3tables"):
-        includes.append(REPO_ROOT / "src" / "data" / "platforms" / "aws" / mode / "emr" / "emr.json")
-
-    with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zf:
-        for path in includes:
-            if not path.is_file():
-                raise FileNotFoundError(f"bundle input missing: {path}")
-            zf.write(path, path.relative_to(REPO_ROOT).as_posix())
-    print(f"[driver] bundle: {dest} ({dest.stat().st_size // 1024} KiB)")
-    return dest
-
-
-def upload(local: Path, key: str) -> str:
-    s3.upload_file(str(local), DATA_BUCKET, key)
-    uri = f"s3://{DATA_BUCKET}/{key}"
-    print(f"[driver] uploaded {uri}")
-    return uri
 
 
 def create_application() -> str:
@@ -160,26 +119,10 @@ def _create_application() -> str:
         tags={"project": "iceberg-matrix", "run": RUN_TAG},
     )
     app_id = resp["applicationId"]
-    _wait_for(lambda: emr.get_application(applicationId=app_id)["application"]["state"],
+    wait_for(lambda: emr.get_application(applicationId=app_id)["application"]["state"],
               want={"CREATED", "STARTED"}, bad={"TERMINATED"}, what=f"application {app_id}")
     print(f"[driver] application ready: {app_id}")
     return app_id
-
-
-def _wait_for(get_state, want: set, bad: set, what: str, timeout_s: int = 600) -> str:
-    deadline = time.time() + timeout_s
-    last = None
-    while time.time() < deadline:
-        state = get_state()
-        if state != last:
-            print(f"[driver] {what}: {state}")
-            last = state
-        if state in want:
-            return state
-        if state in bad:
-            raise RuntimeError(f"{what} entered {state}")
-        time.sleep(10)
-    raise TimeoutError(f"{what} still {last} after {timeout_s}s")
 
 
 def spark_submit_params(mode: str, catalog_impl: str, warehouse: str,
@@ -238,7 +181,7 @@ def run_probe(app_id: str, probe_uri: str) -> int:
         tags={"project": "iceberg-matrix", "run": RUN_TAG, "mode": "probe"},
     )
     job_id = resp["jobRunId"]
-    state = _wait_for(
+    state = wait_for(
         lambda: emr.get_job_run(applicationId=app_id, jobRunId=job_id)["jobRun"]["state"],
         want={"SUCCESS", "FAILED", "CANCELLED"}, bad=set(),
         what=f"probe job {job_id}", timeout_s=1200,
@@ -284,6 +227,7 @@ def run_mode(app_id: str, mode: str, bundle_uri: str, entry_uri: str) -> dict:
                     "--bundle", bundle_uri,
                     "--report-uri", report_uri,
                     "--mode", mode,
+                    "--engine", ENGINE,
                     "--catalog-impl", catalog_impl,
                     "--catalog-type", catalog_type,
                     "--warehouse", warehouse,
@@ -304,7 +248,7 @@ def run_mode(app_id: str, mode: str, bundle_uri: str, entry_uri: str) -> dict:
     )
     job_id = resp["jobRunId"]
 
-    state = _wait_for(
+    state = wait_for(
         lambda: emr.get_job_run(applicationId=app_id, jobRunId=job_id)["jobRun"]["state"],
         want={"SUCCESS", "FAILED", "CANCELLED"}, bad=set(),
         what=f"job {job_id} ({mode})", timeout_s=JOB_TIMEOUT_MINUTES * 60 + 300,
@@ -317,126 +261,8 @@ def run_mode(app_id: str, mode: str, bundle_uri: str, entry_uri: str) -> dict:
             "state_details": details.get("stateDetails", ""), "report_uri": report_uri}
 
 
-def download_reports(mode: str) -> Path | None:
-    """Pull the report this mode produced into test-reports/, OSS-style names."""
-    prefix = f"{ENGINE}/reports/{RUN_TAG}/{mode}/"
-    listing = s3.list_objects_v2(Bucket=DATA_BUCKET, Prefix=prefix).get("Contents", [])
-    if not listing:
-        print(f"[driver] no report objects under s3://{DATA_BUCKET}/{prefix}")
-        return None
-
-    LOCAL_REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    json_path = None
-    for obj in listing:
-        name = obj["Key"].rsplit("/", 1)[-1]
-        # emr-s3buckets-iceberg-test-report.json / .md
-        local = LOCAL_REPORT_DIR / f"{ENGINE}-{mode}-{name}"
-        s3.download_file(DATA_BUCKET, obj["Key"], str(local))
-        print(f"[driver] report: {local.relative_to(REPO_ROOT)}")
-        if local.suffix == ".json":
-            json_path = local
-    return json_path
-
-
-def local_report_md(mode: str) -> Path | None:
-    """The markdown report download_reports() put next to the JSON, if it exists."""
-    path = LOCAL_REPORT_DIR / f"{ENGINE}-{mode}-iceberg-test-report.md"
-    return path if path.is_file() else None
-
-
-def demote_headings(md: str, by: int = 2) -> str:
-    """Shift markdown heading levels so a report nests under a per-mode heading.
-
-    The suite writes a standalone document starting at '#'. Embedding that as-is
-    would produce several competing top-level headings in one job summary, so
-    each level is pushed down. Fenced blocks are left alone: a '#' at the start
-    of a line inside one is content, not a heading.
-    """
-    out, in_fence = [], False
-    for line in md.splitlines():
-        if line.lstrip().startswith("```"):
-            in_fence = not in_fence
-        if not in_fence and line.startswith("#"):
-            depth = len(line) - len(line.lstrip("#"))
-            line = "#" * min(depth + by, 6) + line[depth:]
-        out.append(line)
-    return "\n".join(out)
-
-
-def summarise(results: list, reports: dict) -> int:
-    """Build the job summary: a combined verdict, then each mode's full report.
-
-    The per-mode markdown is embedded verbatim rather than re-rendered here, so
-    the feature-by-feature matrix is identical to the one the OSS engine suites
-    publish and cannot drift from it. Two reports are around 20 KB together,
-    well inside the 1 MiB job-summary limit.
-    """
-    lines = ["# AWS EMR Serverless Iceberg Feature Test Report", "",
-             f"- **Release:** {RELEASE_LABEL}", f"- **Run:** {RUN_TAG}", ""]
-    worst = 0
-
-    # Lead with both modes side by side so the outcome is visible without
-    # scrolling past two full matrices.
-    verdict = ["| Mode | Total | Passed | Failed | Skipped | Errors | Discrepancies |",
-               "|------|-------|--------|--------|---------|--------|---------------|"]
-    for r in results:
-        rep = reports.get(r["mode"])
-        if r["state"] != "SUCCESS" or not rep:
-            state = r["state"] if r["state"] != "SUCCESS" else "NO REPORT"
-            verdict.append(f"| {r['mode']} | {state} | | | | | |")
-            worst = max(worst, 1)
-            continue
-        s = rep["summary"]
-        verdict.append(f"| {r['mode']} | {s['total']} | {s['passed']} | {s['failed']} | "
-                       f"{s['skipped']} | {s['errors']} | {s['discrepancies']} |")
-        if s["discrepancies"] or s["errors"]:
-            worst = max(worst, 1)
-    lines += verdict + [""]
-
-    for r in results:
-        rep = reports.get(r["mode"])
-        lines.append(f"## {r['mode']}")
-        lines.append("")
-        if r["state"] != "SUCCESS":
-            lines.append(f"Job run {r['state']}: {r['state_details']}")
-            lines.append("")
-            continue
-        if not rep:
-            lines.append("Job succeeded but produced no report.")
-            lines.append("")
-            continue
-
-        discs = [t for t in rep["tests"] if not t["match"]]
-        if discs:
-            # Called out ahead of the matrix: a discrepancy is the one thing
-            # that needs acting on, and it is easy to miss among 70 rows.
-            lines.append("### Discrepancies")
-            lines.append("")
-            for t in discs:
-                lines.append(f"- **{t['feature_name']}** ({t['version']}): "
-                             f"test={t['result']}, json={t['json_level']} — {t['details'][:160]}")
-            lines.append("")
-
-        md = local_report_md(r["mode"])
-        if md:
-            lines.append(demote_headings(md.read_text()))
-            lines.append("")
-        else:
-            # Fall back to the counts rather than showing nothing.
-            s = rep["summary"]
-            lines += [f"Report markdown missing; counts only: {s}", ""]
-
-    text = "\n".join(lines)
-    print("\n" + text)
-    summary_file = os.environ.get("GITHUB_STEP_SUMMARY")
-    if summary_file:
-        with open(summary_file, "a") as f:
-            f.write(text + "\n")
-    return worst
-
-
 def main() -> int:
-    modes = ["s3buckets", "s3tables"] if MODES == "both" else [MODES]
+    modes = modes_to_run()
     print(f"[driver] region={REGION} bucket={DATA_BUCKET} modes={modes}")
 
     if PROBE:
@@ -451,8 +277,8 @@ def main() -> int:
 
     bundle = build_bundle(Path("/tmp") / f"{RUN_TAG}-bundle.zip")
     bundle_uri = upload(bundle, f"{ENGINE}/scripts/{RUN_TAG}/bundle.zip")
-    entry_uri = upload(Path(__file__).with_name("emr_entrypoint.py"),
-                       f"{ENGINE}/scripts/{RUN_TAG}/emr_entrypoint.py")
+    entry_uri = upload(Path(__file__).with_name("platform_entrypoint.py"),
+                       f"{ENGINE}/scripts/{RUN_TAG}/platform_entrypoint.py")
 
     app_id = create_application()
     # Record the application id so teardown can find it even if we crash.
@@ -471,11 +297,16 @@ def main() -> int:
                             "state_details": str(e)[:300], "report_uri": ""})
             continue
         results.append(r)
-        path = download_reports(mode)
+        path = download_reports(ENGINE, mode)
         if path:
             reports[mode] = json.loads(path.read_text())
 
-    return summarise(results, reports)
+    return summarise(
+        ENGINE,
+        "AWS EMR Serverless Iceberg Feature Test Report",
+        [f"- **Release:** {RELEASE_LABEL}", f"- **Run:** {RUN_TAG}"],
+        results, reports,
+    )
 
 
 if __name__ == "__main__":

@@ -28,9 +28,18 @@ on:
         default: both
         options: [both, s3buckets, s3tables]
       release-label:
-        description: EMR release label
+        description: EMR release label (engine emr-serverless only)
         type: string
         default: emr-spark-8.0.0
+      glue-version:
+        description: >
+          Glue version (engine glue only). This pins Iceberg, it is not just a
+          Spark bump: 5.1 ships Iceberg 1.10.0 and supports format version 3,
+          5.0 ships 1.7.1 and 4.0 ships 1.0.0, both of which predate most V3
+          features. A V3 run below 5.1 mostly measures the absence of V3.
+        type: choice
+        default: '5.1'
+        options: ['5.1', '5.0', '4.0']
       iceberg-jar-path:
         description: >
           Optional in-image Iceberg jar for spark.jars. Empty is correct on EMR
@@ -74,9 +83,9 @@ jobs:
 
     steps:
       - name: Reject unimplemented engines
-        if: inputs.engine != 'emr-serverless'
+        if: inputs.engine == 'athena'
         run: |
-          echo "::error::'${{ inputs.engine }}' is not implemented yet; only emr-serverless is."
+          echo "::error::'${{ inputs.engine }}' is not implemented yet; emr-serverless and glue are."
           exit 1
 
       - uses: actions/checkout@v7
@@ -109,7 +118,7 @@ jobs:
       # a report contains discrepancies or errors, and that should fail the job.
       # Teardown still runs because it is guarded with always().
       - name: Run feature suite on EMR Serverless
-        if: '!inputs.dry-run'
+        if: '!inputs.dry-run && inputs.engine == ''emr-serverless'''
         env:
           MODES: ${{ inputs.modes }}
           EMR_RELEASE_LABEL: ${{ inputs.release-label }}
@@ -117,14 +126,25 @@ jobs:
           PROBE: ${{ inputs.probe }}
         run: uv run --with boto3 python tests/aws/run_emr_serverless.py
 
+      - name: Run feature suite on Glue
+        if: '!inputs.dry-run && inputs.engine == ''glue'''
+        env:
+          MODES: ${{ inputs.modes }}
+          GLUE_VERSION: ${{ inputs.glue-version }}
+        run: uv run --with boto3 python tests/aws/run_glue.py
+
+      # ENGINE tells teardown which S3 prefix to clear; the Glue and S3 Tables
+      # cleanup is prefix-scoped and runs regardless.
       - name: Tear down billable resources
         if: always() && !inputs.dry-run
+        env:
+          ENGINE: ${{ inputs.engine == 'glue' && 'glue' || 'emr' }}
         run: uv run --with boto3 python tests/aws/teardown.py
 
       - name: Upload reports
         if: always() && !inputs.dry-run
         uses: actions/upload-artifact@v7
         with:
-          name: aws-emr-platform-test-report
+          name: aws-${{ inputs.engine }}-platform-test-report
           path: test-reports/
           if-no-files-found: warn

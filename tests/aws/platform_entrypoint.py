@@ -1,22 +1,28 @@
-"""EMR Serverless entry point: run the Spark feature suite against an AWS catalog.
+"""Cluster-side entry point: run the Spark feature suite against an AWS catalog.
 
-Submitted by tests/aws/run_emr_serverless.py as the spark-submit entry point.
-This runs *inside* the EMR Serverless job, so it must not assume anything about
-the repo being present: it pulls a bundle (the suite plus the matrix data) from
-S3, points the suite at the right catalog and matrix cells, then uploads the
-resulting report back to S3.
+Used by both AWS drivers -- run_emr_serverless.py submits it as the spark-submit
+entry point, run_glue.py as the Glue job script. It runs *inside* the job, so it
+must not assume the repo is present: it pulls a bundle (the suite plus the matrix
+data) from S3, points the suite at the right catalog and matrix cells, then
+uploads the resulting report back to S3.
 
 The suite itself is unmodified -- the same 70 checks that run against OSS Spark
-run here, which is the whole reason for choosing EMR as the first platform.
+run here, which is the whole point of driving managed engines this way.
 
-Arguments (all required, passed as entryPointArguments):
-    --bundle s3://bucket/emr/scripts/<run>/bundle.zip
-    --report-uri s3://bucket/emr/reports/<run>/<mode>/
+Arguments, passed as entryPointArguments on EMR and as job arguments on Glue.
+Both arrive as "--name value", so one parser serves both. Unknown arguments are
+ignored because Glue injects its own (--JOB_NAME, --TempDir, and friends).
+
+    --bundle s3://bucket/<engine>/scripts/<run>/bundle.zip
+    --report-uri s3://bucket/<engine>/reports/<run>/<mode>/
+    --engine emr|glue                  selects the matrix file to compare against
+    --platform-id aws-emr|aws-glue     the platform id inside that file
     --mode s3buckets|s3tables
-    --catalog-impl <iceberg catalog-impl class>
-    --warehouse <warehouse location or table bucket ARN>
+    --catalog-impl <iceberg catalog-impl class>   (or --catalog-type)
+    --warehouse <warehouse location>
+    --catalog-props "k=v,k=v"
     --ns-prefix <namespace prefix the job role is allowed to create>
-    --platform-label "<release label> / <mode>"
+    --platform-label "<release> / <mode>"
 """
 
 import argparse
@@ -69,17 +75,26 @@ def detect_iceberg_version() -> str:
     """Read the Iceberg version out of the runtime jar shipped in the image.
 
     The jar is named iceberg-spark-runtime-<spark>_<scala>-<version>.jar, e.g.
-    iceberg-spark-runtime-4.0_2.13-1.10.1-amzn-0.jar on emr-spark-8.0.0. Falls
-    back to "in-image" rather than guessing.
+    iceberg-spark-runtime-4.0_2.13-1.10.1-amzn-0.jar on emr-spark-8.0.0. The
+    location differs per engine, so several roots are tried; anything not found
+    reports "in-image" rather than guessing a version into the report.
     """
     import glob
     import re
 
-    for path in sorted(glob.glob("/usr/share/aws/iceberg/lib/iceberg-spark-runtime-*.jar")):
-        m = re.search(r"iceberg-spark-runtime-[\d.]+_[\d.]+-(.+)\.jar$", os.path.basename(path))
-        if m:
-            print(f"[entrypoint] iceberg runtime: {os.path.basename(path)}")
-            return m.group(1)
+    roots = [
+        "/usr/share/aws/iceberg/lib",       # EMR
+        "/opt/aws_glue_connectors",         # Glue, connector layout
+        "/opt/amazon/spark/jars",           # Glue, Spark jars
+        "/opt/spark/jars",
+    ]
+    for root in roots:
+        for path in sorted(glob.glob(f"{root}/**/iceberg-spark-runtime-*.jar", recursive=True)):
+            m = re.search(r"iceberg-spark-runtime-[\d.]+_[\d.]+-(.+)\.jar$",
+                          os.path.basename(path))
+            if m:
+                print(f"[entrypoint] iceberg runtime: {path}")
+                return m.group(1)
     return "in-image"
 
 
@@ -98,7 +113,15 @@ def main() -> int:
     p.add_argument("--catalog-props", default="")
     p.add_argument("--ns-prefix", default="icebergmatrix_")
     p.add_argument("--platform-label", default="")
-    args = p.parse_args()
+    # Which engine's matrix cells to compare against.
+    p.add_argument("--engine", default="emr", choices=["emr", "glue"])
+    p.add_argument("--platform-id", default="")
+    # parse_known_args, not parse_args: Glue injects its own job arguments
+    # (--JOB_NAME, --TempDir, --job-bookmark-option, ...) that this does not own
+    # and must not choke on.
+    args, extra = p.parse_known_args()
+    if extra:
+        print(f"[entrypoint] ignoring arguments this script does not own: {extra}")
 
     repo_root = fetch_bundle(args.bundle, os.path.join(WORK_DIR, "repo"))
     os.makedirs(REPORT_DIR, exist_ok=True)
@@ -110,9 +133,10 @@ def main() -> int:
         # suite's default, which only describes the OSS Maven coordinates.
         "ICEBERG_VERSION": detect_iceberg_version(),
         "ICEBERG_WAREHOUSE": os.path.join(WORK_DIR, "hadoop-warehouse"),
-        # Compare against the AWS EMR cells for this storage mode.
-        "MATRIX_PLATFORM_ID": "aws-emr",
-        "MATRIX_DATA_PATH": f"src/data/platforms/aws/{args.mode}/emr/emr.json",
+        # Compare against this engine's cells for this storage mode.
+        "MATRIX_PLATFORM_ID": args.platform_id or f"aws-{args.engine}",
+        "MATRIX_DATA_PATH": (f"src/data/platforms/aws/{args.mode}/"
+                             f"{args.engine}/{args.engine}.json"),
         "MATRIX_NS_PREFIX": args.ns_prefix,
         "MATRIX_STORAGE_MODE": args.mode,
         "PLATFORM_LABEL": args.platform_label,
@@ -147,4 +171,10 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    code = main()
+    # Only raise SystemExit when there is something to report. Glue's job wrapper
+    # treats *any* SystemExit as a failure, including SystemExit(0), which marked
+    # a perfectly good run FAILED and hid the report behind "SystemExit: 0".
+    # Falling off the end is a clean exit on both engines.
+    if code:
+        sys.exit(code)
