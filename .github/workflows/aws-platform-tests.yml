@@ -79,10 +79,10 @@ jobs:
           echo "::error::'${{ inputs.engine }}' is not implemented yet; only emr-serverless is."
           exit 1
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Node 24
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
 
@@ -123,7 +123,7 @@ jobs:
 
       - name: Upload reports
         if: always() && !inputs.dry-run
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aws-emr-platform-test-report
           path: test-reports/
