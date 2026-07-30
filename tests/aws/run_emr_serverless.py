@@ -338,11 +338,60 @@ def download_reports(mode: str) -> Path | None:
     return json_path
 
 
+def local_report_md(mode: str) -> Path | None:
+    """The markdown report download_reports() put next to the JSON, if it exists."""
+    path = LOCAL_REPORT_DIR / f"{ENGINE}-{mode}-iceberg-test-report.md"
+    return path if path.is_file() else None
+
+
+def demote_headings(md: str, by: int = 2) -> str:
+    """Shift markdown heading levels so a report nests under a per-mode heading.
+
+    The suite writes a standalone document starting at '#'. Embedding that as-is
+    would produce several competing top-level headings in one job summary, so
+    each level is pushed down. Fenced blocks are left alone: a '#' at the start
+    of a line inside one is content, not a heading.
+    """
+    out, in_fence = [], False
+    for line in md.splitlines():
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+        if not in_fence and line.startswith("#"):
+            depth = len(line) - len(line.lstrip("#"))
+            line = "#" * min(depth + by, 6) + line[depth:]
+        out.append(line)
+    return "\n".join(out)
+
+
 def summarise(results: list, reports: dict) -> int:
-    """Print the same summary the OSS suites print, and mirror it to the job summary."""
+    """Build the job summary: a combined verdict, then each mode's full report.
+
+    The per-mode markdown is embedded verbatim rather than re-rendered here, so
+    the feature-by-feature matrix is identical to the one the OSS engine suites
+    publish and cannot drift from it. Two reports are around 20 KB together,
+    well inside the 1 MiB job-summary limit.
+    """
     lines = ["# AWS EMR Serverless Iceberg Feature Test Report", "",
              f"- **Release:** {RELEASE_LABEL}", f"- **Run:** {RUN_TAG}", ""]
     worst = 0
+
+    # Lead with both modes side by side so the outcome is visible without
+    # scrolling past two full matrices.
+    verdict = ["| Mode | Total | Passed | Failed | Skipped | Errors | Discrepancies |",
+               "|------|-------|--------|--------|---------|--------|---------------|"]
+    for r in results:
+        rep = reports.get(r["mode"])
+        if r["state"] != "SUCCESS" or not rep:
+            state = r["state"] if r["state"] != "SUCCESS" else "NO REPORT"
+            verdict.append(f"| {r['mode']} | {state} | | | | | |")
+            worst = max(worst, 1)
+            continue
+        s = rep["summary"]
+        verdict.append(f"| {r['mode']} | {s['total']} | {s['passed']} | {s['failed']} | "
+                       f"{s['skipped']} | {s['errors']} | {s['discrepancies']} |")
+        if s["discrepancies"] or s["errors"]:
+            worst = max(worst, 1)
+    lines += verdict + [""]
 
     for r in results:
         rep = reports.get(r["mode"])
@@ -351,38 +400,31 @@ def summarise(results: list, reports: dict) -> int:
         if r["state"] != "SUCCESS":
             lines.append(f"Job run {r['state']}: {r['state_details']}")
             lines.append("")
-            worst = max(worst, 1)
             continue
         if not rep:
             lines.append("Job succeeded but produced no report.")
             lines.append("")
-            worst = max(worst, 1)
             continue
 
-        s = rep["summary"]
-        lines += [
-            f"- **Catalog:** {rep.get('catalog_mode', '')}",
-            f"- **Spark:** {rep.get('spark_version', '')} | **Iceberg:** {rep.get('iceberg_version', '')}",
-            "",
-            "| Metric | Count |", "|--------|-------|",
-            f"| Total | {s['total']} |",
-            f"| Passed | {s['passed']} |",
-            f"| Failed | {s['failed']} |",
-            f"| Skipped | {s['skipped']} |",
-            f"| Errors | {s['errors']} |",
-            f"| Discrepancies | {s['discrepancies']} |",
-            "",
-        ]
         discs = [t for t in rep["tests"] if not t["match"]]
         if discs:
+            # Called out ahead of the matrix: a discrepancy is the one thing
+            # that needs acting on, and it is easy to miss among 70 rows.
             lines.append("### Discrepancies")
             lines.append("")
             for t in discs:
                 lines.append(f"- **{t['feature_name']}** ({t['version']}): "
                              f"test={t['result']}, json={t['json_level']} — {t['details'][:160]}")
             lines.append("")
-        if s["discrepancies"] or s["errors"]:
-            worst = max(worst, 1)
+
+        md = local_report_md(r["mode"])
+        if md:
+            lines.append(demote_headings(md.read_text()))
+            lines.append("")
+        else:
+            # Fall back to the counts rather than showing nothing.
+            s = rep["summary"]
+            lines += [f"Report markdown missing; counts only: {s}", ""]
 
     text = "\n".join(lines)
     print("\n" + text)
