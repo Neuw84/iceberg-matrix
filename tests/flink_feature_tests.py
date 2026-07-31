@@ -100,6 +100,22 @@ HADOOP_WAREHOUSE = os.environ.get("ICEBERG_HADOOP_WAREHOUSE", "file:///work/hado
 
 VERSIONS = ["v2", "v3"]
 
+# Which platform's matrix cells to compare against. Overridable so the same
+# suite can be pointed at another platform that runs this engine, matching how
+# the Spark-based suites work.
+MATRIX_PLATFORM_ID = os.environ.get("MATRIX_PLATFORM_ID", "flink")
+MATRIX_DATA_PATH = os.environ.get(
+    "MATRIX_DATA_PATH", "src/data/platforms/oss/flink/flink.json"
+)
+# Free-text label for the runtime under test, recorded in the report so a cell
+# that changes later is attributable.
+PLATFORM_LABEL = os.environ.get("PLATFORM_LABEL", "")
+# How the catalog under test is reached, recorded in the report. Overridable so
+# a managed platform can describe its own catalog instead of the local stack.
+CATALOG_MODE = os.environ.get(
+    "MATRIX_CATALOG_MODE", f"REST ({REST_URI}, warehouse={REST_WAREHOUSE})"
+)
+
 # How long to wait for in-job compaction to produce a rewrite commit. Sized off
 # the 5s checkpoint interval configured in docker-compose.flink.yml: a rewrite
 # was observed within ~90s locally.
@@ -1768,16 +1784,54 @@ ALL_TESTS = [
 # ---------------------------------------------------------------------------
 
 def load_flink_json_support() -> dict:
-    """Load the recorded support levels for Flink from the matrix data."""
-    path = os.path.join(REPO_ROOT, "src", "data", "platforms", "oss", "flink", "flink.json")
+    """Load the recorded support levels for the platform under test.
+
+    Reads MATRIX_DATA_PATH and keeps only the cells belonging to
+    MATRIX_PLATFORM_ID, so the suite is not tied to the OSS Flink cells.
+    """
+    path = os.path.join(REPO_ROOT, MATRIX_DATA_PATH)
     with open(path) as f:
         data = json.load(f)
     result = {}
     for key, val in data.get("support", {}).items():
         parts = key.split(":")
-        if len(parts) == 3 and parts[0] == "flink":
+        if len(parts) == 3 and parts[0] == MATRIX_PLATFORM_ID:
             result[(parts[1], parts[2])] = val.get("level", "unknown")
     return result
+
+
+def load_matrix_features() -> dict:
+    """Load feature definitions from the matrix source of truth (features.json).
+
+    Lets the suite assert that EVERY feature shown in the matrix is exercised, so
+    a newly added matrix feature cannot silently go untested.
+    """
+    with open(os.path.join(REPO_ROOT, "src", "data", "features.json")) as f:
+        data = json.load(f)
+    return {
+        feat["id"]: {
+            "name": feat.get("name", feat["id"]),
+            "introducedIn": feat.get("introducedIn", "v2"),
+        }
+        for feat in data.get("features", [])
+    }
+
+
+def compute_coverage(results: list) -> dict:
+    """Compare the set of tested feature ids against the matrix features.
+
+    A non-empty "uncovered" list means the suite has drifted from the matrix and
+    is treated as a failure, matching the Spark-based suites.
+    """
+    matrix = load_matrix_features()
+    tested = {r.feature_id for r in results}
+    uncovered = sorted(set(matrix) - tested)
+    return {
+        "matrix_feature_count": len(matrix),
+        "tested_feature_count": len(tested),
+        "uncovered": [{"id": fid, "name": matrix[fid]["name"]} for fid in uncovered],
+        "extra": sorted(tested - set(matrix)),
+    }
 
 
 def compute_match(test_result: str, json_level: str) -> bool:
@@ -1818,12 +1872,19 @@ def generate_report(results: list) -> dict:
             "verified": not is_unverified,
         })
 
+    coverage = compute_coverage(results)
+
     return {
         "timestamp": datetime.now(tz=timezone.utc).isoformat(),
         "engine": "Flink",
         "mode": MODE,
         "flink_version": FLINK_VERSION,
         "flink_iceberg_version": FLINK_ICEBERG_VERSION,
+        "platform": MATRIX_PLATFORM_ID,
+        "platform_label": PLATFORM_LABEL,
+        "catalog_mode": CATALOG_MODE,
+        "versions_tested": VERSIONS,
+        "coverage": coverage,
         "tests": tests_output,
         "summary": {
             "total": len(results),
@@ -1833,6 +1894,7 @@ def generate_report(results: list) -> dict:
             "errors": sum(1 for r in results if r.result == "error"),
             "discrepancies": discrepancies,
             "unverified": unverified,
+            "uncovered_features": len(coverage["uncovered"]),
         },
     }
 
@@ -1846,6 +1908,12 @@ def generate_markdown(report: dict) -> str:
         f"- **Flink Version:** {report['flink_version']}",
         f"- **Iceberg Version:** {report['flink_iceberg_version']}",
         f"- **Execution mode:** {report['mode']}",
+        f"- **Catalog:** {report.get('catalog_mode', 'unknown')}",
+    ]
+    if report.get("platform_label"):
+        lines.append(f"- **Platform:** {report['platform_label']}")
+    lines += [
+        f"- **Format Versions Tested:** {', '.join(report.get('versions_tested', []))}",
         "",
         "## Summary",
         "",
@@ -1858,11 +1926,33 @@ def generate_markdown(report: dict) -> str:
         f"| Errors | {s['errors']} |",
         f"| Discrepancies vs matrix | {s['discrepancies']} |",
         f"| Unverified (skip/error) | {s['unverified']} |",
+        f"| Uncovered matrix features | {s.get('uncovered_features', 0)} |",
         "",
         "`Failed` is a result, not a defect: it records that the engine does not "
         "support the feature through Flink SQL. A discrepancy means the observed "
         "behaviour disagrees with `flink.json`.",
         "",
+    ]
+
+    cov = report.get("coverage")
+    if cov:
+        lines.append(
+            f"**Matrix coverage:** {cov['tested_feature_count']}/"
+            f"{cov['matrix_feature_count']} features in `features.json` have a test."
+        )
+        if cov["uncovered"]:
+            lines += ["", "### Uncovered matrix features (no test!)", ""]
+            for f in cov["uncovered"]:
+                lines.append(
+                    f"- **{f['name']}** (`{f['id']}`) - add a `test_*` function "
+                    "and register it in `ALL_TESTS`"
+                )
+        if cov.get("extra"):
+            lines += ["", f"> Note: tests exist for ids not in the matrix: "
+                          f"{', '.join(cov['extra'])}"]
+        lines.append("")
+
+    lines += [
         "## Test Results",
         "",
         "| Feature | Version | Result | Matrix | Match | Details |",
@@ -1915,6 +2005,10 @@ def main():
     print(f"REST catalog:    {REST_URI} (warehouse {REST_WAREHOUSE})")
     print(f"S3 endpoint:     {S3_ENDPOINT}")
     print(f"JDBC catalog:    {JDBC_URI}")
+    print(f"Matrix platform: {MATRIX_PLATFORM_ID} ({MATRIX_DATA_PATH})")
+    if PLATFORM_LABEL:
+        print(f"Platform:        {PLATFORM_LABEL}")
+    print(f"Versions:        {', '.join(VERSIONS)}")
     print()
 
     if MODE == "local" and not FLINK_HOME:
@@ -1963,7 +2057,8 @@ def main():
     print(f"\n{'=' * 70}")
     print(f"  {s['passed']} passed, {s['failed']} failed, {s['skipped']} skipped, "
           f"{s['errors']} errors, {s['discrepancies']} discrepancies, "
-          f"{s['unverified']} unverified")
+          f"{s['unverified']} unverified, "
+          f"{s.get('uncovered_features', 0)} uncovered matrix features")
     print(f"  Reports: {json_path}")
     print(f"           {md_path}")
     print(f"{'=' * 70}")
@@ -1975,8 +2070,10 @@ def main():
             f.write(md_content)
 
     # Errors mean the harness itself could not run something; discrepancies mean
-    # the matrix and reality disagree. Both warrant a human look.
-    sys.exit(1 if (s["discrepancies"] > 0 or s["errors"] > 0) else 0)
+    # the matrix and reality disagree; uncovered features mean the suite has
+    # drifted from the matrix. All three warrant a human look.
+    sys.exit(1 if (s["discrepancies"] > 0 or s["errors"] > 0
+                   or s.get("uncovered_features", 0) > 0) else 0)
 
 
 if __name__ == "__main__":
