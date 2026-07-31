@@ -20,6 +20,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.lakekeeper.yml"
+# shellcheck source=tests/docker/host-ip.sh
+source "${SCRIPT_DIR}/host-ip.sh"
 
 export LAKEKEEPER_WAREHOUSE="${LAKEKEEPER_WAREHOUSE:-demo}"
 export LAKEKEEPER_BUCKET="${LAKEKEEPER_BUCKET:-warehouse}"
@@ -28,39 +30,9 @@ export LAKEKEEPER_S3_SECRET="${LAKEKEEPER_S3_SECRET:-minio12345}"
 export LAKEKEEPER_S3_REGION="${LAKEKEEPER_S3_REGION:-us-east-1}"
 LAKEKEEPER_URI="${LAKEKEEPER_URI:-http://127.0.0.1:8181}"
 
-# ---------------------------------------------------------------------------
-# The warehouse must advertise an S3 endpoint that both the Lakekeeper container
-# and host-side engines can reach, because Iceberg's Java REST client applies
-# the storage config the server returns on loadTable over the client's own.
-# A compose-internal name (http://minio:9000) fails on the host with
-# UnknownHostException, so use the host's own IP: containers reach it through
-# MinIO's published port, and the host reaches itself. No /etc/hosts entry and
-# no root access required.
-# ---------------------------------------------------------------------------
-detect_host_ip() {
-  local ip=""
-  if command -v ipconfig >/dev/null 2>&1; then
-    for iface in en0 en1 en2 en3; do
-      ip="$(ipconfig getifaddr "${iface}" 2>/dev/null || true)"
-      [[ -n "${ip}" ]] && break
-    done
-  fi
-  if [[ -z "${ip}" ]]; then
-    ip="$(hostname -I 2>/dev/null | awk '{print $1}' || true)"
-  fi
-  if [[ -z "${ip}" ]]; then
-    # No traffic is sent; this just asks the kernel which local address would
-    # be used to reach an external host.
-    ip="$(python3 -c 'import socket
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-try:
-    s.connect(("8.8.8.8", 80))
-    print(s.getsockname()[0])
-finally:
-    s.close()' 2>/dev/null || true)"
-  fi
-  printf '%s' "${ip}"
-}
+# detect_host_ip comes from host-ip.sh, which explains why the host's own IP is
+# the only address that works for both containers and host-side engines. It is
+# used here for the warehouse's S3 endpoint and for Lakekeeper's BASE_URI.
 
 wait_for_job() {
   local service="$1" cid status exit_code

@@ -10,19 +10,20 @@ permissions:
   pull-requests: write
 
 env:
-  # Flink 2.3.0 engine. Iceberg has not released a Flink 2.2/2.3 runtime yet, so
-  # we use the latest published one (iceberg-flink-runtime-2.1), which is
-  # verified to work against the 2.3 engine. FLINK_MAJOR is the runtime's Flink
-  # minor, which can differ from the engine version.
+  # Flink 2.3.0 engine, the latest Flink release. Iceberg has not released a
+  # Flink 2.2/2.3 runtime yet, so we use the latest published one
+  # (iceberg-flink-runtime-2.1) against the 2.3 engine. ICEBERG_FLINK_MAJOR is
+  # the runtime's Flink minor and intentionally differs from the engine version.
   FLINK_VERSION: "2.3.0"
-  FLINK_MAJOR: "2.1"
+  ICEBERG_FLINK_MAJOR: "2.1"
   ICEBERG_VERSION: "1.11.0"
-  HADOOP_UBER_VERSION: "2.8.3-10.0"
 
 jobs:
   flink-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The suite runs every feature against both format versions, each in its own
+    # SQL client session, so it is dominated by session startup cost.
+    timeout-minutes: 75
 
     steps:
       - name: Checkout repository
@@ -47,97 +48,31 @@ jobs:
       - name: Start Lakekeeper REST catalog + MinIO
         run: ./tests/docker/start-lakekeeper.sh
 
-      - name: Download and setup Flink
-        run: |
-          set -euo pipefail
-          FLINK_DIST="flink-${FLINK_VERSION}-bin-scala_2.12.tgz"
-          REL_PATH="flink/flink-${FLINK_VERSION}/${FLINK_DIST}"
-          DEST="${RUNNER_TEMP}/${FLINK_DIST}"
-
-          # archive.apache.org is a single throttled origin and the dist is
-          # ~590 MB: measured side by side, the CDN sustained ~8 MB/s while the
-          # archive stalled at effectively 0. The CDN only carries current
-          # releases though, and closer.lua picks a nearby mirror, so try the
-          # fast sources first and keep the archive as the fallback that always
-          # has the version (including after it ages off the CDN).
-          download() {
-            for url in \
-              "https://dlcdn.apache.org/${REL_PATH}" \
-              "https://www.apache.org/dyn/closer.lua/${REL_PATH}?action=download" \
-              "https://archive.apache.org/dist/${REL_PATH}"
-            do
-              echo "Trying ${url}"
-              if curl -fsSL --retry 3 --retry-connrefused --connect-timeout 15 \
-                   "${url}" -o "${DEST}"; then
-                echo "Downloaded Flink ${FLINK_VERSION} from ${url}"
-                return 0
-              fi
-              rm -f "${DEST}"
-            done
-            echo "All Apache sources failed for ${REL_PATH}" >&2
-            return 1
-          }
-          download
-
-          # Mirrors are third parties, so verify against a checksum published by
-          # the ASF itself before unpacking.
-          curl -fsSL --retry 3 "https://downloads.apache.org/${REL_PATH}.sha512" \
-               -o "${DEST}.sha512" \
-            || curl -fsSL --retry 3 "https://archive.apache.org/dist/${REL_PATH}.sha512" \
-               -o "${DEST}.sha512"
-          (cd "${RUNNER_TEMP}" && sha512sum -c "${FLINK_DIST}.sha512")
-
-          tar -xzf "${DEST}" -C "${RUNNER_TEMP}"
-          echo "FLINK_HOME=${RUNNER_TEMP}/flink-${FLINK_VERSION}" >> $GITHUB_ENV
-
-      - name: Add Iceberg + AWS + Hadoop jars to Flink lib
-        run: |
-          FLINK_HOME="${RUNNER_TEMP}/flink-${FLINK_VERSION}"
-          BASE="https://repo1.maven.org/maven2/org/apache"
-          # Iceberg Flink runtime (2.1 is the latest published), plus the AWS bundle
-          # that provides S3FileIO so Iceberg reads/writes data files on S3 (MinIO).
-          curl -fsSL "${BASE}/iceberg/iceberg-flink-runtime-${FLINK_MAJOR}/${ICEBERG_VERSION}/iceberg-flink-runtime-${FLINK_MAJOR}-${ICEBERG_VERSION}.jar" \
-            -o "${FLINK_HOME}/lib/iceberg-flink-runtime-${FLINK_MAJOR}-${ICEBERG_VERSION}.jar"
-          curl -fsSL "${BASE}/iceberg/iceberg-aws-bundle/${ICEBERG_VERSION}/iceberg-aws-bundle-${ICEBERG_VERSION}.jar" \
-            -o "${FLINK_HOME}/lib/iceberg-aws-bundle-${ICEBERG_VERSION}.jar"
-          # Iceberg's Flink catalog loader instantiates org.apache.hadoop.conf.Configuration
-          # regardless of catalog type, so Hadoop classes are required on the classpath.
-          curl -fsSL "${BASE}/flink/flink-shaded-hadoop-2-uber/${HADOOP_UBER_VERSION}/flink-shaded-hadoop-2-uber-${HADOOP_UBER_VERSION}.jar" \
-            -o "${FLINK_HOME}/lib/flink-shaded-hadoop-2-uber-${HADOOP_UBER_VERSION}.jar"
-
-      - name: Start Flink cluster
-        run: |
-          echo "Starting Flink standalone cluster..."
-          "${FLINK_HOME}/bin/start-cluster.sh"
-          for i in $(seq 1 30); do
-            if curl -sf http://localhost:8081/overview > /dev/null 2>&1; then
-              echo "Flink cluster is ready"
-              break
-            fi
-            echo "Waiting for Flink cluster... ($i/30)"
-            sleep 2
-          done
+      # Flink runs in Docker rather than as a runner-local tarball so that the
+      # exact same cluster, jars and classpath are reproducible locally.
+      - name: Start Dockerized Flink cluster with the Iceberg runtime
+        run: ./tests/docker/start-flink.sh
 
       - name: Run Flink Iceberg feature tests
         env:
-          ICEBERG_REST_URI: http://127.0.0.1:8181/catalog
+          FLINK_MODE: docker
           ICEBERG_REST_WAREHOUSE: demo
-          ICEBERG_S3_ENDPOINT: http://127.0.0.1:9000
           ICEBERG_S3_KEY_ID: minio
           ICEBERG_S3_SECRET: minio12345
         run: |
           export REPO_ROOT="${GITHUB_WORKSPACE}"
           export REPORT_DIR="${GITHUB_WORKSPACE}/test-reports"
-          export FLINK_VERSION="${FLINK_VERSION}"
           export FLINK_ICEBERG_VERSION="${ICEBERG_VERSION}"
-          export PLATFORM_LABEL="Apache Flink ${FLINK_VERSION} (OSS) + Iceberg ${ICEBERG_VERSION}"
           python tests/flink_feature_tests.py
         continue-on-error: true
 
+      - name: Dump Flink cluster logs on failure
+        if: failure()
+        run: docker compose -f tests/docker/docker-compose.flink.yml logs --tail 200 || true
+
       - name: Stop Flink cluster
         if: always()
-        run: |
-          "${FLINK_HOME}/bin/stop-cluster.sh" || true
+        run: ./tests/docker/stop-flink.sh
 
       - name: Tear down Lakekeeper REST catalog
         if: always()

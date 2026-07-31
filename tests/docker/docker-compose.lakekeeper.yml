@@ -44,6 +44,11 @@ services:
       interval: 2s
       timeout: 10s
       retries: 20
+    # Published so engines outside this compose project can use Postgres
+    # directly: the Flink suite needs it for the JDBC catalog test and for the
+    # jdbc maintenance lock (Iceberg 1.11 accepts only jdbc or zookeeper there).
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -104,8 +109,14 @@ services:
       LAKEKEEPER__PG_DATABASE_URL_READ: "postgresql://postgres:postgres@db:5432/postgres"
       LAKEKEEPER__PG_DATABASE_URL_WRITE: "postgresql://postgres:postgres@db:5432/postgres"
       LAKEKEEPER__AUTHZ_BACKEND: "allowall"
-      # Clients run on the host, so advertise the published address.
-      LAKEKEEPER__BASE_URI: "http://localhost:8181"
+      # Lakekeeper returns this address in the "overrides.uri" of GET /v1/config,
+      # and Iceberg's REST client applies that override in place of the URI the
+      # client was configured with. It therefore has to be reachable from every
+      # client, exactly like the warehouse's S3 endpoint below. "localhost" only
+      # works for host-side engines -- a containerized engine (see
+      # docker-compose.flink.yml) would resolve it to itself and get connection
+      # refused -- so advertise the host's own IP, which both reach.
+      LAKEKEEPER__BASE_URI: "http://${LAKEKEEPER_S3_HOST:-localhost}:8181"
       RUST_LOG: "info"
     ports:
       - "8181:8181"
