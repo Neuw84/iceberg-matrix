@@ -41,9 +41,15 @@
       "caveats": []
     },
     "aws-redshift-s3:copy-on-write:v2": {
-      "level": "full",
-      "notes": "Copy-on-write supported when writing to S3 Tables via Redshift",
-      "caveats": []
+      "level": "none",
+      "notes": "Redshift is merge-on-read only. A DELETE commits position delete files and leaves the data files in place, and copy-on-write cannot be selected: Redshift rejects the Iceberg write.delete.mode and write.update.mode properties outright.",
+      "caveats": [
+        "CREATE TABLE ... TABLE PROPERTIES ('write.delete.mode'='copy-on-write') fails with: \"write.delete.mode\" cannot be used in the PROPERTIES clause of \"iceberg\" table",
+        "Measured from the Iceberg snapshot summary: after a DELETE, total-position-deletes is 1 and total-data-files is unchanged"
+      ],
+      "links": [
+        "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-writes.html"
+      ]
     },
     "aws-redshift-s3:copy-on-write:v3": {
       "level": "none",
@@ -93,9 +99,16 @@
       "caveats": []
     },
     "aws-redshift-s3:hidden-partitioning:v2": {
-      "level": "full",
-      "notes": "Redshift supports reading hidden-partitioned tables on S3 Tables",
-      "caveats": []
+      "level": "partial",
+      "notes": "Transform partitioning is reachable on S3 Tables, but not in one statement. PARTITIONED BY on CREATE TABLE is accepted without error and then silently discarded, leaving an unpartitioned table; ALTER TABLE ADD PARTITION FIELD afterwards does apply the transform.",
+      "caveats": [
+        "CREATE TABLE ... PARTITIONED BY (year(ts)) raises no error, but SHOW TABLE then reports no partition spec at all",
+        "The same statement stores PARTITIONED BY (YEAR(\"ts\")) correctly in the S3 buckets mode, so this is specific to S3 Tables",
+        "ALTER TABLE ... ADD PARTITION FIELD day(ts) and bucket(8, id) both apply and appear in SHOW TABLE"
+      ],
+      "links": [
+        "https://docs.aws.amazon.com/redshift/latest/dg/querying-s3Tables.html"
+      ]
     },
     "aws-redshift-s3:hidden-partitioning:v3": {
       "level": "none",
@@ -123,9 +136,15 @@
       "caveats": []
     },
     "aws-redshift-s3:time-travel:v2": {
-      "level": "full",
-      "notes": "Time travel supported via Redshift with S3 Tables",
-      "caveats": []
+      "level": "none",
+      "notes": "Redshift exposes only the current state of an Iceberg table. No time-travel syntax is accepted and no snapshot metadata table is queryable, so an older snapshot cannot be read.",
+      "caveats": [
+        "Five spellings were rejected, including FOR SYSTEM_TIME AS OF, FOR TIMESTAMP AS OF and FOR VERSION AS OF: syntax error at or near \"SYSTEM_TIME\"",
+        "Iceberg metadata tables such as $snapshots and $history are not exposed either"
+      ],
+      "links": [
+        "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+      ]
     },
     "aws-redshift-s3:time-travel:v3": {
       "level": "none",
@@ -160,9 +179,16 @@
       "caveats": []
     },
     "aws-redshift-s3:read-support:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "level": "partial",
+      "notes": "Redshift reads format-version 3 tables but cannot write them. A v3 table created by Spark is queried correctly; any INSERT, UPDATE or DELETE against it is refused, and Redshift cannot create a v3 table in the first place.",
+      "caveats": [
+        "Writes fail with: Iceberg version 3 is not supported. Only Iceberg V2 tables are supported for writing",
+        "CREATE TABLE with 'format-version'='3' is rejected: \"3\" is not a valid value for the \"format-version\" property of \"iceberg\" table",
+        "Verified by reading a v3 table built by Spark on EMR, since Redshift cannot produce one itself"
+      ],
+      "links": [
+        "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+      ]
     },
     "aws-redshift-s3:write-insert:v2": {
       "level": "full",
@@ -205,9 +231,15 @@
       "caveats": []
     },
     "aws-redshift-s3:bloom-filters:v2": {
-      "level": "unknown",
-      "notes": "Bloom filter support for S3 Tables via Redshift not explicitly documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Bloom filters cannot be requested. Redshift accepts only compression_type as a writable Iceberg table property, so the write.parquet.bloom-filter-enabled.* properties cannot be set.",
+      "caveats": [
+        "Rejected with: \"write.parquet.bloom-filter-enabled.column.id\" cannot be used in the PROPERTIES clause of \"iceberg\" table",
+        "SHOW TABLE reports the writable properties as format-version and compression_type only"
+      ],
+      "links": [
+        "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-writes.html"
+      ]
     },
     "aws-redshift-s3:bloom-filters:v3": {
       "level": "none",
@@ -225,9 +257,15 @@
       "caveats": []
     },
     "aws-redshift-s3:aws-glue-catalog:v2": {
-      "level": "none",
-      "notes": "S3 Tables uses its own built-in catalog, not AWS Glue",
-      "caveats": []
+      "level": "full",
+      "notes": "The Glue Data Catalog is how Redshift reaches S3 Tables at all. A table bucket is a federated Glue catalog, and Redshift addresses it through a Glue resource link named by an external schema; tables are then created, written, read and dropped through it.",
+      "caveats": [
+        "A resource link in the default Glue catalog is required: its TargetDatabase points at <account>:s3tablescatalog/<bucket>, and the external schema names the link with CATALOG_ID set to the plain account id",
+        "Naming the federated catalog directly does not work: \"<bucket>@s3tablescatalog\".ns.table is rejected as an unsupported cross-database reference"
+      ],
+      "links": [
+        "https://docs.aws.amazon.com/redshift/latest/dg/querying-s3Tables.html"
+      ]
     },
     "aws-redshift-s3:aws-glue-catalog:v3": {
       "level": "none",
@@ -235,9 +273,15 @@
       "caveats": []
     },
     "aws-redshift-s3:rest-catalog:v2": {
-      "level": "full",
-      "notes": "S3 Tables exposes a REST-compatible catalog API used by Redshift",
-      "caveats": []
+      "level": "none",
+      "notes": "Redshift has no Iceberg REST catalog client. S3 Tables does expose an Iceberg REST endpoint, but Redshift cannot consume it: it reaches S3 Tables through the Glue Data Catalog instead.",
+      "caveats": [
+        "CREATE EXTERNAL SCHEMA ... FROM ICEBERG REST CATALOG is not recognised: it produces the same error as a deliberately meaningless catalog clause",
+        "Redshift tables can be published into Glue's Iceberg REST endpoint, but that is Redshift as a producer, not as a REST client"
+      ],
+      "links": [
+        "https://docs.aws.amazon.com/redshift/latest/dg/querying-s3Tables.html"
+      ]
     },
     "aws-redshift-s3:rest-catalog:v3": {
       "level": "none",
@@ -345,13 +389,14 @@
       "caveats": []
     },
     "aws-redshift-s3:snowflake-horizon-catalog:v2": {
-      "level": "unknown",
-      "notes": "Redshift Spectrum may be able to read Snowflake-managed Iceberg V2 tables via AWS Glue Catalog Federation, similar to Athena. This has not been confirmed. Write access is not expected to be supported.",
+      "level": "none",
+      "notes": "Redshift reaches Iceberg only through the AWS Glue Data Catalog. Snowflake Horizon is consumed over Iceberg REST, and this Redshift version has no Iceberg REST client.",
       "caveats": [
-        "Unconfirmed — based on Glue Catalog Federation pattern used by Athena",
-        "Write operations to external catalogs are not supported by Redshift Spectrum"
+        "CREATE EXTERNAL SCHEMA ... FROM ICEBERG REST CATALOG is not recognised: it produces the same error as a deliberately meaningless catalog clause, so the clause is discarded rather than understood"
       ],
-      "links": []
+      "links": [
+        "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+      ]
     },
     "aws-redshift-s3:snowflake-horizon-catalog:v3": {
       "level": "none",
@@ -365,9 +410,15 @@
       "caveats": []
     },
     "aws-redshift-s3:deletion-vectors:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3, so V3 deletion vectors are unavailable.",
-      "caveats": []
+      "level": "partial",
+      "notes": "Redshift applies deletion vectors correctly when reading a v3 table, but cannot produce them: it writes only v2 position deletes and refuses to write to a v3 table at all.",
+      "caveats": [
+        "A Spark-built v3 table with rows 1-4 and a deletion vector removing row 2 reads back as exactly 1, 3, 4",
+        "Writes fail with: Iceberg version 3 is not supported. Only Iceberg V2 tables are supported for writing"
+      ],
+      "links": [
+        "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+      ]
     }
   }
 }
