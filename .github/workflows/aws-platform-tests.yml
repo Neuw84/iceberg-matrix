@@ -8,8 +8,8 @@ name: AWS Platform Tests
 # reviewer), and the OIDC trust policy is scoped to that environment so a token
 # minted anywhere else cannot assume the role.
 #
-# Only EMR Serverless is implemented. The engine input exists so Athena and Glue
-# can be added without restructuring; they fail fast until then.
+# EMR Serverless, Glue and Redshift Serverless are implemented. The engine input
+# exists so Athena can be added without restructuring; it fails fast until then.
 
 on:
   workflow_dispatch:
@@ -20,8 +20,17 @@ on:
         default: emr-serverless
         options:
           - emr-serverless
+          - glue
+          - redshift
           - athena       # not implemented
-          - glue         # not implemented
+      redshift-fixtures:
+        description: >
+          Build the Spark fixtures first (engine redshift only). Redshift cannot
+          create format-version 3 tables, branches or tags, so without these the
+          affected cells can only report "cannot write" and must leave "cannot
+          read" unmeasured. Costs one short EMR Serverless job per mode.
+        type: boolean
+        default: true
       modes:
         description: Storage mode(s)
         type: choice
@@ -78,6 +87,7 @@ jobs:
       AWS_DATA_BUCKET: ${{ secrets.AWS_DATA_BUCKET }}
       AWS_EMR_JOB_ROLE_ARN: ${{ secrets.AWS_EMR_JOB_ROLE_ARN }}
       AWS_TABLE_BUCKET_ARN: ${{ secrets.AWS_TABLE_BUCKET_ARN }}
+      REDSHIFT_ROLE_ARN: ${{ secrets.AWS_REDSHIFT_ROLE_ARN }}
       RESOURCE_PREFIX: icebergmatrix
       ENGINE: emr
 
@@ -85,7 +95,7 @@ jobs:
       - name: Reject unimplemented engines
         if: inputs.engine == 'athena'
         run: |
-          echo "::error::'${{ inputs.engine }}' is not implemented yet; emr-serverless and glue are."
+          echo "::error::'${{ inputs.engine }}' is not implemented yet; emr-serverless, glue and redshift are."
           exit 1
 
       - uses: actions/checkout@v7
@@ -133,8 +143,35 @@ jobs:
           GLUE_VERSION: ${{ inputs.glue-version }}
         run: uv run --with boto3 python tests/aws/run_glue.py
 
+      # Separate step from the suite so a fixture failure is attributable, and so
+      # the suite still runs without them: the cells that need a fixture then
+      # report read support as unmeasured rather than guessing.
+      - name: Build Spark fixtures for Redshift
+        id: redshift-fixtures
+        if: '!inputs.dry-run && inputs.engine == ''redshift'' && inputs.redshift-fixtures'
+        env:
+          MODES: ${{ inputs.modes }}
+          EMR_RELEASE_LABEL: ${{ inputs.release-label }}
+        run: uv run --with boto3 python tests/aws/run_redshift_fixtures.py
+        continue-on-error: true
+
+      - name: Run feature suite on Redshift Serverless
+        if: '!inputs.dry-run && inputs.engine == ''redshift'''
+        env:
+          MODES: ${{ inputs.modes }}
+          # Only claim the fixtures exist if the job that builds them succeeded.
+          # A stale name here would make every fixture-backed cell report a
+          # missing table instead of an honest "not measured".
+          REDSHIFT_FIXTURE_DB: ${{ steps.redshift-fixtures.outcome == 'success' && 'icebergmatrix_rsfix' || '' }}
+        run: uv run --with boto3 python tests/aws/run_redshift.py
+
       # ENGINE tells teardown which S3 prefix to clear; the Glue and S3 Tables
       # cleanup is prefix-scoped and runs regardless.
+      #
+      # Redshift maps to 'emr' deliberately: its fixtures are built by an EMR
+      # Serverless job and therefore live under emr/, including the EMR
+      # application that has to be deleted. The suite's own redshift/ prefix is
+      # swept unconditionally by teardown.py.
       - name: Tear down billable resources
         if: always() && !inputs.dry-run
         env:

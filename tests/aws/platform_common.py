@@ -188,17 +188,22 @@ def summarise(engine: str, title: str, header: list, results: list, reports: dic
 
     # Lead with every mode side by side so the outcome is visible without
     # scrolling past two full matrices.
-    verdict = ["| Mode | Total | Passed | Failed | Skipped | Errors | Discrepancies |",
-               "|------|-------|--------|--------|---------|--------|---------------|"]
+    # Partial is included because otherwise the row does not add up: a suite that
+    # reports it (Redshift, for read-yes/write-no features) would show
+    # passed + failed + skipped short of total, which reads like a bug. Engines
+    # that never report a partial get a 0 and are unaffected.
+    verdict = ["| Mode | Total | Passed | Partial | Failed | Skipped | Errors | Discrepancies |",
+               "|------|-------|--------|---------|--------|---------|--------|---------------|"]
     for r in results:
         rep = reports.get(r["mode"])
         if r["state"] != "SUCCESS" or not rep:
             state = r["state"] if r["state"] != "SUCCESS" else "NO REPORT"
-            verdict.append(f"| {r['mode']} | {state} | | | | | |")
+            verdict.append(f"| {r['mode']} | {state} | | | | | | |")
             worst = max(worst, 1)
             continue
         s = rep["summary"]
-        verdict.append(f"| {r['mode']} | {s['total']} | {s['passed']} | {s['failed']} | "
+        verdict.append(f"| {r['mode']} | {s['total']} | {s['passed']} | "
+                       f"{s.get('partial', 0)} | {s['failed']} | "
                        f"{s['skipped']} | {s['errors']} | {s['discrepancies']} |")
         if s["discrepancies"] or s["errors"]:
             worst = max(worst, 1)

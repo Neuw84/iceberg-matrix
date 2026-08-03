@@ -41,10 +41,37 @@ Parameters:
     Type: String
     Default: ''
     Description: Optional email for budget alerts at 80% of the limit
+  RedshiftBaseCapacity:
+    Type: Number
+    Default: 8
+    Description: >
+      Redshift Serverless base capacity in RPUs. 8 is the global minimum; 4 is
+      only accepted in the regions listed in the 4-RPU launch announcements,
+      which do not include us-east-1. Serverless bills per RPU-second while a
+      query runs and nothing while idle, so this is a ceiling on burst cost
+      rather than a running charge.
+  RedshiftSubnetIds:
+    Type: CommaDelimitedList
+    Default: ''
+    Description: >
+      Three or more subnets in different AZs for the Redshift Serverless
+      workgroup. Leave empty to let Redshift choose from the default VPC, but
+      note that not every AZ offers Serverless, so passing subnets explicitly is
+      the reliable option.
+  RedshiftSecurityGroupIds:
+    Type: CommaDelimitedList
+    Default: ''
+    Description: >
+      Security groups for the workgroup. Leave empty to use the VPC default.
+      Nothing needs inbound access: the tests reach Redshift over the Data API,
+      which is an AWS API call rather than a database connection.
 
 Conditions:
   CreateOidcProvider: !Equals [!Ref ExistingOidcProviderArn, '']
   HasBudgetEmail: !Not [!Equals [!Ref BudgetNotificationEmail, '']]
+  # CommaDelimitedList cannot be compared directly, so join it back to a string.
+  HasRedshiftSubnets: !Not [!Equals [!Join ['', !Ref RedshiftSubnetIds], '']]
+  HasRedshiftSecurityGroups: !Not [!Equals [!Join ['', !Ref RedshiftSecurityGroupIds], '']]
 
 Resources:
 
@@ -227,6 +254,157 @@ Resources:
                 Resource: '*'
 
   # ---------------------------------------------------------------------------
+  # Redshift role: assumed by Redshift itself, not by GitHub. Redshift is the
+  # only engine here that both reads and writes Iceberg tables through its own
+  # service identity, so this role needs catalog write access rather than the
+  # read-only access a query engine would need.
+  # ---------------------------------------------------------------------------
+  RedshiftRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ResourcePrefix}-redshift'
+      Description: Attached to the Redshift Serverless namespace for Iceberg reads and writes
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # Both principals: provisioned Redshift uses redshift.amazonaws.com and
+          # Serverless uses redshift-serverless.amazonaws.com. Trusting both keeps
+          # the role usable if this ever moves to a provisioned cluster.
+          - Effect: Allow
+            Principal:
+              Service:
+                - redshift.amazonaws.com
+                - redshift-serverless.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Ref AWS::AccountId
+      Policies:
+
+        # Writes need DeleteObject as well as Put: MERGE stages intermediate
+        # files under the table location and garbage-collects them at the end of
+        # the statement, and it fails outright if that delete is denied.
+        - PolicyName: s3-data-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${DataBucket}/*'
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${DataBucket}'
+
+        # Redshift creates, alters and drops Iceberg tables in the Data Catalog,
+        # so unlike a pure query engine it needs the write verbs too.
+        - PolicyName: glue-catalog-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:GetCatalog
+                  - glue:GetDatabase
+                  - glue:GetDatabases
+                  - glue:CreateDatabase
+                  - glue:DeleteDatabase
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:CreateTable
+                  - glue:UpdateTable
+                  - glue:DeleteTable
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:catalog'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:database/${ResourcePrefix}*'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:table/${ResourcePrefix}*/*'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:userDefinedFunction/${ResourcePrefix}*/*'
+
+        # S3 Tables mode. Redshift addresses a table bucket as the federated
+        # catalog "<bucket>@s3tablescatalog", so it needs both the s3tables API
+        # and the federated Glue hierarchy, exactly as the Spark engines do.
+        - PolicyName: s3tables-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3tables:*
+                Resource:
+                  - !Ref TableBucketArn
+                  - !Sub '${TableBucketArn}/*'
+
+        - PolicyName: glue-s3tables-federation
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:GetCatalog
+                  - glue:GetDatabase
+                  - glue:GetDatabases
+                  - glue:CreateDatabase
+                  - glue:DeleteDatabase
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:CreateTable
+                  - glue:UpdateTable
+                  - glue:DeleteTable
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:catalog/s3tablescatalog'
+                  - !Sub
+                    - 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:catalog/s3tablescatalog/${TableBucketName}'
+                    - TableBucketName: !Select [1, !Split ['/', !Ref TableBucketArn]]
+                  - !Sub
+                    - 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:database/s3tablescatalog/${TableBucketName}/${ResourcePrefix}*'
+                    - TableBucketName: !Select [1, !Split ['/', !Ref TableBucketArn]]
+                  - !Sub
+                    - 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:table/s3tablescatalog/${TableBucketName}/${ResourcePrefix}*/*'
+                    - TableBucketName: !Select [1, !Split ['/', !Ref TableBucketArn]]
+                  - !Sub
+                    - 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:userDefinedFunction/s3tablescatalog/${TableBucketName}/${ResourcePrefix}*/*'
+                    - TableBucketName: !Select [1, !Split ['/', !Ref TableBucketArn]]
+              - Effect: Allow
+                Action: lakeformation:GetDataAccess
+                Resource: '*'
+
+  # ---------------------------------------------------------------------------
+  # Redshift Serverless namespace and workgroup.
+  #
+  # ManageAdminPassword hands the admin credentials to Secrets Manager instead of
+  # this template, so no password is ever a stack parameter, a stack output or a
+  # GitHub secret. The tests authenticate to the Data API with that secret's ARN.
+  # ---------------------------------------------------------------------------
+  RedshiftNamespace:
+    Type: AWS::RedshiftServerless::Namespace
+    Properties:
+      NamespaceName: !Sub '${ResourcePrefix}-ns'
+      DbName: dev
+      AdminUsername: icebergmatrix_admin
+      ManageAdminPassword: true
+      DefaultIamRoleArn: !GetAtt RedshiftRole.Arn
+      IamRoles:
+        - !GetAtt RedshiftRole.Arn
+
+  RedshiftWorkgroup:
+    Type: AWS::RedshiftServerless::Workgroup
+    Properties:
+      WorkgroupName: !Sub '${ResourcePrefix}-wg'
+      NamespaceName: !Ref RedshiftNamespace
+      BaseCapacity: !Ref RedshiftBaseCapacity
+      # No public endpoint. The Data API is reached as an AWS API call, so
+      # nothing has to connect to the database over the network.
+      PubliclyAccessible: false
+      SubnetIds: !If [HasRedshiftSubnets, !Ref RedshiftSubnetIds, !Ref 'AWS::NoValue']
+      SecurityGroupIds: !If
+        - HasRedshiftSecurityGroups
+        - !Ref RedshiftSecurityGroupIds
+        - !Ref 'AWS::NoValue'
+
+  # ---------------------------------------------------------------------------
   # CI role: assumed by GitHub Actions via OIDC. Drives EMR Serverless and
   # cleans up afterwards. It never touches table data directly.
   # ---------------------------------------------------------------------------
@@ -325,6 +503,52 @@ Resources:
                   StringEquals:
                     'iam:AWSServiceName': ops.emr-serverless.amazonaws.com
 
+        # Redshift is driven entirely through the Data API: statements are
+        # submitted as AWS API calls, so there is no database connection, no
+        # password and no network path to arrange. The workgroup itself is
+        # long-lived stack infrastructure, so the CI role only uses it -- it
+        # cannot create or delete the workgroup or the namespace.
+        - PolicyName: drive-redshift
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # The Data API actions take no resource qualifier: authorisation is
+              # on the workgroup and the credentials, both scoped below.
+              - Effect: Allow
+                Action:
+                  - redshift-data:ExecuteStatement
+                  - redshift-data:BatchExecuteStatement
+                  - redshift-data:DescribeStatement
+                  - redshift-data:GetStatementResult
+                  - redshift-data:CancelStatement
+                  - redshift-data:ListStatements
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - redshift-serverless:GetWorkgroup
+                  - redshift-serverless:GetNamespace
+                  - redshift-serverless:ListWorkgroups
+                  - redshift-serverless:ListNamespaces
+                  - redshift-serverless:GetCredentials
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:redshift-serverless:${AWS::Region}:${AWS::AccountId}:workgroup/*'
+                  - !Sub 'arn:${AWS::Partition}:redshift-serverless:${AWS::Region}:${AWS::AccountId}:namespace/*'
+              # Read the Secrets Manager secret Redshift created for the admin
+              # user, so the Data API can authenticate without a stored password.
+              #
+              # Scoped by name rather than by exact ARN: CloudFormation does not
+              # expose the secret ARN as an attribute of the namespace resource
+              # (GetAtt Namespace.AdminPasswordSecretArn is rejected as not a
+              # readonly property), and Secrets Manager appends a random suffix
+              # to every ARN in any case. The "redshift!" prefix is reserved for
+              # secrets the Redshift service creates, so this cannot widen to a
+              # secret of ours.
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                Resource: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:redshift!*'
+
         - PolicyName: s3-scripts-and-reports
           PolicyDocument:
             Version: '2012-10-17'
@@ -415,3 +639,22 @@ Outputs:
   ResourcePrefixOut:
     Description: Glue databases and S3 Tables namespaces must start with this
     Value: !Ref ResourcePrefix
+  RedshiftWorkgroupName:
+    Description: Set as the AWS_REDSHIFT_WORKGROUP environment secret in GitHub
+    Value: !Ref RedshiftWorkgroup
+  RedshiftNamespaceName:
+    Description: Redshift Serverless namespace backing the workgroup
+    Value: !Ref RedshiftNamespace
+  RedshiftAdminSecretHint:
+    Description: >
+      Redshift creates and manages the admin secret; its ARN is not a
+      CloudFormation attribute of the namespace, so look it up at runtime with
+      redshift-serverless get-namespace --namespace-name <name> and read
+      adminPasswordSecretArn. Nothing here ever holds the password.
+    Value: !Sub 'aws redshift-serverless get-namespace --namespace-name ${ResourcePrefix}-ns --query namespace.adminPasswordSecretArn'
+  RedshiftRoleArn:
+    Description: IAM role attached to the namespace for Iceberg reads and writes
+    Value: !GetAtt RedshiftRole.Arn
+  RedshiftDatabase:
+    Description: Database name inside the namespace
+    Value: dev
