@@ -208,8 +208,21 @@ def delete_s3_prefixes() -> None:
         return
     s3 = boto3.client("s3", region_name=REGION)
     # reports/ is intentionally left behind; lifecycle expires it.
-    for kind in ("warehouse", "logs", "scripts"):
-        prefix = f"{ENGINE}/{kind}/{RUN_TAG}/"
+    #
+    # fixtures-warehouse holds real Parquet for the Spark-built Redshift fixtures
+    # and bills like any other warehouse, so it has to be swept even when the
+    # engine under test was not EMR. The Redshift suite cleans its own
+    # redshift/<run>/ prefix on the way out, but a crashed run would not, so it is
+    # listed here too: deleting an absent prefix is free.
+    prefixes = [f"{ENGINE}/{kind}/{RUN_TAG}/"
+                for kind in ("warehouse", "logs", "scripts",
+                             "fixtures", "fixtures-warehouse")]
+    # Deliberately not "/"-terminated. The Redshift driver derives one tag per
+    # storage mode by sanitising the run tag for use in SQL identifiers
+    # (icebergmatrix-123 -> icebergmatrix_123_s3buckets), so this has to match a
+    # tag prefix rather than an exact directory.
+    prefixes.append(f"redshift/{RUN_TAG.replace('-', '_').lower()}")
+    for prefix in prefixes:
         deleted = 0
         try:
             pages = s3.get_paginator("list_objects_v2").paginate(Bucket=DATA_BUCKET, Prefix=prefix)

@@ -82,9 +82,18 @@ any other context cannot assume the role.
 |---|---|
 | `AWS_CI_ROLE_ARN` | `CiRoleArn` output |
 | `AWS_EMR_JOB_ROLE_ARN` | `EmrJobRoleArn` output |
+| `AWS_REDSHIFT_ROLE_ARN` | `RedshiftRoleArn` output (needed for `engine: redshift`) |
 | `AWS_DATA_BUCKET` | your S3 bucket name |
 | `AWS_TABLE_BUCKET_ARN` | your S3 Tables bucket ARN |
 | `AWS_REGION` | the region everything lives in |
+
+There is deliberately no secret for the Redshift admin password. The namespace is
+created with `ManageAdminPassword`, so Secrets Manager owns the credential and the
+driver looks the ARN up at run time with `redshift-serverless get-namespace`.
+CloudFormation cannot return it: `AWS::RedshiftServerless::Namespace` rejects
+`!GetAtt Namespace.AdminPasswordSecretArn` as "must be a readonly property in
+schema", which is why the stack exposes `RedshiftAdminSecretHint` (the CLI command
+to look it up) rather than the value.
 
 ## 6. Run it
 
@@ -192,3 +201,76 @@ create/insert/select/drop. Reading the configuration alone is misleading, becaus
 the configuration can be exactly right while the resolved class is something
 else entirely. Note that the probe must use a namespace carrying the resource
 prefix; any other name fails on IAM and hides the real result.
+
+## 8. How the Redshift engine differs
+
+`engine: redshift` runs `tests/redshift_feature_tests.py` through the Redshift Data
+API. There is no cluster-side bundle: the suite executes in the runner and every
+statement is a `redshift-data` call, which is why `tests/aws/run_redshift.py` is so
+much shorter than the EMR and Glue drivers.
+
+### Four things that cost real time to discover
+
+- **The auto-mounted catalog cannot write.** `CREATE TABLE awsdatacatalog.<db>.<t>
+  ... USING ICEBERG` fails with `No session credential found`. Data access through
+  `awsdatacatalog` is authorised with the caller's IAM session, and a Data API
+  connection authenticated as a database user has none. Writes need an external
+  schema that names the role:
+
+  ```sql
+  CREATE EXTERNAL SCHEMA s FROM DATA CATALOG DATABASE 'glue_db'
+    IAM_ROLE 'arn:aws:iam::<acct>:role/icebergmatrix-redshift';
+  CREATE TABLE s.t (id BIGINT, name VARCHAR) USING ICEBERG
+    LOCATION 's3://<bucket>/<prefix>/';
+  ```
+
+- **S3 Tables needs a Glue resource link first.** A table bucket is a *federated*
+  Glue catalog and Redshift cannot name one directly: both
+  `"<bucket>@s3tablescatalog".ns.t` and putting the federated path in `CATALOG_ID`
+  fail (the latter silently resolves against the default catalog, so the schema is
+  created and every `SELECT` then raises `EntityNotFoundException`). The working
+  route is a resource link in the **default** catalog whose `TargetDatabase` points
+  at the federated namespace, named by an external schema with `CATALOG_ID` set to
+  the **plain account id**:
+
+  ```bash
+  aws glue create-database --cli-input-json '{
+    "CatalogId": "<acct>",
+    "DatabaseInput": {"Name": "link_name", "TargetDatabase": {
+      "CatalogId": "<acct>:s3tablescatalog/<bucket>", "DatabaseName": "<namespace>"}}}'
+  ```
+  ```sql
+  CREATE EXTERNAL SCHEMA s FROM DATA CATALOG DATABASE 'link_name'
+    IAM_ROLE '<role>' REGION '<region>' CATALOG_ID '<acct>';
+  ```
+
+  With that in place Redshift creates, reads, updates and deletes Iceberg tables in
+  S3 Tables, omitting `LOCATION` because the table bucket owns placement.
+
+- **`DROP TABLE` leaks data in the s3buckets mode.** It removes the Glue entry and
+  leaves the Parquet and metadata behind, so the suite deletes its own
+  `redshift/<run>/` prefix on the way out. In the s3tables mode `DROP TABLE` really
+  does remove the table, so the two modes need different teardown.
+
+- **Some features need a table Redshift cannot create.** It refuses
+  `format-version 3` outright, so `tests/aws/redshift_fixtures.py` builds v3 tables,
+  deletion vectors, a variant column and a branch/tag with Spark on EMR, and the
+  suite then tries to read and write them. That is what separates "cannot write" from
+  "cannot read": Redshift turns out to read v3 tables and apply deletion vectors
+  correctly while refusing every v3 write, which is partial support rather than none.
+  Spark 4 on `emr-spark-8.0.0` rejects `GEOMETRY` and `TIMESTAMP_NS` itself, so those
+  two cells stay unmeasured rather than being guessed.
+
+### Syntax notes
+
+- `VARCHAR(N)` is rejected in an Iceberg table ("Use VARCHAR for strings"); use bare
+  `VARCHAR`.
+- The only writable table properties are `format-version` and `compression_type`.
+  Anything else, including `write.delete.mode` and the bloom-filter properties, is
+  refused with `... cannot be used in the PROPERTIES clause of "iceberg" table`.
+- Defaults from `SHOW TABLE` differ per mode: `compression_type` is `snappy` on S3
+  buckets and `zstd` on S3 Tables.
+- On S3 Tables, `PARTITIONED BY` on `CREATE TABLE` is accepted and then silently
+  discarded; `ALTER TABLE ... ADD PARTITION FIELD` afterwards does apply. Always
+  confirm a partition spec with `SHOW TABLE` rather than trusting the absence of an
+  error.
