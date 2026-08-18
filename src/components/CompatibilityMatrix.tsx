@@ -97,8 +97,13 @@ interface DisplayColumn {
 interface CompatibilityMatrixProps {
   data: CompatibilityData;
   filters: FilterState;
-  awsS3Mode: AwsS3Mode;
-  onAwsS3ModeChange: (mode: AwsS3Mode) => void;
+  /**
+   * The AWS S3 Buckets/Tables switch, an engines-view concern. When either prop
+   * is omitted (the catalogs view), no toggle is rendered in the AWS group
+   * header — which cannot occur in catalog data anyway.
+   */
+  awsS3Mode?: AwsS3Mode;
+  onAwsS3ModeChange?: (mode: AwsS3Mode) => void;
 }
 
 export function CompatibilityMatrix({
@@ -251,7 +256,7 @@ export function CompatibilityMatrix({
                 >
                   <div className="flex items-center justify-center gap-2">
                     <span>{pg.group}</span>
-                    {pg.group === "AWS" && hasAwsPlatforms && (
+                    {pg.group === "AWS" && hasAwsPlatforms && awsS3Mode && onAwsS3ModeChange && (
                       <button
                         type="button"
                         onClick={(e) => {

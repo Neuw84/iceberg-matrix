@@ -80,6 +80,12 @@ export interface CompatibilityData {
 
 // --- UI state types ---
 
+/**
+ * Which matrix the app is showing: query engines against Iceberg features
+ * (the default), or Iceberg catalogs against the openness rubric.
+ */
+export type ViewMode = "engines" | "catalogs";
+
 export interface FilterState {
   selectedVersions: Version[];
   selectedPlatforms: string[];
