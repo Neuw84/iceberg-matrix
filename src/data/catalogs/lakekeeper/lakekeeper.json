@@ -16,12 +16,6 @@
       "caveats": [],
       "links": [{ "label": "Source", "url": "https://vakamo.com" }]
     },
-    "lakekeeper:oss-exit-path:current": {
-      "level": "full",
-      "notes": "Apache 2.0; a single Rust binary you self-host.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://github.com/lakekeeper/lakekeeper" }]
-    },
     "lakekeeper:serves-own-irc:current": {
       "level": "full",
       "notes": "Full Iceberg REST spec, read and write, with credential vending for S3, Azure and GCS.",

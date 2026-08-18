@@ -16,12 +16,6 @@
       "caveats": [],
       "links": [{ "label": "Source", "url": "https://github.com/unitycatalog/unitycatalog" }]
     },
-    "unity-catalog-oss:oss-exit-path:current": {
-      "level": "full",
-      "notes": "Apache 2.0, a Linux Foundation sandbox project.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://github.com/unitycatalog/unitycatalog" }]
-    },
     "unity-catalog-oss:serves-own-irc:current": {
       "level": "none",
       "notes": "The IRC path is a secondary, read-leaning surface (Delta UniForm read-as-Iceberg) rather than full table lifecycle, and it vends no credentials: the documented read example authenticates with token 'not_used' and the engine supplies its own storage keys. Held to the same read+write-with-vended-credentials bar as every catalog, it does not qualify.",

@@ -16,12 +16,6 @@
       "caveats": [],
       "links": [{ "label": "Source", "url": "https://docs.cloud.google.com/lakehouse/docs/about-lakehouse-catalogs" }]
     },
-    "google-lakehouse-runtime-catalog:oss-exit-path:current": {
-      "level": "none",
-      "notes": "IRC-native tables keep standard Iceberg metadata in your own GCS bucket, but there is no open-source catalog service to migrate to: the runtime catalog itself is proprietary.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.cloud.google.com/lakehouse/docs/about-lakehouse-catalogs" }]
-    },
     "google-lakehouse-runtime-catalog:serves-own-irc:current": {
       "level": "partial",
       "notes": "Two paths: IRC-native runtime-catalog tables are externally read and write with spec-compliant vended credentials, while BigQuery-managed (federated) Iceberg is read-only to external engines with no credential vending.",

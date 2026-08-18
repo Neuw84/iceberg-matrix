@@ -8,13 +8,6 @@
       "description": "A managed, zero-ops offering of the catalog exists, so teams can adopt it without operating the catalog service themselves"
     },
     {
-      "id": "oss-exit-path",
-      "name": "Open-Source / Exit Path",
-      "category": "openness-rubric",
-      "introducedIn": "current",
-      "description": "A genuine open-source core or exit path: the same catalog (or its open-source equivalent) can be self-hosted on the same storage without rewriting tables"
-    },
-    {
       "id": "serves-own-irc",
       "name": "Serves Own Tables via IRC",
       "category": "openness-rubric",

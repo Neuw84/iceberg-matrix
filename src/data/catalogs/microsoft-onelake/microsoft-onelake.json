@@ -16,12 +16,6 @@
       "caveats": [],
       "links": [{ "label": "Source", "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables" }]
     },
-    "microsoft-onelake:oss-exit-path:current": {
-      "level": "none",
-      "notes": "OneLake/Fabric-managed with no open-source catalog continuity.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables" }]
-    },
     "microsoft-onelake:serves-own-irc:current": {
       "level": "partial",
       "notes": "Read-only IRC on its own managed OneLake tables (GET/HEAD metadata endpoints with Entra OAuth); no IRC write or commit, and reads rely on the consumer's own storage access rather than spec credential vending.",

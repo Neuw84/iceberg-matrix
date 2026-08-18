@@ -16,12 +16,6 @@
       "caveats": [],
       "links": [{ "label": "Source", "url": "https://polaris.apache.org/" }]
     },
-    "apache-polaris:oss-exit-path:current": {
-      "level": "full",
-      "notes": "Apache-licensed ASF Top-Level Project; you own the deployment.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://github.com/apache/polaris" }]
-    },
     "apache-polaris:serves-own-irc:current": {
       "level": "full",
       "notes": "Native Iceberg REST Catalog, read and write, for any engine.",

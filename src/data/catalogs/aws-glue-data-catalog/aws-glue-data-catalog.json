@@ -16,12 +16,6 @@
       "caveats": [],
       "links": [{ "label": "Source", "url": "https://docs.aws.amazon.com/glue/" }]
     },
-    "aws-glue-data-catalog:oss-exit-path:current": {
-      "level": "none",
-      "notes": "The catalog is proprietary; originally Hive-derived, but there is no open-source migration path off Glue.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.aws.amazon.com/glue/" }]
-    },
     "aws-glue-data-catalog:serves-own-irc:current": {
       "level": "full",
       "notes": "The Iceberg REST endpoint serves its own tables read and write to external engines, with spec-compliant Lake Formation vended credentials.",

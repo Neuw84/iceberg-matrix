@@ -16,12 +16,6 @@
       "caveats": [],
       "links": [{ "label": "Source", "url": "https://projectnessie.org/" }]
     },
-    "project-nessie:oss-exit-path:current": {
-      "level": "full",
-      "notes": "Apache 2.0; a self-hostable, Git-like versioned catalog.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://github.com/projectnessie/nessie" }]
-    },
     "project-nessie:serves-own-irc:current": {
       "level": "full",
       "notes": "Serves Iceberg REST with branch and merge semantics.",

@@ -16,12 +16,6 @@
       "caveats": [],
       "links": [{ "label": "Source", "url": "https://gravitino.apache.org/" }]
     },
-    "apache-gravitino:oss-exit-path:current": {
-      "level": "full",
-      "notes": "Apache-licensed ASF Top-Level Project.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://github.com/apache/gravitino" }]
-    },
     "apache-gravitino:serves-own-irc:current": {
       "level": "partial",
       "notes": "Serves its own Iceberg tables read and write over a spec-compliant IRC to any engine, with credential vending. Partial on one verified gap: it is the only compliant-IRC OSS catalog still missing multi-table transactions (Polaris, Lakekeeper and Nessie implement them).",

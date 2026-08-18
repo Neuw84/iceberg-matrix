@@ -16,12 +16,6 @@
       "caveats": [],
       "links": [{ "label": "Source", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }]
     },
-    "snowflake-horizon:oss-exit-path:current": {
-      "level": "full",
-      "notes": "The catalog is Apache Polaris (open source): self-host on the same storage with no rewrite.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://polaris.apache.org/" }]
-    },
     "snowflake-horizon:serves-own-irc:current": {
       "level": "full",
       "notes": "Read and write GA over the built-in Apache Polaris IRC endpoint (Iceberg spec v2 and v3).",

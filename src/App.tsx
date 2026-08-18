@@ -127,9 +127,8 @@ export default function App() {
                     The table-format layer of Iceberg is an open specification, so
                     interoperability now lives or dies at the catalog: can
                     non-vendor engines read and write your tables over the Iceberg
-                    REST Catalog (IRC) API, with short-lived vended credentials,
-                    and is there an open-source exit path? This view scores ten
-                    catalogs against that openness rubric.
+                    REST Catalog (IRC) API, with short-lived vended credentials?
+                    This view scores ten catalogs against that openness rubric.
                   </p>
                   <p>
                     Ratings and evidence are based on{" "}

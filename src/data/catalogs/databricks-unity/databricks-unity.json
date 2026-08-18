@@ -16,12 +16,6 @@
       "caveats": [],
       "links": [{ "label": "Source", "url": "https://docs.databricks.com/en/data-governance/unity-catalog/" }]
     },
-    "databricks-unity:oss-exit-path:current": {
-      "level": "none",
-      "notes": "Native Iceberg is managed-only and a managed table cannot be re-pointed at a different catalog: path-based takeover is unsupported, managed Iceberg supports only DEEP CLONE (a full copy), and Unity Catalog OSS is a separate, weaker project. Catalog exit means a rewrite.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.databricks.com/aws/en/iceberg/clone" }]
-    },
     "databricks-unity:serves-own-irc:current": {
       "level": "partial",
       "notes": "Only native Unity-managed Iceberg is read and write over IRC; Delta-via-UniForm and foreign Iceberg are exposed read-only, and most Databricks tables are Delta, so only some served paths offer write.",
