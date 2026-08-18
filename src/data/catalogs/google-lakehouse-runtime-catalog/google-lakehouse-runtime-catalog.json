@@ -1,0 +1,50 @@
+{
+  "platforms": [
+    {
+      "id": "google-lakehouse-runtime-catalog",
+      "name": "Google Lakehouse Runtime Catalog",
+      "vendor": "Google",
+      "category": "cloud",
+      "group": "Proprietary",
+      "docUrl": "https://docs.cloud.google.com/lakehouse/docs/about-lakehouse-catalogs"
+    }
+  ],
+  "support": {
+    "google-lakehouse-runtime-catalog:managed-offering:current": {
+      "level": "full",
+      "notes": "Managed Lakehouse runtime catalog (formerly BigLake metastore, renamed April 2026; APIs and IAM still say biglake).",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.cloud.google.com/lakehouse/docs/about-lakehouse-catalogs" }]
+    },
+    "google-lakehouse-runtime-catalog:serves-own-irc:current": {
+      "level": "partial",
+      "notes": "Two paths: IRC-native runtime-catalog tables are externally read and write with spec-compliant vended credentials, while BigQuery-managed (federated) Iceberg is read-only to external engines with no credential vending.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.cloud.google.com/lakehouse/docs/use-catalog-federation" }]
+    },
+    "google-lakehouse-runtime-catalog:rw-foreign-irc:current": {
+      "level": "none",
+      "notes": "No GA path to read or write foreign tables via IRC: cross-cloud Lakehouse (an IRC client to Unity and Glue) is Preview and read-only.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.cloud.google.com/lakehouse/docs/about-cross-cloud-lakehouse" }]
+    },
+    "google-lakehouse-runtime-catalog:federation-broker:current": {
+      "level": "none",
+      "notes": "No GA catalog-of-catalogs IRC brokering; cross-cloud Lakehouse brokers external Unity and Glue catalogs but is Preview, so it is not credited.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.cloud.google.com/lakehouse/docs/about-cross-cloud-lakehouse" }]
+    },
+    "google-lakehouse-runtime-catalog:multi-engine-multi-cloud:current": {
+      "level": "partial",
+      "notes": "Multi-engine is GA (Spark, Flink, Hive, Trino and BigQuery share the same tables), but catalog-managed storage is GCS-only and multi-cloud reads go through BigQuery Omni external tables, not the IRC catalog.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.cloud.google.com/lakehouse/docs/about-lakehouse-catalogs" }]
+    },
+    "google-lakehouse-runtime-catalog:governance-cred-vending:current": {
+      "level": "partial",
+      "notes": "No row-level security on managed Iceberg, and IRC-native tables have no fine-grained row/column access control either.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-iceberg-rest-catalog" }]
+    }
+  }
+}

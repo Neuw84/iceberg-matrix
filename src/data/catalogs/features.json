@@ -1,0 +1,49 @@
+{
+  "features": [
+    {
+      "id": "managed-offering",
+      "name": "Managed Offering",
+      "category": "openness-rubric",
+      "introducedIn": "current",
+      "description": "A managed, zero-ops offering of the catalog exists, so teams can adopt it without operating the catalog service themselves"
+    },
+    {
+      "id": "serves-own-irc",
+      "name": "Serves Own Tables via IRC",
+      "category": "openness-rubric",
+      "introducedIn": "current",
+      "description": "Serves its own Iceberg tables to external engines over the Iceberg REST Catalog (IRC) API, read and write, with catalog-vended short-lived credentials"
+    },
+    {
+      "id": "rw-foreign-irc",
+      "name": "R/W Foreign Tables via IRC",
+      "category": "openness-rubric",
+      "introducedIn": "current",
+      "description": "Reads and writes individual foreign Iceberg tables governed by an external catalog over IRC using spec-compliant vended credentials. Requires a bundled query engine to execute, so self-hosted OSS catalogs without one score as not supported (BYO compute)"
+    },
+    {
+      "id": "federation-broker",
+      "name": "Federation (Catalog Broker)",
+      "category": "openness-rubric",
+      "introducedIn": "current",
+      "description": "Acts as a meta-catalog: an IRC client to multiple external catalogs, cataloguing their tables and vending short-lived read/write credentials over IRC to arbitrary incoming engines (a catalog of catalogs). Proprietary brokering that needs a persistent, broadly-scoped storage credential does not count"
+    },
+    {
+      "id": "multi-engine-multi-cloud",
+      "name": "Multi-Engine & Multi-Cloud",
+      "category": "openness-rubric",
+      "introducedIn": "current",
+      "description": "Broad engine compatibility (Spark, Flink, Trino, DuckDB, PyIceberg and more) and multi-cloud storage support, rather than a single vendor's stack"
+    },
+    {
+      "id": "governance-cred-vending",
+      "name": "Governance & Credential Vending",
+      "category": "openness-rubric",
+      "introducedIn": "current",
+      "description": "Fine-grained governance (RBAC, masking, row/column policies) plus spec-compliant credential vending: short-lived, path-scoped credentials issued by the catalog"
+    }
+  ],
+  "versions": [
+    "current"
+  ]
+}

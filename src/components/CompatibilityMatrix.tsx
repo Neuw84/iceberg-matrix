@@ -27,9 +27,13 @@ const CATEGORY_LABELS: Record<FeatureCategory, string> = {
   "catalog-support": "Catalog Support",
   "v3-data-types": "V3 Data Types",
   "v3-advanced": "V3 Advanced Features",
+  "openness-rubric": "Openness Rubric",
 };
 
 const CATEGORY_ORDER: FeatureCategory[] = [
+  // Catalogs view (its datasets contain only this category).
+  "openness-rubric",
+  // Engines view.
   "row-level-operations",
   "partitioning",
   "table-management",
@@ -47,6 +51,7 @@ const CATEGORY_COLORS: Record<FeatureCategory, string> = {
   "catalog-support": "border-l-amber-400 bg-amber-50",
   "v3-data-types": "border-l-pink-400 bg-pink-50",
   "v3-advanced": "border-l-rose-400 bg-rose-50",
+  "openness-rubric": "border-l-indigo-400 bg-indigo-50",
 };
 
 /** Map platform IDs to logo filenames in /logos/ — only correct matches */
@@ -73,6 +78,13 @@ const PLATFORM_LOGOS: Record<string, string> = {
   "google-dataproc": "/logos/dataproc.svg",
   "azure-synapse": "/logos/synapse.png",
   "azure-fabric": "/logos/fabric.png",
+  // Catalogs view. Only vendors with a logo already in /logos are mapped; the
+  // rest (Polaris, Gravitino, Lakekeeper, Nessie, Unity OSS) render name-only.
+  "snowflake-horizon": "/logos/snowflake.svg",
+  "aws-glue-data-catalog": "/logos/aws-glue.svg",
+  "databricks-unity": "/logos/databricks.svg",
+  "google-lakehouse-runtime-catalog": "/logos/bigquery.svg",
+  "microsoft-onelake": "/logos/fabric.png",
 };
 
 interface PopoverState {
@@ -92,8 +104,13 @@ interface DisplayColumn {
 interface CompatibilityMatrixProps {
   data: CompatibilityData;
   filters: FilterState;
-  awsS3Mode: AwsS3Mode;
-  onAwsS3ModeChange: (mode: AwsS3Mode) => void;
+  /**
+   * The AWS S3 Buckets/Tables switch, an engines-view concern. When either prop
+   * is omitted (the catalogs view), no toggle is rendered in the AWS group
+   * header — which cannot occur in catalog data anyway.
+   */
+  awsS3Mode?: AwsS3Mode;
+  onAwsS3ModeChange?: (mode: AwsS3Mode) => void;
 }
 
 export function CompatibilityMatrix({
@@ -203,6 +220,9 @@ export function CompatibilityMatrix({
     Databricks: "bg-red-100 text-red-900 border-red-200",
     Snowflake: "bg-cyan-100 text-cyan-900 border-cyan-200",
     "3rd Party": "bg-gray-100 text-gray-700 border-gray-200",
+    // Catalogs view groups.
+    Proprietary: "bg-indigo-100 text-indigo-900 border-indigo-200",
+    "Open Source": "bg-green-100 text-green-900 border-green-200",
   };
 
   const toggleCategory = (cat: FeatureCategory) => {
@@ -243,7 +263,7 @@ export function CompatibilityMatrix({
                 >
                   <div className="flex items-center justify-center gap-2">
                     <span>{pg.group}</span>
-                    {pg.group === "AWS" && hasAwsPlatforms && (
+                    {pg.group === "AWS" && hasAwsPlatforms && awsS3Mode && onAwsS3ModeChange && (
                       <button
                         type="button"
                         onClick={(e) => {

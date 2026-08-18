@@ -4,6 +4,7 @@ import type {
   FilterState,
   Platform,
 } from "../types";
+import { getSupportEntry } from "./support";
 
 export function applyFilters(
   data: CompatibilityData,
@@ -34,6 +35,21 @@ export function applyFilters(
   if (filters.searchQuery.trim() !== "") {
     const query = filters.searchQuery.trim().toLowerCase();
     features = features.filter((f) => f.name.toLowerCase().includes(query));
+  }
+
+  // Filter features by support level: keep a row when at least one of its
+  // visible cells (kept platform × selected version) has a selected level.
+  // Missing entries render as "unknown" in the grid, so they match here too.
+  if (filters.selectedSupportLevels.length > 0) {
+    const levels = new Set(filters.selectedSupportLevels);
+    const keptPlatforms = platforms;
+    features = features.filter((f) =>
+      keptPlatforms.some((p) =>
+        filters.selectedVersions.some((v) =>
+          levels.has(getSupportEntry(data, p.id, f.id, v).level)
+        )
+      )
+    );
   }
 
   return { platforms, features };

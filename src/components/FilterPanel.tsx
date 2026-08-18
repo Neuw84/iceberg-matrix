@@ -15,6 +15,7 @@ const CATEGORY_LABELS: Record<FeatureCategory, string> = {
   "catalog-support": "Catalogs",
   "v3-data-types": "V3 Types",
   "v3-advanced": "V3 Advanced",
+  "openness-rubric": "Openness Rubric",
 };
 
 const SUPPORT_LEVELS: SupportLevel[] = ["full", "partial", "none", "unknown"];
@@ -42,6 +43,9 @@ const GROUP_LABELS: Record<PlatformGroup, string> = {
   Snowflake: "Snowflake",
   Databricks: "Databricks",
   "3rd Party": "OSS/3rd Party",
+  // Catalogs view groups.
+  Proprietary: "Proprietary",
+  "Open Source": "Open Source",
 };
 
 const GROUP_LOGOS: Partial<Record<PlatformGroup, string>> = {
@@ -78,12 +82,16 @@ interface FilterPanelProps {
   filters: FilterState;
   data: CompatibilityData;
   onFilterChange: (filters: FilterState) => void;
+  /** Heading of the platform-chips section: "Platforms" for the engines view,
+   *  "Catalogs" for the catalogs view. */
+  entityLabel?: string;
 }
 
 export function FilterPanel({
   filters,
   data,
   onFilterChange,
+  entityLabel = "Platforms",
 }: FilterPanelProps) {
   // Debounce the search box so typing doesn't re-filter/re-render the whole
   // matrix on every keystroke. Local state drives the input; changes are
@@ -118,13 +126,32 @@ export function FilterPanel({
   }, [searchInput]);
 
   const groupMap = new Map<PlatformGroup, { id: string; name: string }[]>();
-  for (const g of GROUP_ORDER) groupMap.set(g, []);
   for (const p of data.platforms) {
-    groupMap.get(p.group)?.push({
+    const entry = {
       id: p.id,
       name: p.variantLabel ? `${p.name} ${p.variantLabel}` : p.name,
-    });
+    };
+    const members = groupMap.get(p.group);
+    if (members) members.push(entry);
+    else groupMap.set(p.group, [entry]);
   }
+
+  // Groups come from the data: the preferred vendor order first, then any group
+  // the dataset introduces beyond it, in first-occurrence order. Previously a
+  // platform whose group was missing from GROUP_ORDER was silently dropped from
+  // the chips, which is exactly what the catalogs groups would have hit.
+  const groups: PlatformGroup[] = [
+    ...GROUP_ORDER.filter((g) => groupMap.has(g)),
+    ...[...groupMap.keys()].filter((g) => !GROUP_ORDER.includes(g)),
+  ];
+
+  // Category chips likewise: only categories that exist in the active dataset,
+  // so the engines view doesn't offer "Openness Rubric" and the catalogs view
+  // doesn't offer the seven engine categories.
+  const presentCategories = new Set(data.features.map((f) => f.category));
+  const categories = (Object.keys(CATEGORY_LABELS) as FeatureCategory[]).filter(
+    (c) => presentCategories.has(c),
+  );
 
   const selectedSet = new Set(filters.selectedPlatforms);
 
@@ -200,7 +227,7 @@ export function FilterPanel({
     filters.selectedSupportLevels.length > 0 ||
     filters.searchQuery.trim() !== "";
 
-  const expandableGroups = GROUP_ORDER.filter(
+  const expandableGroups = groups.filter(
     (g) => (groupMap.get(g)?.length ?? 0) > 1
   );
   const activeExpandable = expandableGroups.filter(
@@ -253,11 +280,11 @@ export function FilterPanel({
           </div>
         </div>
 
-        {/* Platforms */}
+        {/* Platforms / Catalogs */}
         <div>
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Platforms</p>
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">{entityLabel}</p>
           <div className="flex flex-wrap gap-1">
-            {GROUP_ORDER.map((group) => {
+            {groups.map((group) => {
               const full = isGroupFullySelected(group);
               const partial = isGroupPartiallySelected(group);
               return (
@@ -319,7 +346,7 @@ export function FilterPanel({
         <div>
           <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Categories</p>
           <div className="flex flex-wrap gap-1">
-            {(Object.keys(CATEGORY_LABELS) as FeatureCategory[]).map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat}
                 type="button"

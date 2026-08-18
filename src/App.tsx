@@ -1,8 +1,10 @@
 import { useState, useMemo, lazy, Suspense } from "react";
-import type { AwsS3Mode, FilterState } from "./types";
+import type { AwsS3Mode, FilterState, ViewMode } from "./types";
 import { data, dataS3Tables } from "./data/load-data";
+import { dataCatalogs } from "./data/load-catalogs";
 import { FilterPanel } from "./components/FilterPanel";
 import { VersionTabs } from "./components/VersionTabs";
+import { ViewToggle } from "./components/ViewToggle";
 import { CompatibilityMatrix } from "./components/CompatibilityMatrix";
 import { applyFilters } from "./utils/filters";
 
@@ -14,7 +16,7 @@ const ComparisonSummary = lazy(() =>
   })),
 );
 
-const initialFilters: FilterState = {
+const initialEngineFilters: FilterState = {
   selectedVersions: ["v2"],
   selectedPlatforms: [],
   selectedCategories: [],
@@ -22,22 +24,45 @@ const initialFilters: FilterState = {
   searchQuery: "",
 };
 
+// The catalogs dataset has the single synthetic version "current" (the
+// openness rubric carries no v2/v3 dimension), so its version selection never
+// changes and no version tabs are rendered for it.
+const initialCatalogFilters: FilterState = {
+  selectedVersions: ["current"],
+  selectedPlatforms: [],
+  selectedCategories: [],
+  selectedSupportLevels: [],
+  searchQuery: "",
+};
+
 export default function App() {
-  const [filters, setFilters] = useState<FilterState>(initialFilters);
+  const [viewMode, setViewMode] = useState<ViewMode>("engines");
+  // One filter state per view: platform ids and versions are disjoint between
+  // the two datasets, so sharing state would leak stale selections across the
+  // toggle. Keeping both also restores your filters when you switch back.
+  const [engineFilters, setEngineFilters] = useState<FilterState>(initialEngineFilters);
+  const [catalogFilters, setCatalogFilters] = useState<FilterState>(initialCatalogFilters);
   const [introOpen, setIntroOpen] = useState(false);
   const [awsS3Mode, setAwsS3Mode] = useState<AwsS3Mode>("s3-buckets");
 
-  const activeData = awsS3Mode === "s3-tables" ? dataS3Tables : data;
+  const isCatalogsView = viewMode === "catalogs";
+  const activeData = isCatalogsView
+    ? dataCatalogs
+    : awsS3Mode === "s3-tables"
+      ? dataS3Tables
+      : data;
+  const filters = isCatalogsView ? catalogFilters : engineFilters;
+  const setFilters = isCatalogsView ? setCatalogFilters : setEngineFilters;
 
   const handleVersionChange = (versions: typeof filters.selectedVersions) => {
-    setFilters((prev) => ({ ...prev, selectedVersions: versions }));
+    setEngineFilters((prev) => ({ ...prev, selectedVersions: versions }));
   };
 
   const { platforms } = useMemo(
     () => applyFilters(activeData, filters),
     [activeData, filters],
   );
-  const isCompareMode = filters.selectedVersions.length > 1;
+  const isCompareMode = !isCatalogsView && filters.selectedVersions.length > 1;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -59,11 +84,16 @@ export default function App() {
                 </p>
               </div>
             </div>
-            <VersionTabs
-              versions={activeData.versions}
-              selected={filters.selectedVersions}
-              onChange={handleVersionChange}
-            />
+            <div className="flex items-center gap-3 flex-wrap">
+              <ViewToggle mode={viewMode} onChange={setViewMode} />
+              {!isCatalogsView && (
+                <VersionTabs
+                  versions={activeData.versions}
+                  selected={filters.selectedVersions}
+                  onChange={handleVersionChange}
+                />
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -91,18 +121,45 @@ export default function App() {
           </button>
           {introOpen && (
             <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800 space-y-2 collapsible-content">
-              <p>
-                One of Apache Iceberg's core promises is interoperability: because
-                the table format is an open specification, data written by one
-                engine can be read by any other engine that implements the spec.
-                A Spark job can write data that Trino, Flink, Athena, or Snowflake
-                can query without conversion or migration.
-              </p>
-              <p>
-                In practice, each engine implements the specification independently,
-                so feature support can vary. This matrix tracks the current state
-                of those implementations to help you make informed decisions.
-              </p>
+              {isCatalogsView ? (
+                <>
+                  <p>
+                    The table-format layer of Iceberg is an open specification, so
+                    interoperability now lives or dies at the catalog: can
+                    non-vendor engines read and write your tables over the Iceberg
+                    REST Catalog (IRC) API, with short-lived vended credentials?
+                    This view scores ten catalogs against that openness rubric.
+                  </p>
+                  <p>
+                    Ratings and evidence are based on{" "}
+                    <a
+                      href="https://gitlab.com/hunt.dan/iceberg-state-of-catalogs"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-blue-900"
+                    >
+                      Iceberg: The State of Catalogs
+                    </a>
+                    ; every cell links to its public source. Click a cell for the
+                    reasoning behind its rating.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    One of Apache Iceberg's core promises is interoperability: because
+                    the table format is an open specification, data written by one
+                    engine can be read by any other engine that implements the spec.
+                    A Spark job can write data that Trino, Flink, Athena, or Snowflake
+                    can query without conversion or migration.
+                  </p>
+                  <p>
+                    In practice, each engine implements the specification independently,
+                    so feature support can vary. This matrix tracks the current state
+                    of those implementations to help you make informed decisions.
+                  </p>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -112,6 +169,7 @@ export default function App() {
             filters={filters}
             data={activeData}
             onFilterChange={setFilters}
+            entityLabel={isCatalogsView ? "Catalogs" : "Platforms"}
           />
         </div>
         </div>
@@ -126,7 +184,14 @@ export default function App() {
           </Suspense>
         )}
 
-        <CompatibilityMatrix data={activeData} filters={filters} awsS3Mode={awsS3Mode} onAwsS3ModeChange={setAwsS3Mode} />
+        <CompatibilityMatrix
+          data={activeData}
+          filters={filters}
+          // The S3 Buckets/Tables switch is an engines-view concern; without
+          // these props the matrix renders no AWS toggle.
+          awsS3Mode={isCatalogsView ? undefined : awsS3Mode}
+          onAwsS3ModeChange={isCatalogsView ? undefined : setAwsS3Mode}
+        />
       </main>
 
       <footer className="border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-6">

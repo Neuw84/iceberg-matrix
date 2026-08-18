@@ -1,0 +1,52 @@
+{
+  "platforms": [
+    {
+      "id": "project-nessie",
+      "name": "Project Nessie",
+      "vendor": "Dremio",
+      "category": "open-source",
+      "group": "Open Source",
+      "docUrl": "https://projectnessie.org/"
+    }
+  ],
+  "support": {
+    "project-nessie:managed-offering:current": {
+      "level": "partial",
+      "notes": "Managed only as the engine inside Dremio Cloud; there is no standalone managed Nessie SaaS.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://projectnessie.org/" }]
+    },
+    "project-nessie:serves-own-irc:current": {
+      "level": "full",
+      "notes": "Serves Iceberg REST with branch and merge semantics.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://projectnessie.org/" }]
+    },
+    "project-nessie:rw-foreign-irc:current": {
+      "level": "none",
+      "notes": "No bundled query engine, so the catalog cannot itself read or write foreign tables over IRC: foreign-table access needs separate compute.",
+      "caveats": [
+        "The source rubric scores 'no engine' as 0 (BYO compute), so this is recorded as not supported rather than unknown"
+      ],
+      "links": [{ "label": "Source", "url": "https://projectnessie.org/" }]
+    },
+    "project-nessie:federation-broker:current": {
+      "level": "none",
+      "notes": "No catalog-of-catalogs brokering.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://projectnessie.org/" }]
+    },
+    "project-nessie:multi-engine-multi-cloud:current": {
+      "level": "partial",
+      "notes": "Strong with Dremio and Spark; narrower engine reach than Polaris.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://projectnessie.org/" }]
+    },
+    "project-nessie:governance-cred-vending:current": {
+      "level": "none",
+      "notes": "No native credential vending.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://projectnessie.org/" }]
+    }
+  }
+}

@@ -4,7 +4,7 @@ PyIceberg Feature Test Suite.
 
 Tests Iceberg features using the PyIceberg library with a local
 SQLite-backed catalog, then compares results with the PyIceberg
-entries from oss.json.
+entries from src/data/platforms/oss/pyiceberg/pyiceberg.json.
 
 Usage:
     python tests/pyiceberg_feature_tests.py

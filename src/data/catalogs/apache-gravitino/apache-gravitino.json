@@ -1,0 +1,52 @@
+{
+  "platforms": [
+    {
+      "id": "apache-gravitino",
+      "name": "Apache Gravitino",
+      "vendor": "Apache Software Foundation",
+      "category": "open-source",
+      "group": "Open Source",
+      "docUrl": "https://gravitino.apache.org/"
+    }
+  ],
+  "support": {
+    "apache-gravitino:managed-offering:current": {
+      "level": "none",
+      "notes": "Self-hosted OSS project.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://gravitino.apache.org/" }]
+    },
+    "apache-gravitino:serves-own-irc:current": {
+      "level": "partial",
+      "notes": "Serves its own Iceberg tables read and write over a spec-compliant IRC to any engine, with credential vending. Partial on one verified gap: it is the only compliant-IRC OSS catalog still missing multi-table transactions (Polaris, Lakekeeper and Nessie implement them).",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://gravitino.apache.org/docs/latest/iceberg-rest-service/" }]
+    },
+    "apache-gravitino:rw-foreign-irc:current": {
+      "level": "none",
+      "notes": "No bundled query engine, so the catalog cannot itself read or write foreign tables over IRC: foreign-table access needs separate compute.",
+      "caveats": [
+        "The source rubric scores 'no engine' as 0 (BYO compute), so this is recorded as not supported rather than unknown"
+      ],
+      "links": [{ "label": "Source", "url": "https://gravitino.apache.org/docs/latest/iceberg-rest-service/" }]
+    },
+    "apache-gravitino:federation-broker:current": {
+      "level": "partial",
+      "notes": "A catalog of catalogs, but in the Iceberg context not a meta IRC catalog over others: it federates sources via native connectors (Glue SDK, Hive, JDBC) vending from its own configured storage credentials, and can proxy one external IRC by relaying that upstream's vended credentials.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://gravitino.apache.org/docs/latest/lakehouse-iceberg-catalog/" }]
+    },
+    "apache-gravitino:multi-engine-multi-cloud:current": {
+      "level": "full",
+      "notes": "Many connectors and engines; storage-agnostic.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://gravitino.apache.org/" }]
+    },
+    "apache-gravitino:governance-cred-vending:current": {
+      "level": "full",
+      "notes": "Hierarchical RBAC (plus Apache Ranger) with spec-compliant credential vending: short-lived, path-scoped tokens for S3, GCS, OSS and ADLS, with token refresh and caller-identity flow-through.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://gravitino.apache.org/docs/latest/security/credential-vending" }]
+    }
+  }
+}

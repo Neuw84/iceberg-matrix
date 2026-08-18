@@ -1,0 +1,50 @@
+{
+  "platforms": [
+    {
+      "id": "aws-glue-data-catalog",
+      "name": "AWS Glue Data Catalog",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "Proprietary",
+      "docUrl": "https://docs.aws.amazon.com/glue/"
+    }
+  ],
+  "support": {
+    "aws-glue-data-catalog:managed-offering:current": {
+      "level": "full",
+      "notes": "Fully managed and serverless: no catalog operations.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.aws.amazon.com/glue/" }]
+    },
+    "aws-glue-data-catalog:serves-own-irc:current": {
+      "level": "full",
+      "notes": "The Iceberg REST endpoint serves its own tables read and write to external engines, with spec-compliant Lake Formation vended credentials.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.aws.amazon.com/glue/" }]
+    },
+    "aws-glue-data-catalog:rw-foreign-irc:current": {
+      "level": "partial",
+      "notes": "AWS engines can read external sources via federation but cannot write to them: foreign-table interop is one-directional (read-only).",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.aws.amazon.com/lake-formation/" }]
+    },
+    "aws-glue-data-catalog:federation-broker:current": {
+      "level": "partial",
+      "notes": "Federates external sources read-only for AWS-native engines; not a general bidirectional IRC client to arbitrary catalogs.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.aws.amazon.com/glue/" }]
+    },
+    "aws-glue-data-catalog:multi-engine-multi-cloud:current": {
+      "level": "partial",
+      "notes": "Broad engine support within AWS, but AWS-only rather than multi-cloud.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.aws.amazon.com/glue/" }]
+    },
+    "aws-glue-data-catalog:governance-cred-vending:current": {
+      "level": "full",
+      "notes": "Lake Formation column, row and cell security plus spec-compliant vended credentials for AWS-native engines.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://aws.amazon.com/lake-formation/" }]
+    }
+  }
+}
