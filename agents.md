@@ -163,7 +163,7 @@ The catalogs view has its own dataset under `src/data/catalogs/`, independent fr
 
 ### View wiring
 
-`App.tsx` holds a `viewMode` state (`"engines" | "catalogs"`, default engines) switched by `ViewToggle` in the header. Each view keeps its own independent `FilterState` (engines starts at `selectedVersions: ["v2"]`, catalogs at `["current"]`), so filters survive toggling and never leak across views. The catalogs view reuses `CompatibilityMatrix`, `FilterPanel` (with `entityLabel="Catalogs"`), and `DetailPopover`, but renders no V2/V3 tabs, no compare mode, and no AWS S3-mode toggle.
+`App.tsx` holds a `viewMode` state (`"engines" | "catalogs"`, default engines) switched by `ViewToggle` in the header. Each view keeps its own independent `FilterState` (engines starts at `selectedVersions: ["v2"]`, catalogs at `["current"]`), so filters survive toggling and never leak across views. The catalogs view reuses `CompatibilityMatrix`, `FilterPanel` (with `entityLabel="Catalogs"`), and `DetailPopover`, but renders no AWS S3-mode toggle. The V2/V3/Compare tabs stay visible in the header (separated from `ViewToggle` by a divider) but are grayed out and disabled (`disabled` prop on `VersionTabs`) while the catalogs view is active; they remain wired to the engines' filter state so the selection is preserved when switching back.
 
 ## Best Practices
 

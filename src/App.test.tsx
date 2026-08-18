@@ -45,15 +45,25 @@ describe('Engines/Catalogs view toggle', () => {
     expect(screen.queryByText('Apache Polaris')).not.toBeInTheDocument()
   })
 
-  it('shows no version tabs or compare control in the Catalogs view', () => {
+  it('disables the version tabs and compare control in the Catalogs view', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('tab', { name: 'Catalogs' }))
 
-    // The rubric has no v2/v3 dimension, so the version selector disappears
-    // entirely (the view toggle itself is the only tablist left).
-    expect(screen.queryByRole('tab', { name: 'V2' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('tab', { name: 'V3' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Compare versions' })).not.toBeInTheDocument()
+    // The rubric has no v2/v3 dimension; the version selector stays in the
+    // header for layout consistency but is grayed out and inert.
+    const v2 = screen.getByRole('tab', { name: 'V2' })
+    const v3 = screen.getByRole('tab', { name: 'V3' })
+    expect(v2).toBeDisabled()
+    expect(v3).toBeDisabled()
+    expect(v2).toHaveAttribute('aria-selected', 'false')
+    expect(screen.getByRole('button', { name: 'Compare versions' })).toBeDisabled()
+
+    // Clicking a disabled tab changes nothing: back in the engines view the
+    // selection is still V2.
+    fireEvent.click(v3)
+    fireEvent.click(screen.getByRole('tab', { name: 'Engines' }))
+    expect(screen.getByRole('tab', { name: 'V2' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'V3' })).toHaveAttribute('aria-selected', 'false')
   })
 
   it('shows both catalog groups as column group headers', () => {

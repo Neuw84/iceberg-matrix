@@ -80,19 +80,23 @@ export default function App() {
                   Apache Iceberg™ Compatibility Matrix
                 </h1>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Community driven feature support across platforms and engines
+                  Community driven feature support across platforms, engines and catalogs
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               <ViewToggle mode={viewMode} onChange={setViewMode} />
-              {!isCatalogsView && (
-                <VersionTabs
-                  versions={activeData.versions}
-                  selected={filters.selectedVersions}
-                  onChange={handleVersionChange}
-                />
-              )}
+              <div className="w-px h-5 bg-gray-300" />
+              {/* Always rendered for a consistent header; grayed out in the
+                  catalogs view, where the rubric has no v2/v3 dimension. It is
+                  driven by the engines data/filters so the selection survives
+                  the toggle. */}
+              <VersionTabs
+                versions={data.versions}
+                selected={engineFilters.selectedVersions}
+                onChange={handleVersionChange}
+                disabled={isCatalogsView}
+              />
             </div>
           </div>
         </div>
