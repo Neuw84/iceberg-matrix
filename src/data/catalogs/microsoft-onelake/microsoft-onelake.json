@@ -10,6 +10,30 @@
     }
   ],
   "support": {
+    "microsoft-onelake:rest-spec-support:current": {
+      "level": "partial",
+      "notes": "OneLake table APIs expose an IRC-compatible endpoint (onelake.table.fabric.microsoft.com/iceberg) limited to read-only metadata operations: get config, list/get namespaces and list/get tables.",
+      "caveats": [
+        "Preview feature",
+        "No write endpoints: tables can't be created or committed over IRC",
+        "No view endpoints and no spec credential vending (clients authenticate with Entra ID storage tokens)"
+      ],
+      "links": [{ "label": "OneLake table APIs for Iceberg", "url": "https://learn.microsoft.com/en-us/fabric/onelake/table-apis/iceberg-table-apis-overview" }]
+    },
+    "microsoft-onelake:v2-spec-support:current": {
+      "level": "full",
+      "notes": "Iceberg tables in OneLake, written directly (e.g. by Snowflake) or virtualized from Delta Lake, use format v2; the Delta-Iceberg metadata virtualization supports v2 today.",
+      "caveats": [
+        "Virtualization converts only the latest metadata version and requires fewer than 5,000 commits on the source table"
+      ],
+      "links": [{ "label": "Iceberg tables in OneLake", "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables" }]
+    },
+    "microsoft-onelake:v3-spec-support:current": {
+      "level": "none",
+      "notes": "The table-format virtualization supports Iceberg v2 only; Microsoft states that reading Iceberg v3 tables is being worked on.",
+      "caveats": [],
+      "links": [{ "label": "Limitations", "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables" }]
+    },
     "microsoft-onelake:managed-offering:current": {
       "level": "full",
       "notes": "Managed within Microsoft Fabric.",

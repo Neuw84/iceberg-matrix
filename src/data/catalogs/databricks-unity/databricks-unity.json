@@ -10,6 +10,31 @@
     }
   ],
   "support": {
+    "databricks-unity:rest-spec-support:current": {
+      "level": "partial",
+      "notes": "Iceberg REST endpoint (/api/2.1/unity-catalog/iceberg) with credential vending: external engines read and write Unity-managed Iceberg tables and read Delta tables via Iceberg reads (UniForm).",
+      "caveats": [
+        "Delta tables with Iceberg reads are read-only for external Iceberg clients",
+        "Foreign Iceberg tables aren't auto-refreshed over IRC (REFRESH FOREIGN TABLE needed) and don't get credential vending"
+      ],
+      "links": [{ "label": "Iceberg client access docs", "url": "https://docs.databricks.com/aws/en/external-access/iceberg.html" }]
+    },
+    "databricks-unity:v2-spec-support:current": {
+      "level": "full",
+      "notes": "Managed Iceberg tables and Iceberg reads over Delta (UniForm) produce format v2 metadata by default.",
+      "caveats": [],
+      "links": [{ "label": "Iceberg on Databricks", "url": "https://docs.databricks.com/aws/en/external-access/iceberg.html" }]
+    },
+    "databricks-unity:v3-spec-support:current": {
+      "level": "partial",
+      "notes": "Iceberg v3 is GA for managed tables on Databricks Runtime 18+: deletion vectors (on by default), the variant type and row lineage.",
+      "caveats": [
+        "Column default values (write and initial defaults) aren't supported",
+        "Unknown type and nanosecond-precision timestamps aren't supported",
+        "Multi-argument transforms aren't supported"
+      ],
+      "links": [{ "label": "Iceberg v3 features docs", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3" }]
+    },
     "databricks-unity:managed-offering:current": {
       "level": "full",
       "notes": "Fully managed across AWS, Azure and GCP.",

@@ -132,10 +132,12 @@ export default function App() {
                     interoperability now lives or dies at the catalog: can
                     non-vendor engines read and write your tables over the Iceberg
                     REST Catalog (IRC) API, with short-lived vended credentials?
-                    This view scores ten catalogs against that openness rubric.
+                    This view scores ten catalogs against that openness rubric,
+                    plus spec-compliance facts: Iceberg REST spec coverage and
+                    table-format v2/v3 support.
                   </p>
                   <p>
-                    Ratings and evidence are based on{" "}
+                    Openness-rubric ratings and evidence are based on{" "}
                     <a
                       href="https://gitlab.com/hunt.dan/iceberg-state-of-catalogs"
                       target="_blank"

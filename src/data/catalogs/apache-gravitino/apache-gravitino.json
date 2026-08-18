@@ -10,6 +10,27 @@
     }
   ],
   "support": {
+    "apache-gravitino:rest-spec-support:current": {
+      "level": "partial",
+      "notes": "The Gravitino Iceberg REST server implements the Iceberg 1.11 REST API for most namespace, table and view operations, with credential vending for S3, GCS, OSS and ADLS.",
+      "caveats": [
+        "Multi-table transactions are not implemented",
+        "View registration is not implemented"
+      ],
+      "links": [{ "label": "Iceberg REST service docs", "url": "https://gravitino.apache.org/docs/next/iceberg-rest-service/" }]
+    },
+    "apache-gravitino:v2-spec-support:current": {
+      "level": "full",
+      "notes": "Serves format v2 Iceberg tables over its REST server against Hive, JDBC and REST catalog backends.",
+      "caveats": [],
+      "links": [{ "label": "Iceberg REST service docs", "url": "https://gravitino.apache.org/docs/next/iceberg-rest-service/" }]
+    },
+    "apache-gravitino:v3-spec-support:current": {
+      "level": "unknown",
+      "notes": "No explicit format v3 support statement. The REST server builds on the Apache Iceberg 1.11 runtime, which understands v3 metadata, but v3 handling isn't documented.",
+      "caveats": [],
+      "links": [{ "label": "Iceberg REST service docs", "url": "https://gravitino.apache.org/docs/next/iceberg-rest-service/" }]
+    },
     "apache-gravitino:managed-offering:current": {
       "level": "none",
       "notes": "Self-hosted OSS project.",

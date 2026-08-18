@@ -10,6 +10,31 @@
     }
   ],
   "support": {
+    "google-lakehouse-runtime-catalog:rest-spec-support:current": {
+      "level": "partial",
+      "notes": "The Iceberg REST catalog endpoint (biglake.googleapis.com/iceberg/v1/restcatalog) is the recommended interface, with an optional credential-vending mode for storage access delegation.",
+      "caveats": [
+        "Iceberg v1 tables aren't supported and must be upgraded before use",
+        "Parquet data files only; the metadata.json file is limited to 1 MB",
+        "No fine-grained access control on tables managed through the REST endpoint",
+        "Custom write.data.path / write.metadata.path values are prohibited"
+      ],
+      "links": [{ "label": "BigLake REST catalog docs", "url": "https://docs.cloud.google.com/biglake/docs/blms-rest-catalog" }]
+    },
+    "google-lakehouse-runtime-catalog:v2-spec-support:current": {
+      "level": "full",
+      "notes": "Iceberg v2 tables are generally available on the REST catalog endpoint.",
+      "caveats": [],
+      "links": [{ "label": "BigLake REST catalog docs", "url": "https://docs.cloud.google.com/biglake/docs/blms-rest-catalog" }]
+    },
+    "google-lakehouse-runtime-catalog:v3-spec-support:current": {
+      "level": "partial",
+      "notes": "Iceberg v3 tables are supported in Preview on the REST catalog endpoint.",
+      "caveats": [
+        "Pre-GA: v3 support is offered under Google Cloud's Pre-GA terms with limited support"
+      ],
+      "links": [{ "label": "BigLake REST catalog docs", "url": "https://docs.cloud.google.com/biglake/docs/blms-rest-catalog" }]
+    },
     "google-lakehouse-runtime-catalog:managed-offering:current": {
       "level": "full",
       "notes": "Managed Lakehouse runtime catalog (formerly BigLake metastore, renamed April 2026; APIs and IAM still say biglake).",

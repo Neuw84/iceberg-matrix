@@ -10,6 +10,33 @@
     }
   ],
   "support": {
+    "aws-glue-data-catalog:rest-spec-support:current": {
+      "level": "partial",
+      "notes": "Dedicated Iceberg REST endpoint (glue.{region}.amazonaws.com/iceberg) implementing the spec's namespace and table operations with SigV4 auth and Lake Formation credential vending.",
+      "caveats": [
+        "View APIs of the Iceberg REST spec are not supported",
+        "RenameTable works for Redshift-managed tables but not for tables in Amazon S3",
+        "Iceberg table metadata is capped at 50 MB (5 MB per call through catalog federation)"
+      ],
+      "links": [
+        { "label": "Glue Iceberg REST endpoint", "url": "https://docs.aws.amazon.com/glue/latest/dg/connect-glu-iceberg-rest.html" },
+        { "label": "Limitations", "url": "https://docs.aws.amazon.com/glue/latest/dg/limitation-glue-iceberg-rest-api.html" }
+      ]
+    },
+    "aws-glue-data-catalog:v2-spec-support:current": {
+      "level": "full",
+      "notes": "Format v2 Iceberg tables are the standard in the Data Catalog, including the managed compaction and snapshot-retention optimizers.",
+      "caveats": [],
+      "links": [{ "label": "Glue Iceberg docs", "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html" }]
+    },
+    "aws-glue-data-catalog:v3-spec-support:current": {
+      "level": "partial",
+      "notes": "Iceberg v3 deletion vectors and row lineage are supported (announced November 2025) across the Glue Data Catalog, S3 Tables and AWS analytics engines.",
+      "caveats": [
+        "The v3 announcement covers deletion vectors and row lineage; the new v3 data types (variant, geometry/geography, nanosecond timestamps) haven't been announced for the Data Catalog"
+      ],
+      "links": [{ "label": "AWS v3 announcement", "url": "https://aws.amazon.com/blogs/big-data/accelerate-data-lake-operations-with-apache-iceberg-v3-deletion-vectors-and-row-lineage/" }]
+    },
     "aws-glue-data-catalog:managed-offering:current": {
       "level": "full",
       "notes": "Fully managed and serverless: no catalog operations.",

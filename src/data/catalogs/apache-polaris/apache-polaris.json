@@ -10,6 +10,26 @@
     }
   ],
   "support": {
+    "apache-polaris:rest-spec-support:current": {
+      "level": "full",
+      "notes": "Purpose-built implementation of the Iceberg REST Catalog API: namespaces, tables, views, multi-table commits and credential vending, with RBAC on top.",
+      "caveats": [
+        "Optional spec features may lag behind the latest Iceberg REST spec revision (documented project policy)"
+      ],
+      "links": [{ "label": "Polaris evolution policy", "url": "https://polaris.apache.org/releases/1.3.0/evolution/" }]
+    },
+    "apache-polaris:v2-spec-support:current": {
+      "level": "full",
+      "notes": "Format v2 tables are the baseline for Polaris-managed Iceberg tables across REST-compatible engines.",
+      "caveats": [],
+      "links": [{ "label": "Polaris docs", "url": "https://polaris.apache.org/releases/1.3.0/" }]
+    },
+    "apache-polaris:v3-spec-support:current": {
+      "level": "unknown",
+      "notes": "No official statement on format v3 support yet. Recent Polaris releases bundle Apache Iceberg 1.10+ runtimes, which understand v3 metadata, but v3 handling isn't documented.",
+      "caveats": [],
+      "links": [{ "label": "Polaris docs", "url": "https://polaris.apache.org/releases/1.3.0/" }]
+    },
     "apache-polaris:managed-offering:current": {
       "level": "none",
       "notes": "Self-hosted OSS project: managed options exist via Snowflake and others, but the project itself is self-run.",

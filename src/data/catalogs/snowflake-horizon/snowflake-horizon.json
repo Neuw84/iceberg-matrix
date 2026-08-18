@@ -10,6 +10,28 @@
     }
   ],
   "support": {
+    "snowflake-horizon:rest-spec-support:current": {
+      "level": "full",
+      "notes": "Horizon Catalog exposes the Iceberg REST API with Apache Polaris integrated: external engines read and write Snowflake-managed Iceberg tables with vended credentials.",
+      "caveats": [
+        "Writes from external engines to v3 tables through Horizon Catalog aren't supported yet"
+      ],
+      "links": [{ "label": "Horizon IRC docs", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon" }]
+    },
+    "snowflake-horizon:v2-spec-support:current": {
+      "level": "full",
+      "notes": "Format v2 is the baseline for Snowflake-managed Iceberg tables; GET_DDL reports ICEBERG_VERSION = 2 for v2 tables.",
+      "caveats": [],
+      "links": [{ "label": "Iceberg tables docs", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }]
+    },
+    "snowflake-horizon:v3-spec-support:current": {
+      "level": "full",
+      "notes": "Iceberg v3 GA since May 2026 with the full v3 surface: geography, geometry, nanosecond timestamp and variant types plus default values, deletion vectors and row lineage.",
+      "caveats": [
+        "Reading v3 tables via the Horizon IRC endpoint is GA, but external-engine writes to v3 tables aren't supported yet"
+      ],
+      "links": [{ "label": "v3 GA release note", "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga" }]
+    },
     "snowflake-horizon:managed-offering:current": {
       "level": "full",
       "notes": "Fully managed SaaS with zero catalog operations.",

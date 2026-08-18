@@ -1,6 +1,27 @@
 {
   "features": [
     {
+      "id": "rest-spec-support",
+      "name": "Iceberg REST Spec (IRC)",
+      "category": "spec-support",
+      "introducedIn": "current",
+      "description": "Implements the Apache Iceberg REST Catalog specification, the standard HTTP API engines use to talk to catalogs. Full means the implementation tracks the open spec; partial means documented gaps such as missing endpoint groups (views, multi-table transactions), read-only access, or preview status"
+    },
+    {
+      "id": "v2-spec-support",
+      "name": "Iceberg V2 Spec",
+      "category": "spec-support",
+      "introducedIn": "current",
+      "description": "Manages and serves Iceberg format-version 2 tables, the current default table format with position and equality delete files for row-level changes"
+    },
+    {
+      "id": "v3-spec-support",
+      "name": "Iceberg V3 Spec",
+      "category": "spec-support",
+      "introducedIn": "current",
+      "description": "Manages and serves Iceberg format-version 3 tables (finalized in Apache Iceberg 1.10): deletion vectors, row lineage, variant, geometry/geography, nanosecond timestamps and column default values. Not all catalogs accept v3 metadata or its new data types yet"
+    },
+    {
       "id": "managed-offering",
       "name": "Managed Offering",
       "category": "openness-rubric",

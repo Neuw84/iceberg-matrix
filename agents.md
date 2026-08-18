@@ -28,7 +28,7 @@ A React single-page application that displays an interactive compatibility matri
 │   │   ├── load-catalogs.ts          # Merges per-catalog files into the catalogs CompatibilityData
 │   │   ├── catalogs.test.ts          # Structural tests for the catalogs dataset (extension point: EXPECTED_CATALOG_IDS)
 │   │   ├── catalogs/                 # Catalogs openness-rubric dataset
-│   │   │   ├── features.json         # The 6 rubric criteria (category "openness-rubric")
+│   │   │   ├── features.json         # 3 spec-support features + 6 rubric criteria
 │   │   │   └── <catalog-id>/<catalog-id>.json   # One folder+file per catalog (10 today)
 │   │   └── platforms/                # Nested per-vendor / per-engine platform + support data
 │   │       ├── aws/                  # split first by S3 mode, then by engine
@@ -154,8 +154,8 @@ Firehose (`aws/s3buckets/firehose` and `aws/s3tables/firehose`) and Kafka Connec
 
 The catalogs view has its own dataset under `src/data/catalogs/`, independent from the engines data:
 
-- `catalogs/features.json` defines the 6 openness-rubric criteria (feature ids: `managed-offering`, `serves-own-irc`, `rw-foreign-irc`, `federation-broker`, `multi-engine-multi-cloud`, `governance-cred-vending`), all with category `openness-rubric` and the single version `current`.
-- Each catalog lives in `catalogs/<catalog-id>/<catalog-id>.json` with exactly one platform object and that catalog's 6 support entries keyed `<catalog-id>:<feature-id>:current`. Every cell carries a `links` entry pointing at its public source.
+- `catalogs/features.json` defines 9 features under the single version `current`: 3 spec-compliance features with category `spec-support` (`rest-spec-support` — Iceberg REST Catalog spec coverage, `v2-spec-support`, `v3-spec-support` — table-format version support) followed by the 6 openness-rubric criteria with category `openness-rubric` (`managed-offering`, `serves-own-irc`, `rw-foreign-irc`, `federation-broker`, `multi-engine-multi-cloud`, `governance-cred-vending`).
+- Each catalog lives in `catalogs/<catalog-id>/<catalog-id>.json` with exactly one platform object and that catalog's 9 support entries keyed `<catalog-id>:<feature-id>:current`. Every cell carries a `links` entry pointing at its public source.
 - Catalog ids today — Proprietary: `snowflake-horizon`, `aws-glue-data-catalog`, `databricks-unity`, `google-lakehouse-runtime-catalog`, `microsoft-onelake`. Open Source: `apache-polaris`, `apache-gravitino`, `lakekeeper`, `project-nessie`, `unity-catalog-oss`.
 - `src/data/load-catalogs.ts` mirrors `load-data.ts`: explicit static imports concatenated in a fixed order (Proprietary block first, then Open Source; within each group, source-scorecard score descending) and exports `dataCatalogs: CompatibilityData`. Groups must stay contiguous — the matrix group-header row spans consecutive columns.
 - Ratings and notes are based on [Iceberg: The State of Catalogs](https://gitlab.com/hunt.dan/iceberg-state-of-catalogs); the source rubric's `no_engine` scores map to level `none` with an explanatory caveat.

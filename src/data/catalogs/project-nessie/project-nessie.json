@@ -10,6 +10,28 @@
     }
   ],
   "support": {
+    "project-nessie:rest-spec-support:current": {
+      "level": "partial",
+      "notes": "Serves tables and views over Iceberg REST with S3 request signing and vended credentials, layered on Nessie's git-like branching (branch/tag selected via the IRC prefix).",
+      "caveats": [
+        "Iceberg REST support is officially flagged experimental",
+        "GCS and ADLS object-store support is experimental (S3 is stable)",
+        "Table locations are mandated by Nessie, and only the snapshot matching the Nessie commit is exposed"
+      ],
+      "links": [{ "label": "Nessie Iceberg REST guide", "url": "https://projectnessie.org/guides/iceberg-rest/" }]
+    },
+    "project-nessie:v2-spec-support:current": {
+      "level": "full",
+      "notes": "Format v2 Iceberg tables are the baseline for Nessie-managed tables across Spark, Flink, Trino and other Iceberg clients.",
+      "caveats": [],
+      "links": [{ "label": "Nessie + Iceberg docs", "url": "https://projectnessie.org/iceberg/iceberg/" }]
+    },
+    "project-nessie:v3-spec-support:current": {
+      "level": "unknown",
+      "notes": "No official statement on format v3 tables through Nessie's Iceberg REST endpoint yet.",
+      "caveats": [],
+      "links": [{ "label": "Nessie docs", "url": "https://projectnessie.org/" }]
+    },
     "project-nessie:managed-offering:current": {
       "level": "partial",
       "notes": "Managed only as the engine inside Dremio Cloud; there is no standalone managed Nessie SaaS.",

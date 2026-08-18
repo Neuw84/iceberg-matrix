@@ -189,19 +189,35 @@ describe('Matrix filters', () => {
     expect(within(grid()).getByText('Bloom Filters & Puffin')).toBeInTheDocument()
   })
 
-  it('shows the empty state when a support filter matches nothing', () => {
+  it('narrows catalogs by level and shows the empty state when nothing matches', async () => {
     render(<App />)
+    const grid = () => screen.getByRole('grid')
     fireEvent.click(screen.getByRole('tab', { name: 'Catalogs' }))
 
-    // The rubric rates every cell, so no catalogs row has an unknown cell.
+    // The spec-support V3 row keeps unknown cells (several catalogs haven't
+    // announced v3), so the unknown filter narrows to it while the fully
+    // rated rubric rows drop out.
     fireEvent.click(screen.getByRole('button', { name: 'Filter by unknown support' }))
-    expect(
-      screen.getByText('No compatibility data available for the current filters.')
-    ).toBeInTheDocument()
+    expect(within(grid()).getByText('Iceberg V3 Spec')).toBeInTheDocument()
+    expect(within(grid()).queryByText('Managed Offering')).not.toBeInTheDocument()
 
-    // Deselecting the level restores the matrix.
-    fireEvent.click(screen.getByRole('button', { name: 'Filter by unknown support' }))
-    expect(screen.getByText('Managed Offering')).toBeInTheDocument()
+    // A search that matches no feature name empties the matrix...
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search features by name' }), {
+      target: { value: 'zzz-no-such-feature' },
+    })
+    await waitFor(() =>
+      expect(
+        screen.getByText('No compatibility data available for the current filters.')
+      ).toBeInTheDocument()
+    )
+
+    // ...and clearing the search restores the narrowed matrix.
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search features by name' }), {
+      target: { value: '' },
+    })
+    await waitFor(() =>
+      expect(within(grid()).getByText('Iceberg V3 Spec')).toBeInTheDocument()
+    )
   })
 
   it('reveals V3-only features on the V3 tab', () => {

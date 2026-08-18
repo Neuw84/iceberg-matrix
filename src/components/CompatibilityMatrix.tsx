@@ -27,11 +27,13 @@ const CATEGORY_LABELS: Record<FeatureCategory, string> = {
   "catalog-support": "Catalog Support",
   "v3-data-types": "V3 Data Types",
   "v3-advanced": "V3 Advanced Features",
+  "spec-support": "Spec Support",
   "openness-rubric": "Openness Rubric",
 };
 
 const CATEGORY_ORDER: FeatureCategory[] = [
-  // Catalogs view (its datasets contain only this category).
+  // Catalogs view (its datasets contain only these two categories).
+  "spec-support",
   "openness-rubric",
   // Engines view.
   "row-level-operations",
@@ -51,6 +53,7 @@ const CATEGORY_COLORS: Record<FeatureCategory, string> = {
   "catalog-support": "border-l-amber-400 bg-amber-50",
   "v3-data-types": "border-l-pink-400 bg-pink-50",
   "v3-advanced": "border-l-rose-400 bg-rose-50",
+  "spec-support": "border-l-sky-400 bg-sky-50",
   "openness-rubric": "border-l-indigo-400 bg-indigo-50",
 };
 

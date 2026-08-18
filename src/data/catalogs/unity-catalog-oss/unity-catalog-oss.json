@@ -10,6 +10,30 @@
     }
   ],
   "support": {
+    "unity-catalog-oss:rest-spec-support:current": {
+      "level": "partial",
+      "notes": "Exposes an Iceberg REST endpoint (/api/2.1/unity-catalog/iceberg) that serves Delta UniForm tables to Iceberg clients such as Trino and DuckDB.",
+      "caveats": [
+        "Read-oriented: tables can't be created or committed through the IRC endpoint",
+        "No Iceberg view support",
+        "Only Delta tables with UniForm enabled are visible to Iceberg clients"
+      ],
+      "links": [{ "label": "UniForm tables docs", "url": "https://docs.unitycatalog.io/usage/tables/uniform/" }]
+    },
+    "unity-catalog-oss:v2-spec-support:current": {
+      "level": "full",
+      "notes": "UniForm generates format v2 Iceberg metadata for Delta tables served over the REST endpoint.",
+      "caveats": [
+        "UniForm requires deletion vectors to be disabled on the Delta side, so the generated v2 metadata never carries delete files"
+      ],
+      "links": [{ "label": "UniForm tables docs", "url": "https://docs.unitycatalog.io/usage/tables/uniform/" }]
+    },
+    "unity-catalog-oss:v3-spec-support:current": {
+      "level": "unknown",
+      "notes": "No format v3 support announced for the OSS server; UniForm metadata generation targets format v2.",
+      "caveats": [],
+      "links": [{ "label": "Unity Catalog OSS docs", "url": "https://docs.unitycatalog.io/" }]
+    },
     "unity-catalog-oss:managed-offering:current": {
       "level": "none",
       "notes": "Self-hosted OSS project; the managed Unity is a different, proprietary product.",

@@ -71,13 +71,13 @@ describe("catalogs/features.json", () => {
     expect(versions).toEqual(["current"]);
   });
 
-  it("defines well-formed rubric features", () => {
+  it("defines well-formed catalog features", () => {
     expect(catalogFeaturesJson.features.length).toBeGreaterThan(0);
     for (const f of catalogFeaturesJson.features) {
       expect(f.id, "feature id").toMatch(/^[a-z0-9-]+$/);
       expect(f.name.trim()).not.toBe("");
       expect(f.description.trim()).not.toBe("");
-      expect(f.category).toBe("openness-rubric");
+      expect(["spec-support", "openness-rubric"]).toContain(f.category);
       expect(versions).toContain(f.introducedIn);
     }
   });
