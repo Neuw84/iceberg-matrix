@@ -1,0 +1,58 @@
+{
+  "platforms": [
+    {
+      "id": "apache-polaris",
+      "name": "Apache Polaris",
+      "vendor": "Apache Software Foundation",
+      "category": "open-source",
+      "group": "Open Source",
+      "docUrl": "https://polaris.apache.org/"
+    }
+  ],
+  "support": {
+    "apache-polaris:managed-offering:current": {
+      "level": "none",
+      "notes": "Self-hosted OSS project: managed options exist via Snowflake and others, but the project itself is self-run.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://polaris.apache.org/" }]
+    },
+    "apache-polaris:oss-exit-path:current": {
+      "level": "full",
+      "notes": "Apache-licensed ASF Top-Level Project; you own the deployment.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://github.com/apache/polaris" }]
+    },
+    "apache-polaris:serves-own-irc:current": {
+      "level": "full",
+      "notes": "Native Iceberg REST Catalog, read and write, for any engine.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://polaris.apache.org/" }]
+    },
+    "apache-polaris:rw-foreign-irc:current": {
+      "level": "none",
+      "notes": "No bundled query engine, so the catalog cannot itself read or write foreign tables over IRC: foreign-table access needs separate compute.",
+      "caveats": [
+        "The source rubric scores 'no engine' as 0 (BYO compute), so this is recorded as not supported rather than unknown"
+      ],
+      "links": [{ "label": "Source", "url": "https://polaris.apache.org/" }]
+    },
+    "apache-polaris:federation-broker:current": {
+      "level": "partial",
+      "notes": "Real external-catalog federation that vends credentials to clients, but feature-flagged off by default and narrow: Iceberg REST (1.3), Hive/Hadoop (1.4) and BigQuery (1.5), with no Glue, Snowflake or Unity adapters and no generic-table federation.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://polaris.apache.org/releases/1.4.0/federation/" }]
+    },
+    "apache-polaris:multi-engine-multi-cloud:current": {
+      "level": "full",
+      "notes": "Spark, Flink, Trino, Dremio, Doris, StarRocks and PyIceberg; storage-agnostic.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://polaris.apache.org/" }]
+    },
+    "apache-polaris:governance-cred-vending:current": {
+      "level": "full",
+      "notes": "Fine-grained RBAC plus credential vending.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://polaris.apache.org/" }]
+    }
+  }
+}

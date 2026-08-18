@@ -1,0 +1,56 @@
+{
+  "platforms": [
+    {
+      "id": "microsoft-onelake",
+      "name": "Microsoft OneLake",
+      "vendor": "Microsoft",
+      "category": "cloud",
+      "group": "Proprietary",
+      "docUrl": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables"
+    }
+  ],
+  "support": {
+    "microsoft-onelake:managed-offering:current": {
+      "level": "full",
+      "notes": "Managed within Microsoft Fabric.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables" }]
+    },
+    "microsoft-onelake:oss-exit-path:current": {
+      "level": "none",
+      "notes": "OneLake/Fabric-managed with no open-source catalog continuity.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables" }]
+    },
+    "microsoft-onelake:serves-own-irc:current": {
+      "level": "partial",
+      "notes": "Read-only IRC on its own managed OneLake tables (GET/HEAD metadata endpoints with Entra OAuth); no IRC write or commit, and reads rely on the consumer's own storage access rather than spec credential vending.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://learn.microsoft.com/en-us/fabric/onelake/table-apis/iceberg-table-apis-get-started" }]
+    },
+    "microsoft-onelake:rw-foreign-irc:current": {
+      "level": "none",
+      "notes": "External Iceberg is read via OneLake shortcuts and metadata virtualization, not via IRC, and there is no IRC write.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables" }]
+    },
+    "microsoft-onelake:federation-broker:current": {
+      "level": "none",
+      "notes": "Multi-source shortcuts (S3, GCS, ADLS, Dataverse) broker storage rather than catalog IRC: there is no IRC client, so this is not spec-compliant IRC federation.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-shortcuts" }]
+    },
+    "microsoft-onelake:multi-engine-multi-cloud:current": {
+      "level": "partial",
+      "notes": "External engines such as Snowflake, DuckDB and PyIceberg can read its Iceberg over the IRC endpoint, and Snowflake can write to OneLake storage via an external volume (not IRC); compute is otherwise Fabric-centric.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-snowflake" }]
+    },
+    "microsoft-onelake:governance-cred-vending:current": {
+      "level": "partial",
+      "notes": "Microsoft Purview provides sensitivity labels and DLP, but it is Fabric-only and not enforced over IRC.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://learn.microsoft.com/en-us/fabric/governance/microsoft-purview-fabric" }]
+    }
+  }
+}

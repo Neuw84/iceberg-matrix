@@ -1,0 +1,58 @@
+{
+  "platforms": [
+    {
+      "id": "lakekeeper",
+      "name": "Lakekeeper",
+      "vendor": "Vakamo",
+      "category": "open-source",
+      "group": "Open Source",
+      "docUrl": "https://docs.lakekeeper.io/"
+    }
+  ],
+  "support": {
+    "lakekeeper:managed-offering:current": {
+      "level": "none",
+      "notes": "No managed, zero-ops service today: Lakekeeper Cloud is waitlist/coming-soon and Lakekeeper+ is self-hosted enterprise. Self-run only.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://vakamo.com" }]
+    },
+    "lakekeeper:oss-exit-path:current": {
+      "level": "full",
+      "notes": "Apache 2.0; a single Rust binary you self-host.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://github.com/lakekeeper/lakekeeper" }]
+    },
+    "lakekeeper:serves-own-irc:current": {
+      "level": "full",
+      "notes": "Full Iceberg REST spec, read and write, with credential vending for S3, Azure and GCS.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.lakekeeper.io/" }]
+    },
+    "lakekeeper:rw-foreign-irc:current": {
+      "level": "none",
+      "notes": "No bundled query engine, so the catalog cannot itself read or write foreign tables over IRC: foreign-table access needs separate compute.",
+      "caveats": [
+        "The source rubric scores 'no engine' as 0 (BYO compute), so this is recorded as not supported rather than unknown"
+      ],
+      "links": [{ "label": "Source", "url": "https://docs.lakekeeper.io/" }]
+    },
+    "lakekeeper:federation-broker:current": {
+      "level": "none",
+      "notes": "No catalog-of-catalogs brokering: stepped back from an earlier non-standard implementation and proposed a standard /events endpoint (Apache Iceberg PR #12584). Current focus is governance federation (many engines, one catalog), not catalog federation.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://github.com/apache/iceberg/pull/12584" }]
+    },
+    "lakekeeper:multi-engine-multi-cloud:current": {
+      "level": "full",
+      "notes": "Any IRC-compliant engine; storage-agnostic.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.lakekeeper.io/" }]
+    },
+    "lakekeeper:governance-cred-vending:current": {
+      "level": "full",
+      "notes": "OpenFGA fine-grained authorization plus credential vending.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.lakekeeper.io/" }]
+    }
+  }
+}

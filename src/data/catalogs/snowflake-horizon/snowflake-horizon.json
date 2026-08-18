@@ -1,0 +1,56 @@
+{
+  "platforms": [
+    {
+      "id": "snowflake-horizon",
+      "name": "Snowflake Horizon",
+      "vendor": "Snowflake",
+      "category": "cloud",
+      "group": "Proprietary",
+      "docUrl": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+    }
+  ],
+  "support": {
+    "snowflake-horizon:managed-offering:current": {
+      "level": "full",
+      "notes": "Fully managed SaaS with zero catalog operations.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }]
+    },
+    "snowflake-horizon:oss-exit-path:current": {
+      "level": "full",
+      "notes": "The catalog is Apache Polaris (open source): self-host on the same storage with no rewrite.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://polaris.apache.org/" }]
+    },
+    "snowflake-horizon:serves-own-irc:current": {
+      "level": "full",
+      "notes": "Read and write GA over the built-in Apache Polaris IRC endpoint (Iceberg spec v2 and v3).",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }]
+    },
+    "snowflake-horizon:rw-foreign-irc:current": {
+      "level": "full",
+      "notes": "Catalog-linked databases read and write externally-governed Iceberg tables over IRC.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database" }]
+    },
+    "snowflake-horizon:federation-broker:current": {
+      "level": "partial",
+      "notes": "Consuming external catalogs is GA (catalog-linked databases over Glue, Unity and Open Catalog); the full broker path, serving those foreign tables back out to external engines over its own IRC, is not yet publicly GA.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database" }]
+    },
+    "snowflake-horizon:multi-engine-multi-cloud:current": {
+      "level": "full",
+      "notes": "Spark, Flink, Trino, DuckDB, Dremio, StarRocks, PyIceberg and Doris; S3, GCS and Azure storage.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }]
+    },
+    "snowflake-horizon:governance-cred-vending:current": {
+      "level": "full",
+      "notes": "Credential vending over IRC; masking and row-access policies are enforced even on external-engine reads.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg" }]
+    }
+  }
+}

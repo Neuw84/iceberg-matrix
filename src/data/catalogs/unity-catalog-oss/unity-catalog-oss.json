@@ -1,0 +1,58 @@
+{
+  "platforms": [
+    {
+      "id": "unity-catalog-oss",
+      "name": "Unity Catalog OSS",
+      "vendor": "Linux Foundation",
+      "category": "open-source",
+      "group": "Open Source",
+      "docUrl": "https://docs.unitycatalog.io/"
+    }
+  ],
+  "support": {
+    "unity-catalog-oss:managed-offering:current": {
+      "level": "none",
+      "notes": "Self-hosted OSS project; the managed Unity is a different, proprietary product.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://github.com/unitycatalog/unitycatalog" }]
+    },
+    "unity-catalog-oss:oss-exit-path:current": {
+      "level": "full",
+      "notes": "Apache 2.0, a Linux Foundation sandbox project.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://github.com/unitycatalog/unitycatalog" }]
+    },
+    "unity-catalog-oss:serves-own-irc:current": {
+      "level": "none",
+      "notes": "The IRC path is a secondary, read-leaning surface (Delta UniForm read-as-Iceberg) rather than full table lifecycle, and it vends no credentials: the documented read example authenticates with token 'not_used' and the engine supplies its own storage keys. Held to the same read+write-with-vended-credentials bar as every catalog, it does not qualify.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.unitycatalog.io/usage/tables/uniform/#read-delta-uniform-tables-via-iceberg-rest-catalog" }]
+    },
+    "unity-catalog-oss:rw-foreign-irc:current": {
+      "level": "none",
+      "notes": "No bundled query engine, so the catalog cannot itself read or write foreign tables over IRC: foreign-table access needs separate compute.",
+      "caveats": [
+        "The source rubric scores 'no engine' as 0 (BYO compute), so this is recorded as not supported rather than unknown"
+      ],
+      "links": [{ "label": "Source", "url": "https://docs.unitycatalog.io/" }]
+    },
+    "unity-catalog-oss:federation-broker:current": {
+      "level": "none",
+      "notes": "No catalog-of-catalogs brokering in the OSS edition.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.unitycatalog.io/" }]
+    },
+    "unity-catalog-oss:multi-engine-multi-cloud:current": {
+      "level": "partial",
+      "notes": "Mostly Spark, DuckDB and Daft via the UC-native API; not broad IRC.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.unitycatalog.io/" }]
+    },
+    "unity-catalog-oss:governance-cred-vending:current": {
+      "level": "partial",
+      "notes": "Coarse object grants exist but authorization is off by default; no named-role RBAC, row/column masks or ABAC (all marked unplanned on the roadmap), and credential vending is static pre-configured keys rather than short-lived STS-style vending.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://github.com/unitycatalog/unitycatalog/blob/main/roadmap.md" }]
+    }
+  }
+}

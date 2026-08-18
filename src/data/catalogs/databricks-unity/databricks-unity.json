@@ -1,0 +1,56 @@
+{
+  "platforms": [
+    {
+      "id": "databricks-unity",
+      "name": "Databricks Unity",
+      "vendor": "Databricks",
+      "category": "cloud",
+      "group": "Proprietary",
+      "docUrl": "https://docs.databricks.com/en/data-governance/unity-catalog/"
+    }
+  ],
+  "support": {
+    "databricks-unity:managed-offering:current": {
+      "level": "full",
+      "notes": "Fully managed across AWS, Azure and GCP.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.databricks.com/en/data-governance/unity-catalog/" }]
+    },
+    "databricks-unity:oss-exit-path:current": {
+      "level": "none",
+      "notes": "Native Iceberg is managed-only and a managed table cannot be re-pointed at a different catalog: path-based takeover is unsupported, managed Iceberg supports only DEEP CLONE (a full copy), and Unity Catalog OSS is a separate, weaker project. Catalog exit means a rewrite.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.databricks.com/aws/en/iceberg/clone" }]
+    },
+    "databricks-unity:serves-own-irc:current": {
+      "level": "partial",
+      "notes": "Only native Unity-managed Iceberg is read and write over IRC; Delta-via-UniForm and foreign Iceberg are exposed read-only, and most Databricks tables are Delta, so only some served paths offer write.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.databricks.com/aws/en/external-access/iceberg" }]
+    },
+    "databricks-unity:rw-foreign-irc:current": {
+      "level": "none",
+      "notes": "One-directional: foreign Iceberg is read-only with no credential vending, and access requires a persistent base-location storage credential (a Unity external location over the tables' storage paths) plus manual REFRESH FOREIGN TABLE rather than vended credentials.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.databricks.com/aws/en/external-access/iceberg" }]
+    },
+    "databricks-unity:federation-broker:current": {
+      "level": "none",
+      "notes": "Lakehouse/Catalog Federation brokers many sources but is proprietary rather than spec-compliant IRC: it requires a persistent, broadly-scoped base-location storage credential instead of the short-lived, path-scoped credentials the IRC spec vends (and Iceberg is read-only through it).",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.databricks.com/aws/en/query-federation/catalog-federation" }]
+    },
+    "databricks-unity:multi-engine-multi-cloud:current": {
+      "level": "full",
+      "notes": "AWS, Azure and GCP; broad engine support inside Databricks.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.databricks.com/en/data-governance/unity-catalog/" }]
+    },
+    "databricks-unity:governance-cred-vending:current": {
+      "level": "partial",
+      "notes": "Strong ABAC and row/column filters within Databricks, but they are not enforced on external-engine IRC reads.",
+      "caveats": [],
+      "links": [{ "label": "Source", "url": "https://docs.databricks.com/aws/en/tables/foreign" }]
+    }
+  }
+}
