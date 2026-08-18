@@ -88,4 +88,54 @@ describe('Engines/Catalogs view toggle', () => {
     expect(within(panel).queryByRole('button', { name: 'Filter by Openness Rubric' })).not.toBeInTheDocument()
     expect(within(panel).getByRole('button', { name: 'Filter by Partitioning' })).toBeInTheDocument()
   })
+
+  it('opens a cell popover with notes and source link but no version line', async () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Catalogs' }))
+
+    // Snowflake Horizon × Managed Offering; cells carry their notes as title.
+    fireEvent.click(screen.getByTitle('Fully managed SaaS with zero catalog operations.'))
+
+    // DetailPopover is code-split, so it mounts asynchronously.
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Details for Managed Offering on Snowflake Horizon',
+    })
+    expect(
+      within(dialog).getByText('Fully managed SaaS with zero catalog operations.')
+    ).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: 'Source' })).toHaveAttribute(
+      'href',
+      'https://docs.snowflake.com/en/user-guide/tables-iceberg'
+    )
+    // The synthetic "current" version is not echoed as "CURRENT · Since CURRENT";
+    // the subtitle is just the catalog name.
+    expect(within(dialog).getByText('Snowflake Horizon')).toBeInTheDocument()
+    expect(within(dialog).queryByText(/Since/)).not.toBeInTheDocument()
+  })
+
+  it('keeps catalog filters isolated from the engines view', () => {
+    render(<App />)
+    const grid = () => screen.getByRole('grid')
+
+    // Narrow the catalogs view to the Open Source group.
+    fireEvent.click(screen.getByRole('tab', { name: 'Catalogs' }))
+    fireEvent.click(
+      within(screen.getByRole('search')).getByRole('button', { name: 'Filter by Open Source' })
+    )
+    expect(within(grid()).getByText('Apache Polaris')).toBeInTheDocument()
+    expect(within(grid()).queryByText('Snowflake Horizon')).not.toBeInTheDocument()
+
+    // The engines view is unaffected by the catalog-side platform filter...
+    fireEvent.click(screen.getByRole('tab', { name: 'Engines' }))
+    expect(within(grid()).getByText(/PyIceberg/)).toBeInTheDocument()
+    expect(within(grid()).getByText(/Athena/)).toBeInTheDocument()
+
+    // ...and the catalog filter survives the round trip.
+    fireEvent.click(screen.getByRole('tab', { name: 'Catalogs' }))
+    expect(within(grid()).getByText('Apache Polaris')).toBeInTheDocument()
+    expect(within(grid()).queryByText('Snowflake Horizon')).not.toBeInTheDocument()
+    expect(
+      within(screen.getByRole('search')).getByRole('button', { name: 'Filter by Open Source' })
+    ).toHaveAttribute('aria-pressed', 'true')
+  })
 })

@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A React single-page application that displays an interactive compatibility matrix for Apache Iceberg features across cloud platforms and open-source engines. Built with Vite, TypeScript, React 19.2, and Tailwind CSS. Deployed to GitHub Pages via GitHub Actions.
+A React single-page application that displays an interactive compatibility matrix for Apache Iceberg features across cloud platforms and open-source engines. A top-level Engines/Catalogs toggle switches between two datasets: the engines matrix (default, with V2/V3 tabs, AWS S3-mode toggle, and compare mode) and a catalogs openness-rubric matrix (10 Iceberg catalogs scored against 7 openness criteria). Built with Vite, TypeScript, React 19.2, and Tailwind CSS. Deployed to GitHub Pages via GitHub Actions.
 
 ## Project Structure
 
@@ -20,10 +20,16 @@ A React single-page application that displays an interactive compatibility matri
 │   │   ├── FeatureRow.tsx            # Single feature row in the matrix
 │   │   ├── FilterPanel.tsx           # Sidebar filters (version, platform, category, etc.)
 │   │   ├── SupportCell.tsx           # Individual cell showing support level
-│   │   └── VersionTabs.tsx           # V2/V3 version tab switcher
+│   │   ├── VersionTabs.tsx           # V2/V3 version tab switcher (engines view only)
+│   │   └── ViewToggle.tsx            # Top-level Engines/Catalogs view switcher
 │   ├── data/                 # JSON data files
-│   │   ├── features.json             # Feature definitions and categories
+│   │   ├── features.json             # Engine feature definitions and categories
 │   │   ├── load-data.ts              # Merges nested per-engine files into CompatibilityData at import time
+│   │   ├── load-catalogs.ts          # Merges per-catalog files into the catalogs CompatibilityData
+│   │   ├── catalogs.test.ts          # Structural tests for the catalogs dataset (extension point: EXPECTED_CATALOG_IDS)
+│   │   ├── catalogs/                 # Catalogs openness-rubric dataset
+│   │   │   ├── features.json         # The 7 rubric criteria (category "openness-rubric")
+│   │   │   └── <catalog-id>/<catalog-id>.json   # One folder+file per catalog (10 today)
 │   │   └── platforms/                # Nested per-vendor / per-engine platform + support data
 │   │       ├── aws/                  # split first by S3 mode, then by engine
 │   │       │   ├── s3buckets/        # AWS in S3-buckets mode (exported as `data`)
@@ -44,7 +50,8 @@ A React single-page application that displays an interactive compatibility matri
 │   │       ├── azure/                # synapse/, fabric/
 │   │       ├── databricks/           # databricks/
 │   │       ├── snowflake/            # snowflake/
-│   │       └── oss/                  # duckdb/, clickhouse/, daft/, spark/, flink/,
+│   │       └── oss/                  # duckdb/, clickhouse/, daft/, spark/,
+│   │                                 # spark-gluten/, spark-comet/, flink/,
 │   │                                 # pyiceberg/, doris/, databend/,
 │   │                                 # kafka-connect/ (staged, NOT imported)
 │   ├── utils/                # Pure utility functions
@@ -94,9 +101,11 @@ Each entry has:
 - `caveats`: Array of strings with limitations
 - `links`: official references if available
 
-Platforms are grouped by: AWS, GCP, Azure, Databricks, Snowflake, 3rd Party.
+Engine platforms are grouped by: AWS, GCP, Azure, Databricks, Snowflake, 3rd Party. Catalogs are grouped by: Proprietary, Open Source.
 
-Features are categorized into: row-level-operations, schema-management, partitioning, table-management, read-write, catalog-support, v3-data-types, v3-advanced.
+Engine features are categorized into: row-level-operations, schema-management, partitioning, table-management, read-write, catalog-support, v3-data-types, v3-advanced. Catalog features all use the single category: openness-rubric.
+
+Versions: engine support entries use `v2`/`v3`. The catalogs dataset has no version dimension, so all its entries use the single synthetic version `current` (e.g. `snowflake-horizon:managed-offering:current`). The UI hides version chrome when the version is `current` (no V2/V3 tabs, no version line in the popover).
 
 ## Data Architecture
 
@@ -139,7 +148,22 @@ It exports two `CompatibilityData` datasets: `data` (built from `aws/s3buckets` 
 
 Firehose (`aws/s3buckets/firehose` and `aws/s3tables/firehose`) and Kafka Connect (`oss/kafka-connect`) are stored in the structure but deliberately excluded from both datasets — the loader simply does not import their files. As a result, neither `aws-firehose` nor `kafka-connect` appears in `data` or `dataS3Tables`, and neither is rendered by the app.
 
-> Note: the original flat per-vendor files (`aws.json`, `aws-tables.json`, `gcp.json`, etc.) are retained temporarily for verification and will be removed later. The nested structure is the source of truth that `load-data.ts` reads from.
+> Note: the original flat per-vendor files (`aws.json`, `aws-tables.json`, `gcp.json`, etc.) have been removed. The nested structure is the only source of truth that `load-data.ts` reads from.
+
+### Catalogs dataset
+
+The catalogs view has its own dataset under `src/data/catalogs/`, independent from the engines data:
+
+- `catalogs/features.json` defines the 7 openness-rubric criteria (feature ids: `managed-offering`, `oss-exit-path`, `serves-own-irc`, `rw-foreign-irc`, `federation-broker`, `multi-engine-multi-cloud`, `governance-cred-vending`), all with category `openness-rubric` and the single version `current`.
+- Each catalog lives in `catalogs/<catalog-id>/<catalog-id>.json` with exactly one platform object and that catalog's 7 support entries keyed `<catalog-id>:<feature-id>:current`. Every cell carries a `links` entry pointing at its public source.
+- Catalog ids today — Proprietary: `snowflake-horizon`, `aws-glue-data-catalog`, `databricks-unity`, `google-lakehouse-runtime-catalog`, `microsoft-onelake`. Open Source: `apache-polaris`, `apache-gravitino`, `lakekeeper`, `project-nessie`, `unity-catalog-oss`.
+- `src/data/load-catalogs.ts` mirrors `load-data.ts`: explicit static imports concatenated in a fixed order (Proprietary block first, then Open Source; within each group, source-scorecard score descending) and exports `dataCatalogs: CompatibilityData`. Groups must stay contiguous — the matrix group-header row spans consecutive columns.
+- Ratings and notes are based on [Iceberg: The State of Catalogs](https://gitlab.com/hunt.dan/iceberg-state-of-catalogs); the source rubric's `no_engine` scores map to level `none` with an explanatory caveat.
+- `src/data/catalogs.test.ts` structurally validates the dataset (naming convention, full feature coverage, valid levels, `{label, url}` links) and that the merged `dataCatalogs` matches the files on disk. Its `EXPECTED_CATALOG_IDS` array is the extension point.
+
+### View wiring
+
+`App.tsx` holds a `viewMode` state (`"engines" | "catalogs"`, default engines) switched by `ViewToggle` in the header. Each view keeps its own independent `FilterState` (engines starts at `selectedVersions: ["v2"]`, catalogs at `["current"]`), so filters survive toggling and never leak across views. The catalogs view reuses `CompatibilityMatrix`, `FilterPanel` (with `entityLabel="Catalogs"`), and `DetailPopover`, but renders no V2/V3 tabs, no compare mode, and no AWS S3-mode toggle.
 
 ## Best Practices
 
@@ -156,6 +180,19 @@ Firehose (`aws/s3buckets/firehose` and `aws/s3tables/firehose`) and Kafka Connec
 1. Add the feature definition to `src/data/features.json`.
 2. Add support entries for the new feature across all existing platforms in each engine's JSON file under `src/data/platforms/`.
 3. Remember about adding caveats or links where relevant ( official docs).
+
+### Adding a New Catalog
+
+1. Create `src/data/catalogs/<catalog-id>/<catalog-id>.json` with one platform object (`group` either `"Proprietary"` or `"Open Source"`; `category` `"cloud"` for proprietary, `"open-source"` for OSS) and one support entry per rubric feature, keyed `<catalog-id>:<feature-id>:current`. Give every cell a `Source` link.
+2. Add the catalog id to `EXPECTED_CATALOG_IDS` in `src/data/catalogs.test.ts`.
+3. Wire it into `src/data/load-catalogs.ts`: add a static `import` and slot it into `catalogFiles` inside its group's block (groups must stay contiguous; order within a group is score descending).
+4. Optionally register a logo in the `PLATFORM_LOGOS` maps in `CompatibilityMatrix.tsx` and `FilterPanel.tsx` if a suitable file exists in `public/logos/`.
+5. Run `npm test` — the structural suite catches missing coverage, bad keys, or a file that exists on disk but is missing from the loader.
+
+### Adding a New Rubric Criterion
+
+1. Add the feature to `src/data/catalogs/features.json` (category `"openness-rubric"`, `introducedIn`/`versions` `"current"`).
+2. Add a support entry for it to every catalog file. The tests enforce full feature × catalog coverage.
 
 ### Code Conventions
 
@@ -179,8 +216,8 @@ Firehose (`aws/s3buckets/firehose` and `aws/s3tables/firehose`) and Kafka Connec
 
 - Data is split into nested per-vendor / per-engine files under `src/data/platforms/` and merged at import time by `src/data/load-data.ts`. The nested structure is the single source of truth that `load-data.ts` reads from; there is no aggregated JSON file to keep in sync.
 - Each engine file holds exactly one platform object plus only that platform's support entries. The loader concatenates the engine files in a fixed order, so the merged platform order and support map are deterministic regardless of filesystem enumeration.
-- The original flat per-vendor files are retained temporarily for verification and will be removed later; do not add new data to them.
 - Firehose and Kafka Connect are staged in the structure but excluded from both datasets (their files are never imported), so they are not rendered.
-- Feature definitions live in `src/data/features.json` (single source of truth for features and versions).
+- Feature definitions live in `src/data/features.json` (single source of truth for engine features and versions). The catalogs view has its own `src/data/catalogs/features.json`; keep them separate — external tooling counts every feature in the engines file for coverage.
+- The catalogs dataset follows the same rules via `src/data/load-catalogs.ts`: one file per catalog, fixed merge order, groups contiguous. `src/data/catalogs.test.ts` enforces its structure.
 - Every platform must have entries for all features × all versions. Missing entries will show as blank cells in the matrix.
 - Use `"unknown"` level when a platform hasn't announced support for a feature yet, rather than omitting the entry.
