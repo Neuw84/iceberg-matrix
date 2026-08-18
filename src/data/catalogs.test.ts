@@ -152,3 +152,30 @@ describe("catalog files", () => {
     },
   );
 });
+
+describe("merged catalogs dataset (load-catalogs.ts)", () => {
+  it("includes every catalog file on disk, exactly once", async () => {
+    const { dataCatalogs } = await import("./load-catalogs");
+    const merged = dataCatalogs.platforms.map((p) => p.id).sort();
+    // A file that exists but was never imported into the loader shows up here.
+    expect(merged).toEqual([...EXPECTED_CATALOG_IDS].sort());
+  });
+
+  it("keeps each group's catalogs contiguous for the matrix group header", async () => {
+    const { dataCatalogs } = await import("./load-catalogs");
+    const groups = dataCatalogs.platforms.map((p) => p.group);
+    const transitions = groups.filter((g, i) => i > 0 && g !== groups[i - 1]);
+    // One transition = two contiguous blocks (Proprietary, then Open Source).
+    expect(transitions).toEqual(["Open Source"]);
+    expect(groups[0]).toBe("Proprietary");
+  });
+
+  it("carries the rubric features and the single 'current' version", async () => {
+    const { dataCatalogs } = await import("./load-catalogs");
+    expect(dataCatalogs.versions).toEqual(["current"]);
+    expect(dataCatalogs.features.map((f) => f.id)).toEqual(featureIds);
+    expect(Object.keys(dataCatalogs.support)).toHaveLength(
+      EXPECTED_CATALOG_IDS.length * featureIds.length,
+    );
+  });
+});

@@ -15,6 +15,7 @@ const CATEGORY_LABELS: Record<FeatureCategory, string> = {
   "catalog-support": "Catalogs",
   "v3-data-types": "V3 Types",
   "v3-advanced": "V3 Advanced",
+  "openness-rubric": "Openness Rubric",
 };
 
 const SUPPORT_LEVELS: SupportLevel[] = ["full", "partial", "none", "unknown"];
@@ -42,6 +43,9 @@ const GROUP_LABELS: Record<PlatformGroup, string> = {
   Snowflake: "Snowflake",
   Databricks: "Databricks",
   "3rd Party": "OSS/3rd Party",
+  // Catalogs view groups.
+  Proprietary: "Proprietary",
+  "Open Source": "Open Source",
 };
 
 const GROUP_LOGOS: Partial<Record<PlatformGroup, string>> = {

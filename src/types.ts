@@ -1,6 +1,20 @@
 // --- Data model types (match JSON schema) ---
 
-export type PlatformGroup = "AWS" | "GCP" | "Azure" | "Databricks" | "Snowflake" | "3rd Party";
+/**
+ * Column-group header a platform renders under. The vendor groups belong to the
+ * Engines view; "Proprietary" and "Open Source" are the two groups of the
+ * Catalogs view. The matrix groups *consecutive* columns, so datasets must keep
+ * each group's platforms contiguous.
+ */
+export type PlatformGroup =
+  | "AWS"
+  | "GCP"
+  | "Azure"
+  | "Databricks"
+  | "Snowflake"
+  | "3rd Party"
+  | "Proprietary"
+  | "Open Source";
 
 export interface Platform {
   id: string;
@@ -34,9 +48,18 @@ export type FeatureCategory =
   | "read-write"
   | "catalog-support"
   | "v3-data-types"
-  | "v3-advanced";
+  | "v3-advanced"
+  // The Catalogs view's single category: the openness rubric from
+  // "Iceberg: The State of Catalogs".
+  | "openness-rubric";
 
-export type Version = "v2" | "v3";
+/**
+ * "v2" and "v3" are the Iceberg spec versions of the Engines view. "current" is
+ * the Catalogs view's single synthetic version: the openness rubric has no spec
+ * dimension, but the support-key format is `${platformId}:${featureId}:${version}`
+ * everywhere, so the catalogs dataset hangs off one version key.
+ */
+export type Version = "v2" | "v3" | "current";
 
 export type SupportLevel = "full" | "partial" | "none" | "unknown";
 
