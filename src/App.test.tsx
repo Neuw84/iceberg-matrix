@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import fc from 'fast-check'
 import App from './App'
@@ -137,5 +137,82 @@ describe('Engines/Catalogs view toggle', () => {
     expect(
       within(screen.getByRole('search')).getByRole('button', { name: 'Filter by Open Source' })
     ).toHaveAttribute('aria-pressed', 'true')
+  })
+})
+
+describe('Matrix filters', () => {
+  it('narrows rows by feature search (debounced)', async () => {
+    render(<App />)
+    const grid = () => screen.getByRole('grid')
+    expect(within(grid()).getByText('Hidden Partitioning')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search features by name' }), {
+      target: { value: 'Bloom' },
+    })
+    // The search box propagates to the shared filter state after a 200ms debounce.
+    await waitFor(() =>
+      expect(within(grid()).queryByText('Hidden Partitioning')).not.toBeInTheDocument()
+    )
+    expect(within(grid()).getByText('Bloom Filters & Puffin')).toBeInTheDocument()
+  })
+
+  it('narrows rows to a selected category', () => {
+    render(<App />)
+    const grid = () => screen.getByRole('grid')
+    expect(within(grid()).getByText('Position Deletes')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filter by Partitioning' }))
+    expect(within(grid()).queryByText('Position Deletes')).not.toBeInTheDocument()
+    expect(within(grid()).getByText('Hidden Partitioning')).toBeInTheDocument()
+  })
+
+  it('narrows rows by support level', () => {
+    render(<App />)
+    const grid = () => screen.getByRole('grid')
+    // Every "Snowflake Horizon Catalog" v2 cell is rated, so the row drops out
+    // when filtering for unknown cells; "Bloom Filters & Puffin" keeps several
+    // unknown cells and stays.
+    expect(within(grid()).getByText('Snowflake Horizon Catalog')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filter by unknown support' }))
+    expect(within(grid()).queryByText('Snowflake Horizon Catalog')).not.toBeInTheDocument()
+    expect(within(grid()).getByText('Bloom Filters & Puffin')).toBeInTheDocument()
+  })
+
+  it('shows the empty state when a support filter matches nothing', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Catalogs' }))
+
+    // The rubric rates every cell, so no catalogs row has an unknown cell.
+    fireEvent.click(screen.getByRole('button', { name: 'Filter by unknown support' }))
+    expect(
+      screen.getByText('No compatibility data available for the current filters.')
+    ).toBeInTheDocument()
+
+    // Deselecting the level restores the matrix.
+    fireEvent.click(screen.getByRole('button', { name: 'Filter by unknown support' }))
+    expect(screen.getByText('Managed Offering')).toBeInTheDocument()
+  })
+
+  it('reveals V3-only features on the V3 tab', () => {
+    render(<App />)
+    const grid = () => screen.getByRole('grid')
+    // V3-only rows are hidden under the default V2 tab.
+    expect(within(grid()).queryByText('Lineage Tracking')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'V3' }))
+    expect(within(grid()).getByText('Lineage Tracking')).toBeInTheDocument()
+  })
+
+  it('clears all filters at once', () => {
+    render(<App />)
+    const grid = () => screen.getByRole('grid')
+    fireEvent.click(screen.getByRole('button', { name: 'Filter by Partitioning' }))
+    expect(within(grid()).queryByText('Position Deletes')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByText('✕ Clear all'))
+    expect(within(grid()).getByText('Position Deletes')).toBeInTheDocument()
+    // The clear control only renders while a filter is active.
+    expect(screen.queryByText('✕ Clear all')).not.toBeInTheDocument()
   })
 })
