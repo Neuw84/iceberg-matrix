@@ -80,7 +80,7 @@ describe("engine files on disk", () => {
 
   it.each(files.map((f) => [f.path, f.content] as const))(
     "%s covers every feature for every version",
-    (path, content) => {
+    (_path, content) => {
       const id = content.platforms?.[0]?.id as string;
       const expectedKeys = featureIds
         .flatMap((fid) => versions.map((v) => `${id}:${fid}:${v}`))
