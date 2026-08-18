@@ -48,7 +48,10 @@
         "Measured from the Iceberg snapshot summary: after a DELETE, total-position-deletes is 1 and total-data-files is unchanged"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-writes.html"
+        {
+          "label": "Redshift Iceberg writes",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-writes.html"
+        }
       ]
     },
     "aws-redshift-s3:copy-on-write:v3": {
@@ -107,7 +110,10 @@
         "ALTER TABLE ... ADD PARTITION FIELD day(ts) and bucket(8, id) both apply and appear in SHOW TABLE"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/querying-s3Tables.html"
+        {
+          "label": "Querying S3 Tables from Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-s3Tables.html"
+        }
       ]
     },
     "aws-redshift-s3:hidden-partitioning:v3": {
@@ -143,7 +149,10 @@
         "Iceberg metadata tables such as $snapshots and $history are not exposed either"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        {
+          "label": "Querying Iceberg tables in Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        }
       ]
     },
     "aws-redshift-s3:time-travel:v3": {
@@ -187,7 +196,10 @@
         "Verified by reading a v3 table built by Spark on EMR, since Redshift cannot produce one itself"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        {
+          "label": "Querying Iceberg tables in Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        }
       ]
     },
     "aws-redshift-s3:write-insert:v2": {
@@ -238,7 +250,10 @@
         "SHOW TABLE reports the writable properties as format-version and compression_type only"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-writes.html"
+        {
+          "label": "Redshift Iceberg writes",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-writes.html"
+        }
       ]
     },
     "aws-redshift-s3:bloom-filters:v3": {
@@ -264,7 +279,10 @@
         "Naming the federated catalog directly does not work: \"<bucket>@s3tablescatalog\".ns.table is rejected as an unsupported cross-database reference"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/querying-s3Tables.html"
+        {
+          "label": "Querying S3 Tables from Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-s3Tables.html"
+        }
       ]
     },
     "aws-redshift-s3:aws-glue-catalog:v3": {
@@ -280,7 +298,10 @@
         "Redshift tables can be published into Glue's Iceberg REST endpoint, but that is Redshift as a producer, not as a REST client"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/querying-s3Tables.html"
+        {
+          "label": "Querying S3 Tables from Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-s3Tables.html"
+        }
       ]
     },
     "aws-redshift-s3:rest-catalog:v3": {
@@ -395,7 +416,10 @@
         "CREATE EXTERNAL SCHEMA ... FROM ICEBERG REST CATALOG is not recognised: it produces the same error as a deliberately meaningless catalog clause, so the clause is discarded rather than understood"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        {
+          "label": "Querying Iceberg tables in Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        }
       ]
     },
     "aws-redshift-s3:snowflake-horizon-catalog:v3": {
@@ -417,7 +441,10 @@
         "Writes fail with: Iceberg version 3 is not supported. Only Iceberg V2 tables are supported for writing"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        {
+          "label": "Querying Iceberg tables in Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        }
       ]
     }
   }

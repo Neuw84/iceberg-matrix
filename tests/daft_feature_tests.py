@@ -4,7 +4,7 @@ Daft-based Iceberg Feature Test Suite.
 
 Tests Iceberg features using Daft's read_iceberg() / write_iceberg() API
 with a PyIceberg SQLite-backed catalog, then compares results with the
-Daft entries from oss.json.
+Daft entries from src/data/platforms/oss/daft/daft.json.
 
 Usage:
     python tests/daft_feature_tests.py
@@ -645,7 +645,9 @@ ALL_TESTS = [
 
 def load_daft_json_support() -> dict:
     """Load the JSON support levels for Daft from the repo data."""
-    oss_path = os.path.join(REPO_ROOT, "src", "data", "platforms", "oss.json")
+    oss_path = os.path.join(
+        REPO_ROOT, "src", "data", "platforms", "oss", "daft", "daft.json"
+    )
     with open(oss_path) as f:
         data = json.load(f)
     result = {}

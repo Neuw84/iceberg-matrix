@@ -48,7 +48,10 @@
         "Measured from the Iceberg snapshot summary: after a DELETE, total-position-deletes is 1 and total-data-files is unchanged"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-writes.html"
+        {
+          "label": "Redshift Iceberg writes",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-writes.html"
+        }
       ]
     },
     "aws-redshift-s3:copy-on-write:v3": {
@@ -126,7 +129,10 @@
         "Iceberg metadata tables such as $snapshots and $history are not exposed either"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        {
+          "label": "Querying Iceberg tables in Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        }
       ]
     },
     "aws-redshift-s3:time-travel:v3": {
@@ -185,7 +191,10 @@
         "Verified by reading a v3 table built by Spark on EMR, since Redshift cannot produce one itself"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        {
+          "label": "Querying Iceberg tables in Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        }
       ]
     },
     "aws-redshift-s3:write-insert:v2": {
@@ -400,7 +409,10 @@
         "CREATE EXTERNAL SCHEMA ... FROM ICEBERG REST CATALOG is not recognised: it produces the same error as a deliberately meaningless catalog clause, so the clause is discarded rather than understood"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        {
+          "label": "Querying Iceberg tables in Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        }
       ]
     },
     "aws-redshift-s3:snowflake-horizon-catalog:v3": {
@@ -423,7 +435,10 @@
         "Writes fail with: Iceberg version 3 is not supported. Only Iceberg V2 tables are supported for writing"
       ],
       "links": [
-        "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        {
+          "label": "Querying Iceberg tables in Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        }
       ]
     }
   }
