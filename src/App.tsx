@@ -121,18 +121,46 @@ export default function App() {
           </button>
           {introOpen && (
             <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800 space-y-2 collapsible-content">
-              <p>
-                One of Apache Iceberg's core promises is interoperability: because
-                the table format is an open specification, data written by one
-                engine can be read by any other engine that implements the spec.
-                A Spark job can write data that Trino, Flink, Athena, or Snowflake
-                can query without conversion or migration.
-              </p>
-              <p>
-                In practice, each engine implements the specification independently,
-                so feature support can vary. This matrix tracks the current state
-                of those implementations to help you make informed decisions.
-              </p>
+              {isCatalogsView ? (
+                <>
+                  <p>
+                    The table-format layer of Iceberg is an open specification, so
+                    interoperability now lives or dies at the catalog: can
+                    non-vendor engines read and write your tables over the Iceberg
+                    REST Catalog (IRC) API, with short-lived vended credentials,
+                    and is there an open-source exit path? This view scores ten
+                    catalogs against that openness rubric.
+                  </p>
+                  <p>
+                    Ratings and evidence are based on{" "}
+                    <a
+                      href="https://gitlab.com/hunt.dan/iceberg-state-of-catalogs"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-blue-900"
+                    >
+                      Iceberg: The State of Catalogs
+                    </a>
+                    ; every cell links to its public source. Click a cell for the
+                    reasoning behind its rating.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    One of Apache Iceberg's core promises is interoperability: because
+                    the table format is an open specification, data written by one
+                    engine can be read by any other engine that implements the spec.
+                    A Spark job can write data that Trino, Flink, Athena, or Snowflake
+                    can query without conversion or migration.
+                  </p>
+                  <p>
+                    In practice, each engine implements the specification independently,
+                    so feature support can vary. This matrix tracks the current state
+                    of those implementations to help you make informed decisions.
+                  </p>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -142,6 +170,7 @@ export default function App() {
             filters={filters}
             data={activeData}
             onFilterChange={setFilters}
+            entityLabel={isCatalogsView ? "Catalogs" : "Platforms"}
           />
         </div>
         </div>

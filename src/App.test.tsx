@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import fc from 'fast-check'
 import App from './App'
@@ -60,7 +60,32 @@ describe('Engines/Catalogs view toggle', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('tab', { name: 'Catalogs' }))
 
-    expect(screen.getByText('Proprietary')).toBeInTheDocument()
-    expect(screen.getByText('Open Source')).toBeInTheDocument()
+    // Scoped to the matrix grid: the same group names also appear as filter
+    // chips in the panel above it.
+    const grid = screen.getByRole('grid')
+    expect(within(grid).getByText('Proprietary')).toBeInTheDocument()
+    expect(within(grid).getByText('Open Source')).toBeInTheDocument()
+  })
+
+  it('offers the catalog groups and only the rubric category as filters', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Catalogs' }))
+
+    const panel = screen.getByRole('search')
+    // Group chips are derived from the data, so the catalog groups appear...
+    expect(within(panel).getByRole('button', { name: 'Filter by Proprietary' })).toBeInTheDocument()
+    expect(within(panel).getByRole('button', { name: 'Filter by Open Source' })).toBeInTheDocument()
+    // ...the section heading follows the view...
+    expect(within(panel).getByText('Catalogs')).toBeInTheDocument()
+    // ...and category chips only offer what the dataset contains.
+    expect(within(panel).getByRole('button', { name: 'Filter by Openness Rubric' })).toBeInTheDocument()
+    expect(within(panel).queryByRole('button', { name: 'Filter by Partitioning' })).not.toBeInTheDocument()
+  })
+
+  it('does not offer the rubric category in the Engines view', () => {
+    render(<App />)
+    const panel = screen.getByRole('search')
+    expect(within(panel).queryByRole('button', { name: 'Filter by Openness Rubric' })).not.toBeInTheDocument()
+    expect(within(panel).getByRole('button', { name: 'Filter by Partitioning' })).toBeInTheDocument()
   })
 })

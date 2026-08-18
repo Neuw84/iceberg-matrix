@@ -78,6 +78,13 @@ const PLATFORM_LOGOS: Record<string, string> = {
   "google-dataproc": "/logos/dataproc.svg",
   "azure-synapse": "/logos/synapse.png",
   "azure-fabric": "/logos/fabric.png",
+  // Catalogs view. Only vendors with a logo already in /logos are mapped; the
+  // rest (Polaris, Gravitino, Lakekeeper, Nessie, Unity OSS) render name-only.
+  "snowflake-horizon": "/logos/snowflake.svg",
+  "aws-glue-data-catalog": "/logos/aws-glue.svg",
+  "databricks-unity": "/logos/databricks.svg",
+  "google-lakehouse-runtime-catalog": "/logos/bigquery.svg",
+  "microsoft-onelake": "/logos/fabric.png",
 };
 
 interface PopoverState {

@@ -55,8 +55,11 @@ export function DetailPopover({
         <div>
           <h3 className="font-semibold text-sm text-gray-900">{feature.name}</h3>
           <p className="text-[11px] text-gray-500 mt-0.5">
-            {platform.name} · {version.toUpperCase()} · Since{" "}
-            {feature.introducedIn.toUpperCase()}
+            {/* "current" is the catalogs dataset's single synthetic version;
+                echoing "CURRENT · Since CURRENT" would be noise. */}
+            {version === "current"
+              ? platform.name
+              : `${platform.name} · ${version.toUpperCase()} · Since ${feature.introducedIn.toUpperCase()}`}
           </p>
         </div>
         <button
