@@ -1,0 +1,137 @@
+name: Databricks Platform Tests
+
+# Runs the Iceberg feature suite against a live Databricks SQL warehouse and
+# compares the results with the matrix cells, the same way the AWS platform
+# workflow does for EMR/Glue/Redshift.
+#
+# The matrix cells for the databricks platform were measured on a DBSQL 2026.15
+# warehouse, serverless Spark 4.1.0 and a DBR 18.2 cluster; the report records
+# the warehouse version of each run next to that reference so a discrepancy can
+# be told apart from version drift.
+#
+# Deliberately NOT triggered by pull_request: this spends real money on a
+# personal Databricks account and assumes an AWS IAM role for the S3 layout
+# inspection. Dispatch only, gated by the aws-live environment (required
+# reviewer) — the same environment as the AWS platform tests because the S3
+# inspection reuses its OIDC trust, which is scoped to that environment.
+#
+# The suite creates Unity Catalog *managed Iceberg* tables in a catalog whose
+# managed location lives on our S3 bucket, then inspects the storage layout
+# with boto3 to prove the tables are genuine Iceberg (metadata/*.metadata.json,
+# no _delta_log/) rather than Delta + UniForm.
+#
+# One-time workspace prerequisites (see infra/aws/README.MD):
+#   - a storage credential + external location over s3://<AWS_DATA_BUCKET>/databricks/
+#   - a catalog:  CREATE CATALOG icebergmatrix
+#                 MANAGED LOCATION 's3://<AWS_DATA_BUCKET>/databricks/managed/'
+#   - a serverless SQL warehouse the token can use
+#
+# Environment secrets (aws-live), in addition to the AWS ones:
+#   DATABRICKS_HOST           https://dbc-xxxx.cloud.databricks.com
+#   DATABRICKS_TOKEN          PAT or service-principal OAuth token
+#   DATABRICKS_WAREHOUSE_ID   SQL warehouse id (Connection details tab)
+
+on:
+  workflow_dispatch:
+    inputs:
+      catalog:
+        description: Unity Catalog catalog holding the run schemas
+        type: string
+        default: icebergmatrix
+      only:
+        description: >
+          Comma-separated test-name filters to run a subset (e.g.
+          "variant,lineage"). Empty runs the full suite.
+        type: string
+        default: ''
+      dry-run:
+        description: Verify connectivity (Databricks + OIDC) and stop
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  # Shared catalog and warehouse: never let two runs overlap.
+  group: databricks-live
+  cancel-in-progress: false
+
+jobs:
+  platform-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: aws-live
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      RUN_TAG: icebergmatrix-${{ github.run_id }}
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_WAREHOUSE_ID: ${{ secrets.DATABRICKS_WAREHOUSE_ID }}
+      DATABRICKS_CATALOG: ${{ inputs.catalog }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_DATA_BUCKET: ${{ secrets.AWS_DATA_BUCKET }}
+      RESOURCE_PREFIX: icebergmatrix
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+
+      # Read-only S3 access for the layout inspection; the tables themselves
+      # are written by Databricks through its own storage credential.
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: ${{ github.run_id }}
+
+      - name: Verify connectivity
+        run: |
+          aws sts get-caller-identity
+          uv run --with databricks-sql-connector python - <<'EOF'
+          import os
+          from databricks import sql
+          with sql.connect(
+              server_hostname=os.environ["DATABRICKS_HOST"].replace("https://", ""),
+              http_path=f"/sql/1.0/warehouses/{os.environ['DATABRICKS_WAREHOUSE_ID']}",
+              access_token=os.environ["DATABRICKS_TOKEN"],
+          ) as conn, conn.cursor() as c:
+              c.execute("SELECT current_user(), current_version().dbsql_version")
+              user, version = c.fetchone()
+              print(f"Connected as {user}, DBSQL {version}")
+          EOF
+
+      - name: Stop here on dry run
+        if: inputs.dry-run
+        run: 'echo "Dry run complete: Databricks connectivity and OIDC verified, nothing created."'
+
+      # No continue-on-error: the suite exits non-zero on discrepancies or
+      # errors, and that should fail the job. Teardown still runs (always()).
+      - name: Run feature suite on Databricks
+        if: '!inputs.dry-run'
+        env:
+          DATABRICKS_ONLY: ${{ inputs.only }}
+        run: >
+          uv run --with databricks-sql-connector --with boto3
+          python tests/databricks_feature_tests.py
+
+      - name: Tear down billable resources
+        if: always() && !inputs.dry-run
+        run: >
+          uv run --with databricks-sql-connector
+          python tests/databricks_teardown.py
+
+      - name: Upload reports
+        if: always() && !inputs.dry-run
+        uses: actions/upload-artifact@v7
+        with:
+          name: databricks-platform-test-report
+          path: test-reports/
+          if-no-files-found: warn
