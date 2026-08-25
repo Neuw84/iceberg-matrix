@@ -1431,33 +1431,66 @@ def test_geometry_type(version: str) -> TestResult:
     return r
 
 
+# The same Iceberg type has two spellings, and which one an engine accepts
+# decides whether this feature looks absent. Iceberg names the types
+# timestamp_ns / timestamptz_ns; Spark spells them as a precision on its own
+# timestamp types. Glue 6.0 rejects TIMESTAMP_NS with UNSUPPORTED_DATATYPE while
+# accepting TIMESTAMP_NTZ(9), so probing only the spec spelling recorded "none"
+# for an engine that does support nanoseconds. Ordered spec-first so engines that
+# take the Iceberg names are still reported against those.
+NANOSECOND_DECLARATIONS = (
+    ("TIMESTAMP_NS", "TIMESTAMP_NS"),
+    ("TIMESTAMP_NTZ(9)", "TIMESTAMP_LTZ(9)"),
+)
+
+# Nine fractional digits with non-zero final three, so silent truncation to
+# microsecond precision is detectable rather than passing as support.
+NANOSECOND_LITERAL = "2025-06-15 10:30:45.123456789"
+
+
 def test_nanosecond_timestamps(version: str) -> TestResult:
     if version == "v2":
         return _v3_only_skip("nanosecond-timestamps", "Nanosecond Timestamps")
     r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps", "v3")
     spark = get_spark()
     ns = _ns()
+    attempts = []
     try:
         spark.sql(f"CREATE NAMESPACE IF NOT EXISTS local.{ns}")
-        tbl = f"local.{ns}.{_unique('nanots')}"
-        spark.sql(f"""
-            CREATE TABLE {tbl} (id BIGINT, ts TIMESTAMP_NS)
-            USING iceberg TBLPROPERTIES ('format-version'='3')
-        """)
-        cols = [c[0] for c in spark.sql(f"DESCRIBE TABLE {tbl}").collect()]
-        assert "ts" in cols
-        _drop_table(spark, tbl)
-        spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
-        r.result = "pass"
-        r.details = "TIMESTAMP_NS column created on V3 table"
+        for ntz, ltz in NANOSECOND_DECLARATIONS:
+            tbl = f"local.{ns}.{_unique('nanots')}"
+            try:
+                spark.sql(f"""
+                    CREATE TABLE {tbl} (id BIGINT, ts {ntz}, tstz {ltz})
+                    USING iceberg TBLPROPERTIES ('format-version'='3')
+                """)
+                spark.sql(f"INSERT INTO {tbl} VALUES (1, "
+                          f"CAST('{NANOSECOND_LITERAL}' AS {ntz}), "
+                          f"CAST('{NANOSECOND_LITERAL}' AS {ltz}))")
+                row = spark.sql(f"SELECT CAST(ts AS STRING) AS ts, "
+                                f"CAST(tstz AS STRING) AS tstz FROM {tbl}").collect()[0]
+                # Accepting the DDL is not enough. A type that quietly stores
+                # microseconds would create the column and lose the last three
+                # digits, which is not nanosecond support.
+                assert row["ts"].endswith("123456789"), f"ts truncated to {row['ts']}"
+                assert row["tstz"].endswith("123456789"), f"tstz truncated to {row['tstz']}"
+                _drop_table(spark, tbl)
+                r.result = "pass"
+                r.details = (f"Nanosecond timestamps supported as {ntz} / {ltz}; "
+                             f"9-digit precision preserved through write and read "
+                             f"({row['ts']})")
+                return r
+            except Exception as e:  # noqa: PERF203 - each spelling is a separate probe
+                attempts.append(f"{ntz}: {str(e).strip().splitlines()[0][:120]}")
+                try:
+                    _drop_table(spark, tbl)
+                except Exception:
+                    pass
+        r.result = "fail"
+        r.details = "Nanosecond timestamps not supported. " + "; ".join(attempts)
     except Exception as e:
-        emsg = str(e).lower()
-        if any(t in emsg for t in ("not supported", "unsupported", "timestamp_ns", "type")):
-            r.result = "fail"
-            r.details = f"Nanosecond timestamps not supported: {str(e)[:200]}"
-        else:
-            r.result = "error"
-            r.details = str(e)[:300]
+        r.result = "error"
+        r.details = str(e)[:300]
     finally:
         try:
             spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")

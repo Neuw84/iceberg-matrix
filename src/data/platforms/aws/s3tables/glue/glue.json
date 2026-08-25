@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "aws-glue",
-      "name": "Glue (5.1)",
+      "name": "Glue (6.0)",
       "vendor": "AWS",
       "category": "cloud",
       "group": "AWS",
@@ -211,11 +211,17 @@
       "caveats": []
     },
     "aws-glue:column-default-values:v3": {
-      "level": "none",
-      "notes": "Not settable from Spark SQL on Glue against S3 Tables: the Iceberg Spark connector does not declare the column-default capability, so a DEFAULT clause is rejected during analysis.",
+      "level": "full",
+      "notes": "Measured on Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0) against S3 Tables through the federated s3tablescatalog: a DEFAULT clause on a V3 table is accepted and the default is applied to a row inserted without that column. Requires spark.sql.defaultColumn.enabled=true, which is off by default; AWS documents it as the prerequisite, and without it the clause is refused during analysis, which is what the previous 'none' recorded.",
       "caveats": [
-        "Inferred from the OSS Spark result (Spark 4.1.2 + Iceberg 1.11.0 reject a DEFAULT clause with UNSUPPORTED_FEATURE.TABLE_OPERATION), not measured on Glue itself",
-        "Glue reaches Iceberg through the same Spark connector"
+        "Needs spark.sql.defaultColumn.enabled=true in the job's Spark configuration; the feature is unavailable with Glue's defaults.",
+        "AWS-specific: open-source Spark 4.1 with Iceberg 1.11.0 still rejects a DEFAULT clause with UNSUPPORTED_FEATURE.TABLE_OPERATION."
+      ],
+      "links": [
+        {
+          "label": "Introducing AWS Glue 6.0",
+          "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+        }
       ]
     },
     "aws-glue:table-creation:v3": {
@@ -235,9 +241,15 @@
     },
     "aws-glue:multi-arg-transforms:v3": {
       "level": "none",
-      "notes": "Measured on Glue 5.1 (Spark 3.5.6-amzn-1, Iceberg 1.10.0-amzn-0). A transform over more than one source column is rejected with \"Cannot convert transform with more than one column reference\". Iceberg's Spark integration cannot express the V3 multi-argument transform.",
+      "notes": "Measured on Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0) against S3 Tables through the federated s3tablescatalog: bucket(4, a, b) is rejected with \"Cannot convert transform with more than one column reference\". A limitation of Iceberg's Spark integration rather than of Glue or S3 Tables, and it survived the Spark 4 upgrade, so it is not something a newer Glue release is expected to fix on its own.",
       "caveats": [
         "Single-source transforms such as bucket(4, id) work, but those are not this feature: they work on format-version 2 as well."
+      ],
+      "links": [
+        {
+          "label": "Introducing AWS Glue 6.0",
+          "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+        }
       ]
     },
     "aws-glue:time-travel:v3": {
@@ -331,33 +343,54 @@
       "caveats": []
     },
     "aws-glue:variant-type:v3": {
-      "level": "none",
-      "notes": "Measured on Glue 5.1 (Spark 3.5.6-amzn-1, Iceberg 1.10.0-amzn-0). Declaring a VARIANT column is rejected with UNSUPPORTED_DATATYPE. Glue 5.1 runs Spark 3.5.6, which has no VARIANT SQL type -- the type arrived in Spark 4. Iceberg 1.10.0 supports variant at the format level, so this is an engine limitation, not an Iceberg one: the same test passes on EMR Serverless, which runs Spark 4.0.2 with the same Iceberg version.",
-      "caveats": [
-        "Expected to change when a Glue release ships Spark 4."
+      "level": "full",
+      "notes": "Measured on Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0) against S3 Tables through the federated s3tablescatalog: a VARIANT column is created and written on a V3 table. Glue 5.1 rejected the same DDL with UNSUPPORTED_DATATYPE because Spark 3.5.6 has no VARIANT SQL type; Iceberg already supported variant at the format level there, so the blocker was the engine, and the move to Spark 4 clears it.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Introducing AWS Glue 6.0",
+          "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+        }
       ]
     },
     "aws-glue:shredded-variant:v3": {
-      "level": "none",
-      "notes": "Measured on Glue 5.1 (Spark 3.5.6-amzn-1, Iceberg 1.10.0-amzn-0). Blocked by the missing VARIANT type: shredding is a write-side optimisation of a type this engine cannot declare.",
+      "level": "full",
+      "notes": "Measured on Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0) against S3 Tables through the federated s3tablescatalog: a VARIANT column carrying the shredding property is created and written on a V3 table. Unreachable on Glue 5.1, where the VARIANT type itself was rejected. AWS describes shredding as automatic on Glue 6.0.",
       "caveats": [
-        "Blocked by the missing VARIANT type rather than by shredding support; see variant-type."
+        "The test confirms the shredding property is accepted and the table is written; it does not verify the physical sub-field layout on disk."
+      ],
+      "links": [
+        {
+          "label": "Introducing AWS Glue 6.0",
+          "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+        }
       ]
     },
     "aws-glue:geometry-type:v3": {
-      "level": "none",
-      "notes": "No geospatial path through Glue's Spark runtime against S3 Tables: the Iceberg Spark connector has no type mapping for GEOMETRY/GEOGRAPHY, so creating a V3 table with those columns fails.",
+      "level": "full",
+      "notes": "Measured on Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0) against S3 Tables through the federated s3tablescatalog: GEOMETRY(4326) and GEOGRAPHY(4326) columns are both created on a V3 table. An AWS addition rather than upstream behaviour -- AWS states neither type is supported in open-source Spark 4.1, and the same DDL is rejected there -- so the previous 'none', inferred from OSS Spark, did not describe Glue.",
       "caveats": [
-        "Inferred from the OSS Spark result (Spark 4.1.2 + Iceberg 1.11.0 reject 'geometry(4326)'), not measured on Glue itself",
-        "Not documented for AWS Glue with S3 Tables"
+        "AWS-specific: does not transfer to open-source Spark, where the same DDL fails."
+      ],
+      "links": [
+        {
+          "label": "Introducing AWS Glue 6.0",
+          "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+        }
       ]
     },
     "aws-glue:nanosecond-timestamps:v3": {
-      "level": "none",
-      "notes": "Spark SQL has no nanosecond timestamp type, so TIMESTAMP_NS columns cannot be declared on Glue against S3 Tables either.",
+      "level": "full",
+      "notes": "Measured on Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0) against S3 Tables through the federated s3tablescatalog: declared as TIMESTAMP_NTZ(9) and TIMESTAMP_LTZ(9), which map to Iceberg timestamp_ns and timestamptz_ns. Verified end to end rather than by DDL acceptance alone -- 2025-06-15 10:30:45.123456789 round-trips through write and read with all nine digits intact, so the column is genuinely nanosecond and not silently truncated to microseconds. An AWS addition: AWS states nanosecond timestamps are absent from open-source Spark 4.1.",
       "caveats": [
-        "Inferred from the OSS Spark result (Spark 4.1.2 rejects TIMESTAMP_NS with UNSUPPORTED_DATATYPE), not measured on Glue itself",
-        "Glue reaches Iceberg through the same Spark connector"
+        "Spark's parameterised spelling is required. The Iceberg spec name TIMESTAMP_NS is rejected with UNSUPPORTED_DATATYPE, which is why this cell previously read 'none' -- the earlier probe only tried that spelling.",
+        "AWS-specific: does not transfer to open-source Spark 4.1."
+      ],
+      "links": [
+        {
+          "label": "Introducing AWS Glue 6.0",
+          "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+        }
       ]
     },
     "aws-glue:lineage:v3": {
