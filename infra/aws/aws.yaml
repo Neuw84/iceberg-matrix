@@ -10,6 +10,13 @@ Parameters:
     Type: String
     Default: Neuw84/iceberg-matrix
     Description: owner/repo allowed to assume the CI role
+  DatabricksAccountId:
+    Type: String
+    Default: ''
+    Description: >
+      Databricks *account* id (the UUID from the account console), used as the
+      sts:ExternalId when Unity Catalog assumes the storage-credential role.
+      Leave empty to skip creating the Databricks storage role.
   EnvironmentName:
     Type: String
     Default: aws-live
@@ -67,6 +74,7 @@ Parameters:
       which is an AWS API call rather than a database connection.
 
 Conditions:
+  CreateDatabricksRole: !Not [!Equals [!Ref DatabricksAccountId, '']]
   CreateOidcProvider: !Equals [!Ref ExistingOidcProviderArn, '']
   HasBudgetEmail: !Not [!Equals [!Ref BudgetNotificationEmail, '']]
   # CommaDelimitedList cannot be compared directly, so join it back to a string.
@@ -372,6 +380,101 @@ Resources:
                 Resource: '*'
 
   # ---------------------------------------------------------------------------
+  # Databricks storage-credential role: assumed by Unity Catalog (from the
+  # Databricks-owned AWS account) to read and write managed Iceberg table data
+  # under the databricks/ prefix of the data bucket. This is what lets the
+  # Databricks platform tests put real Iceberg tables on our bucket where the
+  # suite can inspect the storage layout.
+  #
+  # Two trust statements are required by Unity Catalog:
+  #   1. The Databricks UC master role, with the Databricks account id as
+  #      sts:ExternalId (confused-deputy protection).
+  #   2. The role itself ("self-assuming role", a UC requirement). CloudFormation
+  #      cannot reference a role ARN inside its own trust policy, so the
+  #      statement trusts the account root narrowed by aws:PrincipalArn to this
+  #      role's fixed name — semantically identical to trusting the role ARN.
+  # ---------------------------------------------------------------------------
+  DatabricksStorageRole:
+    Type: AWS::IAM::Role
+    Condition: CreateDatabricksRole
+    Properties:
+      RoleName: !Sub '${ResourcePrefix}-databricks-storage'
+      Description: Assumed by Databricks Unity Catalog for iceberg-matrix managed table storage
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # 414351767826 is the Databricks production AWS account; the UC master
+          # role inside it performs every storage-credential assumption.
+          - Effect: Allow
+            Principal:
+              AWS: 'arn:aws:iam::414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL'
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                'sts:ExternalId': !Ref DatabricksAccountId
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Action: sts:AssumeRole
+            Condition:
+              ArnEquals:
+                'aws:PrincipalArn': !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${ResourcePrefix}-databricks-storage'
+              StringEquals:
+                'sts:ExternalId': !Ref DatabricksAccountId
+      Policies:
+        # Object access is scoped to the databricks/ prefix, so Unity Catalog can
+        # never read or write the other engines' warehouses, scripts or reports on
+        # the same bucket.
+        #
+        # The bucket-level actions are deliberately NOT narrowed by an s3:prefix
+        # condition, which is what an earlier version of this template tried:
+        #
+        #   - s3:GetBucketLocation carries no s3:prefix context key at all, so a
+        #     condition on it can never match and the call is always denied.
+        #   - Unity Catalog's own validation lists the location as it was written
+        #     (the CREATE EXTERNAL LOCATION error names ".../databricks", with no
+        #     trailing slash), so StringLike 'databricks/*' misses it, and an
+        #     unprefixed ListObjectsV2 has nothing to match either.
+        #
+        # Both together produce "PERMISSION_DENIED: AWS IAM role does not have
+        # READ permissions on url s3://<bucket>/databricks ... AccessDeniedException
+        # error from cloud storage provider" while the role is assumed correctly,
+        # which sends you looking at the trust policy instead of the permissions.
+        # Databricks documents the bucket ARN with no condition and refers anyone
+        # wanting a tighter policy to their account team.
+        #
+        # The residual exposure is key enumeration: the credential can list names
+        # anywhere in the bucket but can only open objects under databricks/.
+        - PolicyName: s3-databricks-prefix
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  # Unity Catalog writes table data with multipart uploads and
+                  # cleans up its own aborted parts.
+                  - s3:ListMultipartUploadParts
+                  - s3:AbortMultipartUpload
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${DataBucket}/databricks/*'
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                  - s3:ListBucketMultipartUploads
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${DataBucket}'
+        # Unity Catalog requires the role to be able to assume itself.
+        - PolicyName: self-assume
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: sts:AssumeRole
+                Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${ResourcePrefix}-databricks-storage'
+
+  # ---------------------------------------------------------------------------
   # Redshift Serverless namespace and workgroup.
   #
   # ManageAdminPassword hands the admin credentials to Secrets Manager instead of
@@ -655,6 +758,12 @@ Outputs:
   RedshiftRoleArn:
     Description: IAM role attached to the namespace for Iceberg reads and writes
     Value: !GetAtt RedshiftRole.Arn
+  DatabricksStorageRoleArn:
+    Condition: CreateDatabricksRole
+    Description: >
+      Use as the IAM role ARN when creating the Unity Catalog storage
+      credential in the Databricks account console
+    Value: !GetAtt DatabricksStorageRole.Arn
   RedshiftDatabase:
     Description: Database name inside the namespace
     Value: dev

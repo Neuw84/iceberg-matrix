@@ -274,3 +274,105 @@ much shorter than the EMR and Glue drivers.
   discarded; `ALTER TABLE ... ADD PARTITION FIELD` afterwards does apply. Always
   confirm a partition spec with `SHOW TABLE` rather than trusting the absence of an
   error.
+
+## 9. Databricks platform tests
+
+`.github/workflows/databricks-tests.yml` runs `tests/databricks_feature_tests.py`
+against a live Databricks SQL warehouse from the GitHub runner (like the
+Redshift suite: API-driven, no cluster-side code). Tables are created as Unity
+Catalog **managed Iceberg** tables in a catalog whose managed location sits on
+the data bucket, so the suite can list the S3 prefix with boto3 and prove each
+table is genuine Iceberg (`metadata/*.metadata.json`, no `_delta_log/`) rather
+than Delta + UniForm.
+
+The matrix cells for the `databricks` platform were measured on a DBSQL 2026.15
+warehouse, serverless Spark 4.1.0 and a DBR 18.2 cluster. The report prints the
+warehouse version of each run next to that reference, so a discrepancy on a
+newer warehouse can be recognised as version drift instead of bad data.
+
+### One-time setup
+
+1. **AWS side** — redeploy the stack with your Databricks *account* id (the
+   UUID in the account console URL), which creates the storage-credential role
+   scoped to `s3://<data-bucket>/databricks/*`:
+
+   ```bash
+   aws cloudformation deploy --stack-name icebergmatrix-ci \
+     --template-file infra/aws/aws.yaml \
+     --capabilities CAPABILITY_NAMED_IAM \
+     --parameter-overrides DatabricksAccountId=<databricks-account-uuid> \
+       ... # existing parameters unchanged
+   ```
+
+   Note the `DatabricksStorageRoleArn` output.
+
+2. **Databricks side** (workspace must be on a plan that allows external
+   locations; Free Edition does not):
+
+   ```sql
+   -- Catalog Explorer → External data → Credentials → Create credential,
+   -- with the DatabricksStorageRoleArn from the stack output. Then:
+   CREATE EXTERNAL LOCATION icebergmatrix_ext
+     URL 's3://<data-bucket>/databricks/'
+     WITH (STORAGE CREDENTIAL <credential-name>);
+
+   CREATE CATALOG icebergmatrix
+     MANAGED LOCATION 's3://<data-bucket>/databricks/managed/';
+   ```
+
+   Also create (or pick) a serverless SQL warehouse and note its id from the
+   Connection details tab.
+
+   If `CREATE EXTERNAL LOCATION` fails with
+
+   ```
+   PERMISSION_DENIED: AWS IAM role does not have READ permissions on url
+   s3://<bucket>/databricks. Cause: AccessDeniedException error from cloud
+   storage provider.
+   ```
+
+   read it as a permissions problem, not a trust problem. The message names S3,
+   so the role was assumed successfully and the external id already matches;
+   only the identity policy is at fault. The first version of this stack scoped
+   the bucket-level actions with `StringLike s3:prefix = databricks/*`, which
+   fails twice over: `s3:GetBucketLocation` sends no `s3:prefix` key at all so a
+   condition on it can never match, and Unity Catalog validates the location as
+   written -- note the missing trailing slash in the error -- so a list with
+   prefix `databricks` misses the pattern too. `iam simulate-principal-policy`
+   settles which of the two it is in one call. The template now leaves the
+   bucket statement unconditioned, as Databricks documents; object access stays
+   scoped to `databricks/*`, so the credential can enumerate key names bucket
+   wide but can only open objects under that prefix.
+
+   Unity Catalog also needs the three multipart actions
+   (`ListBucketMultipartUploads`, `ListMultipartUploadParts`,
+   `AbortMultipartUpload`) for managed table writes. Encryption is the other
+   thing worth ruling out early: on an SSE-KMS bucket the role needs
+   `kms:Decrypt`/`Encrypt`/`GenerateDataKey*` *and* an entry in the key policy.
+   Ours is SSE-S3, so there is no KMS section.
+
+3. **GitHub side** — add three secrets to the existing `aws-live` environment
+   (the workflow reuses it because the S3 inspection is authorised by the same
+   OIDC trust):
+
+   | Secret | Value |
+   |---|---|
+   | `DATABRICKS_HOST` | `https://dbc-xxxx.cloud.databricks.com` |
+   | `DATABRICKS_TOKEN` | PAT (or service-principal OAuth token) |
+   | `DATABRICKS_WAREHOUSE_ID` | SQL warehouse id |
+
+### Run it
+
+Dispatch **Databricks Platform Tests** with `dry-run: true` first: it verifies
+the SQL warehouse connection and the OIDC role without creating anything. A real
+run creates per-run schemas `icebergmatrix-<run-id>_<n>` in the catalog, runs the
+suite, and `tests/databricks_teardown.py` drops every `icebergmatrix*` schema
+CASCADE afterwards (Unity Catalog purges managed storage asynchronously). The
+`only` input runs a comma-filtered subset while iterating, e.g. `variant,lineage`.
+
+### Costs
+
+Serverless SQL warehouses bill per query with auto-stop; a full suite run is a
+few minutes of warehouse time. The S3 layout inspection is read-only from the CI
+role. Managed-table storage is purged on teardown; anything the teardown could
+not remove is printed loudly in the job log.
