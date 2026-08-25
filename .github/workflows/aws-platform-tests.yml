@@ -42,13 +42,16 @@ on:
         default: emr-spark-8.0.0
       glue-version:
         description: >
-          Glue version (engine glue only). This pins Iceberg, it is not just a
-          Spark bump: 5.1 ships Iceberg 1.10.0 and supports format version 3,
-          5.0 ships 1.7.1 and 4.0 ships 1.0.0, both of which predate most V3
-          features. A V3 run below 5.1 mostly measures the absence of V3.
+          Glue version (engine glue only). This pins both Spark and Iceberg, so
+          it decides which V3 features are reachable at all: 6.0 ships Spark
+          4.1.1 with Iceberg 1.11.0, 5.1 ships Spark 3.5.6 with Iceberg 1.10.0,
+          5.0 ships 1.7.1 and 4.0 ships 1.0.0. The Spark half matters as much as
+          the Iceberg half -- VARIANT needs Spark 4, so it is unreachable on 5.1
+          however new Iceberg is. A V3 run below 5.1 mostly measures the absence
+          of V3.
         type: choice
-        default: '5.1'
-        options: ['5.1', '5.0', '4.0']
+        default: '6.0'
+        options: ['6.0', '5.1', '5.0', '4.0']
       iceberg-jar-path:
         description: >
           Optional in-image Iceberg jar for spark.jars. Empty is correct on EMR

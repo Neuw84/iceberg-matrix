@@ -13,12 +13,22 @@ section 7 for why S3 Tables is addressed this way.
 Glue version matters more than it looks. Iceberg is pinned by the Glue release,
 not chosen by us:
 
+    Glue 6.0  Spark 4.1.1  Iceberg 1.11.0  V3 incl. VARIANT, geo, nanosecond
     Glue 5.1  Spark 3.5.6  Iceberg 1.10.0  Iceberg format version 3 supported
     Glue 5.0  Spark 3.5.4  Iceberg 1.7.1   predates most V3 features
     Glue 4.0  Spark 3.3    Iceberg 1.0.0
 
 So a V3 run on anything below 5.1 mostly measures the absence of V3, which is
-why 5.1 is the default.
+why the default is the newest.
+
+The Spark half of that table matters as much as the Iceberg half, which is easy
+to miss. Glue 5.1 carries Iceberg 1.10.0, which supports VARIANT at the format
+level, yet the VARIANT test still fails there because Spark 3.5.6 has no VARIANT
+SQL type -- an engine limitation, not an Iceberg one. Glue 6.0 is the first
+release to clear that, and AWS states its build also handles geo types and
+nanosecond timestamps, neither of which open-source Spark 4.1 supports. Cells
+inferred from OSS Spark therefore do not transfer to Glue 6.0 and have to be
+measured.
 
 What bills: Glue charges per DPU-hour while a job run is active, with a one
 minute minimum. The job *definition* is free, but it is deleted anyway so nothing
@@ -59,7 +69,7 @@ from platform_common import (  # noqa: E402 - sibling module, not a package
 )
 
 JOB_ROLE_ARN = os.environ.get("AWS_GLUE_JOB_ROLE_ARN") or os.environ["AWS_EMR_JOB_ROLE_ARN"]
-GLUE_VERSION = os.environ.get("GLUE_VERSION", "5.1")
+GLUE_VERSION = os.environ.get("GLUE_VERSION", "6.0")
 WORKER_TYPE = os.environ.get("GLUE_WORKER_TYPE", "G.1X")
 NUMBER_OF_WORKERS = int(os.environ.get("GLUE_NUMBER_OF_WORKERS", "2"))
 ENGINE = "glue"
@@ -137,6 +147,12 @@ def spark_conf(mode: str, warehouse: str, catalog_props: str) -> str:
         f"spark.sql.catalog.local.catalog-impl={GLUE_CATALOG_IMPL}",
         "spark.sql.defaultCatalog=local",
         f"spark.sql.catalog.local.warehouse={warehouse}",
+        # Required before a DEFAULT clause is accepted, and off by default. AWS
+        # documents it as the prerequisite for V3 default column values on Glue
+        # 6.0, so leaving it unset would record "none" for a feature the platform
+        # does support -- measuring our own configuration rather than the engine.
+        # Harmless on older versions, which reject the DEFAULT clause anyway.
+        "spark.sql.defaultColumn.enabled=true",
     ]
     for prop in (p.strip() for p in catalog_props.split(",") if p.strip()):
         settings.append(f"spark.sql.catalog.local.{prop}")
