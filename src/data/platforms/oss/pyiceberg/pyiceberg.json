@@ -532,6 +532,16 @@
         "Read-only; cannot write deletion vectors"
       ],
       "links": []
+    },
+    "pyiceberg:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "pyiceberg:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Not yet measured; recorded as unknown rather than inferred. The suite imports UnknownType and skips when the installed PyIceberg does not expose it, so a run distinguishes absent from unverified.",
+      "caveats": []
     }
   }
 }

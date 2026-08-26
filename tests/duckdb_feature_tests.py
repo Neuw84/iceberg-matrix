@@ -687,6 +687,29 @@ def test_nanosecond_timestamps() -> TestResult:
     return _catalog_test(r, body)
 
 
+def test_unknown_type() -> TestResult:
+    r = TestResult("unknown-type", "Unknown Type", "v3")
+
+    def body(con, ns, r):
+        # DuckDB lists GEOGRAPHY and Unknown together as still unsupported
+        # (planned for v2.0.0), so a rejection is the expected measurement. It has
+        # to be caught here: _catalog_test turns a raised exception into an error,
+        # which would make a known gap look like a broken harness.
+        try:
+            con.execute(
+                f"CREATE TABLE ib.{ns}.t (id INT, u UNKNOWN) WITH ('format-version'='3')"
+            )
+        except Exception as e:  # noqa: BLE001 - the rejection is the datum
+            r.result = "fail"
+            r.details = f"Unknown type rejected: {str(e).splitlines()[0][:180]}"
+            return
+        cols = [c[1] for c in con.execute(f"DESCRIBE ib.{ns}.t").fetchall()]
+        r.result = "pass"
+        r.details = f"V3 unknown-type column created (columns: {cols})"
+
+    return _catalog_test(r, body)
+
+
 def test_lineage() -> TestResult:
     r = TestResult("lineage", "Lineage Tracking", "v3")
 
@@ -762,6 +785,7 @@ ALL_TESTS = [
     test_shredded_variant,
     test_geometry_type,
     test_nanosecond_timestamps,
+    test_unknown_type,
     test_lineage,
 ]
 

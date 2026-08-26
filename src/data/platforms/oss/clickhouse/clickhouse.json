@@ -803,6 +803,16 @@
       "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 deletion vectors are not supported.",
       "caveats": [],
       "links": []
+    },
+    "clickhouse:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "clickhouse:unknown-type:v3": {
+      "level": "none",
+      "notes": "ClickHouse reads Iceberg V1 and V2 via table functions and cannot create Iceberg tables at all, so the V3 unknown type is out of reach.",
+      "caveats": []
     }
   }
 }

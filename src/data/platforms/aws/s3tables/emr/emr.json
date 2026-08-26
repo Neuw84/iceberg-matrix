@@ -412,6 +412,16 @@
           "url": "https://aws.amazon.com/blogs/big-data/unlock-the-power-of-apache-iceberg-v3-deletion-vectors-on-amazon-emr/"
         }
       ]
+    },
+    "aws-emr:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-emr:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Not yet measured; recorded as unknown rather than inferred. EMR runs Spark 4.0.2, which has the VOID type that Iceberg's unknown type maps to, so support is plausible but unverified.",
+      "caveats": []
     }
   }
 }

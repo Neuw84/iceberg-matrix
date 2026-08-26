@@ -724,6 +724,39 @@ def test_nanosecond_timestamps() -> TestResult:
     return r
 
 
+def test_unknown_type() -> TestResult:
+    r = TestResult("unknown-type", "Unknown Type")
+    r.version_tested = "v3"
+    try:
+        # Imported inside the try: the class only exists in PyIceberg builds that
+        # model the V3 type, and its absence is a skip rather than a failure.
+        from pyiceberg.types import UnknownType
+        cat = _get_catalog()
+        tbl_name = f"default.{_unique('unk')}"
+        schema = Schema(
+            NestedField(1, "id", LongType(), required=True),
+            NestedField(2, "u", UnknownType()),
+        )
+        cat.create_table(
+            tbl_name, schema=schema,
+            properties={"format-version": "3"},
+        )
+        r.result = "pass"
+        r.details = "Created V3 table with an unknown-type column"
+    except ImportError:
+        r.result = "skip"
+        r.details = "UnknownType not available in this PyIceberg version; cannot verify"
+    except Exception as e:
+        err = str(e).lower()
+        if "v3" in err or "not yet supported" in err or "not supported" in err or "not implemented" in err:
+            r.result = "skip"
+            r.details = f"PyIceberg cannot write V3 tables yet ({str(e).splitlines()[0][:120]}); not exercised"
+        else:
+            r.result = "error"
+            r.details = str(e)
+    return r
+
+
 def test_lineage() -> TestResult:
     r = TestResult("lineage", "Lineage Tracking")
     r.version_tested = "v3"
@@ -806,6 +839,7 @@ ALL_TESTS = [
     test_shredded_variant,
     test_geometry_type,
     test_nanosecond_timestamps,
+    test_unknown_type,
     test_lineage,
 ]
 

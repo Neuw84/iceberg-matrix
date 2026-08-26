@@ -440,6 +440,16 @@
           "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
         }
       ]
+    },
+    "aws-redshift-s3:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-redshift-s3:unknown-type:v3": {
+      "level": "none",
+      "notes": "Redshift is an Iceberg v2 engine: creating a format-version 3 table is refused, so no V3 type can exist here.",
+      "caveats": []
     }
   }
 }

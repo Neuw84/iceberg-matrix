@@ -1522,6 +1522,33 @@ def test_nanosecond_timestamps(version: str) -> TestResult:
     return r
 
 
+def test_unknown_type(version: str) -> TestResult:
+    if version == "v2":
+        return _v3_only("unknown-type", "Unknown Type")
+    r = TestResult("unknown-type", "Unknown Type", version)
+    tbl = _unique("unk")
+    # Flink SQL has no spelling for the Iceberg V3 unknown type: NULL is a literal
+    # rather than a declarable column type, and VOID is not a Flink type name.
+    # Both are tried so the recorded reason quotes the planner instead of resting
+    # on the absence of the type from the documentation.
+    attempts = []
+    for decl in ("UNKNOWN", "NULL"):
+        ok, out = _run_sql(_prelude(version) + [
+            f"CREATE TABLE {tbl} (id BIGINT, u {decl}) WITH ('format-version'='3')",
+            f"DROP TABLE {tbl}",
+        ])
+        if ok:
+            r.result = "pass"
+            r.details = (f"Unknown type column accepted in Flink DDL as {decl} "
+                         "on a V3 table")
+            return r
+        attempts.append(f"{decl}: {_error_reason(out, 90)}")
+    r.result = "fail"
+    r.details = ("No Flink SQL spelling for the V3 unknown type. "
+                 + "; ".join(attempts))
+    return r
+
+
 # ---------------------------------------------------------------------------
 # V3 advanced
 # ---------------------------------------------------------------------------
@@ -1775,6 +1802,7 @@ ALL_TESTS = [
     test_shredded_variant,
     test_geometry_type,
     test_nanosecond_timestamps,
+    test_unknown_type,
     test_lineage,
 ]
 

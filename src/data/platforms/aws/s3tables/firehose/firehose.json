@@ -385,6 +385,16 @@
       "level": "none",
       "notes": "Firehose does not support Iceberg V3, so V3 deletion vectors are unavailable.",
       "caveats": []
+    },
+    "aws-firehose:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-firehose:unknown-type:v3": {
+      "level": "none",
+      "notes": "Firehose does not support Iceberg V3.",
+      "caveats": []
     }
   }
 }

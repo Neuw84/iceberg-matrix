@@ -471,6 +471,16 @@
         "No Iceberg V3 support announced"
       ],
       "links": []
+    },
+    "daft:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "daft:unknown-type:v3": {
+      "level": "none",
+      "notes": "Daft has not announced Iceberg V3 support; the unknown type is a V3 feature.",
+      "caveats": []
     }
   }
 }

@@ -981,6 +981,16 @@
           "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
         }
       ]
+    },
+    "aws-managed-flink:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-managed-flink:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Not yet measured; recorded as unknown rather than inferred. Flink SQL has no obvious spelling for a null-only placeholder column, but that has not been probed here.",
+      "caveats": []
     }
   }
 }

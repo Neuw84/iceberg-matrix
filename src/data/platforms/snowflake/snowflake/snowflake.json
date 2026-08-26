@@ -168,7 +168,7 @@
       ],
       "links": [
         {
-          "label": "Manage Iceberg tables \u2013 Schema",
+          "label": "Manage Iceberg tables – Schema",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
         },
         {
@@ -1176,6 +1176,16 @@
       "notes": "Deletion vectors replace position deletes in V3, providing improved write performance for row-level deletes. Generally available (as of May 7, 2026).",
       "caveats": [],
       "links": []
+    },
+    "snowflake:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "snowflake:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Not yet measured; recorded as unknown rather than inferred. Snowflake has not published a statement on the Iceberg V3 unknown type.",
+      "caveats": []
     }
   }
 }
