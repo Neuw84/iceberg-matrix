@@ -809,6 +809,16 @@
       "notes": "Doris 4.1 reads V3 tables that use Puffin deletion vectors as the primary row-level delete mechanism.",
       "caveats": [],
       "links": []
+    },
+    "doris:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "doris:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Not yet measured; recorded as unknown rather than inferred. Doris publishes no Iceberg V3 unknown-type mapping.",
+      "caveats": []
     }
   }
 }

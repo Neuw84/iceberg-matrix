@@ -486,6 +486,16 @@
       "caveats": [
         "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
       ]
+    },
+    "spark-comet:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "spark-comet:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Not yet measured; recorded as unknown rather than inferred. Comet accelerates operators rather than adding types, so this follows vanilla Spark.",
+      "caveats": []
     }
   }
 }

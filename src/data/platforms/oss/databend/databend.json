@@ -644,6 +644,16 @@
       "notes": "V3 deletion vector handling is not documented in the Databend Iceberg engine docs.",
       "caveats": [],
       "links": []
+    },
+    "databend:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "databend:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Not yet measured; recorded as unknown rather than inferred. Databend publishes no Iceberg V3 unknown-type mapping.",
+      "caveats": []
     }
   }
 }

@@ -434,6 +434,16 @@
       "notes": "Athena does not support Iceberg V3, so V3 deletion vectors are unavailable.",
       "caveats": [],
       "links": []
+    },
+    "aws-athena:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-athena:unknown-type:v3": {
+      "level": "none",
+      "notes": "Athena does not support Iceberg V3, so the V3 unknown type cannot exist here.",
+      "caveats": []
     }
   }
 }

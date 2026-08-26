@@ -688,6 +688,16 @@
         "Iceberg V3 not yet supported; Microsoft is actively working toward V3 compatibility"
       ],
       "links": []
+    },
+    "azure-fabric:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "azure-fabric:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 is not yet supported in Microsoft Fabric, and no V3 type has been measured there.",
+      "caveats": []
     }
   }
 }

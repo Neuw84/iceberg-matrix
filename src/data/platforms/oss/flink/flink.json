@@ -817,6 +817,16 @@
           "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
         }
       ]
+    },
+    "flink:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "flink:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Not yet measured; recorded as unknown rather than inferred. Flink SQL has no obvious spelling for a null-only placeholder column; the suite now probes UNKNOWN and NULL, so the next run will settle this.",
+      "caveats": []
     }
   }
 }

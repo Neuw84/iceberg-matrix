@@ -583,6 +583,14 @@ def test_geometry_type() -> TestResult:
     return r
 
 
+def test_unknown_type() -> TestResult:
+    r = TestResult("unknown-type", "Unknown Type")
+    r.version_tested = "v3"
+    r.result = "fail"
+    r.details = "Unknown type is a V3 feature; Daft has not announced V3 support"
+    return r
+
+
 def test_nanosecond_timestamps() -> TestResult:
     r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps")
     r.version_tested = "v3"
@@ -635,6 +643,7 @@ ALL_TESTS = [
     test_shredded_variant,
     test_geometry_type,
     test_nanosecond_timestamps,
+    test_unknown_type,
     test_lineage,
 ]
 

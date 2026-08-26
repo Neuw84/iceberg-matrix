@@ -412,6 +412,16 @@
       "notes": "Supported via Spark on Dataproc with Iceberg V3 deletion vectors (Puffin files) for efficient row-level deletes.",
       "caveats": [],
       "links": []
+    },
+    "google-dataproc:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "google-dataproc:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Not yet measured; recorded as unknown rather than inferred. Dataproc reaches Iceberg through Spark, so the answer follows the bundled Spark and Iceberg versions.",
+      "caveats": []
     }
   }
 }

@@ -1634,6 +1634,14 @@ def test_nanosecond_timestamps(version: str) -> TestResult:
                     "id BIGINT, ts TIMESTAMP_NS", FX_V3_TS_NS)
 
 
+def test_unknown_type(version: str) -> TestResult:
+    # No fixture: reading one would need a Spark-built table carrying an unknown
+    # column, which tests/aws/redshift_fixtures.py does not produce yet, so the
+    # read half is deliberately left unmeasured rather than guessed.
+    return _v3_type("unknown-type", "Unknown Type", version,
+                    "id BIGINT, u UNKNOWN")
+
+
 def test_lineage(version: str) -> TestResult:
     if version == "v2":
         r = TestResult("lineage", "Lineage Tracking", version)
@@ -1682,6 +1690,7 @@ ALL_TESTS = [
     test_shredded_variant,
     test_geometry_type,
     test_nanosecond_timestamps,
+    test_unknown_type,
     test_lineage,
 ]
 

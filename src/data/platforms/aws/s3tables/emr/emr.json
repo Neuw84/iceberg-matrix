@@ -213,10 +213,15 @@
     },
     "aws-emr:column-default-values:v3": {
       "level": "none",
-      "notes": "Not settable from Spark SQL on EMR against S3 Tables: the Iceberg Spark connector does not declare the column-default capability, so a DEFAULT clause is rejected during analysis.",
+      "notes": "Measured on emr-spark-8.0.0 (Spark 4.0.2-amzn-0, Iceberg 1.10.1-amzn-0) against S3 Tables through the federated s3tablescatalog: a DEFAULT clause is rejected with UNSUPPORTED_FEATURE.TABLE_OPERATION, 'does not support column default value'. Measured with spark.sql.defaultColumn.enabled set, which matters: with the prerequisite on, the refusal comes from the Iceberg Spark connector rather than from Spark's own gate, so this is the connector in Iceberg 1.10.1 not declaring the capability. Glue 6.0 accepts the same clause on Iceberg 1.11.0.",
       "caveats": [
-        "Inferred from the OSS Spark result (Spark 4.1.2 + Iceberg 1.11.0 reject a DEFAULT clause with UNSUPPORTED_FEATURE.TABLE_OPERATION), not measured on EMR itself",
-        "EMR reaches Iceberg through the same Spark connector"
+        "Measured with the prerequisite flag enabled, so this is not our configuration refusing it."
+      ],
+      "links": [
+        {
+          "label": "Introducing AWS Glue 6.0",
+          "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+        }
       ]
     },
     "aws-emr:table-creation:v3": {
@@ -349,18 +354,28 @@
     },
     "aws-emr:geometry-type:v3": {
       "level": "none",
-      "notes": "No geospatial path through EMR's Spark runtime against S3 Tables: the Iceberg Spark connector has no type mapping for GEOMETRY/GEOGRAPHY, so creating a V3 table with those columns fails.",
+      "notes": "Measured on emr-spark-8.0.0 (Spark 4.0.2-amzn-0, Iceberg 1.10.1-amzn-0) against S3 Tables through the federated s3tablescatalog: CREATE TABLE with GEOMETRY(4326) and GEOGRAPHY(4326) columns is rejected with UNSUPPORTED_DATATYPE. Measured with spark.sql.geospatial.enabled set, so this is the runtime lacking the types rather than the session gating them. Glue 6.0 accepts the same DDL, which again puts the difference in the Spark build rather than in Iceberg.",
       "caveats": [
-        "Inferred from the OSS Spark result (Spark 4.1.2 + Iceberg 1.11.0 reject 'geometry(4326)'), not measured on EMR itself",
-        "Not documented for AWS EMR with S3 Tables"
+        "Measured with the geospatial flag enabled, so it is not the session gate that refused."
+      ],
+      "links": [
+        {
+          "label": "Introducing AWS Glue 6.0",
+          "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+        }
       ]
     },
     "aws-emr:nanosecond-timestamps:v3": {
       "level": "none",
-      "notes": "Spark SQL has no nanosecond timestamp type, so TIMESTAMP_NS columns cannot be declared on EMR against S3 Tables either.",
+      "notes": "Measured on emr-spark-8.0.0 (Spark 4.0.2-amzn-0, Iceberg 1.10.1-amzn-0) against S3 Tables through the federated s3tablescatalog: both spellings are rejected with UNSUPPORTED_DATATYPE -- the Iceberg spec name TIMESTAMP_NS and Spark's parameterised TIMESTAMP_NTZ(9). The level is unchanged, but it is now measured rather than inferred from open-source Spark. Worth contrasting with Glue 6.0, where TIMESTAMP_NTZ(9) works: AWS added parameterised timestamp precision in the Spark 4.1.1 build Glue 6.0 ships, and EMR's Spark 4.0.2 build does not have it. So this is a runtime-version gap, not an Iceberg one.",
       "caveats": [
-        "Inferred from the OSS Spark result (Spark 4.1.2 rejects TIMESTAMP_NS with UNSUPPORTED_DATATYPE), not measured on EMR itself",
-        "EMR reaches Iceberg through the same Spark connector"
+        "Expected to change if an EMR release ships the Spark build that Glue 6.0 uses."
+      ],
+      "links": [
+        {
+          "label": "Introducing AWS Glue 6.0",
+          "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+        }
       ]
     },
     "aws-emr:lineage:v3": {
@@ -412,6 +427,20 @@
           "url": "https://aws.amazon.com/blogs/big-data/unlock-the-power-of-apache-iceberg-v3-deletion-vectors-on-amazon-emr/"
         }
       ]
+    },
+    "aws-emr:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "aws-emr:unknown-type:v3": {
+      "level": "full",
+      "notes": "Measured on emr-spark-8.0.0 (Spark 4.0.2-amzn-0, Iceberg 1.10.1-amzn-0) against S3 Tables through the federated s3tablescatalog: declared as VOID, which is how Spark spells the Iceberg V3 unknown type. A row was written and read back with the column null, which is the whole behaviour of the type -- it holds only nulls and is never written to data files.",
+      "caveats": [
+        "Spark's spelling is required: the Iceberg spec name UNKNOWN is rejected and only VOID is accepted.",
+        "Promotion of an unknown column to a concrete type later was not exercised; only declaration, write and read were measured."
+      ],
+      "links": []
     }
   }
 }

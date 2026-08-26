@@ -593,6 +593,23 @@ def test_nanosecond_timestamps() -> TestResult:
     return _run(r, body)
 
 
+def test_unknown_type() -> TestResult:
+    r = TestResult("unknown-type", "Unknown Type", "v3")
+
+    def body(ns, r):
+        # VOID is Spark's spelling of the Iceberg V3 unknown type. Recorded as a
+        # rejection probe because a warehouse that refuses the column is the
+        # measured answer, and _run would otherwise log it as a harness error.
+        _expect_rejection(
+            r,
+            lambda: _create_iceberg(ns, "t", "id INT, u VOID", version="3"),
+            accepted_details="VOID column accepted as the V3 unknown type",
+            rejected_details="Unknown type rejected",
+        )
+
+    return _run(r, body)
+
+
 def test_lineage() -> TestResult:
     r = TestResult("lineage", "Lineage Tracking", "v3")
 
@@ -714,6 +731,7 @@ ALL_TESTS = [
     test_shredded_variant,
     test_geometry_type,
     test_nanosecond_timestamps,
+    test_unknown_type,
     test_lineage,
     test_catalog_integration,
     test_unity_catalog,

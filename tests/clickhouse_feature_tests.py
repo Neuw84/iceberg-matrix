@@ -845,6 +845,19 @@ def test_geometry_type() -> TestResult:
     return r
 
 
+def test_unknown_type() -> TestResult:
+    """Unknown type (V3 feature) — not supported in ClickHouse.
+
+    ClickHouse cannot create Iceberg tables at all, so like the other V3 type
+    cells here this is a static negative rather than a probe.
+    """
+    r = TestResult("unknown-type", "Unknown Type")
+    r.version_tested = "v3"
+    r.result = "fail"
+    r.details = "Unknown type not supported in ClickHouse Iceberg"
+    return r
+
+
 def test_nanosecond_timestamps() -> TestResult:
     """Nanosecond timestamps (V3 feature) — not supported in ClickHouse."""
     r = TestResult("nanosecond-timestamps", "Nanosecond Timestamps")
@@ -908,6 +921,7 @@ ALL_TESTS = [
     test_shredded_variant,
     test_geometry_type,
     test_nanosecond_timestamps,
+    test_unknown_type,
     test_lineage,
 ]
 

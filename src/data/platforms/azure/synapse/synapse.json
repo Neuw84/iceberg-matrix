@@ -761,6 +761,16 @@
         "V3 support depends entirely on user-installed Iceberg library version"
       ],
       "links": []
+    },
+    "azure-synapse:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "azure-synapse:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Depends on the iceberg-spark-runtime version installed by the user; Synapse has no official V3 support statement.",
+      "caveats": []
     }
   }
 }

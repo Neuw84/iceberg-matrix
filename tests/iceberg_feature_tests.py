@@ -320,6 +320,13 @@ def get_spark():
         # consulted, so the V3 geometry test would report a Spark gate as a
         # missing Iceberg feature.
         .config("spark.sql.geospatial.enabled", "true")
+        # Same shape of gate as geospatial above: a DEFAULT clause is refused
+        # during analysis unless this is on, and it is off by default. AWS
+        # documents it as the prerequisite for V3 default column values on Glue
+        # 6.0. Set here rather than in one driver so every Spark-family engine
+        # (EMR, Glue, OSS Spark) is measured under the same session, otherwise
+        # the cell records our configuration instead of the engine.
+        .config("spark.sql.defaultColumn.enabled", "true")
         # Secondary local-filesystem Hadoop catalog, always available, used by
         # the hadoop-catalog feature test.
         .config("spark.sql.catalog.hadoop_local", "org.apache.iceberg.spark.SparkCatalog")
@@ -1499,6 +1506,59 @@ def test_nanosecond_timestamps(version: str) -> TestResult:
     return r
 
 
+# Two spellings again, for the same reason as the nanosecond types. Iceberg calls
+# the type "unknown"; Spark's equivalent is VOID, and AWS documents Glue 6.0 as
+# mapping the Iceberg unknown type onto it. Spec spelling first.
+UNKNOWN_TYPE_DECLARATIONS = ("UNKNOWN", "VOID")
+
+
+def test_unknown_type(version: str) -> TestResult:
+    if version == "v2":
+        return _v3_only_skip("unknown-type", "Unknown Type")
+    r = TestResult("unknown-type", "Unknown Type", "v3")
+    spark = get_spark()
+    ns = _ns()
+    attempts = []
+    try:
+        spark.sql(f"CREATE NAMESPACE IF NOT EXISTS local.{ns}")
+        for decl in UNKNOWN_TYPE_DECLARATIONS:
+            tbl = f"local.{ns}.{_unique('unk')}"
+            try:
+                spark.sql(f"""
+                    CREATE TABLE {tbl} (id BIGINT, u {decl})
+                    USING iceberg TBLPROPERTIES ('format-version'='3')
+                """)
+                spark.sql(f"INSERT INTO {tbl} VALUES (1, NULL)")
+                row = spark.sql(f"SELECT id, u FROM {tbl}").collect()[0]
+                # Holding only nulls is the entire point of the type, so a
+                # non-null read would mean something other than unknown was
+                # created and the pass would be measuring the wrong thing.
+                assert row["id"] == 1, f"unexpected id {row['id']}"
+                assert row["u"] is None, f"unknown column returned {row['u']!r}"
+                _drop_table(spark, tbl)
+                r.result = "pass"
+                r.details = (f"Unknown type column declared as {decl} on a V3 table; "
+                             "row written and read back with the column null")
+                return r
+            except Exception as e:  # noqa: PERF203 - each spelling is a separate probe
+                attempts.append(f"{decl}: {str(e).strip().splitlines()[0][:120]}")
+                try:
+                    _drop_table(spark, tbl)
+                except Exception:
+                    pass
+        r.result = "fail"
+        r.details = "Unknown type not supported. " + "; ".join(attempts)
+    except Exception as e:
+        r.result = "error"
+        r.details = str(e)[:300]
+    finally:
+        try:
+            spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
+        except Exception:
+            pass
+    return r
+
+
 def test_lineage(version: str) -> TestResult:
     if version == "v2":
         return _v3_only_skip("lineage", "Lineage Tracking")
@@ -1640,6 +1700,7 @@ ALL_TESTS = [
     test_shredded_variant,
     test_geometry_type,
     test_nanosecond_timestamps,
+    test_unknown_type,
     test_lineage,
     test_deletion_vectors,
 ]

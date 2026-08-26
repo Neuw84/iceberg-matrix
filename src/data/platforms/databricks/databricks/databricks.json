@@ -365,7 +365,7 @@
     },
     "databricks:read-support:v2": {
       "level": "full",
-      "notes": "Full read support for native managed Iceberg v2 tables via Unity Catalog (Public Preview, DBR 16.4 LTS+). Also supports read-only access to foreign Iceberg tables via Lakehouse Federation. Note: UniForm is a separate Delta Lake feature that exposes Delta tables as Iceberg \u2014 it is not native Iceberg.",
+      "notes": "Full read support for native managed Iceberg v2 tables via Unity Catalog (Public Preview, DBR 16.4 LTS+). Also supports read-only access to foreign Iceberg tables via Lakehouse Federation. Note: UniForm is a separate Delta Lake feature that exposes Delta tables as Iceberg — it is not native Iceberg.",
       "caveats": [
         "Managed Iceberg tables are GA",
         "Some data types not supported: UUID, Fixed(L), TIME, nested STRUCT with required fields",
@@ -402,7 +402,7 @@
       "notes": "INSERT INTO fully supported for native managed Iceberg tables in Unity Catalog. External engines can also write via the Iceberg REST Catalog API. Note: UniForm tables are read-only for Iceberg clients.",
       "caveats": [
         "Managed Iceberg tables are GA",
-        "UniForm (Delta + Iceberg reads) tables are read-only for Iceberg clients \u2014 this is not native Iceberg"
+        "UniForm (Delta + Iceberg reads) tables are read-only for Iceberg clients — this is not native Iceberg"
       ],
       "links": [
         {
@@ -686,7 +686,7 @@
     },
     "databricks:table-creation:v2": {
       "level": "full",
-      "notes": "Supports CREATE TABLE ... USING iceberg for native managed Iceberg tables in Unity Catalog. External engines can also create tables via the REST Catalog API. Note: UniForm (TBLPROPERTIES delta.universalFormat.enabledFormats = 'iceberg') creates Delta tables with Iceberg reads \u2014 not native Iceberg.",
+      "notes": "Supports CREATE TABLE ... USING iceberg for native managed Iceberg tables in Unity Catalog. External engines can also create tables via the REST Catalog API. Note: UniForm (TBLPROPERTIES delta.universalFormat.enabledFormats = 'iceberg') creates Delta tables with Iceberg reads — not native Iceberg.",
       "caveats": [
         "Managed Iceberg tables are GA",
         "Predictive optimization must be enabled for managed Iceberg table creation",
@@ -792,7 +792,7 @@
       "level": "full",
       "notes": "Row lineage is required and automatically enabled on all native Iceberg v3 tables. Tracks incremental changes with unique row IDs and last-modified sequence numbers. Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Row lineage is required for all v3 tables \u2014 cannot be disabled",
+        "Row lineage is required for all v3 tables — cannot be disabled",
         "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
         "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
@@ -883,9 +883,9 @@
     },
     "databricks:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "Databricks can connect to Snowflake Horizon Catalog via ICEBERG_REST catalog integration for read access. Databricks does not support writes to externally managed Iceberg tables \u2014 this is a Databricks engine limitation, not a Horizon Catalog limitation. Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog.",
+      "notes": "Databricks can connect to Snowflake Horizon Catalog via ICEBERG_REST catalog integration for read access. Databricks does not support writes to externally managed Iceberg tables — this is a Databricks engine limitation, not a Horizon Catalog limitation. Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog.",
       "caveats": [
-        "Read-only \u2014 Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Read-only — Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
         "Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog",
         "Managed Iceberg tables in Databricks are in Public Preview (requires DBR 16.4 LTS+)"
       ],
@@ -898,9 +898,9 @@
     },
     "databricks:snowflake-horizon-catalog:v3": {
       "level": "partial",
-      "notes": "Databricks can read Iceberg V3 tables via the Horizon Catalog REST API; however, Databricks does not support the full V3 spec. Tables using V3-only features such as nanosecond timestamps or deletion vectors may fail to read. Write support is not available \u2014 this is a Databricks engine limitation, not a Horizon Catalog limitation.",
+      "notes": "Databricks can read Iceberg V3 tables via the Horizon Catalog REST API; however, Databricks does not support the full V3 spec. Tables using V3-only features such as nanosecond timestamps or deletion vectors may fail to read. Write support is not available — this is a Databricks engine limitation, not a Horizon Catalog limitation.",
       "caveats": [
-        "Read-only \u2014 Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Read-only — Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
         "Tables using V3-only features (nanosecond timestamps, deletion vectors) may fail to read",
         "Databricks does not support the full Iceberg V3 spec"
       ],
@@ -930,6 +930,16 @@
           "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"
         }
       ]
+    },
+    "databricks:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "databricks:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Not yet measured; recorded as unknown rather than inferred. The suite probes a VOID column on a managed Iceberg table, so the next warehouse run will settle this.",
+      "caveats": []
     }
   }
 }

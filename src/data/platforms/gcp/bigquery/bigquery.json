@@ -805,6 +805,16 @@
           "url": "https://docs.cloud.google.com/bigquery/docs/iceberg-external-tables"
         }
       ]
+    },
+    "google-bigquery:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "google-bigquery:unknown-type:v3": {
+      "level": "none",
+      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 types are not supported.",
+      "caveats": []
     }
   }
 }

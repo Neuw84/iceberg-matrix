@@ -896,6 +896,16 @@
           "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         }
       ]
+    },
+    "duckdb:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "duckdb:unknown-type:v3": {
+      "level": "none",
+      "notes": "DuckDB's Iceberg support lists the unknown type alongside GEOGRAPHY as still unimplemented, targeted at a later release, so it is documented as absent rather than merely unmeasured.",
+      "caveats": []
     }
   }
 }

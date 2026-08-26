@@ -136,19 +136,6 @@ export default function App() {
                     plus spec-compliance facts: Iceberg REST spec coverage and
                     table-format v2/v3 support.
                   </p>
-                  <p>
-                    Openness-rubric ratings and evidence are based on{" "}
-                    <a
-                      href="https://gitlab.com/hunt.dan/iceberg-state-of-catalogs"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline hover:text-blue-900"
-                    >
-                      Iceberg: The State of Catalogs
-                    </a>
-                    ; every cell links to its public source. Click a cell for the
-                    reasoning behind its rating.
-                  </p>
                 </>
               ) : (
                 <>

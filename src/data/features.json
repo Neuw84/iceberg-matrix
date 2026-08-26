@@ -232,6 +232,13 @@
       "description": "Support for nanosecond-precision timestamp and timestamptz types, enabling higher precision time tracking"
     },
     {
+      "id": "unknown-type",
+      "name": "Unknown Type",
+      "category": "v3-data-types",
+      "introducedIn": "v3",
+      "description": "Placeholder column type for data whose type is not yet decided. It holds only nulls and is never written to data files, so a column can be declared before its type is known and promoted to a concrete type later without rewriting existing data"
+    },
+    {
       "id": "lineage",
       "name": "Lineage Tracking",
       "category": "v3-advanced",

@@ -147,12 +147,6 @@ def spark_conf(mode: str, warehouse: str, catalog_props: str) -> str:
         f"spark.sql.catalog.local.catalog-impl={GLUE_CATALOG_IMPL}",
         "spark.sql.defaultCatalog=local",
         f"spark.sql.catalog.local.warehouse={warehouse}",
-        # Required before a DEFAULT clause is accepted, and off by default. AWS
-        # documents it as the prerequisite for V3 default column values on Glue
-        # 6.0, so leaving it unset would record "none" for a feature the platform
-        # does support -- measuring our own configuration rather than the engine.
-        # Harmless on older versions, which reject the DEFAULT clause anyway.
-        "spark.sql.defaultColumn.enabled=true",
     ]
     for prop in (p.strip() for p in catalog_props.split(",") if p.strip()):
         settings.append(f"spark.sql.catalog.local.{prop}")

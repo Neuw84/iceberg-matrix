@@ -812,6 +812,16 @@
           "url": "https://iceberg.apache.org/blog/apache-iceberg-1.11.0-release/"
         }
       ]
+    },
+    "spark:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "spark:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Not yet measured; recorded as unknown rather than inferred. Spark 4.1 has a VOID type that Iceberg's unknown type maps to, so support is plausible; the suite now probes UNKNOWN and VOID.",
+      "caveats": []
     }
   }
 }
