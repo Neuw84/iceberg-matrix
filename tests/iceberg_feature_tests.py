@@ -320,6 +320,13 @@ def get_spark():
         # consulted, so the V3 geometry test would report a Spark gate as a
         # missing Iceberg feature.
         .config("spark.sql.geospatial.enabled", "true")
+        # Same shape of gate as geospatial above: a DEFAULT clause is refused
+        # during analysis unless this is on, and it is off by default. AWS
+        # documents it as the prerequisite for V3 default column values on Glue
+        # 6.0. Set here rather than in one driver so every Spark-family engine
+        # (EMR, Glue, OSS Spark) is measured under the same session, otherwise
+        # the cell records our configuration instead of the engine.
+        .config("spark.sql.defaultColumn.enabled", "true")
         # Secondary local-filesystem Hadoop catalog, always available, used by
         # the hadoop-catalog feature test.
         .config("spark.sql.catalog.hadoop_local", "org.apache.iceberg.spark.SparkCatalog")
