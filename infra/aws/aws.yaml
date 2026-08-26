@@ -24,6 +24,18 @@ Parameters:
       GitHub environment name. Must match the environment used by the workflow
       job: the OIDC subject claim is scoped to it, so tokens minted from any
       other context (pull requests, other branches) cannot assume the role.
+  DatabricksEnvironmentName:
+    Type: String
+    Default: databricks-live
+    Description: >
+      Second GitHub environment allowed to assume the CI role, used by the
+      Databricks workflow. It exists so the Databricks credentials do not have to
+      live in the AWS environment: secrets are per-environment, so anything gated
+      on EnvironmentName can read every secret stored there, and the AWS platform
+      tests have no business being able to read a Databricks token. The Databricks
+      job still needs this role for the read-only S3 layout inspection, which is
+      why it is a second allowed subject rather than a second role. Set it equal
+      to EnvironmentName to collapse them back into one.
   DataBucket:
     Type: String
     Description: Existing S3 bucket for warehouse data, job scripts, logs and reports
@@ -530,8 +542,17 @@ Resources:
             Condition:
               StringEquals:
                 'token.actions.githubusercontent.com:aud': sts.amazonaws.com
-                # Environment-scoped: this is the enforcement point.
-                'token.actions.githubusercontent.com:sub': !Sub 'repo:${GitHubRepo}:environment:${EnvironmentName}'
+              # Environment-scoped: this is the enforcement point. Two subjects
+              # are allowed, not a wildcard -- the repo is still pinned and any
+              # other context (pull requests, other branches, other environments)
+              # still cannot assume the role. ForAnyValue is the right operator
+              # because sub carries a single value that has to match one of the
+              # listed environments; StringEquals against a list would require it
+              # to equal both at once and would never match.
+              ForAnyValue:StringEquals:
+                'token.actions.githubusercontent.com:sub':
+                  - !Sub 'repo:${GitHubRepo}:environment:${EnvironmentName}'
+                  - !Sub 'repo:${GitHubRepo}:environment:${DatabricksEnvironmentName}'
       Policies:
 
         - PolicyName: drive-emr-serverless

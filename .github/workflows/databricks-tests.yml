@@ -11,9 +11,17 @@ name: Databricks Platform Tests
 #
 # Deliberately NOT triggered by pull_request: this spends real money on a
 # personal Databricks account and assumes an AWS IAM role for the S3 layout
-# inspection. Dispatch only, gated by the aws-live environment (required
-# reviewer) — the same environment as the AWS platform tests because the S3
-# inspection reuses its OIDC trust, which is scoped to that environment.
+# inspection. Dispatch only, gated by the databricks-live environment (required
+# reviewer).
+#
+# It has its own environment rather than sharing aws-live, because environment
+# secrets are readable by any job that gates on that environment: with the
+# Databricks token stored in aws-live, the AWS platform tests could read a
+# credential they have no use for, and one approval queue covered two different
+# kinds of spend. The S3 inspection still assumes the AWS CI role, so that role's
+# trust policy allows this environment as a second OIDC subject
+# (DatabricksEnvironmentName in infra/aws/aws.yaml) -- the repo is still pinned
+# and no other context can assume it.
 #
 # The suite creates Unity Catalog *managed Iceberg* tables in a catalog whose
 # managed location lives on our S3 bucket, then inspects the storage layout
@@ -26,10 +34,14 @@ name: Databricks Platform Tests
 #                 MANAGED LOCATION 's3://<AWS_DATA_BUCKET>/databricks/managed/'
 #   - a serverless SQL warehouse the token can use
 #
-# Environment secrets (aws-live), in addition to the AWS ones:
+# Environment secrets, all on databricks-live (this environment owns its own copy
+# rather than inheriting aws-live's):
 #   DATABRICKS_HOST           https://dbc-xxxx.cloud.databricks.com
 #   DATABRICKS_TOKEN          PAT or service-principal OAuth token
 #   DATABRICKS_WAREHOUSE_ID   SQL warehouse id (Connection details tab)
+#   AWS_CI_ROLE_ARN           CiRoleArn stack output, for the S3 inspection
+#   AWS_REGION                region of the data bucket
+#   AWS_DATA_BUCKET           bucket holding the catalog's managed location
 
 on:
   workflow_dispatch:
@@ -61,7 +73,7 @@ jobs:
   platform-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    environment: aws-live
+    environment: databricks-live
     permissions:
       id-token: write
       contents: read

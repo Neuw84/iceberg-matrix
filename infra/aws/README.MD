@@ -73,6 +73,10 @@ Settings → Environments → `aws-live`. The name must match: the OIDC trust po
 is scoped to `repo:<owner>/<repo>:environment:aws-live`, so a token minted from
 any other context cannot assume the role.
 
+There is a second environment, `databricks-live`, which the Databricks workflow
+uses so its credentials are not readable by the AWS jobs; the CI role trusts both
+subjects. See section 9 for what goes on it.
+
 - Required reviewer: yourself. Anyone with write access can dispatch the
   workflow, but the job then waits for your approval before reaching AWS.
 - Deployment branch policy: restrict to the branches you want to run from.
@@ -351,15 +355,38 @@ newer warehouse can be recognised as version drift instead of bad data.
    `kms:Decrypt`/`Encrypt`/`GenerateDataKey*` *and* an entry in the key policy.
    Ours is SSE-S3, so there is no KMS section.
 
-3. **GitHub side** — add three secrets to the existing `aws-live` environment
-   (the workflow reuses it because the S3 inspection is authorised by the same
-   OIDC trust):
+3. **GitHub side** — create a *separate* `databricks-live` environment, with its
+   own required reviewer, and put every secret this workflow needs on it:
 
    | Secret | Value |
    |---|---|
    | `DATABRICKS_HOST` | `https://dbc-xxxx.cloud.databricks.com` |
    | `DATABRICKS_TOKEN` | PAT (or service-principal OAuth token) |
    | `DATABRICKS_WAREHOUSE_ID` | SQL warehouse id |
+   | `AWS_CI_ROLE_ARN` | `CiRoleArn` output, for the S3 layout inspection |
+   | `AWS_REGION` | the region the data bucket lives in |
+   | `AWS_DATA_BUCKET` | your S3 bucket name |
+
+   The last three are duplicated from `aws-live` rather than shared, because
+   environment secrets are per-environment: a job can only read the secrets of the
+   environment it gates on.
+
+   These credentials used to live on `aws-live`, which was worse in two ways that
+   are easy to miss. Environment secrets are readable by *any* job gating on that
+   environment, so the AWS platform tests could read the Databricks token despite
+   having no use for it; and a single approval queue covered two unrelated kinds of
+   spend, so approving an EMR run and approving Databricks warehouse time were the
+   same decision with the same audit trail.
+
+   The split has one consequence worth knowing: the Databricks job still assumes
+   the AWS CI role for the S3 inspection, and that role's trust is scoped by OIDC
+   subject, so `databricks-live` has to be an allowed subject. That is what the
+   `DatabricksEnvironmentName` parameter does. **Deploy the stack before the first
+   dispatch from the new environment** — otherwise the run reaches
+   `configure-aws-credentials` and fails there with "Not authorized to perform
+   sts:AssumeRoleWithWebIdentity", which reads like a broken secret rather than a
+   missing trust entry. Setting the parameter equal to `EnvironmentName` collapses
+   the two environments back into one.
 
 ### Run it
 
