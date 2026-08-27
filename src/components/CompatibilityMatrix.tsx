@@ -1,6 +1,7 @@
 import { Fragment, useState, useMemo, useCallback, lazy, Suspense } from "react";
 import type {
   AwsS3Mode,
+  SnowflakeStorageMode,
   CompatibilityData,
   Feature,
   FeatureCategory,
@@ -114,6 +115,12 @@ interface CompatibilityMatrixProps {
    */
   awsS3Mode?: AwsS3Mode;
   onAwsS3ModeChange?: (mode: AwsS3Mode) => void;
+  /**
+   * The Snowflake storage switch (managed Snowflake storage vs external volume
+   * on customer S3), gated exactly like the AWS one.
+   */
+  snowflakeMode?: SnowflakeStorageMode;
+  onSnowflakeModeChange?: (mode: SnowflakeStorageMode) => void;
 }
 
 export function CompatibilityMatrix({
@@ -121,6 +128,8 @@ export function CompatibilityMatrix({
   filters,
   awsS3Mode,
   onAwsS3ModeChange,
+  snowflakeMode,
+  onSnowflakeModeChange,
 }: CompatibilityMatrixProps) {
   const [popover, setPopover] = useState<PopoverState | null>(null);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<FeatureCategory>>(new Set());
@@ -193,6 +202,7 @@ export function CompatibilityMatrix({
 
   // Check if any AWS platform is visible
   const hasAwsPlatforms = platformGroups.some((pg) => pg.group === "AWS");
+  const hasSnowflakePlatforms = platformGroups.some((pg) => pg.group === "Snowflake");
 
   // Stable callbacks so memoized FeatureRow instances don't re-render when only
   // the popover (matrix-level state) changes.
@@ -280,6 +290,22 @@ export function CompatibilityMatrix({
                         <span className={awsS3Mode === "s3-buckets" ? "font-bold" : "font-normal opacity-60"}>S3 Buckets</span>
                         <span className="text-orange-300">/</span>
                         <span className={awsS3Mode === "s3-tables" ? "font-bold" : "font-normal opacity-60"}>S3 Tables</span>
+                      </button>
+                    )}
+                    {pg.group === "Snowflake" && hasSnowflakePlatforms && snowflakeMode && onSnowflakeModeChange && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSnowflakeModeChange(snowflakeMode === "snowflake" ? "external" : "snowflake");
+                        }}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold cursor-pointer transition-colors border border-cyan-300 bg-white text-cyan-700 hover:bg-cyan-200 normal-case tracking-normal"
+                        aria-label={`Switch to ${snowflakeMode === "snowflake" ? "External" : "Snowflake"} storage`}
+                        title={`Currently showing ${snowflakeMode === "snowflake" ? "Snowflake-managed storage" : "external volume (customer S3)"} data. Click to switch.`}
+                      >
+                        <span className={snowflakeMode === "snowflake" ? "font-bold" : "font-normal opacity-60"}>Snowflake</span>
+                        <span className="text-cyan-300">/</span>
+                        <span className={snowflakeMode === "external" ? "font-bold" : "font-normal opacity-60"}>External</span>
                       </button>
                     )}
                   </div>

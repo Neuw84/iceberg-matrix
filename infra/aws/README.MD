@@ -416,7 +416,9 @@ and prove each table is genuine Iceberg (`metadata/*.metadata.json`) rather than
 trusting the catalog.
 
 The matrix cells for the `snowflake` platform live in
-`src/data/platforms/snowflake/snowflake/snowflake.json` and were measured on a
+`src/data/platforms/snowflake/{managed,external}/snowflake/snowflake.json`
+(one file per storage mode, matching the matrix UI toggle; the workflow's
+`storage-mode` input selects which one a run measures) and were measured on a
 Snowflake Enterprise account in us-east-1 with Iceberg v3 GA. The report prints
 the account's `CURRENT_VERSION()` next to that reference, so a discrepancy on a
 newer account can be recognised as Snowflake having shipped a feature since

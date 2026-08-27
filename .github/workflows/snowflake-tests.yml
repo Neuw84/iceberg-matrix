@@ -55,8 +55,19 @@ on:
         description: Snowflake database holding the run schemas
         type: string
         default: ICEBERGMATRIX
+      storage-mode:
+        description: >
+          Iceberg storage under test: "external" (our S3 bucket through the
+          external volume, with S3 layout inspection) or "managed"
+          (Snowflake-provided storage, SQL-only evidence). Matches the matrix
+          UI toggle; each mode compares against its own data file.
+        type: choice
+        options:
+          - external
+          - managed
+        default: external
       base-location:
-        description: Base directory on the external volume for managed tables
+        description: Base directory on the external volume (external mode only)
         type: string
         default: managed
       only:
@@ -97,6 +108,7 @@ jobs:
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
       SNOWFLAKE_EXTERNAL_VOLUME: ${{ secrets.SNOWFLAKE_EXTERNAL_VOLUME }}
       SNOWFLAKE_DATABASE: ${{ inputs.database }}
+      SNOWFLAKE_STORAGE_MODE: ${{ inputs.storage-mode }}
       SNOWFLAKE_BASE_LOCATION: ${{ inputs.base-location }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_DATA_BUCKET: ${{ secrets.AWS_DATA_BUCKET }}

@@ -97,3 +97,11 @@ export interface FilterState {
 
 export type AwsS3Mode = "s3-buckets" | "s3-tables";
 
+/**
+ * Snowflake Iceberg storage mode: "snowflake" is Snowflake-provided storage
+ * (EXTERNAL_VOLUME = SNOWFLAKE_MANAGED, zero setup, Snowflake catalog only);
+ * "external" keeps table files in customer cloud storage through an external
+ * volume (required for external Iceberg catalogs).
+ */
+export type SnowflakeStorageMode = "snowflake" | "external";
+

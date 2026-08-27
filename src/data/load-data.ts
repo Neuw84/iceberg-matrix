@@ -23,7 +23,12 @@ import dataproc from "./platforms/gcp/dataproc/dataproc.json";
 import synapse from "./platforms/azure/synapse/synapse.json";
 import fabric from "./platforms/azure/fabric/fabric.json";
 import databricks from "./platforms/databricks/databricks/databricks.json";
-import snowflake from "./platforms/snowflake/snowflake/snowflake.json";
+// Snowflake has two storage modes, mirroring the AWS s3buckets/s3tables split:
+// "managed" (Snowflake-provided storage, EXTERNAL_VOLUME = SNOWFLAKE_MANAGED)
+// and "external" (customer cloud storage through an external volume). Both
+// files carry the same platform id ("snowflake") so filters survive the toggle.
+import snowflakeManaged from "./platforms/snowflake/managed/snowflake/snowflake.json";
+import snowflakeExternal from "./platforms/snowflake/external/snowflake/snowflake.json";
 import duckdb from "./platforms/oss/duckdb/duckdb.json";
 import clickhouse from "./platforms/oss/clickhouse/clickhouse.json";
 import daft from "./platforms/oss/daft/daft.json";
@@ -41,14 +46,17 @@ export interface EngineFile {
   support: Record<string, unknown>;
 }
 
-// Non-AWS engines in the fixed merge order (gcp → azure → databricks → snowflake → oss).
-const nonAwsEngines: EngineFile[] = [
+// Non-AWS engines before the Snowflake slot (gcp → azure → databricks).
+const preSnowflakeEngines: EngineFile[] = [
   bigquery,
   dataproc,
   synapse,
   fabric,
   databricks,
-  snowflake,
+];
+
+// Non-AWS engines after the Snowflake slot (oss).
+const postSnowflakeEngines: EngineFile[] = [
   duckdb,
   clickhouse,
   daft,
@@ -65,12 +73,21 @@ const awsBucketsEngines: EngineFile[] = [bAthena, bEmr, bGlue, bManagedFlink, bR
 const awsTablesEngines: EngineFile[] = [tAthena, tEmr, tGlue, tManagedFlink, tRedshift];
 
 // Pure merge: concatenate platforms in input order (AWS engines first, then
-// non-AWS), and union support maps in input order.
-export function mergeEngines(awsEngines: EngineFile[]): CompatibilityData {
+// non-AWS with the mode-selected Snowflake file in its fixed slot between
+// databricks and the OSS block), and union support maps in input order.
+export function mergeEngines(
+  awsEngines: EngineFile[],
+  snowflakeEngine: EngineFile,
+): CompatibilityData {
   const platforms: Platform[] = [];
   const support: Record<string, SupportEntry> = {};
 
-  for (const engine of [...awsEngines, ...nonAwsEngines]) {
+  for (const engine of [
+    ...awsEngines,
+    ...preSnowflakeEngines,
+    snowflakeEngine,
+    ...postSnowflakeEngines,
+  ]) {
     platforms.push(...(engine.platforms as Platform[]));
     Object.assign(support, engine.support as Record<string, SupportEntry>);
   }
@@ -83,5 +100,27 @@ export function mergeEngines(awsEngines: EngineFile[]): CompatibilityData {
   };
 }
 
-export const data: CompatibilityData = mergeEngines(awsBucketsEngines);
-export const dataS3Tables: CompatibilityData = mergeEngines(awsTablesEngines);
+// All four AWS-mode x Snowflake-mode combinations are precomputed: the merge is
+// a cheap concat and this keeps every dataset a stable object identity, so
+// React memoization keyed on the dataset keeps working across toggles.
+export const data: CompatibilityData = mergeEngines(awsBucketsEngines, snowflakeManaged);
+export const dataS3Tables: CompatibilityData = mergeEngines(awsTablesEngines, snowflakeManaged);
+export const dataSnowflakeExternal: CompatibilityData = mergeEngines(
+  awsBucketsEngines,
+  snowflakeExternal,
+);
+export const dataS3TablesSnowflakeExternal: CompatibilityData = mergeEngines(
+  awsTablesEngines,
+  snowflakeExternal,
+);
+
+/** Select the engines dataset for an (AWS mode, Snowflake mode) pair. */
+export function getEngineData(
+  awsS3Mode: "s3-buckets" | "s3-tables",
+  snowflakeMode: "snowflake" | "external",
+): CompatibilityData {
+  if (awsS3Mode === "s3-tables") {
+    return snowflakeMode === "external" ? dataS3TablesSnowflakeExternal : dataS3Tables;
+  }
+  return snowflakeMode === "external" ? dataSnowflakeExternal : data;
+}
