@@ -403,3 +403,222 @@ Serverless SQL warehouses bill per query with auto-stop; a full suite run is a
 few minutes of warehouse time. The S3 layout inspection is read-only from the CI
 role. Managed-table storage is purged on teardown; anything the teardown could
 not remove is printed loudly in the job log.
+
+## 10. Snowflake platform tests
+
+`.github/workflows/snowflake-tests.yml` runs `tests/snowflake_feature_tests.py`
+against a live Snowflake account from the GitHub runner (like the Databricks and
+Redshift suites: API-driven through the Python connector, no warehouse-side
+code). Tables are created as Snowflake-managed Iceberg tables
+(`CATALOG = 'SNOWFLAKE'`) on an external volume whose storage sits under
+`s3://<data-bucket>/snowflake/`, so the suite can list the S3 prefix with boto3
+and prove each table is genuine Iceberg (`metadata/*.metadata.json`) rather than
+trusting the catalog.
+
+The matrix cells for the `snowflake` platform live in
+`src/data/platforms/snowflake/snowflake/snowflake.json` and were measured on a
+Snowflake Enterprise account in us-east-1 with Iceberg v3 GA. The report prints
+the account's `CURRENT_VERSION()` next to that reference, so a discrepancy on a
+newer account can be recognised as Snowflake having shipped a feature since
+rather than bad data.
+
+### The object that matters is the external volume, not a storage integration
+
+Snowflake-managed Iceberg tables authenticate to S3 through an **external
+volume**, and the external volume carries its own IAM trust relationship. A
+storage integration is a *different* object (used for external stages and
+`COPY`), and a managed Iceberg table does not use one at all. Do **not** create a
+storage integration for this — it is not needed, and worse, it is an active trap:
+a storage integration and an external volume each generate their *own*
+`STORAGE_AWS_EXTERNAL_ID`, both naming the same Snowflake IAM user and pointing at
+the same role. A single IAM role trust policy pins exactly one external id, so if
+you wire the trust to the integration's id, the volume's assume is rejected with
+`sts:AssumeRole ... is not authorized` — and the two ids look nearly identical,
+so the mismatch is easy to stare straight past.
+
+The volume's external id does not exist until the volume exists, and the volume
+references the role by ARN, so the role has to exist first. That is a genuine
+chicken-and-egg, resolved with a two-pass deploy. This is the one real difference
+from the Databricks role, whose external id (the account UUID) you already know.
+
+1. **AWS pass one** — deploy the stack opting in to the Snowflake role but with
+   no external id yet. The role is created trusting only its own account with a
+   sentinel external id that Snowflake never sends, so it exists but cannot be
+   assumed:
+
+   ```bash
+   aws cloudformation deploy --stack-name icebergmatrix-ci \
+     --template-file infra/aws/aws.yaml \
+     --capabilities CAPABILITY_NAMED_IAM \
+     --parameter-overrides SnowflakeEnvironmentName=snowflake-live \
+       ... # existing parameters unchanged
+   ```
+
+   Note the `SnowflakeStorageRoleArn` output.
+
+2. **Snowflake side** — create the external volume pointing at that role, then
+   read back the two values AWS needs from the **volume** (not from any
+   integration). `ALLOW_WRITES = TRUE` is required for managed tables:
+
+   ```sql
+   CREATE EXTERNAL VOLUME icebergmatrix_vol
+     STORAGE_LOCATIONS = (
+       (
+         NAME = 'icebergmatrix-us-east-1'
+         STORAGE_PROVIDER = 'S3'
+         STORAGE_BASE_URL = 's3://<data-bucket>/snowflake/'
+         STORAGE_AWS_ROLE_ARN = '<SnowflakeStorageRoleArn from step 1>'
+       )
+     )
+     ALLOW_WRITES = TRUE;
+
+   DESC EXTERNAL VOLUME icebergmatrix_vol;
+   -- In the STORAGE_LOCATION_1 row, read STORAGE_AWS_IAM_USER_ARN and
+   -- STORAGE_AWS_EXTERNAL_ID from the JSON. These are the volume's own values.
+   ```
+
+   `CREATE EXTERNAL VOLUME` does not itself assume the role, so it succeeds even
+   though the trust is still the sentinel; the assume is not exercised until
+   step 4.
+
+3. **AWS pass two** — redeploy with both values, which rewrites the trust policy
+   to admit exactly this volume (the Snowflake-owned IAM user as the principal,
+   the volume's external id as the confused-deputy guard). Pass the external id
+   with the `Key=Value` parameter form rather than `Key=Value` space-splitting,
+   because the value contains `=` characters:
+
+   ```bash
+   aws cloudformation deploy --stack-name icebergmatrix-ci \
+     --template-file infra/aws/aws.yaml \
+     --capabilities CAPABILITY_NAMED_IAM \
+     --parameter-overrides \
+       SnowflakeEnvironmentName=snowflake-live \
+       "SnowflakeIamUserArn=<STORAGE_AWS_IAM_USER_ARN>" \
+       "SnowflakeExternalId=<STORAGE_AWS_EXTERNAL_ID>" \
+       ... # existing parameters unchanged
+   ```
+
+   Both must be supplied together: the template only wires the real trust when
+   `SnowflakeExternalId` is non-empty, and an external id without the matching
+   IAM user ARN would trust the account root, which is wrong. If you ever recreate
+   the volume (`CREATE OR REPLACE EXTERNAL VOLUME`), Snowflake issues a **new**
+   external id, so repeat step 2's `DESC` and redeploy — a stale external id fails
+   the assume at write time, not at create time, which is the confusing part.
+
+4. **Verify the trust end to end** from Snowflake before relying on it. This is
+   the checkpoint that catches a wrong external id, and it does a real
+   write/read/list/delete round-trip against the bucket using the role:
+
+   ```sql
+   SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('icebergmatrix_vol');
+   ```
+
+   Wait for `"success":true` with `writeResult`/`readResult`/`listResult`/
+   `deleteResult` all `PASSED`. A failure whose message is
+   `Error assuming AWS_ROLE: ... is not authorized to perform: sts:AssumeRole`
+   means the external id in the trust does not match the volume's — re-read
+   `DESC EXTERNAL VOLUME` and compare the two ids character for character (the
+   `STORAGE_AWS_EXTERNAL_ID` in the failure payload is the volume's current one).
+   IAM trust edits take a few seconds to propagate, so if you have just
+   redeployed, wait and re-run before assuming the value is wrong.
+
+### The database and a managed table
+
+With `VERIFY` green, create a database for the run schemas and confirm a real
+managed table round-trips:
+
+```sql
+CREATE DATABASE IF NOT EXISTS ICEBERGMATRIX;
+
+-- what the suite does per test, shown once by hand:
+CREATE ICEBERG TABLE ICEBERGMATRIX.PUBLIC.probe (id INT, name STRING)
+  CATALOG = 'SNOWFLAKE'
+  EXTERNAL_VOLUME = 'icebergmatrix_vol'
+  BASE_LOCATION = 'managed/probe';
+INSERT INTO ICEBERGMATRIX.PUBLIC.probe VALUES (1, 'a');
+SELECT * FROM ICEBERGMATRIX.PUBLIC.probe;
+DROP ICEBERG TABLE ICEBERGMATRIX.PUBLIC.probe;
+```
+
+Match the external volume's region to the data bucket's region (us-east-1 here).
+A cross-region volume works but pays egress on every read the suite does through
+the layout inspection, and on Snowflake's own writes.
+
+### Two things that are not obvious
+
+**The lifecycle rule is a backstop, not the cleanup.** `s3-lifecycle.json`
+expires `snowflake/managed/` after a day, but that is only for files orphaned by
+a crashed run. For a managed table Snowflake owns the storage and tracks it
+through its own catalog, so deleting those objects directly — with boto3 or by
+letting the lifecycle rule reach a live table — corrupts Snowflake's view of the
+table rather than cleaning it up. The real teardown is `DROP ICEBERG TABLE` /
+`DROP SCHEMA ... CASCADE`, which `tests/snowflake_teardown.py` does and which
+lets Snowflake remove its own files. The `snowflake/reports/` prefix keeps
+reports for 30 days like the other engines.
+
+**The warehouse and the external volume are long-lived.** Like the Redshift
+Serverless workgroup and the Databricks SQL warehouse, the virtual warehouse
+(auto-suspends, bills only while running) and the external volume are stack-level
+infrastructure the suite only uses, never creates or drops. Teardown leaves both
+alone.
+
+### Configure the GitHub environment
+
+Settings → Environments → `snowflake-live`. As with `databricks-live`, this is a
+*separate* environment with its own required reviewer, so the Snowflake
+credentials are not readable by the AWS or Databricks jobs, and approving
+Snowflake warehouse time is its own decision with its own audit trail.
+
+The Snowflake job still assumes the AWS CI role for the read-only S3 layout
+inspection, and that role's trust is scoped by OIDC subject, so `snowflake-live`
+has to be an allowed subject. That is what the `SnowflakeEnvironmentName`
+parameter does (it is already set from pass one above). **Deploy the stack before
+the first dispatch from the new environment** — otherwise the run reaches
+`configure-aws-credentials` and fails there with "Not authorized to perform
+sts:AssumeRoleWithWebIdentity", which reads like a broken secret rather than a
+missing trust entry. Setting the parameter equal to `EnvironmentName` collapses
+it back into `aws-live`.
+
+- Required reviewer: yourself.
+- Deployment branch policy: restrict to the branches you want to run from.
+- Environment secrets (not repository secrets). Authenticate with either a
+  password or a key pair — set `SNOWFLAKE_PASSWORD`, or set
+  `SNOWFLAKE_PRIVATE_KEY` (PEM, with `SNOWFLAKE_PRIVATE_KEY_PASSPHRASE` if the
+  key is encrypted). Key-pair auth is the better choice for CI because it does
+  not expire the way a password policy can.
+
+| Secret | Value |
+|---|---|
+| `SNOWFLAKE_ACCOUNT` | account identifier, e.g. `ab12345.us-east-1` |
+| `SNOWFLAKE_USER` | login name the tests run as |
+| `SNOWFLAKE_PASSWORD` | password auth (omit if using a key pair) |
+| `SNOWFLAKE_PRIVATE_KEY` | PEM private key for key-pair auth (omit if using a password) |
+| `SNOWFLAKE_PRIVATE_KEY_PASSPHRASE` | passphrase for the key, if it is encrypted |
+| `SNOWFLAKE_ROLE` | role to use (optional; defaults to the user's default role) |
+| `SNOWFLAKE_WAREHOUSE` | virtual warehouse for compute |
+| `SNOWFLAKE_EXTERNAL_VOLUME` | `icebergmatrix_vol` (the volume from above) |
+| `AWS_CI_ROLE_ARN` | `CiRoleArn` output, for the S3 layout inspection |
+| `AWS_REGION` | the region the data bucket lives in |
+| `AWS_DATA_BUCKET` | your S3 bucket name |
+
+`AWS_CI_ROLE_ARN`, `AWS_REGION` and `AWS_DATA_BUCKET` are duplicated from
+`aws-live` rather than shared, for the same reason they are duplicated onto
+`databricks-live`: environment secrets are per-environment, so a job can only
+read the secrets of the environment it gates on.
+
+### Run it
+
+Dispatch **Snowflake Platform Tests** with `dry-run: true` first: it verifies
+the Snowflake connection and the OIDC role without creating anything. A real run
+creates per-run schemas `ICEBERGMATRIX-<run-id>_<n>` in the database, runs the
+suite, and `tests/snowflake_teardown.py` drops every `ICEBERGMATRIX*` schema
+CASCADE afterwards (Snowflake removes the managed storage). The `only` input runs
+a comma-filtered subset while iterating, e.g. `variant,lineage`.
+
+### Costs
+
+The virtual warehouse bills per second while a query runs and auto-suspends when
+idle; a full suite run is a few minutes of warehouse time. The S3 layout
+inspection is read-only from the CI role. Managed-table storage is removed on
+teardown; anything teardown could not remove is printed loudly in the job log,
+and the `snowflake/managed/` lifecycle rule expires it as a backstop.

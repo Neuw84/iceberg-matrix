@@ -39,6 +39,11 @@
     { "ID": "athena-scripts-7d", "Status": "Enabled",
       "Filter": { "Prefix": "athena/scripts/" }, "Expiration": { "Days": 7 } },
     { "ID": "athena-reports-30d", "Status": "Enabled",
-      "Filter": { "Prefix": "athena/reports/" }, "Expiration": { "Days": 30 } }
+      "Filter": { "Prefix": "athena/reports/" }, "Expiration": { "Days": 30 } },
+
+    { "ID": "snowflake-managed-1d", "Status": "Enabled",
+      "Filter": { "Prefix": "snowflake/managed/" }, "Expiration": { "Days": 1 } },
+    { "ID": "snowflake-reports-30d", "Status": "Enabled",
+      "Filter": { "Prefix": "snowflake/reports/" }, "Expiration": { "Days": 30 } }
   ]
 }
