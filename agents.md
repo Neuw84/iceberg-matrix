@@ -49,7 +49,9 @@ A React single-page application that displays an interactive compatibility matri
 │   │       ├── gcp/                  # bigquery/, dataproc/
 │   │       ├── azure/                # synapse/, fabric/
 │   │       ├── databricks/           # databricks/
-│   │       ├── snowflake/            # snowflake/
+│   │       ├── snowflake/            # split by Iceberg storage mode:
+│   │       │   ├── managed/snowflake/snowflake.json   # Snowflake-provided storage
+│   │       │   └── external/snowflake/snowflake.json  # external volume (customer S3)
 │   │       └── oss/                  # duckdb/, clickhouse/, daft/, spark/,
 │   │                                 # spark-gluten/, spark-comet/, flink/,
 │   │                                 # pyiceberg/, doris/, databend/,
@@ -142,7 +144,11 @@ AWS is split first by S3 mode and then by engine. `aws/s3buckets/` and `aws/s3ta
 - AWS engines first, in the order `athena`, `emr`, `glue`, `managed-flink`, `redshift-s3`.
 - Then the non-AWS vendors in the order `gcp`, `azure`, `databricks`, `snowflake`, `oss`.
 
-It exports two `CompatibilityData` datasets: `data` (built from `aws/s3buckets` + the non-AWS vendors) and `dataS3Tables` (built from `aws/s3tables` + the non-AWS vendors). `features` and `versions` come unchanged from `features.json`. The fixed import order makes the merged platform order and support map deterministic, independent of filesystem enumeration.
+It exports four `CompatibilityData` datasets, one per (AWS mode × Snowflake mode) combination: `data` (S3 buckets + Snowflake managed), `dataS3Tables` (S3 Tables + Snowflake managed), `dataSnowflakeExternal` (S3 buckets + Snowflake external) and `dataS3TablesSnowflakeExternal` (S3 Tables + Snowflake external), plus a `getEngineData(awsS3Mode, snowflakeMode)` selector the app uses. `features` and `versions` come unchanged from `features.json`. The fixed import order makes the merged platform order and support map deterministic, independent of filesystem enumeration.
+
+### Snowflake dual-storage layout
+
+Snowflake mirrors the AWS dual-mode pattern, split by Iceberg storage option rather than by engine: `snowflake/managed/snowflake/snowflake.json` (Snowflake-provided storage, `EXTERNAL_VOLUME = SNOWFLAKE_MANAGED`) and `snowflake/external/snowflake/snowflake.json` (customer cloud storage through an external volume). Both files carry the same platform id `snowflake`, so filters and the matrix column survive the toggle; the mode is expressed by which file the merge includes in the Snowflake slot (between `databricks` and the OSS block). The UI switch is a pill in the Snowflake group header (Snowflake / External), state owned by `App.tsx` as `snowflakeMode` (default `"snowflake"`), gated exactly like the AWS toggle (engines view only, hidden when Snowflake platforms are filtered out).
 
 ### Staged-but-excluded engines
 

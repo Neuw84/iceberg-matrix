@@ -242,3 +242,40 @@ describe('Matrix filters', () => {
     expect(screen.queryByText('✕ Clear all')).not.toBeInTheDocument()
   })
 })
+
+describe('Snowflake storage mode toggle', () => {
+  it('defaults to Snowflake-managed storage in the Engines view', () => {
+    render(<App />)
+    // The pill sits in the Snowflake group header and offers the switch to
+    // the external-volume dataset.
+    expect(
+      screen.getByRole('button', { name: 'Switch to External storage' }),
+    ).toBeInTheDocument()
+  })
+
+  it('toggles between Snowflake and External storage data', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to External storage' }))
+    // The label flips: the button now offers the way back.
+    expect(
+      screen.getByRole('button', { name: 'Switch to Snowflake storage' }),
+    ).toBeInTheDocument()
+    // The Snowflake engine column is still rendered (same platform id in both
+    // modes, so filters and the column survive the toggle).
+    expect(screen.getByRole('grid')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to Snowflake storage' }))
+    expect(
+      screen.getByRole('button', { name: 'Switch to External storage' }),
+    ).toBeInTheDocument()
+  })
+
+  it('renders no Snowflake storage toggle in the Catalogs view', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Catalogs' }))
+    expect(
+      screen.queryByRole('button', { name: /storage$/ }),
+    ).not.toBeInTheDocument()
+  })
+})

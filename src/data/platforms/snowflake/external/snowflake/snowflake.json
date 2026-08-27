@@ -288,10 +288,10 @@
     },
     "snowflake:partition-evolution:v2": {
       "level": "partial",
-      "notes": "Partition evolution is supported for externally managed Iceberg tables — Snowflake's partitioned write support (GA October 2025) writes data conforming to the table's current Iceberg partition spec, so changing the spec in your external catalog is reflected in new writes from Snowflake. For Snowflake-managed tables, partition schemes are managed via ALTER ICEBERG TABLE … PARTITION BY; old data retains its existing layout while new data uses the updated spec, following Iceberg's native partition evolution model.",
+      "notes": "No SQL surface evolves the partition spec of a Snowflake-managed Iceberg table in place: ALTER ICEBERG TABLE ... SET PARTITION BY, ADD PARTITION FIELD and DROP PARTITION FIELD are all rejected (measured on Snowflake 10.30.102, Aug 2026). Partitioned writes (GA October 2025) still conform to a table's current spec, so specs evolved by an external catalog are honoured on write.",
       "caveats": [
-        "Partitioned writes (GA October 2025) enable Snowflake to correctly write to tables whose partition spec has evolved",
-        "Snowflake-managed tables: use ALTER ICEBERG TABLE … PARTITION BY to evolve the partition spec; data is not automatically rewritten",
+        "Measured: no ALTER ICEBERG TABLE syntax changes the partition spec of a Snowflake-managed table",
+        "Partitioned writes (GA October 2025) follow the table's current spec",
         "External catalog tables: partition evolution is controlled by the external catalog; Snowflake writes follow the current spec"
       ],
       "links": [
@@ -330,11 +330,11 @@
       "links": []
     },
     "snowflake:multi-arg-transforms:v3": {
-      "level": "unknown",
-      "notes": "Multi-argument transforms support not explicitly mentioned in the V3 GA announcement. Generally available (as of May 7, 2026).",
+      "level": "none",
+      "notes": "Multi-argument partition transforms are rejected: BUCKET over two columns fails with 'Invalid number of arguments for Iceberg Transform BUCKET, expected 2, got 3'. Measured on Snowflake 10.30.102 (Aug 2026) against a Snowflake-managed Iceberg table.",
       "caveats": [
-        "Generally available (as of May 7, 2026)",
-        "Not explicitly mentioned in announcement"
+        "Measured: CREATE ICEBERG TABLE ... PARTITION BY (BUCKET(4, a, b)) is rejected",
+        "Single-column transforms (BUCKET, DAY, MONTH, ...) work normally"
       ],
       "links": [
         {
@@ -997,10 +997,11 @@
       "links": []
     },
     "snowflake:lineage:v3": {
-      "level": "full",
-      "notes": "Row-level lineage tracking supported for data governance and auditing in Iceberg V3 tables. Generally available (as of May 7, 2026).",
+      "level": "partial",
+      "notes": "Snowflake writes Iceberg v3 row-lineage metadata for engine interoperability, but no session surface exposes it: METADATA$ROW_ID is an invalid identifier on a v3 managed Iceberg table, with or without change tracking (measured on Snowflake 10.30.102, Aug 2026).",
       "caveats": [
-        "Generally available (as of May 7, 2026)"
+        "Measured: lineage columns are not selectable from a Snowflake session",
+        "v3 lineage metadata is maintained for external readers (CDC interop)"
       ],
       "links": [
         {

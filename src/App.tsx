@@ -1,6 +1,6 @@
 import { useState, useMemo, lazy, Suspense } from "react";
-import type { AwsS3Mode, FilterState, ViewMode } from "./types";
-import { data, dataS3Tables } from "./data/load-data";
+import type { AwsS3Mode, FilterState, SnowflakeStorageMode, ViewMode } from "./types";
+import { data, getEngineData } from "./data/load-data";
 import { dataCatalogs } from "./data/load-catalogs";
 import { FilterPanel } from "./components/FilterPanel";
 import { VersionTabs } from "./components/VersionTabs";
@@ -44,13 +44,14 @@ export default function App() {
   const [catalogFilters, setCatalogFilters] = useState<FilterState>(initialCatalogFilters);
   const [introOpen, setIntroOpen] = useState(false);
   const [awsS3Mode, setAwsS3Mode] = useState<AwsS3Mode>("s3-buckets");
+  // Snowflake defaults to its managed storage ("snowflake"), which the docs
+  // recommend; "external" swaps in the external-volume (customer S3) data.
+  const [snowflakeMode, setSnowflakeMode] = useState<SnowflakeStorageMode>("snowflake");
 
   const isCatalogsView = viewMode === "catalogs";
   const activeData = isCatalogsView
     ? dataCatalogs
-    : awsS3Mode === "s3-tables"
-      ? dataS3Tables
-      : data;
+    : getEngineData(awsS3Mode, snowflakeMode);
   const filters = isCatalogsView ? catalogFilters : engineFilters;
   const setFilters = isCatalogsView ? setCatalogFilters : setEngineFilters;
 
@@ -180,10 +181,13 @@ export default function App() {
         <CompatibilityMatrix
           data={activeData}
           filters={filters}
-          // The S3 Buckets/Tables switch is an engines-view concern; without
-          // these props the matrix renders no AWS toggle.
+          // The per-vendor storage switches (AWS S3 Buckets/Tables, Snowflake
+          // managed/external) are engines-view concerns; without these props
+          // the matrix renders no toggles.
           awsS3Mode={isCatalogsView ? undefined : awsS3Mode}
           onAwsS3ModeChange={isCatalogsView ? undefined : setAwsS3Mode}
+          snowflakeMode={isCatalogsView ? undefined : snowflakeMode}
+          onSnowflakeModeChange={isCatalogsView ? undefined : setSnowflakeMode}
         />
       </main>
 

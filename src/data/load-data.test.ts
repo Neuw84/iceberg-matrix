@@ -11,7 +11,12 @@
  */
 import { describe, it, expect } from "vitest";
 import featuresJson from "./features.json";
-import { data, dataS3Tables } from "./load-data";
+import {
+  data,
+  dataS3Tables,
+  dataSnowflakeExternal,
+  dataS3TablesSnowflakeExternal,
+} from "./load-data";
 import type { CompatibilityData } from "../types";
 
 const VALID_LEVELS = ["full", "partial", "none", "unknown"];
@@ -115,8 +120,10 @@ describe("engine files on disk", () => {
 });
 
 describe.each([
-  ["data (S3 buckets)", data],
-  ["dataS3Tables (S3 Tables)", dataS3Tables],
+  ["data (S3 buckets, Snowflake managed)", data],
+  ["dataS3Tables (S3 Tables, Snowflake managed)", dataS3Tables],
+  ["dataSnowflakeExternal (S3 buckets, Snowflake external)", dataSnowflakeExternal],
+  ["dataS3TablesSnowflakeExternal (S3 Tables, Snowflake external)", dataS3TablesSnowflakeExternal],
 ] as const)("merged engines dataset: %s", (_name, dataset: CompatibilityData) => {
   it("gives every platform an entry for every feature x version", () => {
     const missing: string[] = [];
