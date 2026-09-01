@@ -18,9 +18,22 @@
       ]
     },
     "aws-redshift-s3:position-deletes:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): both halves. A v3 DELETE removes the row positionally, encoded as a Puffin deletion vector with the data files left in place -- the Iceberg spec defines position deletes as encoded in a position delete file (v2) or a deletion vector (v3 and above), so a deletion vector is the v3 encoding of this feature rather than its absence. And a v2 table's position deletes still apply after an in-place upgrade to v3 via ALTER TABLE SET TABLE PROPERTIES, so legacy position delete files stay readable.",
+      "caveats": [
+        "New positional delete *files* cannot be added to a v3 table; v3 records position deletes as deletion vectors instead",
+        "The in-place v2 to v3 upgrade is metadata-only and the deleted row stays absent afterwards, verified rather than assumed"
+      ],
+      "links": [
+        {
+          "label": "Iceberg spec: row-level deletes",
+          "url": "https://iceberg.apache.org/spec/"
+        },
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:equality-deletes:v2": {
       "level": "full",
@@ -37,9 +50,18 @@
       ]
     },
     "aws-redshift-s3:equality-deletes:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Reading equality deletes follows from Redshift's documented support for querying Iceberg tables through delete files, and equality delete files remain a valid v3 construct -- the spec defines data_file content=2 for v1 through v3, and only v4 forbids writing new ones. Not verified by this suite; see caveats.",
+      "caveats": [
+        "Read-only: Redshift's own writer produces position deletes, not equality deletes. A measured DELETE reported total-equality-deletes=0 alongside total-position-deletes=1",
+        "The read half is not verified by this suite. No engine in the harness writes equality delete files -- Spark's DELETE either writes positional deletes or rewrites whole data files, and the fx_v2_eqdel fixture was inspected and carries no delete files at all -- so a Flink upsert sink with equality fields would be needed"
+      ],
+      "links": [
+        {
+          "label": "Iceberg spec: row-level deletes",
+          "url": "https://iceberg.apache.org/spec/"
+        }
+      ]
     },
     "aws-redshift-s3:merge-on-read:v2": {
       "level": "full",

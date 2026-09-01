@@ -874,6 +874,80 @@ def _puffin_count(tbl: str) -> int:
         return -1
 
 
+_UPGRADE_PROBE = None
+
+
+def _v2_position_deletes_survive_upgrade() -> str:
+    """Whether a v2 table's position delete files still apply once upgraded to v3.
+
+    Measured once. Redshift documents an in-place upgrade -- ALTER TABLE ... SET
+    TABLE PROPERTIES ('format-version'='3') -- as metadata-only, with existing v2
+    position delete files remaining valid and applied during reads. That is the
+    read half of the position-deletes cell at v3, and an upgrade is the only way
+    to reach it: a table created as v3 records deletes as deletion vectors, so it
+    never contains a legacy position delete file to read.
+
+    Returns a sentence for the report, or "" when nothing could be measured.
+    """
+    global _UPGRADE_PROBE
+    if _UPGRADE_PROBE is not None:
+        return _UPGRADE_PROBE
+
+    tbl = _unique("upg")
+    ok, _out = _run_sql([
+        _create(tbl, "id BIGINT, name VARCHAR", "v2"),
+        f"INSERT INTO {_table(tbl)} VALUES (1,'a'),(2,'b'),(3,'c')",
+        f"DELETE FROM {_table(tbl)} WHERE id=2",
+    ])
+    if not ok:
+        _run_sql([f"DROP TABLE {_table(tbl)}"])
+        _UPGRADE_PROBE = ""
+        return _UPGRADE_PROBE
+
+    before, _n = _delete_file_evidence(tbl)
+    file_encoded = (
+        before is not None and _summary_count(before, "total-position-deletes") > 0
+    )
+
+    up_ok, up_out = _run_sql([
+        f"ALTER TABLE {_table(tbl)} SET TABLE PROPERTIES ('format-version'='3')",
+        f"SHOW TABLE {_table(tbl)}",
+    ])
+    if not up_ok:
+        _run_sql([f"DROP TABLE {_table(tbl)}"])
+        _UPGRADE_PROBE = (
+            f"An in-place v2 to v3 upgrade was refused: {_error_reason(up_out, 110)}"
+        )
+        return _UPGRADE_PROBE
+
+    stored = re.search(r"'format-version'='(\d)'", up_out)
+    read_ok, read_out = _run_sql([
+        f"SELECT LISTAGG(id, ',') WITHIN GROUP (ORDER BY id) FROM {_table(tbl)}"
+    ])
+    _run_sql([f"DROP TABLE {_table(tbl)}"])
+
+    if not read_ok:
+        _UPGRADE_PROBE = (
+            "After an in-place upgrade to v3 the table could not be read: "
+            f"{_error_reason(read_out, 110)}"
+        )
+    elif "1,3" in read_out:
+        # "1,2,3" does not contain "1,3", so this also proves row 2 stayed deleted.
+        _UPGRADE_PROBE = (
+            "A v2 table's position deletes still apply after an in-place upgrade "
+            f"to format-version {stored.group(1) if stored else '?'}: the deleted "
+            "row stays absent"
+            + ("" if file_encoded
+               else ", though the original v2 delete was not confirmed as file-encoded")
+        )
+    else:
+        _UPGRADE_PROBE = (
+            "After an in-place upgrade to v3 the v2 position deletes stopped "
+            f"applying: expected rows 1,3 and got {read_out[:60]!r}"
+        )
+    return _UPGRADE_PROBE
+
+
 def test_position_deletes(version: str) -> TestResult:
     r = TestResult("position-deletes", "Position Deletes", version)
     tbl = _unique("posdel")
@@ -901,47 +975,36 @@ def test_position_deletes(version: str) -> TestResult:
 
     positional = _summary_count(summary, "total-position-deletes")
     if version == "v3":
-        # total-position-deletes counts deleted row *positions*, and a deletion
-        # vector records positions too, so the counter cannot tell a v3 deletion
-        # vector apart from a legacy positional delete file: the same DELETE
-        # reports position-deletes=1 either way (measured -- the deletion-vector
-        # probe sees position-deletes=1 alongside a .puffin file). The storage
-        # format is what separates them, because v3 keeps deletion vectors in
-        # Puffin files.
-        #
-        # A v3 table must not add new positional delete files: the spec replaces
-        # them with deletion vectors, and Redshift documents that v3 tables read
-        # pre-existing positional deletes but never write more. So Puffin here is
-        # a measured *absence* of this feature rather than a defect. Reading
-        # deletes another engine wrote is the half this probe cannot reach, since
-        # the table is fresh.
+        # The spec defines position deletes as a semantic category with two
+        # encodings: "Position deletes are encoded in a position delete file (V2)
+        # or deletion vector (V3 or above)". A Puffin deletion vector is therefore
+        # how a v3 table *expresses* a position delete, not evidence the feature
+        # is missing -- treating its presence as an absence reads the spec
+        # backwards. What matters is that the delete is positional at all, which
+        # total-position-deletes reports for either encoding.
         puffin = _puffin_count(tbl)
-        if puffin > 0:
-            r.result = "fail"
-            r.details = (
-                "A v3 DELETE recorded its deleted positions in a Puffin deletion "
-                "vector rather than a positional delete file, as the spec requires "
-                f"({note}, {puffin} puffin file(s)). Reading positional deletes "
-                "written by another engine is documented but not measured here"
+        if positional > 0:
+            encoding = (
+                f"a Puffin deletion vector ({puffin} file(s))" if puffin > 0
+                else "delete files" if puffin == 0
+                else "delete files (storage not inspectable in this mode)"
             )
-        elif puffin < 0:
-            r.result = "skip"
-            r.details = (
-                "The v3 DELETE applied, but whether it wrote a Puffin deletion "
-                "vector or a positional delete file cannot be inspected in this "
-                f"storage mode ({note})"
-            )
-        elif positional > 0:
             r.result = "pass"
             r.details = (
-                "A v3 DELETE committed positional deletes with no Puffin deletion "
-                f"vector ({note}), which the v3 spec does not allow"
+                f"A v3 DELETE removed the row positionally, encoded as {encoding} "
+                f"and leaving the data files in place ({note})"
             )
+            # Second half of the cell, and a documented v3 capability in its own
+            # right: a v2 table carrying real position delete *files* keeps them
+            # readable once upgraded in place to v3.
+            upgraded = _v2_position_deletes_survive_upgrade()
+            if upgraded:
+                r.details += f". {upgraded}"
         else:
             r.result = "fail"
             r.details = (
-                "The v3 DELETE committed no positional deletes and no deletion "
-                f"vector, so the row was removed by rewriting data ({note})"
+                "The v3 DELETE recorded no position deletes, so the row was "
+                f"removed by rewriting data rather than positionally ({note})"
             )
     elif positional > 0:
         r.result = "pass"
