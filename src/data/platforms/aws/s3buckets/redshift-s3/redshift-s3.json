@@ -36,9 +36,19 @@
       "caveats": []
     },
     "aws-redshift-s3:merge-on-read:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): An UPDATE on a v3 table commits delete files rather than rewriting the table, which is merge-on-read; the Iceberg snapshot summary confirms it.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:copy-on-write:v2": {
       "level": "none",
@@ -65,9 +75,19 @@
       "caveats": []
     },
     "aws-redshift-s3:schema-evolution:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): ADD, RENAME and DROP COLUMN are all accepted on a v3 table as metadata-only changes, with existing rows still readable afterwards.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:column-default-values:v2": {
       "level": "none",
@@ -75,9 +95,23 @@
       "caveats": []
     },
     "aws-redshift-s3:column-default-values:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): A DEFAULT literal declared at CREATE is written when a DML statement omits the column; ALTER TABLE ADD COLUMN ... DEFAULT backfills a pre-existing row without rewriting data files; ALTER COLUMN SET DEFAULT and DROP DEFAULT are both accepted.",
+      "caveats": [
+        "v3 only: a DEFAULT on a v2 table is refused with \"Columns constraints and attributes are not supported for an iceberg table\"",
+        "Only literal values; nested types cannot carry defaults",
+        "CREATE TABLE AS SELECT does not inherit defaults from the source table"
+      ],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:table-creation:v2": {
       "level": "full",
@@ -85,9 +119,22 @@
       "caveats": []
     },
     "aws-redshift-s3:table-creation:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): CREATE TABLE ... USING ICEBERG TABLE PROPERTIES ('format-version'='3') is accepted and SHOW TABLE reports the table back as format-version 3.",
+      "caveats": [
+        "Omitting 'format-version' creates a v2 table, so v3 is opt-in",
+        "Downgrading a v3 table back to v2 is not supported"
+      ],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:hidden-partitioning:v2": {
       "level": "full",
@@ -95,21 +142,49 @@
       "caveats": []
     },
     "aws-redshift-s3:hidden-partitioning:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): PARTITIONED BY with day() and bucket() transforms is stored on a v3 table and queries filter on the source column with no derived column in the schema.",
+      "caveats": [
+        "On S3 Tables the CREATE-time clause is silently discarded; see that mode"
+      ],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:partition-evolution:v2": {
-      "level": "partial",
-      "notes": "Redshift can read partition-evolved tables but cannot perform partition evolution itself",
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): ALTER TABLE ADD, REPLACE and DROP PARTITION FIELD are all accepted, and rows written under the old and new specs read back together.",
       "caveats": [
-        "Cannot modify partitioning; read-only support"
+        "The initial spec is declared with PARTITIONED BY at CREATE; see the hidden partitioning cell"
+      ],
+      "links": [
+        {
+          "label": "Redshift adds ALTER TABLE for Iceberg tables (May 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/05/amazon-redshift-alter-table-iceberg/"
+        }
       ]
     },
     "aws-redshift-s3:partition-evolution:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): ADD, REPLACE and DROP PARTITION FIELD are all accepted on a v3 table, and rows written under the old and new specs read back together.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:multi-arg-transforms:v2": {
       "level": "none",
@@ -154,13 +229,15 @@
     },
     "aws-redshift-s3:branching-tagging:v2": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg branching and tagging",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): Measured in both directions. No branch or tag DDL is accepted, and although a Spark-created table carrying a branch and a tag reads fine on main, none of four ref spellings resolves -- because table names go through the Glue Data Catalog, which has no notion of an Iceberg ref.",
+      "caveats": [],
+      "links": []
     },
     "aws-redshift-s3:branching-tagging:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): Measured in both directions on a v3 table. No branch or tag DDL is accepted, and although a Spark-created table carrying a branch and a tag reads fine on main, none of four ref spellings resolves -- because table names go through the Glue Data Catalog, which has no notion of an Iceberg ref.",
+      "caveats": [],
+      "links": []
     },
     "aws-redshift-s3:read-support:v2": {
       "level": "full",
@@ -183,17 +260,23 @@
       ]
     },
     "aws-redshift-s3:read-support:v3": {
-      "level": "partial",
-      "notes": "Redshift reads format-version 3 tables but cannot write them. A v3 table created by Spark is queried correctly; any INSERT, UPDATE or DELETE against it is refused, and Redshift cannot create a v3 table in the first place.",
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): Redshift creates, writes and reads its own format-version 3 tables; a three-row round-trip through the Glue external schema returns correctly.",
       "caveats": [
-        "Writes fail with: Iceberg version 3 is not supported. Only Iceberg V2 tables are supported for writing",
-        "CREATE TABLE with 'format-version'='3' is rejected: \"3\" is not a valid value for the \"format-version\" property of \"iceberg\" table",
-        "Verified by reading a v3 table built by Spark on EMR, since Redshift cannot produce one itself"
+        "Before the August 2026 release this was read-only, via v3 tables another engine created"
       ],
       "links": [
         {
           "label": "Querying Iceberg tables in Redshift",
           "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        },
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
         }
       ]
     },
@@ -203,9 +286,19 @@
       "caveats": []
     },
     "aws-redshift-s3:write-insert:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): INSERT ... VALUES and INSERT ... SELECT both commit data to a v3 table.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:write-merge-update-delete:v2": {
       "level": "full",
@@ -213,9 +306,19 @@
       "caveats": []
     },
     "aws-redshift-s3:write-merge-update-delete:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): UPDATE, DELETE and MERGE all apply to a v3 table and the resulting rows verify; v3 uses the same DML syntax as v2.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:catalog-integration:v2": {
       "level": "full",
@@ -223,9 +326,22 @@
       "caveats": []
     },
     "aws-redshift-s3:catalog-integration:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): Full create/write/read/drop round-trip for a v3 table through a Glue Data Catalog external schema.",
+      "caveats": [
+        "Iceberg tables must be registered in the AWS Glue Data Catalog",
+        "Writes need an external schema naming an IAM role; the auto-mounted catalog cannot write"
+      ],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:hive-metastore:v2": {
       "level": "none",
@@ -243,9 +359,19 @@
       "caveats": []
     },
     "aws-redshift-s3:aws-glue-catalog:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): The Glue Data Catalog is the catalog Redshift uses for Iceberg: a v3 table is created, written, read and dropped through it.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:rest-catalog:v2": {
       "level": "none",
@@ -314,8 +440,16 @@
     },
     "aws-redshift-s3:variant-type:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): Absent in both directions. Redshift refuses a VARIANT column in v3 DDL (\"variant is not supported for column\"), and cannot read one even from a genuine v3 table built by Spark: the read fails while parsing table metadata with \"Invalid column type. Got: variant\".",
+      "caveats": [
+        "Redshift documents variant as unsupported in v3 tables, along with the other complex types (struct, list, map)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:shredded-variant:v2": {
       "level": "none",
@@ -324,8 +458,14 @@
     },
     "aws-redshift-s3:shredded-variant:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): Redshift cannot read a variant column at all -- measured against a Spark-created v3 variant table -- so a shredded variant cannot be read either. Shredding is a physical layout inside a variant column, so it cannot be reached without variant support.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:geometry-type:v2": {
       "level": "none",
@@ -334,8 +474,16 @@
     },
     "aws-redshift-s3:geometry-type:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): Redshift refuses a GEOMETRY column in v3 DDL (\"geometry is not supported for column\"). The read half is unmeasured rather than absent: Spark on EMR 8.0 also refuses to declare a GEOMETRY column (UNSUPPORTED_DATATYPE), so no fixture table exists for Redshift to read.",
+      "caveats": [
+        "Read support genuinely untested; no engine available here can create the fixture"
+      ],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:nanosecond-timestamps:v2": {
       "level": "none",
@@ -344,8 +492,16 @@
     },
     "aws-redshift-s3:nanosecond-timestamps:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): Redshift refuses a TIMESTAMP_NS column in v3 DDL (\"timestamp_ns is not supported for column\"). The read half is unmeasured rather than absent: Spark on EMR 8.0 also refuses to declare TIMESTAMP_NS (UNSUPPORTED_DATATYPE), so no fixture table exists for Redshift to read.",
+      "caveats": [
+        "Read support genuinely untested; no engine available here can create the fixture"
+      ],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:lineage:v2": {
       "level": "none",
@@ -353,9 +509,23 @@
       "caveats": []
     },
     "aws-redshift-s3:lineage:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): _row_id and _last_updated_sequence_number are populated on a v3 table and are correctly excluded from SELECT *, so existing consumers see no new columns.",
+      "caveats": [
+        "Must be named explicitly; they do not appear in SELECT *",
+        "On a non-v3 table both columns resolve but return NULL",
+        "After a v2 to v3 upgrade, pre-upgrade rows return NULL until the first write"
+      ],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:statistics:v2": {
       "level": "full",
@@ -369,9 +539,19 @@
       ]
     },
     "aws-redshift-s3:statistics:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): Iceberg column metrics are written on insert to a v3 table and the planner reads them to prune scans.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:bloom-filters:v2": {
       "level": "none",
@@ -385,22 +565,36 @@
       "caveats": []
     },
     "aws-redshift-s3:type-promotion:v2": {
-      "level": "partial",
-      "notes": "Redshift supports ALTER TABLE for Iceberg schema evolution including type changes. Supports reading tables with promoted types. Limited to the Iceberg spec-defined promotions.",
-      "caveats": [
-        "Type promotion support depends on the Iceberg table being managed via AWS Glue Catalog"
-      ],
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): All three widenings the Iceberg spec allows (int->bigint, float->double and a decimal precision increase at the same scale) are accepted as metadata-only changes, and narrowing back is correctly refused.",
+      "caveats": [],
       "links": [
         {
           "label": "Redshift Iceberg tables",
           "url": "https://aws.amazon.com/blogs/big-data/query-your-iceberg-tables-in-data-lake-using-amazon-redshift-preview/"
+        },
+        {
+          "label": "Redshift adds ALTER TABLE for Iceberg tables (May 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/05/amazon-redshift-alter-table-iceberg/"
         }
       ]
     },
     "aws-redshift-s3:type-promotion:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): int->bigint and float->double are accepted on a v3 table as metadata-only widenings, and narrowing back is correctly refused.",
+      "caveats": [
+        "Limited to the promotions the Iceberg spec allows"
+      ],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
+        }
+      ]
     },
     "aws-redshift-s3:snowflake-horizon-catalog:v2": {
       "level": "none",
@@ -428,16 +622,24 @@
       "links": []
     },
     "aws-redshift-s3:deletion-vectors:v3": {
-      "level": "partial",
-      "notes": "Redshift applies deletion vectors correctly when reading a v3 table, but cannot produce them: it writes only v2 position deletes and refuses to write to a v3 table at all.",
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): A DELETE on a v3 table commits a Puffin deletion vector and leaves the data files in place; the .puffin file was observed in the table's S3 prefix.",
       "caveats": [
-        "A Spark-built v3 table with rows 1-4 and a deletion vector removing row 2 reads back as exactly 1, 3, 4",
-        "Writes fail with: Iceberg version 3 is not supported. Only Iceberg V2 tables are supported for writing"
+        "v3 tables cannot write new positional delete files, only deletion vectors",
+        "Existing v2 positional deletes stay readable and are merged into deletion vectors on the next write"
       ],
       "links": [
         {
           "label": "Querying Iceberg tables in Redshift",
           "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        },
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        },
+        {
+          "label": "Redshift supports Apache Iceberg v3 (Aug 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-redshift-supports-apache-iceberg-v3"
         }
       ]
     },
