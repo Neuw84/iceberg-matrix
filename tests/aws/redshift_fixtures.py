@@ -1,9 +1,11 @@
 """Create, with Spark on EMR, the Iceberg tables Redshift cannot create itself.
 
-Redshift is a format-version 2 engine: CREATE TABLE ... ('format-version'='3') is
-refused outright, and it has no DDL for branches, tags or equality deletes. On its
-own that only tells us Redshift cannot *write* those things, which is not the same
-question the matrix asks. A cell should distinguish
+Redshift gained format-version 3 support on 2026-08-31, so it now creates most v3
+tables itself. What it still has no DDL for is branches, tags, equality deletes,
+and the v3 types it documents as unsupported (variant, geometry, timestamp_ns,
+unknown and the other complex types). On its own a refusal only tells us Redshift
+cannot *write* those things, which is not the same question the matrix asks. A
+cell should distinguish
 
     "this engine cannot produce the feature"     -> write gap
     "this engine cannot even read the feature"   -> no support at all
