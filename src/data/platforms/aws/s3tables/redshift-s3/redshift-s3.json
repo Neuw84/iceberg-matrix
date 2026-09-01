@@ -17,8 +17,14 @@
     },
     "aws-redshift-s3:position-deletes:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:equality-deletes:v2": {
       "level": "full",
@@ -27,8 +33,14 @@
     },
     "aws-redshift-s3:equality-deletes:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:merge-on-read:v2": {
       "level": "full",
@@ -37,8 +49,14 @@
     },
     "aws-redshift-s3:merge-on-read:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:copy-on-write:v2": {
       "level": "none",
@@ -56,30 +74,58 @@
     },
     "aws-redshift-s3:copy-on-write:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:schema-evolution:v2": {
-      "level": "partial",
-      "notes": "Redshift can read evolved schemas from S3 Tables; ALTER TABLE support limited",
-      "caveats": [
-        "Schema changes should be made via Spark/EMR"
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): ADD, RENAME and DROP COLUMN are all accepted as metadata-only changes, with existing rows still readable afterwards.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Redshift adds ALTER TABLE for Iceberg tables (May 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/05/amazon-redshift-alter-table-iceberg/"
+        }
       ]
     },
     "aws-redshift-s3:schema-evolution:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:type-promotion:v2": {
-      "level": "partial",
-      "notes": "Type promotion limited when accessing S3 Tables via Redshift",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): All three widenings the Iceberg spec allows (int->bigint, float->double and a decimal precision increase at the same scale) are accepted as metadata-only changes on S3 Tables, and narrowing back is correctly refused.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Redshift adds ALTER TABLE for Iceberg tables (May 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/05/amazon-redshift-alter-table-iceberg/"
+        }
+      ]
     },
     "aws-redshift-s3:type-promotion:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:column-default-values:v2": {
       "level": "none",
@@ -88,8 +134,14 @@
     },
     "aws-redshift-s3:column-default-values:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:table-creation:v2": {
       "level": "full",
@@ -98,8 +150,14 @@
     },
     "aws-redshift-s3:table-creation:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:hidden-partitioning:v2": {
       "level": "partial",
@@ -118,18 +176,38 @@
     },
     "aws-redshift-s3:hidden-partitioning:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:partition-evolution:v2": {
-      "level": "partial",
-      "notes": "Redshift can read partition-evolved tables on S3 Tables",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): ALTER TABLE ADD, REPLACE and DROP PARTITION FIELD are all accepted, and rows written under the old and new specs read back together.",
+      "caveats": [
+        "PARTITIONED BY at CREATE is silently discarded on S3 Tables, so the initial spec has to be established with ALTER TABLE ADD PARTITION FIELD; see the hidden partitioning cell"
+      ],
+      "links": [
+        {
+          "label": "Redshift adds ALTER TABLE for Iceberg tables (May 2026)",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/05/amazon-redshift-alter-table-iceberg/"
+        }
+      ]
     },
     "aws-redshift-s3:partition-evolution:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:multi-arg-transforms:v2": {
       "level": "none",
@@ -138,8 +216,14 @@
     },
     "aws-redshift-s3:multi-arg-transforms:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:time-travel:v2": {
       "level": "none",
@@ -157,8 +241,14 @@
     },
     "aws-redshift-s3:time-travel:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:table-maintenance:v2": {
       "level": "partial",
@@ -169,8 +259,14 @@
     },
     "aws-redshift-s3:table-maintenance:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:branching-tagging:v2": {
       "level": "none",
@@ -179,8 +275,14 @@
     },
     "aws-redshift-s3:branching-tagging:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:read-support:v2": {
       "level": "full",
@@ -189,16 +291,18 @@
     },
     "aws-redshift-s3:read-support:v3": {
       "level": "partial",
-      "notes": "Redshift reads format-version 3 tables but cannot write them. A v3 table created by Spark is queried correctly; any INSERT, UPDATE or DELETE against it is refused, and Redshift cannot create a v3 table in the first place.",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode. Whether Redshift can read a v3 table another engine created on S3 Tables is unmeasured in this mode.",
       "caveats": [
-        "Writes fail with: Iceberg version 3 is not supported. Only Iceberg V2 tables are supported for writing",
-        "CREATE TABLE with 'format-version'='3' is rejected: \"3\" is not a valid value for the \"format-version\" property of \"iceberg\" table",
-        "Verified by reading a v3 table built by Spark on EMR, since Redshift cannot produce one itself"
+        "Read-only support for externally created v3 tables is unverified here"
       ],
       "links": [
         {
           "label": "Querying Iceberg tables in Redshift",
           "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        },
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
         }
       ]
     },
@@ -209,8 +313,14 @@
     },
     "aws-redshift-s3:write-insert:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:write-merge-update-delete:v2": {
       "level": "full",
@@ -219,8 +329,14 @@
     },
     "aws-redshift-s3:write-merge-update-delete:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:catalog-integration:v2": {
       "level": "full",
@@ -229,8 +345,14 @@
     },
     "aws-redshift-s3:catalog-integration:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:statistics:v2": {
       "level": "full",
@@ -239,8 +361,14 @@
     },
     "aws-redshift-s3:statistics:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:bloom-filters:v2": {
       "level": "none",
@@ -258,8 +386,14 @@
     },
     "aws-redshift-s3:bloom-filters:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:hive-metastore:v2": {
       "level": "none",
@@ -268,8 +402,14 @@
     },
     "aws-redshift-s3:hive-metastore:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:aws-glue-catalog:v2": {
       "level": "full",
@@ -287,8 +427,14 @@
     },
     "aws-redshift-s3:aws-glue-catalog:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:rest-catalog:v2": {
       "level": "none",
@@ -306,8 +452,14 @@
     },
     "aws-redshift-s3:rest-catalog:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:nessie:v2": {
       "level": "none",
@@ -316,8 +468,14 @@
     },
     "aws-redshift-s3:nessie:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:polaris:v2": {
       "level": "none",
@@ -326,8 +484,14 @@
     },
     "aws-redshift-s3:polaris:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:unity-catalog:v2": {
       "level": "none",
@@ -336,8 +500,14 @@
     },
     "aws-redshift-s3:unity-catalog:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:hadoop-catalog:v2": {
       "level": "none",
@@ -346,8 +516,14 @@
     },
     "aws-redshift-s3:hadoop-catalog:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:jdbc-catalog:v2": {
       "level": "none",
@@ -356,8 +532,14 @@
     },
     "aws-redshift-s3:jdbc-catalog:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:variant-type:v2": {
       "level": "none",
@@ -366,8 +548,14 @@
     },
     "aws-redshift-s3:variant-type:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:shredded-variant:v2": {
       "level": "none",
@@ -376,8 +564,14 @@
     },
     "aws-redshift-s3:shredded-variant:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:geometry-type:v2": {
       "level": "none",
@@ -386,8 +580,14 @@
     },
     "aws-redshift-s3:geometry-type:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:nanosecond-timestamps:v2": {
       "level": "none",
@@ -396,8 +596,14 @@
     },
     "aws-redshift-s3:nanosecond-timestamps:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:lineage:v2": {
       "level": "none",
@@ -406,8 +612,14 @@
     },
     "aws-redshift-s3:lineage:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 with S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:snowflake-horizon-catalog:v2": {
       "level": "none",
@@ -424,9 +636,14 @@
     },
     "aws-redshift-s3:snowflake-horizon-catalog:v3": {
       "level": "none",
-      "notes": "Redshift does not support Iceberg V3 tables. This is a Redshift engine limitation.",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
       "caveats": [],
-      "links": []
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     },
     "aws-redshift-s3:deletion-vectors:v2": {
       "level": "none",
@@ -435,15 +652,18 @@
     },
     "aws-redshift-s3:deletion-vectors:v3": {
       "level": "partial",
-      "notes": "Redshift applies deletion vectors correctly when reading a v3 table, but cannot produce them: it writes only v2 position deletes and refuses to write to a v3 table at all.",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode. Whether Redshift can read a v3 table another engine created on S3 Tables is unmeasured in this mode.",
       "caveats": [
-        "A Spark-built v3 table with rows 1-4 and a deletion vector removing row 2 reads back as exactly 1, 3, 4",
-        "Writes fail with: Iceberg version 3 is not supported. Only Iceberg V2 tables are supported for writing"
+        "Read-only support for externally created v3 tables is unverified here"
       ],
       "links": [
         {
           "label": "Querying Iceberg tables in Redshift",
           "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        },
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
         }
       ]
     },
@@ -454,8 +674,14 @@
     },
     "aws-redshift-s3:unknown-type:v3": {
       "level": "none",
-      "notes": "Redshift is an Iceberg v2 engine with S3 Tables as well: creating a format-version 3 table is refused, so no V3 type can exist here.",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg v3 features in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
     }
   }
 }

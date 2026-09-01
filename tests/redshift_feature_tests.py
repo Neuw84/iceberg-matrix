@@ -24,9 +24,15 @@ Two things about Redshift shape this suite, both measured rather than assumed:
     none. This is the documented "federated identity is not supported when
     writing to Apache Iceberg tables" limitation.
 
-    Redshift is an Iceberg v2 engine. CREATE TABLE with
-    'format-version'='3' is rejected outright, so every V3 feature is a
-    measured failure rather than an untested guess.
+    Redshift gained Iceberg v3 support on 2026-08-31 (default column values,
+    row lineage, deletion vectors), so both format versions are exercised for
+    real. It is a per-build capability rather than a property of "Redshift":
+    engine 1.0.384821 rejected 'format-version'='3' with «"3" is not a valid
+    value», and 1.0.416217 accepts it. Every test therefore requests its format
+    version explicitly through _create() and, where it can, verifies the version
+    actually took -- Redshift silently creates a v2 table when the property is
+    omitted, so a v3 test that trusted the CREATE alone would measure v2
+    behaviour and report it as a v3 result.
 
 Features Redshift cannot create at all are handled the way the Flink suite
 handles them: an EMR-created fixture table is read (and written) instead, which
@@ -243,6 +249,28 @@ def _table(name: str) -> str:
     return f"{SCHEMA}.{name}"
 
 
+def _create(tbl: str, columns: str, version: str, props: dict = None,
+            partitioned_by: str = "") -> str:
+    """CREATE TABLE ... USING ICEBERG at an explicit Iceberg format-version.
+
+    Every DDL site routes through here so the format version is never left to
+    the engine default. Redshift creates a *v2* table when 'format-version' is
+    omitted, so a v3 test that forgot the property would silently measure v2
+    behaviour and report it as a v3 result -- the most dangerous kind of wrong
+    answer this suite can produce.
+
+    Clause order follows the documented grammar: column list, USING ICEBERG,
+    LOCATION, PARTITIONED BY, TABLE PROPERTIES.
+    """
+    merged = {"format-version": _fmt(version)}
+    if props:
+        merged.update(props)
+    rendered = ", ".join(f"'{k}'='{v}'" for k, v in merged.items())
+    part = f" PARTITIONED BY ({partitioned_by})" if partitioned_by else ""
+    return (f"CREATE TABLE {_table(tbl)} ({columns}) USING ICEBERG "
+            f"{_loc(tbl)}{part} TABLE PROPERTIES ({rendered})")
+
+
 def _error_reason(out: str, limit: int = 220) -> str:
     """Condense an engine error to its most informative part.
 
@@ -306,55 +334,63 @@ class TestResult:
         }
 
 
-def _v3_unsupported(feature_id: str, feature_name: str, version: str) -> TestResult:
-    """A V3 feature on an engine that cannot create a V3 table.
-
-    Recorded as a failure rather than a skip: the engine was asked and refused,
-    which is evidence, so the matrix cell can be contradicted by it.
-    """
-    r = TestResult(feature_id, feature_name, version)
-    can_create, evidence = _v3_creation_refused()
-    if can_create:
-        r.result = "skip"
-        r.details = (
-            "A V3 table was created unexpectedly; this feature needs a real test "
-            "rather than the shared V3 rejection path"
-        )
-        return r
-    r.result = "fail"
-    r.details = (
-        "Redshift is an Iceberg v2 engine: creating a format-version 3 table is "
-        f"rejected, so this V3 feature cannot exist here ({evidence})"
-    )
-    return r
-
-
 _V3_CREATION = None
 
 
-def _v3_creation_refused() -> tuple:
-    """Whether this Redshift can create a format-version 3 table, measured once.
+def _v3_honoured() -> tuple:
+    """Whether a requested format-version 3 table really comes back as v3.
 
-    Around twenty V3 cells share this answer, and it is a property of the engine
-    rather than of any one feature, so asking once keeps them consistent and keeps
-    the run short: the refusal is normally instant but was occasionally observed
-    taking the full statement timeout, which turned a cheap check into minutes of
-    dead waiting repeated per feature.
+    A pre-flight capability check rather than a per-feature verdict, and it has
+    to check the *stored* version rather than merely that CREATE succeeded. Two
+    distinct ways this fails, both measured:
 
-    Returns (created_successfully, evidence).
+        the build refuses v3 outright -- 1.0.384821 answered «"3" is not a valid
+        value for the "format-version" property», while 1.0.416217 accepts it;
+
+        the mode accepts the request and silently gives back a v2 table -- what
+        S3 Tables does, the same way it accepts PARTITIONED BY on CREATE and then
+        stores an unpartitioned table.
+
+    The second is the dangerous one. Every v3 test would run happily against a
+    silently-downgraded v2 table and *pass*, reporting v2 behaviour as v3
+    support: measured on S3 Tables, write-insert, MERGE, schema evolution and
+    partition evolution all passed at "v3" while column defaults came back
+    unwritten and both lineage pseudo-columns came back NULL -- the signature of
+    a v2 table. So SHOW TABLE is consulted, and a downgrade disqualifies the
+    whole v3 dimension for the mode instead of producing 30-odd false positives.
+
+    Returns (v3_is_honoured, evidence).
     """
     global _V3_CREATION
     if _V3_CREATION is None:
         tbl = _unique("v3probe")
         ok, out = _run_sql([
             f"""CREATE TABLE {_table(tbl)} (id BIGINT) USING ICEBERG {_loc(tbl)}
-                TABLE PROPERTIES ('format-version'='3')"""
+                TABLE PROPERTIES ('format-version'='3')""",
+            f"SHOW TABLE {_table(tbl)}",
         ], timeout=FIXTURE_WRITE_TIMEOUT)
-        if ok:
-            _run_sql([f"DROP TABLE {_table(tbl)}"])
-            _V3_CREATION = (True, "a format-version 3 table was created")
+        if not ok:
+            _V3_CREATION = (False, f"v3 table creation refused: {_error_reason(out, 150)}")
         else:
-            _V3_CREATION = (False, _error_reason(out, 150))
+            _run_sql([f"DROP TABLE {_table(tbl)}"])
+            stored = re.search(r"'format-version'='(\d)'", out)
+            if stored and stored.group(1) != "3":
+                _V3_CREATION = (
+                    False,
+                    "format-version 3 was requested and accepted, but the stored "
+                    f"table is format-version {stored.group(1)}: the request is "
+                    "silently downgraded",
+                )
+            elif stored:
+                _V3_CREATION = (True, "a format-version 3 table was created and stored as v3")
+            else:
+                # No version in SHOW TABLE output. Treat as honoured but say so,
+                # rather than disqualifying v3 on a parsing failure.
+                _V3_CREATION = (
+                    True,
+                    "a format-version 3 table was created; SHOW TABLE did not "
+                    "report a format-version to confirm it",
+                )
     return _V3_CREATION
 
 
@@ -595,21 +631,26 @@ def _non_glue_catalog(feature_id: str, feature_name: str, version: str,
 
 def test_table_creation(version: str) -> TestResult:
     r = TestResult("table-creation", "Table Creation", version)
-    if version == "v3":
-        return _v3_unsupported("table-creation", "Table Creation", version)
     tbl = _unique("create")
     ok, out = _run_sql([
-        f"""CREATE TABLE {_table(tbl)} (id BIGINT, name VARCHAR, amount DECIMAL(9,2))
-            USING ICEBERG {_loc(tbl)}""",
+        _create(tbl, "id BIGINT, name VARCHAR, amount DECIMAL(9,2)", version),
         f"SHOW TABLE {_table(tbl)}",
     ])
     if ok and "USING ICEBERG" in out:
-        r.result = "pass"
         fmt = re.search(r"'format-version'='(\d)'", out)
-        r.details = (
-            "CREATE TABLE ... USING ICEBERG accepted and SHOW TABLE reports it back"
-            + (f" at format-version {fmt.group(1)}" if fmt else "")
-        )
+        # SHOW TABLE is the only confirmation the requested version took effect.
+        if fmt and fmt.group(1) != _fmt(version):
+            r.result = "fail"
+            r.details = (
+                f"Asked for format-version {_fmt(version)} but SHOW TABLE reports "
+                f"format-version {fmt.group(1)}"
+            )
+        else:
+            r.result = "pass"
+            r.details = (
+                "CREATE TABLE ... USING ICEBERG accepted and SHOW TABLE reports it back"
+                + (f" at format-version {fmt.group(1)}" if fmt else "")
+            )
     elif ok:
         r.result = "pass"
         r.details = "CREATE TABLE ... USING ICEBERG accepted"
@@ -622,22 +663,14 @@ def test_table_creation(version: str) -> TestResult:
 
 def test_read_support(version: str) -> TestResult:
     r = TestResult("read-support", "Read Support", version)
-    if version == "v3":
-        # The cell that matters most for v3. Redshift refuses to create a v3
-        # table, but reading one is a separate capability, so a Spark-built
-        # fixture is read and then written to. Read-yes/write-no is partial
-        # support, and recording it as a flat failure would be wrong.
-        return _read_fixture(
-            "read-support", "Read Support", version, FX_V3_BASIC,
-            "a format-version 3 table",
-            select=f"SELECT id, name FROM {_fixture(FX_V3_BASIC)} ORDER BY id",
-            expect="alpha",
-            write_probe=(f"INSERT INTO {_fixture(FX_V3_BASIC)} "
-                         f"VALUES (999,'from-redshift')"),
-        )
+    # Both versions take the native path now. Until 2026-08-31 this cell had to
+    # read a Spark-built fixture for v3, because Redshift could not create a v3
+    # table at all; that made read-yes/write-no the best available answer. With
+    # native v3 the round-trip is direct evidence, and the fixture path is left
+    # to the types Redshift still cannot declare (see _v3_type).
     tbl = _unique("read")
     ok, out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} (id BIGINT, name VARCHAR) USING ICEBERG {_loc(tbl)}",
+        _create(tbl, "id BIGINT, name VARCHAR", version),
         f"INSERT INTO {_table(tbl)} VALUES (1,'a'),(2,'b'),(3,'c')",
         f"SELECT COUNT(*) FROM {_table(tbl)}",
     ])
@@ -653,11 +686,9 @@ def test_read_support(version: str) -> TestResult:
 
 def test_write_insert(version: str) -> TestResult:
     r = TestResult("write-insert", "Write (INSERT)", version)
-    if version == "v3":
-        return _v3_unsupported("write-insert", "Write (INSERT)", version)
     tbl = _unique("ins")
     ok, out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} (id BIGINT, name VARCHAR) USING ICEBERG {_loc(tbl)}",
+        _create(tbl, "id BIGINT, name VARCHAR", version),
         f"INSERT INTO {_table(tbl)} VALUES (1,'a'),(2,'b')",
         f"INSERT INTO {_table(tbl)} SELECT 3, 'c'",
         f"SELECT COUNT(*) FROM {_table(tbl)}",
@@ -674,12 +705,9 @@ def test_write_insert(version: str) -> TestResult:
 
 def test_write_merge_update_delete(version: str) -> TestResult:
     r = TestResult("write-merge-update-delete", "Write (MERGE/UPDATE/DELETE)", version)
-    if version == "v3":
-        return _v3_unsupported("write-merge-update-delete",
-                               "Write (MERGE/UPDATE/DELETE)", version)
     tbl = _unique("dml")
     ok, out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} (id BIGINT, name VARCHAR) USING ICEBERG {_loc(tbl)}",
+        _create(tbl, "id BIGINT, name VARCHAR", version),
         f"INSERT INTO {_table(tbl)} VALUES (1,'first'),(2,'second'),(3,'third')",
         f"UPDATE {_table(tbl)} SET name='updated' WHERE id=1",
         f"DELETE FROM {_table(tbl)} WHERE id=3",
@@ -704,11 +732,9 @@ def test_write_merge_update_delete(version: str) -> TestResult:
 
 def test_catalog_integration(version: str) -> TestResult:
     r = TestResult("catalog-integration", "Catalog Integration", version)
-    if version == "v3":
-        return _v3_unsupported("catalog-integration", "Catalog Integration", version)
     tbl = _unique("cat")
     ok, out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} (id BIGINT) USING ICEBERG {_loc(tbl)}",
+        _create(tbl, "id BIGINT", version),
         f"INSERT INTO {_table(tbl)} VALUES (1),(2)",
         f"SELECT COUNT(*) FROM {_table(tbl)}",
         f"DROP TABLE {_table(tbl)}",
@@ -815,13 +841,44 @@ def _summary_count(summary: dict, key: str) -> int:
         return 0
 
 
+def _puffin_count(tbl: str) -> int:
+    """Puffin files stored for a table, or -1 when that cannot be determined.
+
+    Iceberg v3 keeps deletion vectors in Puffin files, so their presence is
+    corroborating evidence that a DELETE produced a deletion vector rather than
+    rewriting data. Deliberately *corroborating* and never asserted on: an engine
+    is free to rewrite a small data file instead, and both behaviours are
+    spec-compliant, so a hard assertion here would manufacture a false failure.
+
+    Only the s3buckets mode can be inspected: S3 Tables keeps its storage
+    service-managed under a prefix we do not know, and the metadata location
+    points at a single json file rather than the table root.
+    """
+    if STORAGE_MODE != "s3buckets" or not DATA_BUCKET:
+        return -1
+    try:
+        s3 = _client("s3")
+        prefix = f"redshift/{RUN_TAG}/{tbl}/"
+        n, token = 0, None
+        while True:
+            kwargs = {"Bucket": DATA_BUCKET, "Prefix": prefix, "MaxKeys": 1000}
+            if token:
+                kwargs["ContinuationToken"] = token
+            page = s3.list_objects_v2(**kwargs)
+            n += sum(1 for o in page.get("Contents", [])
+                     if o["Key"].endswith(".puffin"))
+            token = page.get("NextContinuationToken")
+            if not token:
+                return n
+    except Exception:  # noqa: BLE001 - corroboration only, never fatal
+        return -1
+
+
 def test_position_deletes(version: str) -> TestResult:
     r = TestResult("position-deletes", "Position Deletes", version)
-    if version == "v3":
-        return _v3_unsupported("position-deletes", "Position Deletes", version)
     tbl = _unique("posdel")
     ok, out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} (id BIGINT, name VARCHAR) USING ICEBERG {_loc(tbl)}",
+        _create(tbl, "id BIGINT, name VARCHAR", version),
         f"INSERT INTO {_table(tbl)} VALUES (1,'a'),(2,'b'),(3,'c')",
         f"DELETE FROM {_table(tbl)} WHERE id=2",
         f"SELECT COUNT(*) FROM {_table(tbl)}",
@@ -839,7 +896,54 @@ def test_position_deletes(version: str) -> TestResult:
             f"DELETE succeeded and the row count dropped, but whether Redshift "
             f"wrote position deletes or rewrote data files is not observable: {note}"
         )
-    elif _summary_count(summary, "total-position-deletes") > 0:
+        _run_sql([f"DROP TABLE {_table(tbl)}"])
+        return r
+
+    positional = _summary_count(summary, "total-position-deletes")
+    if version == "v3":
+        # total-position-deletes counts deleted row *positions*, and a deletion
+        # vector records positions too, so the counter cannot tell a v3 deletion
+        # vector apart from a legacy positional delete file: the same DELETE
+        # reports position-deletes=1 either way (measured -- the deletion-vector
+        # probe sees position-deletes=1 alongside a .puffin file). The storage
+        # format is what separates them, because v3 keeps deletion vectors in
+        # Puffin files.
+        #
+        # A v3 table must not add new positional delete files: the spec replaces
+        # them with deletion vectors, and Redshift documents that v3 tables read
+        # pre-existing positional deletes but never write more. So Puffin here is
+        # a measured *absence* of this feature rather than a defect. Reading
+        # deletes another engine wrote is the half this probe cannot reach, since
+        # the table is fresh.
+        puffin = _puffin_count(tbl)
+        if puffin > 0:
+            r.result = "fail"
+            r.details = (
+                "A v3 DELETE recorded its deleted positions in a Puffin deletion "
+                "vector rather than a positional delete file, as the spec requires "
+                f"({note}, {puffin} puffin file(s)). Reading positional deletes "
+                "written by another engine is documented but not measured here"
+            )
+        elif puffin < 0:
+            r.result = "skip"
+            r.details = (
+                "The v3 DELETE applied, but whether it wrote a Puffin deletion "
+                "vector or a positional delete file cannot be inspected in this "
+                f"storage mode ({note})"
+            )
+        elif positional > 0:
+            r.result = "pass"
+            r.details = (
+                "A v3 DELETE committed positional deletes with no Puffin deletion "
+                f"vector ({note}), which the v3 spec does not allow"
+            )
+        else:
+            r.result = "fail"
+            r.details = (
+                "The v3 DELETE committed no positional deletes and no deletion "
+                f"vector, so the row was removed by rewriting data ({note})"
+            )
+    elif positional > 0:
         r.result = "pass"
         r.details = (
             f"DELETE wrote position deletes and left the data files in place ({note})"
@@ -856,8 +960,8 @@ def test_position_deletes(version: str) -> TestResult:
 
 def test_equality_deletes(version: str) -> TestResult:
     r = TestResult("equality-deletes", "Equality Deletes", version)
-    if version == "v3":
-        return _v3_unsupported("equality-deletes", "Equality Deletes", version)
+    # Independent of format version: the gap is in Redshift's SQL surface, not
+    # in the table format.
     return _needs_external_engine(
         "equality-deletes", "Equality Deletes", version,
         "Redshift SQL has no surface that requests equality deletes: DELETE and "
@@ -867,11 +971,9 @@ def test_equality_deletes(version: str) -> TestResult:
 
 def test_merge_on_read(version: str) -> TestResult:
     r = TestResult("merge-on-read", "Merge-on-Read", version)
-    if version == "v3":
-        return _v3_unsupported("merge-on-read", "Merge-on-Read", version)
     tbl = _unique("mor")
     ok, out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} (id BIGINT, name VARCHAR) USING ICEBERG {_loc(tbl)}",
+        _create(tbl, "id BIGINT, name VARCHAR", version),
         f"INSERT INTO {_table(tbl)} VALUES (1,'a'),(2,'b'),(3,'c')",
         f"UPDATE {_table(tbl)} SET name='changed' WHERE id=2",
         f"SELECT name FROM {_table(tbl)} WHERE id=2",
@@ -904,18 +1006,16 @@ def test_merge_on_read(version: str) -> TestResult:
 
 def test_copy_on_write(version: str) -> TestResult:
     r = TestResult("copy-on-write", "Copy-on-Write", version)
-    if version == "v3":
-        return _v3_unsupported("copy-on-write", "Copy-on-Write", version)
     # Redshift's own default is merge-on-read, as the delete counters show, so
     # the question this cell asks is whether copy-on-write can be selected at
     # all. Iceberg's knob is write.delete.mode / write.update.mode, so the test
     # asks for it and then checks whether the next UPDATE actually honoured it.
     tbl = _unique("cow")
     ok, out = _run_sql([
-        f"""CREATE TABLE {_table(tbl)} (id BIGINT, name VARCHAR) USING ICEBERG
-            {_loc(tbl)} TABLE PROPERTIES (
-                'write.delete.mode'='copy-on-write',
-                'write.update.mode'='copy-on-write')""",
+        _create(tbl, "id BIGINT, name VARCHAR", version, props={
+            "write.delete.mode": "copy-on-write",
+            "write.update.mode": "copy-on-write",
+        }),
     ])
     if not ok:
         r.result = "fail"
@@ -968,25 +1068,64 @@ def test_deletion_vectors(version: str) -> TestResult:
         r.result = "skip"
         r.details = "V3-only feature; not applicable to format-version 2 tables"
         return r
-    # The fixture is a v3 table where Spark deleted id=2 through a deletion
-    # vector. Asserting the surviving ids rather than just a row count is the
-    # point: a reader that ignored the vector would return the deleted row, and a
-    # count alone could coincide for other reasons.
-    return _read_fixture(
-        "deletion-vectors", "Deletion Vectors", version, FX_V3_DV,
-        "a v3 table carrying deletion vectors",
-        # Spark inserted 1..4 then deleted 2 via a deletion vector, so a correct
-        # reader returns 1, 3, 4 and never 2.
-        select=(f"SELECT LISTAGG(id, ',') WITHIN GROUP (ORDER BY id) "
-                f"FROM {_fixture(FX_V3_DV)}"),
-        expect="1,3,4",
-        forbid="2,",
-        # INSERT rather than DELETE on purpose. Either would be refused, but
-        # Redshift answers an INSERT immediately with the version error, whereas a
-        # DELETE against a deletion-vector table was observed to hang until the
-        # statement timeout, which is slower and much weaker evidence.
-        write_probe=f"INSERT INTO {_fixture(FX_V3_DV)} VALUES (99,'from-redshift')",
-    )
+    # Redshift creates and deletes on its own v3 table now, so this measures the
+    # engine's own writer rather than its ability to read Spark's. Asserting the
+    # surviving ids rather than a row count is the point: a reader that ignored
+    # the vector would return the deleted row, and a count alone could coincide.
+    r = TestResult("deletion-vectors", "Deletion Vectors", version)
+    tbl = _unique("dv")
+    ok, out = _run_sql([
+        _create(tbl, "id BIGINT, name VARCHAR", version),
+        f"INSERT INTO {_table(tbl)} VALUES (1,'a'),(2,'b'),(3,'c'),(4,'d')",
+        f"DELETE FROM {_table(tbl)} WHERE id=2",
+        f"SELECT LISTAGG(id, ',') WITHIN GROUP (ORDER BY id) FROM {_table(tbl)}",
+    ])
+    if not ok:
+        r.result = "fail"
+        r.details = _error_reason(out)
+        _run_sql([f"DROP TABLE {_table(tbl)}"])
+        return r
+    if "1,3,4" not in out:
+        r.result = "fail"
+        r.details = (
+            f"The DELETE did not leave the expected rows: wanted 1,3,4 got {out[:120]!r}"
+        )
+        _run_sql([f"DROP TABLE {_table(tbl)}"])
+        return r
+
+    summary, note = _delete_file_evidence(tbl)
+    puffin = _puffin_count(tbl)
+    puffin_note = "" if puffin < 0 else f", {puffin} puffin file(s)"
+    if summary is None:
+        r.result = "skip"
+        r.details = (
+            "The v3 DELETE applied correctly, but whether it wrote a deletion "
+            f"vector or rewrote data files is not observable: {note}"
+        )
+    elif _summary_count(summary, "total-delete-files") > 0 and puffin > 0:
+        r.result = "pass"
+        r.details = (
+            "A v3 DELETE committed a Puffin deletion vector and left the data "
+            f"files in place ({note}{puffin_note})"
+        )
+    elif _summary_count(summary, "total-delete-files") > 0:
+        # Delete files but no Puffin found. On a v3 table these should be deletion
+        # vectors, so report the support without claiming the format was proven --
+        # puffin < 0 means the storage could not be listed at all.
+        r.result = "pass"
+        r.details = (
+            "A v3 DELETE committed delete files and left the data files in place; "
+            "the delete carried row-level rather than rewritten data, though the "
+            f"Puffin format was not confirmed ({note}{puffin_note})"
+        )
+    else:
+        r.result = "fail"
+        r.details = (
+            "The v3 DELETE committed no delete files, so the row was removed by "
+            f"rewriting data rather than by a deletion vector ({note}{puffin_note})"
+        )
+    _run_sql([f"DROP TABLE {_table(tbl)}"])
+    return r
 
 
 # ---------------------------------------------------------------------------
@@ -995,11 +1134,9 @@ def test_deletion_vectors(version: str) -> TestResult:
 
 def test_schema_evolution(version: str) -> TestResult:
     r = TestResult("schema-evolution", "Schema Evolution", version)
-    if version == "v3":
-        return _v3_unsupported("schema-evolution", "Schema Evolution", version)
     tbl = _unique("evo")
     ok, out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} (id BIGINT, name VARCHAR) USING ICEBERG {_loc(tbl)}",
+        _create(tbl, "id BIGINT, name VARCHAR", version),
         f"INSERT INTO {_table(tbl)} VALUES (1,'a')",
         f"ALTER TABLE {_table(tbl)} ADD COLUMN added VARCHAR",
         f"ALTER TABLE {_table(tbl)} RENAME COLUMN added TO renamed",
@@ -1021,15 +1158,16 @@ def test_schema_evolution(version: str) -> TestResult:
 
 def test_type_promotion(version: str) -> TestResult:
     r = TestResult("type-promotion", "Type Promotion / Widening", version)
-    if version == "v3":
-        return _v3_unsupported("type-promotion", "Type Promotion / Widening", version)
     tbl = _unique("prom")
-    # Start from INT and FLOAT4 so there is somewhere to widen to. Iceberg allows
-    # int -> bigint and float -> double; narrowing is rejected by design.
+    # Start from INT, FLOAT4 and a narrow DECIMAL so there is somewhere to widen
+    # to. The Iceberg spec allows int -> long, float -> double and a decimal
+    # precision increase at the same scale; narrowing is rejected by design. All
+    # three widenings are exercised because claiming full support on the strength
+    # of two of them would overstate what was measured.
     ok, out = _run_sql([
-        f"""CREATE TABLE {_table(tbl)} (small_id INT, ratio FLOAT4, name VARCHAR)
-            USING ICEBERG {_loc(tbl)}""",
-        f"INSERT INTO {_table(tbl)} VALUES (1, 1.5, 'a')",
+        _create(tbl, "small_id INT, ratio FLOAT4, amount DECIMAL(9,2), name VARCHAR",
+                version),
+        f"INSERT INTO {_table(tbl)} VALUES (1, 1.5, 2.50, 'a')",
         f"ALTER TABLE {_table(tbl)} ALTER COLUMN small_id TYPE BIGINT",
         f"ALTER TABLE {_table(tbl)} ALTER COLUMN ratio TYPE FLOAT8",
         f"SELECT small_id, name FROM {_table(tbl)}",
@@ -1040,43 +1178,134 @@ def test_type_promotion(version: str) -> TestResult:
         _run_sql([f"DROP TABLE {_table(tbl)}"])
         return r
 
+    # The third spec-allowed widening: decimal precision up at the same scale.
+    dec_ok, dec_out = _run_sql([
+        f"ALTER TABLE {_table(tbl)} ALTER COLUMN amount TYPE DECIMAL(18,2)",
+        f"SELECT amount FROM {_table(tbl)}",
+    ])
+
     # Narrowing must be refused; if it were allowed that is a correctness problem
     # worth recording rather than a pass.
     narrow_ok, narrow_out = _run_sql([
         f"ALTER TABLE {_table(tbl)} ALTER COLUMN small_id TYPE INT"
     ])
+    widenings = "int->bigint, float->double" + (
+        " and decimal precision" if dec_ok else "")
     if narrow_ok:
         r.result = "pass"
         r.details = (
-            "int->bigint and float->double both accepted; narrowing back was also "
-            "accepted, which the Iceberg spec does not allow"
+            f"{widenings} accepted; narrowing back was also accepted, which the "
+            "Iceberg spec does not allow"
         )
-    else:
+    elif dec_ok:
         r.result = "pass"
         r.details = (
-            "int->bigint and float->double accepted as metadata-only widenings, "
-            f"and narrowing is refused ({_error_reason(narrow_out, 90)})"
+            "All three spec-allowed widenings (int->bigint, float->double, decimal "
+            "precision increase) are accepted as metadata-only changes, and "
+            f"narrowing is refused ({_error_reason(narrow_out, 80)})"
+        )
+    else:
+        # Two of the three work, so this is genuinely half the feature rather than
+        # all of it -- exactly what partial is for.
+        r.result = "partial"
+        r.details = (
+            "int->bigint and float->double are accepted and narrowing is refused, "
+            "but a decimal precision increase at the same scale is not: "
+            f"{_error_reason(dec_out, 110)}"
         )
     _run_sql([f"DROP TABLE {_table(tbl)}"])
     return r
 
 
 def test_column_default_values(version: str) -> TestResult:
+    r = TestResult("column-default-values", "Column Default Values", version)
+    tbl = _unique("dflt")
     if version == "v2":
-        r = TestResult("column-default-values", "Column Default Values", version)
-        r.result = "skip"
-        r.details = "V3-only feature; not applicable to format-version 2 tables"
+        # Documented to be refused on a v2 table, and that refusal is measurable,
+        # so it is recorded as evidence rather than skipped as inapplicable.
+        ok, out = _run_sql([
+            _create(tbl, "id BIGINT, status VARCHAR DEFAULT 'pending'", version)
+        ])
+        if ok:
+            r.result = "pass"
+            r.details = (
+                "A column DEFAULT was accepted on a format-version 2 table, which "
+                "the documentation says should be refused"
+            )
+        else:
+            r.result = "fail"
+            r.details = (
+                "Column defaults are refused on v2 tables, as documented: "
+                f"{_error_reason(out, 150)}"
+            )
+        _run_sql([f"DROP TABLE {_table(tbl)}"])
         return r
-    return _v3_unsupported("column-default-values", "Column Default Values", version)
+
+    ok, out = _run_sql([
+        _create(tbl, "id BIGINT, status VARCHAR DEFAULT 'pending'", version),
+        # A DML statement that omits a defaulted column must write the default.
+        f"INSERT INTO {_table(tbl)} (id) VALUES (1)",
+        f"SELECT id, status FROM {_table(tbl)}",
+    ])
+    if not ok:
+        r.result = "fail"
+        r.details = f"CREATE with a column DEFAULT was rejected: {_error_reason(out)}"
+        _run_sql([f"DROP TABLE {_table(tbl)}"])
+        return r
+    if "pending" not in out:
+        r.result = "fail"
+        r.details = (
+            f"The DEFAULT was declared but not written on INSERT: {out[:150]!r}"
+        )
+        _run_sql([f"DROP TABLE {_table(tbl)}"])
+        return r
+
+    # The half that makes the feature worth having: adding a defaulted column
+    # must not rewrite data, so the row written before the ALTER has to come back
+    # carrying the new default.
+    add_ok, add_out = _run_sql([
+        f"ALTER TABLE {_table(tbl)} ADD COLUMN region VARCHAR DEFAULT 'eu-west-1'",
+        f"SELECT region FROM {_table(tbl)} WHERE id=1",
+    ])
+    mutate_ok, mutate_out = _run_sql([
+        f"ALTER TABLE {_table(tbl)} ALTER COLUMN status SET DEFAULT 'archived'",
+        f"ALTER TABLE {_table(tbl)} ALTER COLUMN status DROP DEFAULT",
+    ])
+
+    if add_ok and "eu-west-1" in add_out and mutate_ok:
+        r.result = "pass"
+        r.details = (
+            "DEFAULT at CREATE is written when a DML statement omits the column; "
+            "ADD COLUMN ... DEFAULT backfills an existing row without rewriting "
+            "data, and SET/DROP DEFAULT are both accepted"
+        )
+    elif add_ok and "eu-west-1" in add_out:
+        r.result = "partial"
+        r.details = (
+            "DEFAULT at CREATE and ADD COLUMN ... DEFAULT both work, but the "
+            f"default cannot be changed afterwards: {_error_reason(mutate_out, 130)}"
+        )
+    elif add_ok:
+        r.result = "partial"
+        r.details = (
+            "DEFAULT at CREATE is honoured, but ADD COLUMN ... DEFAULT did not "
+            f"backfill the pre-existing row: {add_out[:120]!r}"
+        )
+    else:
+        r.result = "partial"
+        r.details = (
+            "DEFAULT at CREATE is honoured, but a defaulted column cannot be added "
+            f"to an existing table: {_error_reason(add_out, 130)}"
+        )
+    _run_sql([f"DROP TABLE {_table(tbl)}"])
+    return r
 
 
 def test_time_travel(version: str) -> TestResult:
     r = TestResult("time-travel", "Time Travel / Snapshots", version)
-    if version == "v3":
-        return _v3_unsupported("time-travel", "Time Travel / Snapshots", version)
     tbl = _unique("tt")
     ok, out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} (id BIGINT) USING ICEBERG {_loc(tbl)}",
+        _create(tbl, "id BIGINT", version),
         f"INSERT INTO {_table(tbl)} VALUES (1)",
         f"INSERT INTO {_table(tbl)} VALUES (2)",
     ])
@@ -1119,11 +1348,9 @@ def test_time_travel(version: str) -> TestResult:
 
 def test_table_maintenance(version: str) -> TestResult:
     r = TestResult("table-maintenance", "Table Maintenance", version)
-    if version == "v3":
-        return _v3_unsupported("table-maintenance", "Table Maintenance", version)
     tbl = _unique("maint")
     ok, out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} (id BIGINT) USING ICEBERG {_loc(tbl)}",
+        _create(tbl, "id BIGINT", version),
         f"INSERT INTO {_table(tbl)} VALUES (1)",
     ])
     if not ok:
@@ -1154,11 +1381,9 @@ def test_table_maintenance(version: str) -> TestResult:
 
 def test_branching_tagging(version: str) -> TestResult:
     r = TestResult("branching-tagging", "Branching & Tagging", version)
-    if version == "v3":
-        return _v3_unsupported("branching-tagging", "Branching & Tagging", version)
     tbl = _unique("branch")
     ok, out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} (id BIGINT) USING ICEBERG {_loc(tbl)}",
+        _create(tbl, "id BIGINT", version),
         f"INSERT INTO {_table(tbl)} VALUES (1)",
     ])
     if not ok:
@@ -1233,13 +1458,10 @@ def test_branching_tagging(version: str) -> TestResult:
 
 def test_hidden_partitioning(version: str) -> TestResult:
     r = TestResult("hidden-partitioning", "Hidden Partitioning", version)
-    if version == "v3":
-        return _v3_unsupported("hidden-partitioning", "Hidden Partitioning", version)
     tbl = _unique("hidden")
     ok, out = _run_sql([
-        f"""CREATE TABLE {_table(tbl)} (id BIGINT, ts TIMESTAMP, name VARCHAR)
-            USING ICEBERG {_loc(tbl)}
-            PARTITIONED BY (day(ts), bucket(8, id))""",
+        _create(tbl, "id BIGINT, ts TIMESTAMP, name VARCHAR", version,
+                partitioned_by="day(ts), bucket(8, id)"),
         f"INSERT INTO {_table(tbl)} VALUES (1, '2026-01-01 10:00:00', 'a'), (2, '2026-02-01 11:00:00', 'b')",
         # The point of hidden partitioning: the query filters on the raw column,
         # not on a derived partition column.
@@ -1292,8 +1514,6 @@ def test_hidden_partitioning(version: str) -> TestResult:
 
 def test_partition_evolution(version: str) -> TestResult:
     r = TestResult("partition-evolution", "Partition Evolution", version)
-    if version == "v3":
-        return _v3_unsupported("partition-evolution", "Partition Evolution", version)
     # The first partition field is established with ALTER rather than at CREATE
     # on purpose. A CREATE-time PARTITIONED BY is silently discarded in the
     # s3tables mode, and depending on it here would report partition *evolution*
@@ -1302,8 +1522,7 @@ def test_partition_evolution(version: str) -> TestResult:
     # changing the spec afterwards.
     tbl = _unique("pevo")
     ok, out = _run_sql([
-        f"""CREATE TABLE {_table(tbl)} (id BIGINT, ts TIMESTAMP, name VARCHAR)
-            USING ICEBERG {_loc(tbl)}""",
+        _create(tbl, "id BIGINT, ts TIMESTAMP, name VARCHAR", version),
         f"INSERT INTO {_table(tbl)} VALUES (1, '2026-01-01 00:00:00', 'a')",
         f"ALTER TABLE {_table(tbl)} ADD PARTITION FIELD year(ts)",
         f"INSERT INTO {_table(tbl)} VALUES (2, '2026-02-01 00:00:00', 'b')",
@@ -1354,8 +1573,8 @@ def test_multi_arg_transforms(version: str) -> TestResult:
     r = TestResult("multi-arg-transforms", "Multi-Argument Transforms", version)
     tbl = _unique("marg")
     ok, out = _run_sql([
-        f"""CREATE TABLE {_table(tbl)} (a BIGINT, b BIGINT) USING ICEBERG {_loc(tbl)}
-            PARTITIONED BY (bucket(4, a, b))"""
+        _create(tbl, "a BIGINT, b BIGINT", version,
+                partitioned_by="bucket(4, a, b)")
     ])
     if ok:
         r.result = "pass"
@@ -1376,11 +1595,9 @@ def test_multi_arg_transforms(version: str) -> TestResult:
 
 def test_statistics(version: str) -> TestResult:
     r = TestResult("statistics", "Statistics (Column Metrics)", version)
-    if version == "v3":
-        return _v3_unsupported("statistics", "Statistics (Column Metrics)", version)
     tbl = _unique("stats")
     ok, out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} (id BIGINT, name VARCHAR) USING ICEBERG {_loc(tbl)}",
+        _create(tbl, "id BIGINT, name VARCHAR", version),
         f"INSERT INTO {_table(tbl)} VALUES (1,'a'),(2,'b'),(3,'c')",
         # A predicate that should be answerable from column bounds.
         f"EXPLAIN SELECT COUNT(*) FROM {_table(tbl)} WHERE id > 2",
@@ -1400,12 +1617,10 @@ def test_statistics(version: str) -> TestResult:
 
 def test_bloom_filters(version: str) -> TestResult:
     r = TestResult("bloom-filters", "Bloom Filters & Puffin", version)
-    if version == "v3":
-        return _v3_unsupported("bloom-filters", "Bloom Filters & Puffin", version)
     tbl = _unique("bloom")
     ok, out = _run_sql([
-        f"""CREATE TABLE {_table(tbl)} (id BIGINT) USING ICEBERG {_loc(tbl)}
-            TABLE PROPERTIES ('write.parquet.bloom-filter-enabled.column.id'='true')"""
+        _create(tbl, "id BIGINT", version,
+                props={"write.parquet.bloom-filter-enabled.column.id": "true"})
     ])
     if ok:
         _run_sql([f"DROP TABLE {_table(tbl)}"])
@@ -1429,11 +1644,9 @@ def test_bloom_filters(version: str) -> TestResult:
 
 def test_aws_glue_catalog(version: str) -> TestResult:
     r = TestResult("aws-glue-catalog", "AWS Glue Catalog", version)
-    if version == "v3":
-        return _v3_unsupported("aws-glue-catalog", "AWS Glue Catalog", version)
     tbl = _unique("glue")
     ok, out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} (id BIGINT) USING ICEBERG {_loc(tbl)}",
+        _create(tbl, "id BIGINT", version),
         f"INSERT INTO {_table(tbl)} VALUES (1)",
         f"SELECT COUNT(*) FROM {_table(tbl)}",
         f"DROP TABLE {_table(tbl)}",
@@ -1451,8 +1664,6 @@ def test_aws_glue_catalog(version: str) -> TestResult:
 
 
 def test_rest_catalog(version: str) -> TestResult:
-    if version == "v3":
-        return _v3_unsupported("rest-catalog", "REST Catalog", version)
     # Redshift's own tables can be published *into* Glue's Iceberg REST
     # endpoint, but that is Redshift as a producer. This cell asks whether
     # Redshift can consume a REST catalog as a client.
@@ -1461,8 +1672,6 @@ def test_rest_catalog(version: str) -> TestResult:
 
 
 def test_hive_metastore(version: str) -> TestResult:
-    if version == "v3":
-        return _v3_unsupported("hive-metastore", "Hive Metastore", version)
     # Redshift does have a FROM HIVE METASTORE clause, and it is the one non-Glue
     # source it recognises: measured in this account it creates the schema even
     # against a dead endpoint, whereas the REST clause is indistinguishable from
@@ -1480,8 +1689,6 @@ def test_hive_metastore(version: str) -> TestResult:
 
 
 def test_hadoop_catalog(version: str) -> TestResult:
-    if version == "v3":
-        return _v3_unsupported("hadoop-catalog", "Hadoop Catalog", version)
     return _non_glue_catalog(
         "hadoop-catalog", "Hadoop Catalog", version,
         "a filesystem (Hadoop) Iceberg catalog",
@@ -1491,8 +1698,6 @@ def test_hadoop_catalog(version: str) -> TestResult:
 
 
 def test_jdbc_catalog(version: str) -> TestResult:
-    if version == "v3":
-        return _v3_unsupported("jdbc-catalog", "JDBC Catalog", version)
     return _non_glue_catalog(
         "jdbc-catalog", "JDBC Catalog", version,
         "a JDBC-backed Iceberg catalog",
@@ -1503,29 +1708,20 @@ def test_jdbc_catalog(version: str) -> TestResult:
 
 
 def test_nessie(version: str) -> TestResult:
-    if version == "v3":
-        return _v3_unsupported("nessie", "Nessie", version)
     return _rest_backed_catalog("nessie", "Nessie", version, "Nessie")
 
 
 def test_polaris(version: str) -> TestResult:
-    if version == "v3":
-        return _v3_unsupported("polaris", "Polaris", version)
     return _rest_backed_catalog("polaris", "Polaris", version,
                                 "Apache Polaris")
 
 
 def test_unity_catalog(version: str) -> TestResult:
-    if version == "v3":
-        return _v3_unsupported("unity-catalog", "Unity Catalog", version)
     return _rest_backed_catalog("unity-catalog", "Unity Catalog", version,
                                 "Databricks Unity Catalog")
 
 
 def test_snowflake_horizon_catalog(version: str) -> TestResult:
-    if version == "v3":
-        return _v3_unsupported("snowflake-horizon-catalog",
-                               "Snowflake Horizon Catalog", version)
     return _rest_backed_catalog("snowflake-horizon-catalog",
                                 "Snowflake Horizon Catalog", version,
                                 "Snowflake Horizon")
@@ -1537,11 +1733,18 @@ def test_snowflake_horizon_catalog(version: str) -> TestResult:
 
 def _v3_type(feature_id: str, feature_name: str, version: str,
              column_sql: str, fixture: str = "") -> TestResult:
-    """A V3 type: try it on a V2 table too, so the reason is precise.
+    """A V3 type: declare it on a real V3 table, then fall back to reading one.
 
-    A type can fail either because the engine has no such type at all, or only
-    because it needs a V3 table the engine cannot create. Distinguishing them
-    keeps the recorded reason honest.
+    Until Redshift could create v3 tables this had to probe a *v2* table and
+    infer, which conflated "no such type" with "needs a v3 table we cannot
+    make". The type is now asked for on the version that is supposed to carry
+    it, so a refusal is a direct statement about v3 support.
+
+    Redshift documents struct, list, map, variant, geometry, geography, binary,
+    uuid, time, timestamp_ns, timestamptz_ns and unknown as unsupported in v3
+    tables, so most of these are expected to be refused. The value is measuring
+    that rather than trusting the list, and separating "cannot declare" from
+    "cannot read" -- which are different matrix answers.
     """
     if version == "v2":
         r = TestResult(feature_id, feature_name, version)
@@ -1551,44 +1754,44 @@ def _v3_type(feature_id: str, feature_name: str, version: str,
 
     r = TestResult(feature_id, feature_name, version)
     tbl = _unique("t")
-    v2_ok, v2_out = _run_sql([
-        f"CREATE TABLE {_table(tbl)} ({column_sql}) USING ICEBERG {_loc(tbl)}"
-    ])
-    if v2_ok:
+    ok, out = _run_sql([_create(tbl, column_sql, version)])
+    if ok:
         _run_sql([f"DROP TABLE {_table(tbl)}"])
-        r.result = "fail"
+        r.result = "pass"
         r.details = (
-            "The column type is accepted, but only on a format-version 2 table; "
-            "Redshift cannot create the V3 table this feature requires"
+            f"The {feature_name} column type is accepted on a format-version 3 table"
         )
         return r
 
-    # Redshift cannot declare the type. That still leaves open whether it can
-    # read one, which is a different cell, so ask a Spark-built fixture. Reading
-    # is the only thing on offer here: there is no write probe, because Redshift
-    # refuses to write any v3 table regardless of the column types in it.
+    # Redshift cannot declare the type. Whether it can read one another engine
+    # wrote is a separate cell, so ask a Spark-built fixture.
     if fixture:
         probe = _read_fixture(feature_id, feature_name, version, fixture,
                               f"the {feature_name} type")
+        if probe.result == "pass":
+            # Readable but not declarable is half support. _read_fixture returns
+            # pass when no write probe was given, and taking that at face value
+            # would overstate the cell: the declare half demonstrably failed.
+            probe.result = "partial"
         if probe.result != "skip":
             probe.details += (
-                f"; Redshift cannot declare the type itself "
-                f"({_error_reason(v2_out, 90)})"
+                f"; Redshift cannot declare the type on a v3 table itself "
+                f"({_error_reason(out, 90)})"
             )
             return probe
         # Fall through to the DDL-only verdict, but keep the fixture's reason so
         # the report says which half went unmeasured.
         r.result = "fail"
         r.details = (
-            f"Type not available in Redshift Iceberg DDL: "
-            f"{_error_reason(v2_out, 110)}. Read support unmeasured: "
+            f"Type not available in Redshift Iceberg v3 DDL: "
+            f"{_error_reason(out, 110)}. Read support unmeasured: "
             f"{probe.details[:120]}"
         )
         return r
 
     r.result = "fail"
     r.details = (
-        f"Type not available in Redshift Iceberg DDL: {_error_reason(v2_out, 150)}"
+        f"Type not available in Redshift Iceberg v3 DDL: {_error_reason(out, 150)}"
     )
     return r
 
@@ -1643,12 +1846,59 @@ def test_unknown_type(version: str) -> TestResult:
 
 
 def test_lineage(version: str) -> TestResult:
-    if version == "v2":
-        r = TestResult("lineage", "Lineage Tracking", version)
-        r.result = "skip"
-        r.details = "V3-only feature; not applicable to format-version 2 tables"
+    r = TestResult("lineage", "Lineage Tracking", version)
+    tbl = _unique("lin")
+    ok, out = _run_sql([
+        _create(tbl, "id BIGINT, name VARCHAR", version),
+        f"INSERT INTO {_table(tbl)} VALUES (1,'a'),(2,'b')",
+        f"""SELECT _row_id, _last_updated_sequence_number FROM {_table(tbl)}
+            ORDER BY id""",
+    ])
+    if not ok:
+        r.result = "fail"
+        r.details = (
+            "The row-lineage pseudo-columns are not selectable: "
+            f"{_error_reason(out, 150)}"
+        )
+        _run_sql([f"DROP TABLE {_table(tbl)}"])
         return r
-    return _v3_unsupported("lineage", "Lineage Tracking", version)
+
+    # Documented behaviour on a non-v3 table is that both columns resolve and
+    # return NULL. So the statement succeeding proves nothing on its own -- an
+    # all-NULL answer means the grammar knows the columns and the table carries no
+    # lineage, which is absence of the feature rather than support for it.
+    # _run_sql renders NULL as an empty field, so a lineage-free row collapses to
+    # separators once the pipes are removed.
+    populated = [
+        line for line in out.splitlines()
+        if line.strip() and line.replace("|", "").strip()
+    ]
+    if not populated:
+        r.result = "fail"
+        r.details = (
+            "Both lineage pseudo-columns resolve but return NULL for every row, "
+            "which is the documented behaviour for a table that carries no row "
+            "lineage"
+        )
+        _run_sql([f"DROP TABLE {_table(tbl)}"])
+        return r
+
+    # Also documented: the pseudo-columns must be named explicitly and must not
+    # appear in SELECT *. If they leaked into the star expansion, every existing
+    # consumer of the table would see two surprise columns, so it is worth
+    # recording which way this behaves rather than assuming.
+    star_ok, star_out = _run_sql([f"SELECT * FROM {_table(tbl)} WHERE id=1"])
+    leaked = star_ok and star_out.count("|") > 1
+
+    r.result = "pass"
+    r.details = (
+        f"_row_id and _last_updated_sequence_number are populated on a v{_fmt(version)} "
+        f"table ({populated[0][:60]})"
+        + ("; they also appear in SELECT *, which the documentation says they "
+           "should not" if leaked else "; they are excluded from SELECT * as documented")
+    )
+    _run_sql([f"DROP TABLE {_table(tbl)}"])
+    return r
 
 
 # ---------------------------------------------------------------------------
@@ -2187,6 +2437,16 @@ def main():
         _write_reports(generate_report(results))
         sys.exit(1)
 
+    # Pre-flight: v3 is available per-build *and* per-storage-mode, so establish
+    # it once rather than letting every v3 cell answer a question it did not ask.
+    can_v3, v3_evidence = _v3_honoured()
+    print(f"Iceberg v3 honoured: {'yes' if can_v3 else 'NO'} ({v3_evidence})")
+    if not can_v3:
+        print("[WARN] Requested format-version 3 tables are not stored as v3 in "
+              "this mode, so the v3 dimension is reported as unsupported without "
+              "running the probes. Running them would measure v2 behaviour on a "
+              "downgraded table and report it as v3 support.")
+
     only = os.environ.get("REDSHIFT_ONLY", "").strip()
     tests = ALL_TESTS
     if only:
@@ -2196,8 +2456,25 @@ def main():
 
     results = []
     try:
+        feature_names = load_matrix_features()
         for version in VERSIONS:
             print(f"\n{'=' * 70}\n  Format version {version.upper()}\n{'=' * 70}")
+            if version == "v3" and not can_v3:
+                # One measured answer for the whole dimension. Each probe would
+                # otherwise run against a silently-downgraded v2 table and pass,
+                # which is worse than not measuring: it would upgrade cells to
+                # "supported" on the strength of v2 behaviour.
+                for fn in tests:
+                    fid = fn.__name__.replace("test_", "").replace("_", "-")
+                    r = TestResult(fid, feature_names.get(fid, {}).get("name", fid),
+                                   version)
+                    r.result = "fail"
+                    r.details = (
+                        f"Not available in the {STORAGE_MODE} mode: {v3_evidence}"
+                    )
+                    results.append(r)
+                print(f"  all {len(tests)} v3 cells recorded unsupported: {v3_evidence}")
+                continue
             for fn in tests:
                 print(f"\n--- {fn.__name__} [{version}] ---")
                 try:
