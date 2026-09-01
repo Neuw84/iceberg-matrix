@@ -12,8 +12,10 @@
   "support": {
     "aws-redshift-s3:position-deletes:v2": {
       "level": "full",
-      "notes": "Redshift reads position deletes when querying S3 Tables",
-      "caveats": []
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): a DELETE writes position delete files and leaves the data files in place, confirmed from the Iceberg snapshot summary (delete-files=1, total-position-deletes=1, data files unchanged). Both directions, not read-only.",
+      "caveats": [
+        "v3 tables record deletes as deletion vectors instead; a v3 table cannot add new positional delete files, though it can still read existing ones"
+      ]
     },
     "aws-redshift-s3:position-deletes:v3": {
       "level": "none",
@@ -28,8 +30,17 @@
     },
     "aws-redshift-s3:equality-deletes:v2": {
       "level": "full",
-      "notes": "Redshift reads equality deletes when querying S3 Tables",
-      "caveats": []
+      "notes": "Reading equality deletes follows from Redshift's documented support for querying Iceberg v2 tables, which handle row-level changes through delete files; the v2 spec covers both positional and equality delete files. Not verified by this suite -- see caveats.",
+      "caveats": [
+        "Read-only in practice: Redshift's own writer produces position deletes, not equality deletes. A measured DELETE reported total-equality-deletes=0 alongside total-position-deletes=1",
+        "The read half is not verified by this suite. No engine in the harness writes equality delete files -- Spark's DELETE either writes positional deletes or rewrites whole data files, so no fixture carrying equality deletes can be built. A Flink upsert sink with equality fields would be needed"
+      ],
+      "links": [
+        {
+          "label": "Using Apache Iceberg tables with Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+        }
+      ]
     },
     "aws-redshift-s3:equality-deletes:v3": {
       "level": "none",
