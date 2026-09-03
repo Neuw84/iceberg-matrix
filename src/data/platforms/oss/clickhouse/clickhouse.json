@@ -37,11 +37,10 @@
       ]
     },
     "clickhouse:equality-deletes:v2": {
-      "level": "partial",
-      "notes": "Reading is supported via Table Function (icebergS3/icebergLocal). Confirmed via GitHub PR #75930 and ClickHouse engineers; not yet reflected in official documentation.",
+      "level": "none",
+      "notes": "Not supported as a write operation. ClickHouse's Iceberg integration via table functions is read-only; there is no write path at all. It can read V2 tables with equality deletes via icebergS3/icebergLocal (confirmed via GitHub PR #75930), but that is a read capability, not this operation.",
       "caveats": [
-        "Not yet reflected in official documentation",
-        "Read-only via table functions; no write support"
+        "Read capability: reads V2 equality delete files via table functions (GitHub PR #75930)"
       ],
       "links": [
         {
