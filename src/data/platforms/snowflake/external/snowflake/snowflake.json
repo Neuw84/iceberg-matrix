@@ -88,7 +88,7 @@
       "caveats": [
         "ICEBERG_MERGE_ON_READ_BEHAVIOR='AUTO' (default): MoR for all externally managed tables; CoW for Snowflake-managed v2 tables",
         "Set ICEBERG_MERGE_ON_READ_BEHAVIOR='ENABLED' to force MoR for Snowflake-managed v2 tables",
-        "ENABLE_ICEBERG_MERGE_ON_READ session parameter is deprecated — use ICEBERG_MERGE_ON_READ_BEHAVIOR instead",
+        "ENABLE_ICEBERG_MERGE_ON_READ session parameter is deprecated \u2014 use ICEBERG_MERGE_ON_READ_BEHAVIOR instead",
         "Snowflake uses heuristics (row %, file size) to decide per-file whether to use MoR or CoW even when MoR is active"
       ],
       "links": [
@@ -168,7 +168,7 @@
       ],
       "links": [
         {
-          "label": "Manage Iceberg tables – Schema",
+          "label": "Manage Iceberg tables \u2013 Schema",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
         },
         {
@@ -398,7 +398,7 @@
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
         },
         {
-          "label": "Prevent data compaction (ENABLE_DATA_COMPACTION) — Sep 2025",
+          "label": "Prevent data compaction (ENABLE_DATA_COMPACTION) \u2014 Sep 2025",
           "url": "https://docs.snowflake.com/en/release-notes/2025/other/2025-09-22-enable-data-compaction-parameter"
         }
       ]
@@ -454,11 +454,12 @@
       ]
     },
     "snowflake:read-support:v2": {
-      "level": "full",
-      "notes": "Full read support for Iceberg tables in Parquet format. Supports both Snowflake-managed and externally managed Iceberg tables.",
+      "level": "partial",
+      "notes": "Read support for Iceberg tables in Parquet format, both Snowflake-managed and externally managed, but Snowflake cannot read equality delete files: a table written by an equality-delete writer (e.g. a Flink upsert sink) is not fully readable. Snowflake's own writer never produces equality deletes (see equality-deletes), so this gap only bites on externally managed tables written by another engine.",
       "caveats": [
         "Only Parquet file format is supported for Iceberg tables",
-        "Supports reading both Snowflake-managed and externally managed Iceberg tables"
+        "Supports reading both Snowflake-managed and externally managed Iceberg tables",
+        "Cannot read equality delete files written by another engine"
       ],
       "links": [
         {
@@ -472,10 +473,11 @@
       ]
     },
     "snowflake:read-support:v3": {
-      "level": "full",
-      "notes": "Full read support for Iceberg V3 tables, both Snowflake-managed and externally managed. Generally available (as of May 7, 2026).",
+      "level": "partial",
+      "notes": "Read support for Iceberg V3 tables, both Snowflake-managed and externally managed, but the same equality-delete gap as V2 applies to tables that still carry legacy V2 equality delete files (V3 deletion vectors are read fine). Generally available (as of May 7, 2026).",
       "caveats": [
-        "Generally available (as of May 7, 2026)"
+        "Generally available (as of May 7, 2026)",
+        "Cannot read legacy V2 equality delete files carried over into a V3 table"
       ],
       "links": [
         {
@@ -495,7 +497,7 @@
         "Fully supported for Snowflake-managed Iceberg tables",
         "Write support for externally managed tables (GA October 2025): INSERT supported for tables linked to external Iceberg REST catalogs (AWS Glue, Snowflake Open Catalog, Unity Catalog, etc.)",
         "Partitioned writes (GA October 2025): Snowflake writes data conforming to the table's Iceberg partition spec",
-        "CREATE ICEBERG TABLE … AS SELECT is not supported with vended credentials for catalog-linked databases"
+        "CREATE ICEBERG TABLE \u2026 AS SELECT is not supported with vended credentials for catalog-linked databases"
       ],
       "links": [
         {
@@ -783,11 +785,11 @@
     },
     "snowflake:unity-catalog:v2": {
       "level": "full",
-      "notes": "Full read and write support for Databricks Unity Catalog managed Iceberg tables. Write support is GA on AWS (Oct 2025) and Azure (Apr 2026, requires Azure Data Lake Storage Gen2 external volume). CREATE ICEBERG TABLE … AS SELECT (CTAS) is also GA (Mar 2026). Snowflake commits all DML changes back to Unity Catalog as the remote catalog.",
+      "notes": "Full read and write support for Databricks Unity Catalog managed Iceberg tables. Write support is GA on AWS (Oct 2025) and Azure (Apr 2026, requires Azure Data Lake Storage Gen2 external volume). CREATE ICEBERG TABLE \u2026 AS SELECT (CTAS) is also GA (Mar 2026). Snowflake commits all DML changes back to Unity Catalog as the remote catalog.",
       "caveats": [
         "Write support on AWS: GA since October 2025",
         "Write support on Azure: GA since April 2026 (requires Azure DLS Gen2 external volume)",
-        "CTAS (CREATE ICEBERG TABLE … AS SELECT) for Unity Catalog: GA since March 2026",
+        "CTAS (CREATE ICEBERG TABLE \u2026 AS SELECT) for Unity Catalog: GA since March 2026",
         "Uses REST Catalog API integration with Databricks Unity Catalog"
       ],
       "links": [
@@ -881,7 +883,7 @@
     },
     "snowflake:table-creation:v2": {
       "level": "full",
-      "notes": "Snowflake supports creating Iceberg tables as Snowflake-managed tables (using an external volume or Snowflake-managed storage), or as externally managed tables linked to an external catalog. As of June 1, 2026 (GA), you can create Iceberg tables using Snowflake storage — no external volume required, with Fail-safe protection and transient table support. A DEFAULT_METADATA_WRITE_FORMAT account/database/schema parameter (GA June 2026) allows creating Iceberg tables via standard CREATE TABLE without the ICEBERG keyword.",
+      "notes": "Snowflake supports creating Iceberg tables as Snowflake-managed tables (using an external volume or Snowflake-managed storage), or as externally managed tables linked to an external catalog. As of June 1, 2026 (GA), you can create Iceberg tables using Snowflake storage \u2014 no external volume required, with Fail-safe protection and transient table support. A DEFAULT_METADATA_WRITE_FORMAT account/database/schema parameter (GA June 2026) allows creating Iceberg tables via standard CREATE TABLE without the ICEBERG keyword.",
       "caveats": [
         "Snowflake-managed tables: CREATE ICEBERG TABLE with an external volume (S3, Azure, GCS), or with Snowflake storage (no external volume, GA Jun 1, 2026)",
         "Snowflake storage option: Fail-safe protected, transient variant available; commercial AWS and Azure regions only",
