@@ -96,11 +96,11 @@
       ]
     },
     "duckdb:copy-on-write:v2": {
-      "level": "partial",
-      "notes": "DuckDB can read copy-on-write Iceberg tables; INSERT uses COW semantics, but UPDATE/DELETE use merge-on-read only",
+      "level": "none",
+      "notes": "Not supported as a row-level write operation. DuckDB's UPDATE/DELETE always use merge-on-read, never copy-on-write. INSERT does write whole new data files, but INSERT is not a row-level operation (no existing rows are being deleted or updated). DuckDB can read copy-on-write Iceberg tables, but that is a read capability, not this operation.",
       "caveats": [
-        "Copy-on-write mode not supported for UPDATE/DELETE (only merge-on-read)",
-        "INSERT effectively uses COW (append-only, no delete files)"
+        "Read capability: can read copy-on-write Iceberg tables",
+        "INSERT writes new files but is not a row-level operation"
       ],
       "links": [
         {

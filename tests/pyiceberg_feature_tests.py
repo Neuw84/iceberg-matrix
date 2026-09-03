@@ -230,6 +230,13 @@ def test_write_merge_update_delete() -> TestResult:
 
 
 def test_position_deletes() -> TestResult:
+    # Rated none: position-deletes is a row-level write operation, and
+    # PyIceberg's only delete/update mode is copy-on-write -- it never produces
+    # position delete files even when write.delete.mode='merge-on-read' is
+    # requested (PyIceberg ignores that property and rewrites data files
+    # anyway). The previous version of this test asserted the delete worked
+    # without checking which delete strategy actually ran, so it reported pass
+    # regardless of this level.
     r = TestResult("position-deletes", "Position Deletes")
     try:
         cat = _get_catalog()
@@ -248,17 +255,18 @@ def test_position_deletes() -> TestResult:
         })
         tbl.append(df.cast(tbl.schema().as_arrow()))
         tbl.delete(delete_filter="id == 1")
-        result = tbl.scan().to_arrow()
-        assert len(result) == 2
-        r.result = "pass"
-        r.details = "Position delete via merge-on-read mode worked"
-    except Exception as e:
-        if "not supported" in str(e).lower() or "not implemented" in str(e).lower():
-            r.result = "fail"
-            r.details = str(e)
+        delete_files = [f for f in tbl.inspect.delete_files().to_pylist()]
+        if delete_files:
+            r.result = "pass"
+            r.details = f"delete() wrote {len(delete_files)} position delete file(s)"
         else:
-            r.result = "error"
-            r.details = str(e)
+            r.result = "fail"
+            r.details = ("delete() produced no delete files; write.delete.mode="
+                        "'merge-on-read' was ignored and the request rewrote data "
+                        "files (copy-on-write) instead")
+    except Exception as e:
+        r.result = "error"
+        r.details = str(e)
     return r
 
 
@@ -276,6 +284,11 @@ def test_equality_deletes() -> TestResult:
 
 
 def test_merge_on_read() -> TestResult:
+    # Rated none, same reasoning as test_position_deletes: PyIceberg's only
+    # delete/update mode is copy-on-write, so merge-on-read is never the write
+    # strategy actually used, regardless of write.delete.mode. The previous
+    # version of this test asserted the delete worked without checking which
+    # strategy ran, so it reported pass regardless of this level.
     r = TestResult("merge-on-read", "Merge-on-Read")
     try:
         cat = _get_catalog()
@@ -294,10 +307,15 @@ def test_merge_on_read() -> TestResult:
         })
         tbl.append(df.cast(tbl.schema().as_arrow()))
         tbl.delete(delete_filter="id == 2")
-        result = tbl.scan().to_arrow()
-        assert len(result) == 2
-        r.result = "pass"
-        r.details = "Merge-on-read delete mode works"
+        delete_files = [f for f in tbl.inspect.delete_files().to_pylist()]
+        if delete_files:
+            r.result = "pass"
+            r.details = f"delete() used merge-on-read: {len(delete_files)} delete file(s) written"
+        else:
+            r.result = "fail"
+            r.details = ("delete() produced no delete files; write.delete.mode="
+                        "'merge-on-read' was ignored and the request used "
+                        "copy-on-write (rewrote data files) instead")
     except Exception as e:
         r.result = "error"
         r.details = str(e)

@@ -11,19 +11,17 @@
   ],
   "support": {
     "pyiceberg:position-deletes:v2": {
-      "level": "partial",
-      "notes": "PyIceberg can read position delete files but only writes copy-on-write deletes (rewrites data files); does not produce position delete files",
+      "level": "none",
+      "notes": "Not supported as a write operation. PyIceberg's only delete/update mode is copy-on-write; it never produces position delete files. It can read position delete files, but that is a read capability, not this operation.",
       "caveats": [
-        "Read-only support for position delete files",
-        "Write deletes use copy-on-write mode only"
+        "Read capability: reads position delete files"
       ]
     },
     "pyiceberg:position-deletes:v3": {
-      "level": "partial",
-      "notes": "PyIceberg can read V3 deletion vectors (added in v0.10.0) but does not write position delete files",
+      "level": "none",
+      "notes": "Not supported as a write operation. PyIceberg's only delete/update mode is copy-on-write; it never produces deletion vectors. It can read V3 deletion vectors (added in v0.10.0), but that is a read capability, not this operation.",
       "caveats": [
-        "Deletion vectors read support only",
-        "No position delete file writing"
+        "Read capability: reads V3 deletion vectors (v0.10.0+)"
       ],
       "links": [
         {
@@ -51,19 +49,17 @@
       ]
     },
     "pyiceberg:merge-on-read:v2": {
-      "level": "partial",
-      "notes": "PyIceberg can read tables with position and equality delete files (merge-on-read), but cannot write merge-on-read deletes; all deletes use copy-on-write",
+      "level": "none",
+      "notes": "Not supported as a write operation. All of PyIceberg's deletes use copy-on-write; it cannot write merge-on-read deletes. It can read tables with position and equality delete files, but that is a read capability, not this operation.",
       "caveats": [
-        "Read-side MoR only (position and equality deletes)",
-        "All writes use copy-on-write"
+        "Read capability: reads position and equality delete files"
       ]
     },
     "pyiceberg:merge-on-read:v3": {
-      "level": "partial",
-      "notes": "PyIceberg can read V3 deletion vectors (added in v0.10.0) but cannot write merge-on-read deletes",
+      "level": "none",
+      "notes": "Not supported as a write operation. All of PyIceberg's deletes use copy-on-write; it cannot write merge-on-read deletes. It can read V3 deletion vectors (added in v0.10.0), but that is a read capability, not this operation.",
       "caveats": [
-        "Read-side deletion vectors only",
-        "Write-side MoR not supported"
+        "Read capability: reads V3 deletion vectors (v0.10.0+)"
       ],
       "links": [
         {

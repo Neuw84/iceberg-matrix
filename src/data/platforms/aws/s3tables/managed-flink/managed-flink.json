@@ -104,13 +104,10 @@
       ]
     },
     "aws-managed-flink:copy-on-write:v2": {
-      "level": "partial",
-      "notes": "Only whole-table or whole-partition rewrites are reachable, via batch INSERT OVERWRITE, which rewrites data files without producing delete files. Copy-on-write for row-level changes needs UPDATE or DELETE statements, which Flink SQL does not have, so the copy-on-write write modes have nothing to act on.",
+      "level": "none",
+      "notes": "Not supported. Flink SQL has no UPDATE or DELETE statement, so there is no row-level operation for a copy-on-write write mode to act on. Only whole-table or whole-partition rewrites are reachable via batch INSERT OVERWRITE, which is not a row-level operation.",
       "caveats": [
-        "No row-level UPDATE/DELETE in Flink SQL, so the copy-on-write write modes are inert",
-        "INSERT OVERWRITE is batch-only",
-        "Level measured on Apache Flink 2.3 with the Iceberg Flink connector; Managed Service for Apache Flink runs the same connector, so the engine behaviour is identical.",
-        "Managed Service for Apache Flink ships no Iceberg libraries -- its cluster classpath carries only flink-dist and the Flink table jars -- so iceberg-flink-runtime and iceberg-aws-bundle must be packaged into the application archive."
+        "INSERT OVERWRITE rewrites whole partitions/tables but is not a row-level operation"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into",
       "links": [
@@ -121,13 +118,10 @@
       ]
     },
     "aws-managed-flink:copy-on-write:v3": {
-      "level": "partial",
-      "notes": "Only whole-table or whole-partition rewrites are reachable, via batch INSERT OVERWRITE, which rewrites data files without producing delete files. Copy-on-write for row-level changes needs UPDATE or DELETE statements, which Flink SQL does not have, so the copy-on-write write modes have nothing to act on.",
+      "level": "none",
+      "notes": "Not supported. Flink SQL has no UPDATE or DELETE statement, so there is no row-level operation for a copy-on-write write mode to act on. Only whole-table or whole-partition rewrites are reachable via batch INSERT OVERWRITE, which is not a row-level operation.",
       "caveats": [
-        "No row-level UPDATE/DELETE in Flink SQL, so the copy-on-write write modes are inert",
-        "INSERT OVERWRITE is batch-only",
-        "Level measured on Apache Flink 2.3 with the Iceberg Flink connector; Managed Service for Apache Flink runs the same connector, so the engine behaviour is identical.",
-        "Managed Service for Apache Flink ships no Iceberg libraries -- its cluster classpath carries only flink-dist and the Flink table jars -- so iceberg-flink-runtime and iceberg-aws-bundle must be packaged into the application archive."
+        "INSERT OVERWRITE rewrites whole partitions/tables but is not a row-level operation"
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-writes/#insert-into",
       "links": [

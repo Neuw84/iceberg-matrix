@@ -879,6 +879,12 @@ def test_position_deletes(version: str) -> TestResult:
 
 
 def test_copy_on_write(version: str) -> TestResult:
+    # Rated none: copy-on-write for row-level changes needs an UPDATE or DELETE
+    # statement to rewrite files around, and Flink SQL has neither -- only
+    # whole-table/whole-partition INSERT OVERWRITE. The previous version of
+    # this test ran INSERT OVERWRITE and reported pass on the rewrite, which
+    # conflates a bulk replace with a row-level write strategy; INSERT OVERWRITE
+    # is exercised, and demonstrably reachable, but it is not this operation.
     r = TestResult("copy-on-write", "Copy-on-Write", version)
     tbl = _unique("cow")
     ok, out = _run_sql(_prelude(version) + [
@@ -887,8 +893,6 @@ def test_copy_on_write(version: str) -> TestResult:
             'write.delete.mode'='copy-on-write',
             'write.update.mode'='copy-on-write')""",
         f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b'),(3,'c')",
-        # INSERT OVERWRITE rewrites data files wholesale: the copy-on-write path
-        # reachable from Flink SQL.
         f"INSERT OVERWRITE {tbl} VALUES (1,'rewritten')",
         f"SELECT CONCAT('MARKROW=', CAST(id AS STRING), ':', val) AS m FROM {tbl}",
         f"SELECT CONCAT('MARKDEL=', CAST(COUNT(*) AS STRING)) AS m FROM `{tbl}$delete_files`",
@@ -897,24 +901,17 @@ def test_copy_on_write(version: str) -> TestResult:
     if not ok:
         r.result = "error"
         r.details = _error_reason(out)
-    elif _marker(out, "MARKROW=1:rewritten") and _marker(out, "MARKDEL=0"):
-        r.result = "pass"
-        r.details = (
-            "INSERT OVERWRITE rewrote the data files with no delete files, which is the "
-            "copy-on-write path Flink SQL can reach. Note the scope: copy-on-write proper "
-            "means rewriting files for a row-level UPDATE or DELETE, and Flink SQL has "
-            "neither, so write.*.mode='copy-on-write' has nothing to act on -- the only "
-            "rewrite available is a whole-table or whole-partition overwrite"
-        )
     elif _marker(out, "MARKROW=1:rewritten"):
-        r.result = "pass"
+        r.result = "fail"
         r.details = (
-            "INSERT OVERWRITE rewrote data (whole-table overwrite, not row-level "
-            f"copy-on-write); delete files={_marker_values(out, 'MARKDEL')}"
+            "Flink SQL has no UPDATE or DELETE statement, so there is no row-level "
+            "operation for copy-on-write to act on. INSERT OVERWRITE rewrote the "
+            f"whole table with no delete files (delete files={_marker_values(out, 'MARKDEL')}), "
+            "but that is a bulk replace, not a row-level write strategy"
         )
     else:
-        r.result = "fail"
-        r.details = f"Copy-on-write overwrite not confirmed: rows={_marker_values(out, 'MARKROW')}"
+        r.result = "error"
+        r.details = f"INSERT OVERWRITE rewrite not confirmed: rows={_marker_values(out, 'MARKROW')}"
     return r
 
 
