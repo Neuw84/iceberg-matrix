@@ -21,8 +21,8 @@
       "caveats": []
     },
     "aws-athena:equality-deletes:v2": {
-      "level": "full",
-      "notes": "Supported via Athena engine v3 with S3 Tables",
+      "level": "partial",
+      "notes": "Read yes, write no. Athena reads equality delete files, but its row-level DML (DELETE/MERGE) writes only positional delete files, never equality deletes. Measured 2026-08-27: Spark-created v2 tables mutated by Athena gained positional delete files only.",
       "caveats": []
     },
     "aws-athena:equality-deletes:v3": {
@@ -41,8 +41,8 @@
       "caveats": []
     },
     "aws-athena:copy-on-write:v2": {
-      "level": "partial",
-      "notes": "Copy-on-write is the default write mode; MERGE/DELETE use merge-on-read regardless of table properties",
+      "level": "none",
+      "notes": "Not supported. Measured 2026-08-27: v2 Iceberg tables created by Spark with write.delete.mode / write.update.mode / write.merge.mode = copy-on-write were mutated by Athena, and Spark inspection of the resulting snapshots showed positional delete files added (1 for DELETE, 2 for MERGE), not a data-file rewrite. Athena ignores the copy-on-write table properties and always uses merge-on-read for DELETE/MERGE.",
       "caveats": [
         "MERGE and DELETE always use merge-on-read"
       ]
@@ -349,9 +349,9 @@
     },
     "aws-athena:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "Athena can access Snowflake Horizon Catalog via AWS Glue Catalog Federation, enabling read-only access to Snowflake-managed Iceberg V2 tables. Write operations are not supported — this is an Athena engine limitation, not a Horizon Catalog or Glue Catalog Federation limitation.",
+      "notes": "Athena can access Snowflake Horizon Catalog via AWS Glue Catalog Federation, enabling read-only access to Snowflake-managed Iceberg V2 tables. Write operations are not supported \u2014 this is an Athena engine limitation, not a Horizon Catalog or Glue Catalog Federation limitation.",
       "caveats": [
-        "Read-only — write operations to external catalogs not supported by Athena",
+        "Read-only \u2014 write operations to external catalogs not supported by Athena",
         "Requires AWS Glue Catalog Federation configuration"
       ],
       "links": [

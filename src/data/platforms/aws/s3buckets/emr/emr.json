@@ -36,8 +36,8 @@
       ]
     },
     "aws-emr:equality-deletes:v2": {
-      "level": "full",
-      "notes": "Supported via Spark on Glue 3.0+; Glue 4.0+ recommended",
+      "level": "none",
+      "notes": "Not supported as a write operation. This engine's SQL DML (DELETE/UPDATE/MERGE) never produces equality delete files -- only positional deletes on v2 or deletion vectors on v3. It can read equality delete files written by another engine (e.g. Flink upserts), but that is a read capability, not this row-level operation.",
       "caveats": [],
       "links": [
         {
@@ -47,12 +47,9 @@
       ]
     },
     "aws-emr:equality-deletes:v3": {
-      "level": "full",
-      "notes": "V3 replaces equality deletes with deletion vectors on EMR 8.0 / Spark 4.0.2",
-      "caveats": [
-        "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support",
-        "V3 deletion vectors supersede V2 equality delete files"
-      ],
+      "level": "none",
+      "notes": "Not supported as a write operation. This engine's SQL DML (DELETE/UPDATE/MERGE) never produces equality delete files -- only positional deletes on v2 or deletion vectors on v3. It can read equality delete files written by another engine (e.g. Flink upserts), but that is a read capability, not this row-level operation.",
+      "caveats": [],
       "links": [
         {
           "label": "Iceberg V3 on AWS",
@@ -275,7 +272,7 @@
       "notes": "Full table maintenance for V3 tables on EMR 8.0 / Spark 4.0.2; when using AWS Glue Data Catalog, automatic optimization compacts deletion vector files and removes old V2 delete files after upgrade",
       "caveats": [
         "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support",
-        "First compaction after V2→V3 upgrade removes old positional/equality delete files"
+        "First compaction after V2\u2192V3 upgrade removes old positional/equality delete files"
       ],
       "links": [
         {
@@ -286,7 +283,7 @@
     },
     "aws-emr:branching-tagging:v2": {
       "level": "full",
-      "notes": "Supported via Spark on EMR. Glue: Branching and tagging require Iceberg ≥1.2.0; only available natively on Glue 5.0+ (Iceberg 1.7.1) or via custom JARs on Glue 4.0",
+      "notes": "Supported via Spark on EMR. Glue: Branching and tagging require Iceberg \u22651.2.0; only available natively on Glue 5.0+ (Iceberg 1.7.1) or via custom JARs on Glue 4.0",
       "caveats": [],
       "links": [
         {
@@ -575,10 +572,10 @@
     },
     "aws-emr:table-creation:v3": {
       "level": "full",
-      "notes": "Create V3 tables via Spark SQL DDL with format-version=3 on EMR 8.0 / Spark 4.0.2; upgrade V2→V3 via ALTER TABLE SET TBLPROPERTIES",
+      "notes": "Create V3 tables via Spark SQL DDL with format-version=3 on EMR 8.0 / Spark 4.0.2; upgrade V2\u2192V3 via ALTER TABLE SET TBLPROPERTIES",
       "caveats": [
         "Requires EMR 8.0 (Spark 4.0.2 / Iceberg 1.10.1) for V3 format support",
-        "V2→V3 upgrade is one-way; cannot downgrade back to V2"
+        "V2\u2192V3 upgrade is one-way; cannot downgrade back to V2"
       ],
       "links": [
         {
@@ -641,10 +638,10 @@
     },
     "aws-emr:lineage:v3": {
       "level": "full",
-      "notes": "EMR 8.0 / Spark 4.0.2 supports Iceberg V3 row lineage, exposing the `_row_id` and `_last_updated_sequence_number` metadata fields for precise row-level change tracking and audit trails. (Per AWS EMR 8.0 GA announcement, May 27, 2026 — V3 stronger transaction guarantees and data lineage.)",
+      "notes": "EMR 8.0 / Spark 4.0.2 supports Iceberg V3 row lineage, exposing the `_row_id` and `_last_updated_sequence_number` metadata fields for precise row-level change tracking and audit trails. (Per AWS EMR 8.0 GA announcement, May 27, 2026 \u2014 V3 stronger transaction guarantees and data lineage.)",
       "caveats": [
         "Requires EMR 8.0 (Iceberg 1.10.1)",
-        "No historical backfill after V2→V3 upgrade"
+        "No historical backfill after V2\u2192V3 upgrade"
       ],
       "links": [
         {
@@ -719,7 +716,7 @@
           "url": "https://aws.amazon.com/blogs/big-data/use-aws-glue-etl-to-perform-merge-partition-evolution-and-schema-evolution-on-apache-iceberg/"
         },
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
@@ -734,14 +731,14 @@
           "url": "https://aws.amazon.com/blogs/big-data/use-aws-glue-etl-to-perform-merge-partition-evolution-and-schema-evolution-on-apache-iceberg/"
         },
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
     },
     "aws-emr:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "EMR Spark natively supports the Iceberg REST catalog spec via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint. Direct REST catalog connections support both reads and writes. Note: when routing through AWS Glue Catalog Federation, writes are not supported — that is a Glue/EMR federation path limitation, not an OSS Spark or Horizon Catalog limitation.",
+      "notes": "EMR Spark natively supports the Iceberg REST catalog spec via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint. Direct REST catalog connections support both reads and writes. Note: when routing through AWS Glue Catalog Federation, writes are not supported \u2014 that is a Glue/EMR federation path limitation, not an OSS Spark or Horizon Catalog limitation.",
       "caveats": [
         "Write via direct REST catalog API is supported"
       ],

@@ -37,8 +37,8 @@
       ]
     },
     "spark:equality-deletes:v2": {
-      "level": "full",
-      "notes": "Full support for equality delete files as the reference Iceberg implementation",
+      "level": "none",
+      "notes": "Not supported as a write operation. This engine's SQL DML (DELETE/UPDATE/MERGE) never produces equality delete files -- only positional deletes on v2 or deletion vectors on v3. It can read equality delete files written by another engine (e.g. Flink upserts), but that is a read capability, not this row-level operation.",
       "caveats": [],
       "links": [
         {
@@ -48,8 +48,8 @@
       ]
     },
     "spark:equality-deletes:v3": {
-      "level": "full",
-      "notes": "Full equality delete support with V3 tables",
+      "level": "none",
+      "notes": "Not supported as a write operation. This engine's SQL DML (DELETE/UPDATE/MERGE) never produces equality delete files -- only positional deletes on v2 or deletion vectors on v3. It can read equality delete files written by another engine (e.g. Flink upserts), but that is a read capability, not this row-level operation.",
       "caveats": [],
       "links": [
         {
@@ -106,7 +106,7 @@
     },
     "spark:schema-evolution:v2": {
       "level": "full",
-      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int→long, float→double), and modify nullability",
+      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int\u2192long, float\u2192double), and modify nullability",
       "caveats": [],
       "links": [
         {
@@ -752,7 +752,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         },
         {
@@ -767,7 +767,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
