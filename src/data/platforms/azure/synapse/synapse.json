@@ -44,13 +44,9 @@
       ]
     },
     "azure-synapse:equality-deletes:v2": {
-      "level": "partial",
-      "notes": "Supported via Spark pools (3.4/3.5) with manually installed iceberg-spark-runtime JAR; not available in serverless or dedicated SQL pools",
-      "caveats": [
-        "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
-        "Only available via Spark pools; serverless SQL pool and dedicated SQL pool have no Iceberg support",
-        "Microsoft recommends migrating Synapse Spark workloads to Microsoft Fabric"
-      ],
+      "level": "none",
+      "notes": "Not supported as a write operation. This is Spark's SQL DML (DELETE/UPDATE/MERGE), which never produces equality delete files -- only positional deletes on v2 or deletion vectors on v3. Equality deletes are produced by the Iceberg API and streaming writers (e.g. Flink upserts), not by Spark SQL, regardless of the Iceberg runtime version installed.",
+      "caveats": [],
       "links": [
         {
           "label": "Manage Spark pool packages",
@@ -317,7 +313,7 @@
       "notes": "Read support available only via Spark pools with manually installed iceberg-spark-runtime JAR; serverless SQL pool does NOT support Iceberg (only Parquet, Delta Lake, CSV); dedicated SQL pool has no Iceberg support",
       "caveats": [
         "Iceberg is not pre-installed; requires manual JAR package installation on Spark pools",
-        "Serverless SQL pool does NOT support Iceberg — only Parquet, Delta Lake, and delimited text formats",
+        "Serverless SQL pool does NOT support Iceberg \u2014 only Parquet, Delta Lake, and delimited text formats",
         "Dedicated SQL pool has no Iceberg support",
         "Microsoft recommends migrating Synapse Spark workloads to Microsoft Fabric"
       ],
@@ -403,7 +399,7 @@
       "notes": "Standard Spark Iceberg catalogs (Hive, Hadoop, REST, JDBC) can be configured manually via Spark pool settings; no native Synapse catalog integration for Iceberg",
       "caveats": [
         "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
-        "No native Synapse catalog integration for Iceberg — all catalog configuration is manual",
+        "No native Synapse catalog integration for Iceberg \u2014 all catalog configuration is manual",
         "Catalog type depends on user-supplied Spark configuration"
       ],
       "links": [
@@ -428,7 +424,7 @@
       "caveats": [
         "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
         "Requires configuring spark.sql.catalog with org.apache.iceberg.spark.SparkCatalog",
-        "No native Synapse integration — standard OSS Spark Iceberg configuration"
+        "No native Synapse integration \u2014 standard OSS Spark Iceberg configuration"
       ],
       "links": [
         {
@@ -463,7 +459,7 @@
       "notes": "Iceberg REST Catalog can be configured via Spark pool settings using the standard Spark Iceberg RESTCatalog implementation",
       "caveats": [
         "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
-        "No native Synapse REST catalog endpoint — must point to an external REST catalog server",
+        "No native Synapse REST catalog endpoint \u2014 must point to an external REST catalog server",
         "Standard OSS Spark Iceberg configuration applies"
       ],
       "links": [
@@ -536,7 +532,7 @@
       "caveats": [
         "Iceberg is not pre-installed; requires manual JAR package installation and Spark configuration",
         "Uses ADLS Gen2 (abfss://) as the underlying storage; standard Hadoop catalog with ADLS connector",
-        "No native Synapse integration — standard OSS Spark Iceberg configuration"
+        "No native Synapse integration \u2014 standard OSS Spark Iceberg configuration"
       ],
       "links": [
         {
@@ -722,7 +718,7 @@
       ],
       "links": [
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]

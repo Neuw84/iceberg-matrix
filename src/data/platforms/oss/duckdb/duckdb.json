@@ -39,8 +39,8 @@
       ]
     },
     "duckdb:equality-deletes:v2": {
-      "level": "full",
-      "notes": "DuckDB supports reading tables with equality deletes",
+      "level": "none",
+      "notes": "Not supported as a write operation. DuckDB reads equality delete files but never writes them -- producing one requires another engine (e.g. a Flink upsert sink), so this is not exercised by DuckDB's own probe, which reports skip regardless of this level.",
       "caveats": [],
       "links": [
         {

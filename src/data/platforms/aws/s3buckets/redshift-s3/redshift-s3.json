@@ -36,12 +36,9 @@
       ]
     },
     "aws-redshift-s3:equality-deletes:v2": {
-      "level": "full",
-      "notes": "Reading equality deletes follows from Redshift's documented support for querying Iceberg v2 tables, which handle row-level changes through delete files; the v2 spec covers both positional and equality delete files. Not verified by this suite -- see caveats.",
-      "caveats": [
-        "Read-only in practice: Redshift's own writer produces position deletes, not equality deletes. A measured DELETE reported total-equality-deletes=0 alongside total-position-deletes=1",
-        "The read half is not verified by this suite. No engine in the harness writes equality delete files -- Spark's DELETE either writes positional deletes or rewrites whole data files, so no fixture carrying equality deletes can be built. A Flink upsert sink with equality fields would be needed"
-      ],
+      "level": "none",
+      "notes": "Not supported as a write operation. Redshift's own writer produces position deletes, not equality deletes -- a measured DELETE reported total-equality-deletes=0 alongside total-position-deletes=1. It can read equality delete files written by another engine, but that read half is not verified by this suite: no engine in the harness writes equality delete files (Spark's DELETE either writes positional deletes or rewrites whole data files), so no fixture carrying equality deletes can be built. A Flink upsert sink with equality fields would be needed.",
+      "caveats": [],
       "links": [
         {
           "label": "Using Apache Iceberg tables with Amazon Redshift",
@@ -50,12 +47,9 @@
       ]
     },
     "aws-redshift-s3:equality-deletes:v3": {
-      "level": "full",
-      "notes": "Reading equality deletes follows from Redshift's documented support for querying Iceberg tables through delete files, and equality delete files remain a valid v3 construct -- the spec defines data_file content=2 for v1 through v3, and only v4 forbids writing new ones. Not verified by this suite; see caveats.",
-      "caveats": [
-        "Read-only: Redshift's own writer produces position deletes, not equality deletes. A measured DELETE reported total-equality-deletes=0 alongside total-position-deletes=1",
-        "The read half is not verified by this suite. No engine in the harness writes equality delete files -- Spark's DELETE either writes positional deletes or rewrites whole data files, and the fx_v2_eqdel fixture was inspected and carries no delete files at all -- so a Flink upsert sink with equality fields would be needed"
-      ],
+      "level": "none",
+      "notes": "Not supported as a write operation. Redshift's own writer produces position deletes, not equality deletes -- a measured DELETE reported total-equality-deletes=0 alongside total-position-deletes=1. It can read equality delete files written by another engine, but that read half is not verified by this suite: no engine in the harness writes equality delete files (Spark's DELETE either writes positional deletes or rewrites whole data files), so no fixture carrying equality deletes can be built. A Flink upsert sink with equality fields would be needed.",
+      "caveats": [],
       "links": [
         {
           "label": "Iceberg spec: row-level deletes",

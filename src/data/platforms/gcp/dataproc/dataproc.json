@@ -21,13 +21,13 @@
       "caveats": []
     },
     "google-dataproc:equality-deletes:v2": {
-      "level": "full",
-      "notes": "Supported via Spark on Dataproc",
+      "level": "none",
+      "notes": "Not supported as a write operation. This is Spark's SQL DML (DELETE/UPDATE/MERGE), which never produces equality delete files -- only positional deletes on v2 or deletion vectors on v3. Equality deletes are produced by the Iceberg API and streaming writers (e.g. Flink upserts), not by Spark SQL, regardless of the Iceberg runtime version installed.",
       "caveats": []
     },
     "google-dataproc:equality-deletes:v3": {
-      "level": "full",
-      "notes": "Supported via Spark on Dataproc with Iceberg V3",
+      "level": "none",
+      "notes": "Not supported as a write operation. This is Spark's SQL DML (DELETE/UPDATE/MERGE), which never produces equality delete files -- only positional deletes on v2 or deletion vectors on v3. Equality deletes are produced by the Iceberg API and streaming writers (e.g. Flink upserts), not by Spark SQL, regardless of the Iceberg runtime version installed.",
       "caveats": []
     },
     "google-dataproc:merge-on-read:v2": {
@@ -361,7 +361,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
@@ -372,7 +372,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL – ALTER TABLE",
+          "label": "Spark DDL \u2013 ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
