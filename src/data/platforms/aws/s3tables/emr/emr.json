@@ -16,8 +16,8 @@
       "caveats": []
     },
     "aws-emr:equality-deletes:v2": {
-      "level": "full",
-      "notes": "Supported via Spark on EMR with S3 Tables integration",
+      "level": "none",
+      "notes": "Not supported as a write operation. This engine's SQL DML (DELETE/UPDATE/MERGE) never produces equality delete files -- only positional deletes on v2 or deletion vectors on v3. It can read equality delete files written by another engine (e.g. Flink upserts), but that is a read capability, not this row-level operation.",
       "caveats": []
     },
     "aws-emr:merge-on-read:v2": {
@@ -187,8 +187,8 @@
       "caveats": []
     },
     "aws-emr:equality-deletes:v3": {
-      "level": "full",
-      "notes": "V3 equality deletes supported via Spark 3.5+ on EMR with S3 Tables",
+      "level": "none",
+      "notes": "Not supported as a write operation. This engine's SQL DML (DELETE/UPDATE/MERGE) never produces equality delete files -- only positional deletes on v2 or deletion vectors on v3. It can read equality delete files written by another engine (e.g. Flink upserts), but that is a read capability, not this row-level operation.",
       "caveats": []
     },
     "aws-emr:merge-on-read:v3": {
@@ -387,7 +387,7 @@
     },
     "aws-emr:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "EMR Spark natively supports the Iceberg REST catalog spec via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint. Direct REST catalog connections support both reads and writes. Note: when routing through AWS Glue Catalog Federation, writes are not supported — that is a Glue/EMR federation path limitation, not an OSS Spark or Horizon Catalog limitation.",
+      "notes": "EMR Spark natively supports the Iceberg REST catalog spec via iceberg-spark-runtime. Configure with spark.sql.catalog.<name>.type=rest pointing to the Horizon Catalog endpoint. Direct REST catalog connections support both reads and writes. Note: when routing through AWS Glue Catalog Federation, writes are not supported \u2014 that is a Glue/EMR federation path limitation, not an OSS Spark or Horizon Catalog limitation.",
       "caveats": [
         "Write via direct REST catalog API is supported",
         "Write via Glue Catalog Federation path is not supported (Glue engine limitation)"

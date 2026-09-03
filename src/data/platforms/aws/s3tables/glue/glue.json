@@ -16,8 +16,8 @@
       "caveats": []
     },
     "aws-glue:equality-deletes:v2": {
-      "level": "full",
-      "notes": "Supported via Glue ETL with S3 Tables integration",
+      "level": "none",
+      "notes": "Not supported as a write operation. This engine's SQL DML (DELETE/UPDATE/MERGE) never produces equality delete files -- only positional deletes on v2 or deletion vectors on v3. It can read equality delete files written by another engine (e.g. Flink upserts), but that is a read capability, not this row-level operation.",
       "caveats": []
     },
     "aws-glue:merge-on-read:v2": {
@@ -186,8 +186,8 @@
       "caveats": []
     },
     "aws-glue:equality-deletes:v3": {
-      "level": "full",
-      "notes": "V3 equality deletes supported via Spark 3.5+ on EMR with S3 Tables",
+      "level": "none",
+      "notes": "Not supported as a write operation. This engine's SQL DML (DELETE/UPDATE/MERGE) never produces equality delete files -- only positional deletes on v2 or deletion vectors on v3. It can read equality delete files written by another engine (e.g. Flink upserts), but that is a read capability, not this row-level operation.",
       "caveats": []
     },
     "aws-glue:merge-on-read:v3": {
@@ -400,9 +400,9 @@
     },
     "aws-glue:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "AWS Glue Spark jobs can connect to Snowflake Horizon Catalog as an external REST catalog. Read access is supported. Write access to externally-managed tables is not supported — Glue Spark only supports writes to Glue Data Catalog natively. This is a Glue engine limitation and does not apply to OSS Spark.",
+      "notes": "AWS Glue Spark jobs can connect to Snowflake Horizon Catalog as an external REST catalog. Read access is supported. Write access to externally-managed tables is not supported \u2014 Glue Spark only supports writes to Glue Data Catalog natively. This is a Glue engine limitation and does not apply to OSS Spark.",
       "caveats": [
-        "Read-only — Glue Spark only supports writes to Glue Data Catalog natively",
+        "Read-only \u2014 Glue Spark only supports writes to Glue Data Catalog natively",
         "Write limitation is a Glue engine limitation, not a Horizon Catalog limitation",
         "Requires bundling Iceberg REST catalog dependency in Glue job"
       ],

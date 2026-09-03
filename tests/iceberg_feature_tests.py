@@ -600,14 +600,21 @@ def test_position_deletes(version: str) -> TestResult:
 
 
 def test_equality_deletes(version: str) -> TestResult:
+    # Rated none: Spark SQL DELETE/UPDATE/MERGE never produce equality delete
+    # files (content=2) -- only positional deletes on v2 or deletion vectors on
+    # v3. The row-level operation this feature names is a write operation, and
+    # Spark's DML cannot perform it, so absence of a content=2 file is the
+    # datum, not a bare pass on the DELETE succeeding (which the previous
+    # version of this test asserted, conflating this feature with
+    # position-deletes). Spark can still *read* equality delete files written
+    # by another engine, e.g. Flink upserts, but that is a read capability, not
+    # this operation, and reads are covered by read-support instead.
     r = TestResult("equality-deletes", "Equality Deletes", version)
     spark = get_spark()
     ns = _ns()
     try:
         spark.sql(f"CREATE NAMESPACE IF NOT EXISTS local.{ns}")
         tbl = f"local.{ns}.{_unique('eqdel')}"
-        # Spark SQL DELETE in MoR mode uses position deletes / DVs; equality
-        # deletes are produced by the Iceberg API and are readable by Spark.
         spark.sql(f"""
             CREATE TABLE {tbl} (id BIGINT, val STRING)
             USING iceberg TBLPROPERTIES (
@@ -617,12 +624,20 @@ def test_equality_deletes(version: str) -> TestResult:
         """)
         spark.sql(f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b'),(3,'c')")
         spark.sql(f"DELETE FROM {tbl} WHERE id=2")
-        cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
-        assert cnt == 2
+
+        delete_files = spark.sql(f"SELECT content FROM {tbl}.all_delete_files").collect()
+        eq_delete_count = sum(1 for row in delete_files if row[0] == 2)
+
         _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
-        r.result = "pass"
-        r.details = "Equality deletes readable; Spark SQL DELETE in MoR works correctly"
+
+        if eq_delete_count > 0:
+            r.result = "pass"
+            r.details = f"DELETE produced {eq_delete_count} equality delete file(s)"
+        else:
+            r.result = "fail"
+            r.details = ("DELETE produced no equality delete files (content=2); "
+                        f"{len(delete_files)} delete file(s) total, all positional/DV")
     except Exception as e:
         r.result = "error"
         r.details = str(e)
