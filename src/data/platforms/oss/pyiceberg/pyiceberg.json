@@ -33,11 +33,9 @@
       ]
     },
     "pyiceberg:equality-deletes:v2": {
-      "level": "partial",
-      "notes": "PyIceberg can read equality delete files but cannot write them",
-      "caveats": [
-        "Read-only support for equality deletes"
-      ],
+      "level": "none",
+      "notes": "Not supported as a write operation. PyIceberg reads equality delete files but never writes them -- producing one requires another engine (e.g. a Flink upsert sink), so this is not exercised by PyIceberg's own probe, which reports skip regardless of this level.",
+      "caveats": [],
       "links": [
         {
           "label": "GitHub PR #2255",
@@ -475,7 +473,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "PyIceberg API – Schema evolution",
+          "label": "PyIceberg API \u2013 Schema evolution",
           "url": "https://py.iceberg.apache.org/api/"
         },
         {
@@ -490,7 +488,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "PyIceberg API – Schema evolution",
+          "label": "PyIceberg API \u2013 Schema evolution",
           "url": "https://py.iceberg.apache.org/api/"
         }
       ]

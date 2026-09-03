@@ -39,8 +39,8 @@
       ]
     },
     "doris:equality-deletes:v2": {
-      "level": "full",
-      "notes": "Doris 4.x reads equality delete files on V2 tables via its Iceberg catalog connector",
+      "level": "none",
+      "notes": "Not supported as a write operation. Doris reads equality delete files on V2 tables via its Iceberg catalog connector but has no write path that produces them -- writing equality deletes requires another engine (e.g. a Flink upsert sink).",
       "caveats": [],
       "links": [
         {
@@ -138,7 +138,7 @@
     },
     "doris:type-promotion:v2": {
       "level": "full",
-      "notes": "Doris supports safe type promotions such as INT → BIGINT and FLOAT → DOUBLE on Iceberg tables, added in Doris 4.0.4",
+      "notes": "Doris supports safe type promotions such as INT \u2192 BIGINT and FLOAT \u2192 DOUBLE on Iceberg tables, added in Doris 4.0.4",
       "caveats": [],
       "links": [
         {

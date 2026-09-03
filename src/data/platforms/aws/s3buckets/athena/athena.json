@@ -21,8 +21,8 @@
       "caveats": []
     },
     "aws-athena:equality-deletes:v2": {
-      "level": "partial",
-      "notes": "Read yes, write no. Athena reads equality delete files, but its row-level DML (DELETE/MERGE) writes only positional delete files, never equality deletes. Measured 2026-08-27: Spark-created v2 tables mutated by Athena gained positional delete files only.",
+      "level": "none",
+      "notes": "Not supported as a write operation. Athena's engine (Trino-based) never produces equality delete files for DELETE/MERGE, only positional delete files. Measured 2026-08-27: Spark-created v2 tables mutated by Athena gained positional delete files only. It can read equality delete files written by another engine, but that is a read capability, not this operation.",
       "caveats": []
     },
     "aws-athena:equality-deletes:v3": {
