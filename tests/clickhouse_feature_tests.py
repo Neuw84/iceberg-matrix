@@ -226,50 +226,17 @@ def test_read_support() -> TestResult:
 
 
 def test_position_deletes() -> TestResult:
-    """Create a MOR table with position deletes via Spark, read with ClickHouse."""
+    # Rated none: position-deletes is a row-level write operation, and
+    # ClickHouse's Iceberg integration via table functions is read-only, with no
+    # write path at all. The previous version of this test created the
+    # position delete via Spark and only checked that ClickHouse could read the
+    # result -- a read capability, not this operation -- which would always
+    # report pass regardless of this level.
     r = TestResult("position-deletes", "Position Deletes")
-    ch_ok, spark_ok, prereq_msg = _check_prerequisites()
-
-    if not ch_ok or not spark_ok:
-        r.result = "skip"
-        r.details = f"Prerequisites missing: {prereq_msg}"
-        return r
-
-    table_dir = os.path.join(WAREHOUSE_DIR, _unique("posdeletes"))
-    spark = None
-    try:
-        spark = _get_spark(WAREHOUSE_DIR)
-        spark.sql(f"""
-            CREATE TABLE local.default.pos_del_test (id INT, val STRING)
-            USING iceberg
-            LOCATION '{table_dir}'
-            TBLPROPERTIES (
-                'write.delete.mode'='merge-on-read',
-                'write.update.mode'='merge-on-read'
-            )
-        """)
-        spark.sql("INSERT INTO local.default.pos_del_test VALUES (1,'a'),(2,'b'),(3,'c'),(4,'d')")
-        # Delete row 2 — Spark writes a positional delete file
-        spark.sql("DELETE FROM local.default.pos_del_test WHERE id = 2")
-
-        ok, out = _ch_query(f"SELECT id FROM icebergLocal('{table_dir}') ORDER BY id FORMAT TSV")
-        if ok:
-            ids = [int(x) for x in out.strip().split("\n") if x.strip()]
-            if ids == [1, 3, 4]:
-                r.result = "pass"
-                r.details = "ClickHouse correctly reads table with position deletes; deleted row excluded"
-            else:
-                r.result = "fail"
-                r.details = f"Expected [1,3,4] but got {ids} — position deletes may not be applied"
-        else:
-            r.result = "fail"
-            r.details = f"icebergLocal() failed: {out[:200]}"
-    except Exception as e:
-        r.result = "error"
-        r.details = traceback.format_exc()[:300]
-    finally:
-        _stop_spark(spark)
-        shutil.rmtree(table_dir, ignore_errors=True)
+    r.result = "fail"
+    r.details = ("ClickHouse's Iceberg table functions are read-only; it cannot write "
+                "position delete files. It can read position deletes written by "
+                "another engine")
     return r
 
 
@@ -338,50 +305,15 @@ def test_equality_deletes() -> TestResult:
 
 
 def test_merge_on_read() -> TestResult:
-    """Verify ClickHouse reads MOR tables (both position and equality deletes)."""
+    # Rated none, same reasoning as test_position_deletes: ClickHouse's Iceberg
+    # table functions are read-only, so merge-on-read is not a write strategy it
+    # can select. The previous version created the delete via Spark and only
+    # checked ClickHouse could read the result.
     r = TestResult("merge-on-read", "Merge-on-Read")
-    ch_ok, spark_ok, prereq_msg = _check_prerequisites()
-
-    if not ch_ok or not spark_ok:
-        r.result = "skip"
-        r.details = f"Prerequisites missing: {prereq_msg}"
-        return r
-
-    table_dir = os.path.join(WAREHOUSE_DIR, _unique("mor"))
-    spark = None
-    try:
-        spark = _get_spark(WAREHOUSE_DIR)
-        spark.sql(f"""
-            CREATE TABLE local.default.mor_test (id INT, val STRING)
-            USING iceberg
-            LOCATION '{table_dir}'
-            TBLPROPERTIES (
-                'format-version'='2',
-                'write.delete.mode'='merge-on-read',
-                'write.update.mode'='merge-on-read'
-            )
-        """)
-        spark.sql("INSERT INTO local.default.mor_test VALUES (1,'a'),(2,'b'),(3,'c'),(4,'d'),(5,'e')")
-        spark.sql("DELETE FROM local.default.mor_test WHERE id IN (2, 4)")
-
-        ok, out = _ch_query(f"SELECT id FROM icebergLocal('{table_dir}') ORDER BY id FORMAT TSV")
-        if ok:
-            ids = [int(x) for x in out.strip().split("\n") if x.strip()]
-            if ids == [1, 3, 5]:
-                r.result = "pass"
-                r.details = "ClickHouse reads MOR table correctly; delete files merged at read time"
-            else:
-                r.result = "fail"
-                r.details = f"Expected [1,3,5] but got {ids}"
-        else:
-            r.result = "fail"
-            r.details = f"icebergLocal() failed: {out[:200]}"
-    except Exception as e:
-        r.result = "error"
-        r.details = traceback.format_exc()[:300]
-    finally:
-        _stop_spark(spark)
-        shutil.rmtree(table_dir, ignore_errors=True)
+    r.result = "fail"
+    r.details = ("ClickHouse's Iceberg table functions are read-only, so merge-on-read "
+                "is not a write strategy it can select. It can read MoR tables (both "
+                "position and equality deletes) written by another engine")
     return r
 
 

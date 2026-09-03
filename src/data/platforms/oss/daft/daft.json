@@ -11,9 +11,11 @@
   ],
   "support": {
     "daft:position-deletes:v2": {
-      "level": "full",
-      "notes": "Daft supports reading Iceberg tables with position deletes via PyIceberg",
-      "caveats": []
+      "level": "none",
+      "notes": "Not supported as a write operation. Daft has no SQL MERGE/UPDATE/DELETE surface at all -- only append and overwrite modes via write_iceberg(). It can read Iceberg tables with position deletes via PyIceberg, but that is a read capability, not this operation.",
+      "caveats": [
+        "Read capability: can read tables with position delete files via PyIceberg"
+      ]
     },
     "daft:position-deletes:v3": {
       "level": "unknown",
@@ -37,10 +39,10 @@
       ]
     },
     "daft:merge-on-read:v2": {
-      "level": "partial",
-      "notes": "Daft supports merge-on-read with position deletes only; equality deletes not yet supported",
+      "level": "none",
+      "notes": "Not supported as a write operation. Daft has no SQL MERGE/UPDATE/DELETE surface at all -- only append and overwrite modes via write_iceberg(). It can read merge-on-read tables with position deletes, but that is a read capability, not this operation.",
       "caveats": [
-        "Only position delete files supported for MOR; equality deletes on roadmap"
+        "Read capability: can read merge-on-read tables with position deletes (not equality deletes)"
       ]
     },
     "daft:merge-on-read:v3": {
@@ -51,9 +53,11 @@
       ]
     },
     "daft:copy-on-write:v2": {
-      "level": "full",
-      "notes": "Daft supports reading copy-on-write Iceberg tables (data files contain final state)",
-      "caveats": []
+      "level": "none",
+      "notes": "Not supported as a write operation. Daft has no SQL MERGE/UPDATE/DELETE surface at all -- only append and overwrite modes via write_iceberg(). It can read copy-on-write Iceberg tables, but that is a read capability, not this operation.",
+      "caveats": [
+        "Read capability: can read tables written with copy-on-write semantics"
+      ]
     },
     "daft:copy-on-write:v3": {
       "level": "unknown",

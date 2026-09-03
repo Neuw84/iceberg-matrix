@@ -388,22 +388,32 @@ def test_merge_on_read() -> TestResult:
 
 
 def test_copy_on_write() -> TestResult:
+    # Rated none: copy-on-write for row-level operations means UPDATE/DELETE
+    # rewriting affected data files, and DuckDB's UPDATE/DELETE always use
+    # merge-on-read instead (see test_merge_on_read). INSERT does write new
+    # data files with no delete files, but INSERT is not a row-level operation
+    # -- no existing rows are being deleted or updated -- so it does not count
+    # as evidence for this feature. The previous version of this test asserted
+    # exactly that (append-only INSERT, no delete files) and called it a pass.
     r = TestResult("copy-on-write", "Copy-on-Write", "v2")
 
     def body(con, ns, r):
         con.execute(f"CREATE TABLE ib.{ns}.t (id INT)")
-        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1),(2)")
-        con.execute(f"INSERT INTO ib.{ns}.t VALUES (3)")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1),(2),(3)")
+        con.execute(f"DELETE FROM ib.{ns}.t WHERE id=1")
         meta = con.execute(
             f"SELECT content FROM iceberg_metadata(ib.{ns}.t)"
         ).fetchall()
-        # Append-only writes must not create delete files (COW semantics for INSERT).
-        assert not any(c and "DELETE" in c for (c,) in meta), f"unexpected delete files: {meta}"
-        r.result = "pass"
-        r.details = (
-            "INSERT uses copy-on-write semantics (append-only, no delete files); "
-            "UPDATE/DELETE are merge-on-read only"
-        )
+        has_delete_file = any(c == "POSITION_DELETES" for (c,) in meta)
+        if has_delete_file:
+            r.result = "fail"
+            r.details = ("DELETE wrote a position-delete file (merge-on-read); "
+                        "DuckDB's UPDATE/DELETE never use copy-on-write. INSERT does "
+                        "write whole new data files, but INSERT is not a row-level "
+                        "operation")
+        else:
+            r.result = "pass"
+            r.details = "DELETE rewrote data files with no delete files (copy-on-write)"
 
     return _catalog_test(r, body)
 

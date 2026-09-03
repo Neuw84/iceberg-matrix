@@ -208,21 +208,16 @@ def test_write_merge_update_delete() -> TestResult:
 
 
 def test_position_deletes() -> TestResult:
+    # Rated none: this is a row-level write operation, and Daft has no
+    # SQL MERGE/UPDATE/DELETE surface at all -- only append and overwrite modes
+    # via write_iceberg(). The previous version of this test created the
+    # position delete via PyIceberg and only checked that Daft could read it
+    # back, which is a read capability, not this operation, and would always
+    # report pass regardless of this level.
     r = TestResult("position-deletes", "Position Deletes")
-    try:
-        tbl_name = f"default.{_unique('posdelete')}"
-        _write_sample_data(tbl_name)
-        cat = _get_catalog()
-        tbl = cat.load_table(tbl_name)
-        # Delete a row via PyIceberg to create position deletes, then read with Daft
-        tbl.delete(delete_filter="id == 2")
-        df = daft.read_iceberg(tbl).collect()
-        assert len(df) == 2
-        r.result = "pass"
-        r.details = "Daft reads tables with position deletes (created via PyIceberg)"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
+    r.result = "fail"
+    r.details = ("Daft has no MERGE/UPDATE/DELETE surface, so it cannot write "
+                "position delete files; it can read them if created by another engine")
     return r
 
 
@@ -234,57 +229,29 @@ def test_equality_deletes() -> TestResult:
 
 
 def test_merge_on_read() -> TestResult:
+    # Rated none, same reasoning as test_position_deletes: Daft has no
+    # MERGE/UPDATE/DELETE surface, so it cannot select or perform a
+    # merge-on-read write strategy. The previous version created the delete via
+    # PyIceberg and only checked Daft could read the result.
     r = TestResult("merge-on-read", "Merge-on-Read")
-    try:
-        cat = _get_catalog()
-        tbl_name = f"default.{_unique('mor')}"
-        props = {"write.delete.mode": "merge-on-read"}
-        tbl = cat.create_table(tbl_name, schema=BASIC_SCHEMA, properties=props)
-        df_pa = pa.table({
-            "id": pa.array([1, 2, 3], type=pa.int64()),
-            "name": pa.array(["a", "b", "c"]),
-            "value": pa.array([1.0, 2.0, 3.0]),
-            "ts": pa.array([
-                datetime(2024, 1, 1, tzinfo=timezone.utc),
-                datetime(2024, 1, 2, tzinfo=timezone.utc),
-                datetime(2024, 1, 3, tzinfo=timezone.utc),
-            ], type=pa.timestamp("us", tz="UTC")),
-        })
-        tbl.append(df_pa)
-        tbl.delete(delete_filter="id == 2")
-        result = daft.read_iceberg(tbl).collect()
-        assert len(result) == 2
-        r.result = "pass"
-        r.details = "Daft reads merge-on-read tables with position deletes"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
+    r.result = "fail"
+    r.details = ("Daft has no MERGE/UPDATE/DELETE surface, so merge-on-read is not a "
+                "write strategy it can select; it can read MoR tables written by "
+                "another engine")
     return r
 
 
 def test_copy_on_write() -> TestResult:
+    # Rated none: copy-on-write for row-level changes needs an UPDATE or DELETE
+    # to rewrite files around, and Daft has neither -- only append and full-table
+    # overwrite via write_iceberg(mode="overwrite"). The previous version of
+    # this test treated a whole-table overwrite as evidence of row-level COW,
+    # which conflates a bulk replace with a row-level write strategy.
     r = TestResult("copy-on-write", "Copy-on-Write")
-    try:
-        tbl_name = f"default.{_unique('cow')}"
-        _write_sample_data(tbl_name)
-        cat = _get_catalog()
-        tbl = cat.load_table(tbl_name)
-        # Overwrite with Daft
-        df = daft.from_pydict({
-            "id": [10, 20],
-            "name": ["new1", "new2"],
-            "value": [100.0, 200.0],
-            "ts": [datetime(2025, 1, 1, tzinfo=timezone.utc),
-                   datetime(2025, 1, 2, tzinfo=timezone.utc)],
-        })
-        df.write_iceberg(tbl, mode="overwrite")
-        result = daft.read_iceberg(tbl).collect()
-        assert len(result) == 2
-        r.result = "pass"
-        r.details = "write_iceberg(mode='overwrite') replaces data (COW semantics)"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)[:300]
+    r.result = "fail"
+    r.details = ("Daft has no MERGE/UPDATE/DELETE surface for row-level changes; "
+                "write_iceberg(mode='overwrite') replaces the whole table, not a "
+                "row-level copy-on-write operation")
     return r
 
 
