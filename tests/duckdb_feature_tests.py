@@ -53,6 +53,9 @@ except ImportError:
     print("[FATAL] duckdb not installed. Run: uv pip install duckdb==1.5.4")
     sys.exit(1)
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import spark_fixture  # noqa: E402 - sibling module, not a package
+
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
@@ -335,31 +338,94 @@ def test_write_merge_update_delete() -> TestResult:
     return _catalog_test(r, body)
 
 
+def _spark_assisted_row_level_test(r: "TestResult", write_mode: str, expect: str):
+    """Shared body for the three Spark-create / DuckDB-mutate / Spark-inspect tests.
+
+    write_mode is the strategy requested at table creation
+    (write.delete.mode/write.update.mode/write.merge.mode, applied uniformly).
+    expect is "position", "equality" or "none" (copy-on-write: no delete files
+    at all expected). DuckDB issues the DELETE through the REST catalog it is
+    already attached to; Spark, attached to the same catalog, creates the
+    table beforehand and reads the delete-file content types back afterward,
+    since DuckDB's own SQL surface (iceberg_metadata()) cannot distinguish
+    position from equality deletes as precisely as Iceberg's all_delete_files
+    content column can.
+    """
+    if not spark_fixture.available():
+        r.result = "skip"
+        r.details = spark_fixture.NOT_AVAILABLE_DETAIL
+        return r
+    if not _rest_available():
+        r.result = "skip"
+        r.details = NO_CATALOG_DETAIL
+        return r
+
+    ns, name = None, "t"
+    con = None
+    try:
+        ns = spark_fixture.new_namespace()
+        spark_fixture.create_fixture(ns, name, "v2", write_mode)
+        con = _catalog_connection()
+        try:
+            con.execute(f"DELETE FROM ib.{ns}.{name} WHERE id=2")
+        except duckdb.NotImplementedException as e:
+            # DuckDB's own extension refuses outright rather than silently
+            # falling back, e.g. "DuckDB-Iceberg only supports merge-on-read
+            # for updates/deletes" when write.delete.mode=copy-on-write is
+            # requested. That refusal is itself the strongest possible
+            # confirming evidence for a none-rated write strategy -- stronger
+            # than inferring it from an absence of delete files -- so treat it
+            # as a definitive answer rather than a harness error, but only
+            # when the cell under test expects "none" in the first place.
+            if expect == "none":
+                r.result = "fail"
+                r.details = (f"DuckDB rejected write.delete.mode={write_mode} outright: "
+                            f"{str(e).splitlines()[0][:200]}")
+                return r
+            raise
+        deletes = spark_fixture.inspect_delete_files(ns, name)
+        rows = spark_fixture.row_count(ns, name)
+        if deletes["position"] > 0 or deletes["equality"] > 0:
+            got = "position" if deletes["position"] > 0 else "equality"
+        else:
+            got = "none"
+
+        if got == expect:
+            r.result = "pass"
+            r.details = (f"DELETE via DuckDB against a Spark-created table "
+                        f"(write.delete.mode={write_mode}) produced {got} delete "
+                        f"evidence as expected: {deletes}, {rows} live row(s)")
+        else:
+            r.result = "fail"
+            r.details = (f"DELETE via DuckDB against a Spark-created table "
+                        f"(write.delete.mode={write_mode}) produced {got} delete "
+                        f"evidence, expected {expect}: {deletes}, {rows} live row(s)")
+    except Exception as e:  # noqa: BLE001 - surface as error, not a data discrepancy
+        r.result = "error"
+        r.details = f"{type(e).__name__}: {str(e).splitlines()[0][:220]}"
+    finally:
+        if con:
+            con.close()
+        if ns:
+            spark_fixture.drop_fixture(ns, name)
+    return r
+
+
 def test_position_deletes() -> TestResult:
+    # Spark creates the table with write.delete.mode=merge-on-read explicitly
+    # requested; DuckDB issues the DELETE through the same REST catalog; Spark
+    # reads the delete-file content types back. A position-delete file (not
+    # equality) is the expected evidence for DuckDB's own DML.
     r = TestResult("position-deletes", "Position Deletes", "v2")
-
-    def body(con, ns, r):
-        con.execute(f"CREATE TABLE ib.{ns}.t (id INT) WITH ('format-version'='2')")
-        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1),(2),(3)")
-        con.execute(f"DELETE FROM ib.{ns}.t WHERE id=2")
-        meta = con.execute(
-            f"SELECT content, file_format FROM iceberg_metadata(ib.{ns}.t)"
-        ).fetchall()
-        has_pos_delete = any(
-            c == "POSITION_DELETES" and fmt == "parquet" for c, fmt in meta
-        )
-        assert has_pos_delete, f"no positional-delete parquet file found: {meta}"
-        r.result = "pass"
-        r.details = "DELETE on a V2 table wrote a positional-delete Parquet file (merge-on-read)"
-
-    return _catalog_test(r, body)
+    return _spark_assisted_row_level_test(r, "merge-on-read", "position")
 
 
 def test_equality_deletes() -> TestResult:
+    # DuckDB can *read* tables containing equality deletes but never writes
+    # them, so producing an equality-delete file via DuckDB's own DML requires
+    # a write path DuckDB does not have. We do not fabricate a result: report
+    # skip (the JSON records the read-only level).
     r = TestResult("equality-deletes", "Equality Deletes", "v2")
-    # DuckDB can *read* tables containing equality deletes but never writes them,
-    # so producing an equality-delete file requires another engine. We do not
-    # fabricate a result: report skip (the JSON records read-only "full" support).
     r.result = "skip"
     r.details = (
         "DuckDB reads equality deletes but cannot write them; producing an "
@@ -369,53 +435,23 @@ def test_equality_deletes() -> TestResult:
 
 
 def test_merge_on_read() -> TestResult:
+    # Same fixture pattern and measurement as test_position_deletes -- delete
+    # files produced at all is the evidence for the write *strategy*, and
+    # DuckDB's DELETE produces the same position-delete file either way -- but
+    # kept as a separate test since it is a separate matrix cell.
     r = TestResult("merge-on-read", "Merge-on-Read", "v2")
-
-    def body(con, ns, r):
-        con.execute(f"CREATE TABLE ib.{ns}.t (id INT) WITH ('format-version'='2')")
-        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1),(2),(3)")
-        con.execute(f"DELETE FROM ib.{ns}.t WHERE id=1")
-        meta = con.execute(
-            f"SELECT content FROM iceberg_metadata(ib.{ns}.t)"
-        ).fetchall()
-        assert any(c == "POSITION_DELETES" for (c,) in meta), f"no delete files: {meta}"
-        n = con.execute(f"SELECT count(*) FROM ib.{ns}.t").fetchone()[0]
-        assert n == 2, f"expected 2 live rows, got {n}"
-        r.result = "pass"
-        r.details = "UPDATE/DELETE use merge-on-read: delete files written, live rows reconciled on read"
-
-    return _catalog_test(r, body)
+    return _spark_assisted_row_level_test(r, "merge-on-read", "position")
 
 
 def test_copy_on_write() -> TestResult:
     # Rated none: copy-on-write for row-level operations means UPDATE/DELETE
     # rewriting affected data files, and DuckDB's UPDATE/DELETE always use
-    # merge-on-read instead (see test_merge_on_read). INSERT does write new
-    # data files with no delete files, but INSERT is not a row-level operation
-    # -- no existing rows are being deleted or updated -- so it does not count
-    # as evidence for this feature. The previous version of this test asserted
-    # exactly that (append-only INSERT, no delete files) and called it a pass.
+    # merge-on-read instead (see test_merge_on_read). Requesting
+    # write.delete.mode=copy-on-write explicitly and checking DuckDB actually
+    # honours it (no delete files at all) is the measurement, not an inference
+    # from an unrelated INSERT.
     r = TestResult("copy-on-write", "Copy-on-Write", "v2")
-
-    def body(con, ns, r):
-        con.execute(f"CREATE TABLE ib.{ns}.t (id INT)")
-        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1),(2),(3)")
-        con.execute(f"DELETE FROM ib.{ns}.t WHERE id=1")
-        meta = con.execute(
-            f"SELECT content FROM iceberg_metadata(ib.{ns}.t)"
-        ).fetchall()
-        has_delete_file = any(c == "POSITION_DELETES" for (c,) in meta)
-        if has_delete_file:
-            r.result = "fail"
-            r.details = ("DELETE wrote a position-delete file (merge-on-read); "
-                        "DuckDB's UPDATE/DELETE never use copy-on-write. INSERT does "
-                        "write whole new data files, but INSERT is not a row-level "
-                        "operation")
-        else:
-            r.result = "pass"
-            r.details = "DELETE rewrote data files with no delete files (copy-on-write)"
-
-    return _catalog_test(r, body)
+    return _spark_assisted_row_level_test(r, "copy-on-write", "none")
 
 
 def test_schema_evolution() -> TestResult:

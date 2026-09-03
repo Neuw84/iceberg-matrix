@@ -27,6 +27,7 @@ from pathlib import Path
 
 try:
     import pyiceberg
+    from pyiceberg.catalog import load_catalog
     from pyiceberg.catalog.sql import SqlCatalog
     from pyiceberg.schema import Schema
     from pyiceberg.types import (
@@ -43,6 +44,9 @@ except ImportError as e:
     print(f"[FATAL] Missing dependency: {e}")
     print("Run: uv pip install 'pyiceberg[sql-sqlite,pyarrow]'")
     sys.exit(1)
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import spark_fixture  # noqa: E402 - sibling module, not a package
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -83,6 +87,32 @@ def _get_catalog() -> SqlCatalog:
         except Exception:
             pass
     return CATALOG
+
+
+REST_CATALOG = None  # lazily initialized, used only by the Spark-assisted
+                     # row-level tests below, which need a catalog PyIceberg
+                     # and Spark can both see -- the local SqlCatalog above is
+                     # private to this process and Spark cannot attach to it.
+
+
+def _get_rest_catalog():
+    """PyIceberg's own RestCatalog, pointed at the same Lakekeeper instance
+    tests/spark_fixture.py uses, so a table Spark creates and a table
+    PyIceberg mutates are the same physical table."""
+    global REST_CATALOG
+    if REST_CATALOG is None:
+        REST_CATALOG = load_catalog(
+            "pyiceberg_rest_probe",
+            **{
+                "uri": spark_fixture.REST_URI,
+                "warehouse": spark_fixture.REST_WAREHOUSE,
+                "s3.endpoint": f"http://{spark_fixture.S3_ENDPOINT}",
+                "s3.access-key-id": spark_fixture.S3_KEY_ID,
+                "s3.secret-access-key": spark_fixture.S3_SECRET,
+                "s3.region": spark_fixture.S3_REGION,
+            },
+        )
+    return REST_CATALOG
 
 
 BASIC_SCHEMA = Schema(
@@ -229,52 +259,85 @@ def test_write_merge_update_delete() -> TestResult:
     return r
 
 
-def test_position_deletes() -> TestResult:
-    # Rated none: position-deletes is a row-level write operation, and
-    # PyIceberg's only delete/update mode is copy-on-write -- it never produces
-    # position delete files even when write.delete.mode='merge-on-read' is
-    # requested (PyIceberg ignores that property and rewrites data files
-    # anyway). The previous version of this test asserted the delete worked
-    # without checking which delete strategy actually ran, so it reported pass
-    # regardless of this level.
-    r = TestResult("position-deletes", "Position Deletes")
+def _spark_assisted_row_level_test(r: "TestResult", write_mode: str, expect: str):
+    """Shared body: Spark creates the table with write_mode requested
+    explicitly on write.delete.mode/write.update.mode/write.merge.mode via the
+    shared REST catalog; PyIceberg's own tbl.delete() issues the mutation
+    against that same physical table; Spark reads the delete-file content
+    types back afterward (refreshing first -- see spark_fixture.refresh()).
+
+    expect is "position", "equality" or "none". PyIceberg's own delete() emits
+    a UserWarning and silently falls back to copy-on-write whenever
+    merge-on-read is requested, so it is caught here rather than treated as
+    the harness accidentally suppressing a real failure.
+    """
+    if not spark_fixture.available():
+        r.result = "skip"
+        r.details = spark_fixture.NOT_AVAILABLE_DETAIL
+        return r
+
+    ns, name = None, "t"
     try:
-        cat = _get_catalog()
-        tbl_name = f"default.{_unique('posdelete')}"
-        props = {"write.delete.mode": "merge-on-read"}
-        tbl = cat.create_table(tbl_name, schema=BASIC_SCHEMA, properties=props)
-        df = pa.table({
-            "id": pa.array([1, 2, 3], type=pa.int64()),
-            "name": pa.array(["a", "b", "c"]),
-            "value": pa.array([1.0, 2.0, 3.0]),
-            "ts": pa.array([
-                datetime(2024, 1, 1, tzinfo=timezone.utc),
-                datetime(2024, 1, 2, tzinfo=timezone.utc),
-                datetime(2024, 1, 3, tzinfo=timezone.utc),
-            ], type=pa.timestamp("us", tz="UTC")),
-        })
-        tbl.append(df.cast(tbl.schema().as_arrow()))
-        tbl.delete(delete_filter="id == 1")
-        delete_files = [f for f in tbl.inspect.delete_files().to_pylist()]
-        if delete_files:
+        ns = spark_fixture.new_namespace()
+        spark_fixture.create_fixture(ns, name, "v2", write_mode,
+                                     columns_ddl="id BIGINT, val STRING")
+        tbl = _get_rest_catalog().load_table(f"{ns}.{name}")
+
+        import warnings
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            tbl.delete(delete_filter="id == 2")
+        mor_unsupported = any("not yet supported" in str(w.message).lower()
+                              or "falling back to copy-on-write" in str(w.message).lower()
+                              for w in caught)
+
+        deletes = spark_fixture.inspect_delete_files(ns, name)
+        rows = spark_fixture.row_count(ns, name)
+        if deletes["position"] > 0 or deletes["equality"] > 0:
+            got = "position" if deletes["position"] > 0 else "equality"
+        else:
+            got = "none"
+
+        if got == expect:
             r.result = "pass"
-            r.details = f"delete() wrote {len(delete_files)} position delete file(s)"
+            r.details = (f"delete() via PyIceberg against a Spark-created table "
+                        f"(write.delete.mode={write_mode}) produced {got} delete "
+                        f"evidence as expected: {deletes}, {rows} live row(s)")
         else:
             r.result = "fail"
-            r.details = ("delete() produced no delete files; write.delete.mode="
-                        "'merge-on-read' was ignored and the request rewrote data "
-                        "files (copy-on-write) instead")
-    except Exception as e:
+            detail = (f"delete() via PyIceberg against a Spark-created table "
+                      f"(write.delete.mode={write_mode}) produced {got} delete "
+                      f"evidence, expected {expect}: {deletes}, {rows} live row(s)")
+            if mor_unsupported:
+                detail += (". PyIceberg warned merge-on-read is not yet supported "
+                          "and silently used copy-on-write instead")
+            r.details = detail
+    except Exception as e:  # noqa: BLE001 - surface as error, not a data discrepancy
         r.result = "error"
-        r.details = str(e)
+        r.details = f"{type(e).__name__}: {str(e).splitlines()[0][:220]}"
+    finally:
+        if ns:
+            spark_fixture.drop_fixture(ns, name)
     return r
+
+
+def test_position_deletes() -> TestResult:
+    # Spark creates the table with write.delete.mode=merge-on-read explicitly
+    # requested via the shared REST catalog; PyIceberg's own delete() issues
+    # the mutation; Spark reads the delete-file content types back. A
+    # position-delete file is the evidence a pass would need -- PyIceberg's
+    # own delete() emits a UserWarning and silently falls back to
+    # copy-on-write instead, which is captured as corroborating detail on fail.
+    r = TestResult("position-deletes", "Position Deletes")
+    return _spark_assisted_row_level_test(r, "merge-on-read", "position")
 
 
 def test_equality_deletes() -> TestResult:
     r = TestResult("equality-deletes", "Equality Deletes")
-    # PyIceberg can read tables containing equality deletes (JSON: partial) but
-    # never writes them, and producing an equality-delete file needs another
-    # engine. Do not fabricate a result -- report skip rather than a false fail.
+    # PyIceberg can read tables containing equality deletes but never writes
+    # them, and producing an equality-delete file via PyIceberg's own delete()
+    # requires a write path PyIceberg does not have. Do not fabricate a result
+    # -- report skip rather than a false fail.
     r.result = "skip"
     r.details = (
         "PyIceberg reads equality deletes but cannot write them; producing an "
@@ -284,71 +347,20 @@ def test_equality_deletes() -> TestResult:
 
 
 def test_merge_on_read() -> TestResult:
-    # Rated none, same reasoning as test_position_deletes: PyIceberg's only
-    # delete/update mode is copy-on-write, so merge-on-read is never the write
-    # strategy actually used, regardless of write.delete.mode. The previous
-    # version of this test asserted the delete worked without checking which
-    # strategy ran, so it reported pass regardless of this level.
+    # Same fixture pattern and measurement as test_position_deletes -- kept as
+    # a separate test since it is a separate matrix cell.
     r = TestResult("merge-on-read", "Merge-on-Read")
-    try:
-        cat = _get_catalog()
-        tbl_name = f"default.{_unique('mor')}"
-        props = {"write.delete.mode": "merge-on-read"}
-        tbl = cat.create_table(tbl_name, schema=BASIC_SCHEMA, properties=props)
-        df = pa.table({
-            "id": pa.array([1, 2, 3], type=pa.int64()),
-            "name": pa.array(["a", "b", "c"]),
-            "value": pa.array([1.0, 2.0, 3.0]),
-            "ts": pa.array([
-                datetime(2024, 1, 1, tzinfo=timezone.utc),
-                datetime(2024, 1, 2, tzinfo=timezone.utc),
-                datetime(2024, 1, 3, tzinfo=timezone.utc),
-            ], type=pa.timestamp("us", tz="UTC")),
-        })
-        tbl.append(df.cast(tbl.schema().as_arrow()))
-        tbl.delete(delete_filter="id == 2")
-        delete_files = [f for f in tbl.inspect.delete_files().to_pylist()]
-        if delete_files:
-            r.result = "pass"
-            r.details = f"delete() used merge-on-read: {len(delete_files)} delete file(s) written"
-        else:
-            r.result = "fail"
-            r.details = ("delete() produced no delete files; write.delete.mode="
-                        "'merge-on-read' was ignored and the request used "
-                        "copy-on-write (rewrote data files) instead")
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)
-    return r
+    return _spark_assisted_row_level_test(r, "merge-on-read", "position")
 
 
 def test_copy_on_write() -> TestResult:
+    # PyIceberg's delete() always rewrites data files regardless of the
+    # requested write.delete.mode (it has no merge-on-read write path at
+    # all), so requesting copy-on-write explicitly and confirming no delete
+    # files were produced is the measurement, rather than assuming the
+    # library's stated default behaves as documented.
     r = TestResult("copy-on-write", "Copy-on-Write")
-    try:
-        cat = _get_catalog()
-        tbl_name = f"default.{_unique('cow')}"
-        props = {"write.delete.mode": "copy-on-write"}
-        tbl = cat.create_table(tbl_name, schema=BASIC_SCHEMA, properties=props)
-        df = pa.table({
-            "id": pa.array([1, 2, 3], type=pa.int64()),
-            "name": pa.array(["a", "b", "c"]),
-            "value": pa.array([1.0, 2.0, 3.0]),
-            "ts": pa.array([
-                datetime(2024, 1, 1, tzinfo=timezone.utc),
-                datetime(2024, 1, 2, tzinfo=timezone.utc),
-                datetime(2024, 1, 3, tzinfo=timezone.utc),
-            ], type=pa.timestamp("us", tz="UTC")),
-        })
-        tbl.append(df.cast(tbl.schema().as_arrow()))
-        tbl.delete(delete_filter="id == 2")
-        result = tbl.scan().to_arrow()
-        assert len(result) == 2
-        r.result = "pass"
-        r.details = "Copy-on-write delete mode works (default)"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)
-    return r
+    return _spark_assisted_row_level_test(r, "copy-on-write", "none")
 
 
 def test_schema_evolution() -> TestResult:
