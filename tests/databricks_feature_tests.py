@@ -496,17 +496,20 @@ def test_branching_tagging() -> TestResult:
 
 
 def test_hidden_partitioning() -> TestResult:
+    # Rated none: the docs rule out expression-based partition transforms on
+    # managed Iceberg tables, so the rejection is the datum. Asserting the
+    # transform works would have logged a bare error on rejection, and an
+    # error matches any level -- it would never have contradicted the cell.
     r = TestResult("hidden-partitioning", "Hidden Partitioning", "v2")
 
     def body(ns, r):
-        q = _create_iceberg(ns, "t", "id INT, ts TIMESTAMP",
-                            partitioned_by="days(ts)")
-        sql(f"INSERT INTO {q} VALUES (1, TIMESTAMP'2026-01-01 10:00:00'), "
-            "(2, TIMESTAMP'2026-02-01 10:00:00')")
-        n = sql(f"SELECT count(*) FROM {q} WHERE ts >= TIMESTAMP'2026-02-01 00:00:00'")[0][0]
-        assert n == 1
-        r.result = "pass"
-        r.details = "PARTITIONED BY days(ts) transform accepted; partition filter answered correctly"
+        _expect_rejection(
+            r,
+            lambda: _create_iceberg(ns, "t", "id INT, ts TIMESTAMP",
+                                    partitioned_by="days(ts)"),
+            accepted_details="PARTITIONED BY days(ts) transform accepted",
+            rejected_details="Expression partition transform rejected",
+        )
 
     return _run(r, body)
 

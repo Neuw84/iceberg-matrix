@@ -184,26 +184,32 @@
       ]
     },
     "databricks:hidden-partitioning:v2": {
-      "level": "partial",
-      "notes": "Hidden partitioning is supported on managed Iceberg tables, but partitioning by expressions (years, months, days, hours, bucket) is not supported. Partitioning by BINARY type is also unsupported.",
+      "level": "none",
+      "notes": "Not supported on managed Iceberg tables. The docs state that expression-based partition transforms such as years() and bucket() are not supported, which rules out every transform this feature covers (year, month, day, hour, bucket, truncate). Identity partitioning on a plain column still works, but that is ordinary partitioning, not a hidden transform.",
       "caveats": [
-        "Expression-based partitioning (years, months, days, hours, bucket) not supported on managed Iceberg tables",
+        "Expression transforms (years, months, days, hours, bucket, truncate) are not supported on managed Iceberg tables",
         "BINARY type partitioning not supported",
+        "Possible workaround, unverified here: drive the table from an external Spark carrying the Iceberg runtime jar over the Iceberg REST Catalog, which is how Databricks documents partition evolution. The docs state the transform restriction against the table rather than the client, so this is not a documented path",
         "Managed Iceberg tables are GA"
       ],
       "links": [
         {
           "label": "Iceberg table limitations",
           "url": "https://docs.databricks.com/aws/en/iceberg/"
+        },
+        {
+          "label": "Partition evolution note (expression transforms unsupported)",
+          "url": "https://docs.databricks.com/aws/en/iceberg/#partition-evolution"
         }
       ]
     },
     "databricks:hidden-partitioning:v3": {
-      "level": "partial",
-      "notes": "Hidden partitioning is supported on managed Iceberg v3 tables, but expression-based partitioning (years, months, days, hours, bucket) is not supported.",
+      "level": "none",
+      "notes": "Not supported on managed Iceberg v3 tables. The transform restriction is not version-specific: the docs rule out expression-based partition transforms such as years() and bucket() on managed Iceberg tables, which rules out every transform this feature covers. Identity partitioning on a plain column still works, but that is ordinary partitioning, not a hidden transform.",
       "caveats": [
-        "Expression-based partitioning (years, months, days, hours, bucket) not supported on managed Iceberg tables",
+        "Expression transforms (years, months, days, hours, bucket, truncate) are not supported on managed Iceberg tables",
         "BINARY type partitioning not supported",
+        "Possible workaround, unverified here: drive the table from an external Spark carrying the Iceberg runtime jar over the Iceberg REST Catalog, which is how Databricks documents partition evolution. The docs state the transform restriction against the table rather than the client, so this is not a documented path",
         "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
         "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
