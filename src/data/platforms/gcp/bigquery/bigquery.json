@@ -24,15 +24,17 @@
       ]
     },
     "google-bigquery:position-deletes:v3": {
-      "level": "none",
-      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
+      "level": "partial",
+      "notes": "In Iceberg V3 the position-delete representation is the binary deletion vector, and BigQuery reads V3 tables with binary deletion vectors in Preview (Iceberg external tables and the Lakehouse runtime catalog, since June 11, 2026). Read path only and Preview.",
       "caveats": [
-        "Only Iceberg V2 format is supported for snapshot export"
+        "Read path only: BigQuery applies deletion vectors when reading; producing them from BigQuery DML on V3 tables is not documented",
+        "Preview, not GA",
+        "Documented capability; not yet grounded by a live test in this repo"
       ],
       "links": [
         {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
+          "label": "Use binary deletion vectors in Iceberg V3 tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
         }
       ]
     },
@@ -76,15 +78,21 @@
       ]
     },
     "google-bigquery:merge-on-read:v3": {
-      "level": "none",
-      "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 is not supported",
+      "level": "partial",
+      "notes": "BigQuery reads Iceberg V3 merge-on-read tables in Preview: binary deletion vectors are applied at query time to skip deleted rows (Iceberg external tables and the Lakehouse runtime catalog, since June 11, 2026). Read path only and Preview.",
       "caveats": [
-        "Only Iceberg V2 format is supported for snapshot export"
+        "Read path only: writing V3 merge-on-read deletes from BigQuery is not documented",
+        "Preview, not GA",
+        "Documented capability; not yet grounded by a live test in this repo"
       ],
       "links": [
         {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
+          "label": "Use binary deletion vectors in Iceberg V3 tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        },
+        {
+          "label": "Create Apache Iceberg external tables (V3 Preview)",
+          "url": "https://docs.cloud.google.com/bigquery/docs/iceberg-external-tables"
         }
       ]
     },
@@ -346,15 +354,21 @@
       ]
     },
     "google-bigquery:read-support:v3": {
-      "level": "none",
-      "notes": "BigQuery only exports Iceberg V2 snapshots; V3 read support is not available",
+      "level": "partial",
+      "notes": "Iceberg V3 reading is in Preview: Apache Iceberg external tables support Iceberg version 3 including binary deletion vectors (Preview), and the Lakehouse runtime catalog supports V3 tables with binary deletion vectors (Preview since June 11, 2026). BigQuery's own Iceberg managed tables still export V2 metadata snapshots only.",
       "caveats": [
-        "Only Iceberg V2 format is supported for snapshot export"
+        "V3 reading is Preview in both Iceberg external tables and the runtime catalog",
+        "Iceberg managed tables still generate V2 metadata snapshots (EXPORT TABLE METADATA)",
+        "Documented capability; not yet grounded by a live test in this repo"
       ],
       "links": [
         {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
+          "label": "Create Apache Iceberg external tables (V3 Preview)",
+          "url": "https://docs.cloud.google.com/bigquery/docs/iceberg-external-tables"
+        },
+        {
+          "label": "Use binary deletion vectors in Iceberg V3 tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
         }
       ]
     },
@@ -461,9 +475,27 @@
       ]
     },
     "google-bigquery:aws-glue-catalog:v2": {
-      "level": "none",
-      "notes": "BigQuery does not support AWS Glue Catalog",
-      "caveats": []
+      "level": "partial",
+      "notes": "Reachable through borderless Lakehouse cross-cloud federation (Preview since June 5, 2026): AWS Glue is federated into the Lakehouse runtime catalog over the Iceberg REST catalog protocol, and BigQuery or Spark query the synchronized tables directly without copying data, optionally over a private Cross-Cloud Interconnect to S3. This is a federation/query path, not native Glue catalog support.",
+      "caveats": [
+        "Preview (borderless Lakehouse / cross-cloud Lakehouse); not yet GA",
+        "Read/query path: federated catalogs are synchronized into the Lakehouse runtime catalog and queried from BigQuery; writing back to the remote catalog is not part of this",
+        "Documented capability; not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "About borderless Lakehouse (cross-cloud data access)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/about-borderless-lakehouse"
+        },
+        {
+          "label": "Introducing the borderless Lakehouse",
+          "url": "https://cloud.google.com/blog/products/data-analytics/introducing-the-borderless-lakehouse"
+        },
+        {
+          "label": "Set up cross-cloud Lakehouse for AWS Glue",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/set-up-cross-cloud-connection-aws-glue"
+        }
+      ]
     },
     "google-bigquery:aws-glue-catalog:v3": {
       "level": "none",
@@ -480,32 +512,38 @@
     },
     "google-bigquery:rest-catalog:v2": {
       "level": "partial",
-      "notes": "BigLake metastore now exposes a Google-managed Iceberg REST Catalog. As announced at the Apache Iceberg Summit (2026), read and write interoperability between BigQuery and external Iceberg engines (Trino, Spark, and others) is in Preview via this REST catalog.",
+      "notes": "The Lakehouse runtime catalog (formerly BigLake metastore; renamed April 20, 2026) exposes a Google-managed Iceberg REST catalog as the recommended path for new workloads, giving BigQuery and open-source engines (Spark, Flink, Trino) a single source of truth. Since June 25, 2026 BigQuery can also run SQL DDL and DML (INSERT, UPDATE, DELETE, MERGE) directly against Iceberg tables in the runtime catalog (Preview), with opt-in automatic table management (compaction, garbage collection) and credential vending for storage access.",
       "caveats": [
-        "Read/write interoperability via the BigLake Iceberg REST Catalog is in Preview",
-        "Historically writes were BigQuery-only; external-engine writes are now enabled through the REST catalog in Preview"
+        "BigQuery DML/DDL against runtime-catalog Iceberg tables is Preview, not GA",
+        "gcloud command group still named biglake despite the Lakehouse rename",
+        "Documented capability; write path not yet grounded by a live test in this repo"
       ],
       "links": [
         {
-          "label": "Improved interoperability for your Apache Iceberg lakehouse (Iceberg Summit 2026)",
-          "url": "https://cloud.google.com/blog/products/data-analytics/improved-interoperability-for-your-apache-iceberg-lakehouse/"
+          "label": "Use the BigLake metastore Iceberg REST catalog",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
         },
         {
-          "label": "Use the BigLake Metastore with the Iceberg REST catalog",
-          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+          "label": "Lakehouse release notes (BigQuery writes for Iceberg REST catalog tables, June 25, 2026)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/release-notes"
         }
       ]
     },
     "google-bigquery:rest-catalog:v3": {
-      "level": "none",
-      "notes": "BigQuery only supports Iceberg V2; REST catalog serves V2 metadata only",
+      "level": "partial",
+      "notes": "The Lakehouse runtime catalog supports Apache Iceberg V3 tables with binary deletion vectors (Preview since June 11, 2026), served over its Iceberg REST catalog interface to BigQuery and open-source engines. V3 support is Preview, not GA.",
       "caveats": [
-        "Only Iceberg V2 format is supported for snapshot export"
+        "Iceberg V3 in the runtime catalog is Preview",
+        "Documented capability; not yet grounded by a live test in this repo"
       ],
       "links": [
         {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
+          "label": "Use binary deletion vectors in Iceberg V3 tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        },
+        {
+          "label": "Lakehouse release notes (Iceberg V3 with BDV, June 11, 2026)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/release-notes"
         }
       ]
     },
@@ -546,9 +584,27 @@
       ]
     },
     "google-bigquery:unity-catalog:v2": {
-      "level": "none",
-      "notes": "BigQuery does not support Unity Catalog; BigLake metastore is the native catalog",
-      "caveats": []
+      "level": "partial",
+      "notes": "Reachable through borderless Lakehouse cross-cloud federation (Preview since April 2026): Databricks Unity Catalog (on AWS or Google Cloud) is federated into the Lakehouse runtime catalog over the Iceberg REST catalog protocol, and BigQuery or Spark query the synchronized tables directly without copying data. Authentication via Secret Manager OAuth or OIDC token federation; optional private Cross-Cloud Interconnect transport and intelligent caching (Preview) reduce egress. This is a federation/query path, not native Unity Catalog support.",
+      "caveats": [
+        "Preview (borderless Lakehouse / cross-cloud Lakehouse); not yet GA",
+        "Read/query path: federated catalogs are synchronized into the Lakehouse runtime catalog and queried from BigQuery; writing back to the remote catalog is not part of this",
+        "Documented capability; not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "About borderless Lakehouse (cross-cloud data access)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/about-borderless-lakehouse"
+        },
+        {
+          "label": "Introducing the borderless Lakehouse",
+          "url": "https://cloud.google.com/blog/products/data-analytics/introducing-the-borderless-lakehouse"
+        },
+        {
+          "label": "Set up cross-cloud Lakehouse for Databricks Unity Catalog",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/set-up-cross-cloud-connection-databricks"
+        }
+      ]
     },
     "google-bigquery:unity-catalog:v3": {
       "level": "none",
@@ -776,10 +832,27 @@
       ]
     },
     "google-bigquery:snowflake-horizon-catalog:v2": {
-      "level": "none",
-      "notes": "BigQuery uses its own managed metastore and does not support connecting to external REST catalogs including Snowflake Horizon Catalog.",
-      "caveats": [],
-      "links": []
+      "level": "partial",
+      "notes": "Reachable through borderless Lakehouse cross-cloud federation (Preview since July 13, 2026): Snowflake Horizon Catalog (on AWS or Google Cloud) is federated into the Lakehouse runtime catalog over the Iceberg REST catalog protocol, and BigQuery or Spark query the synchronized tables directly without copying data. This is a federation/query path, not native Horizon support.",
+      "caveats": [
+        "Preview (borderless Lakehouse / cross-cloud Lakehouse); not yet GA",
+        "Read/query path: federated catalogs are synchronized into the Lakehouse runtime catalog and queried from BigQuery; writing back to the remote catalog is not part of this",
+        "Documented capability; not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "About borderless Lakehouse (cross-cloud data access)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/about-borderless-lakehouse"
+        },
+        {
+          "label": "Introducing the borderless Lakehouse",
+          "url": "https://cloud.google.com/blog/products/data-analytics/introducing-the-borderless-lakehouse"
+        },
+        {
+          "label": "Set up cross-cloud Lakehouse for Snowflake Horizon Catalog",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/set-up-cross-cloud-connection-snowflake"
+        }
+      ]
     },
     "google-bigquery:snowflake-horizon-catalog:v3": {
       "level": "none",
