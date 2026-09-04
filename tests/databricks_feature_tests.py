@@ -22,7 +22,8 @@ Environment:
     DATABRICKS_WAREHOUSE_ID  (required) SQL warehouse id (Connection details tab)
     DATABRICKS_CATALOG       UC catalog to create run schemas in (default: icebergmatrix)
     AWS_DATA_BUCKET          bucket backing the catalog's managed location; enables
-                             the S3 layout inspection (omit to skip inspection)
+                             the S3 layout inspection AND the Iceberg manifest
+                             column-statistics inspection (omit to skip both)
     AWS_REGION               region for the S3 client (default: us-east-1)
     RUN_TAG                  unique per run, e.g. icebergmatrix-<run_id>
     DATABRICKS_ONLY          comma-separated test-function suffixes to run a subset
@@ -183,6 +184,102 @@ def _iceberg_evidence(layout: dict) -> str:
     return (f"{verdict}: {layout['metadata_json']} metadata.json, "
             f"{layout['manifests']} manifests, {layout['parquet']} parquet, "
             f"_delta_log={'present' if layout['delta_log'] else 'absent'}")
+
+
+# ---------------------------------------------------------------------------
+# Iceberg manifest column-statistics inspection (on S3)
+# ---------------------------------------------------------------------------
+# The statistics cell asks whether the Iceberg metadata Databricks writes for a
+# managed Iceberg table carries per-column statistics (min/max bounds, value
+# and null counts, column sizes). Those live in the data_file entries of the
+# Avro manifests, which a SQL warehouse session cannot show -- but we own the
+# S3 bucket, so we read the manifest bytes directly and check the five stats
+# maps. This mirrors tests/delta-uniform (the OSS Delta UniForm reproduction of
+# delta-io/delta#5469): the same measurement, applied here to the Databricks
+# native Iceberg write path where stats are expected to be populated.
+
+_STATS_FIELDS = [
+    "column_sizes",
+    "value_counts",
+    "null_value_counts",
+    "nan_value_counts",
+    "lower_bounds",
+    "upper_bounds",
+]
+
+
+def _newest_manifest_key(keys: list) -> str:
+    """Pick the newest Iceberg data-file manifest key from a listing.
+
+    Iceberg writes two kinds of .avro under metadata/: the manifest *list*
+    (snap-*.avro) and the data-file manifests (which hold the stats maps). We
+    want the latter. Keys already sort lexically close to write order; we take
+    the last non-snap .avro, and fall back to mtime via a HEAD if needed.
+    """
+    manifests = [k for k in keys
+                 if k.endswith(".avro") and not os.path.basename(k).startswith("snap-")]
+    if not manifests:
+        return ""
+    manifests.sort()
+    return manifests[-1]
+
+
+def _inspect_manifest_stats(q: str) -> dict:
+    """Download the newest Iceberg manifest for table q and summarise stats.
+
+    Returns {} when inspection is not possible (no bucket, location off-bucket,
+    no manifest found) so the caller degrades to skip rather than a false
+    verdict. On success returns:
+        {
+          "manifest": <key>,
+          "entries": [ {field: {"populated": bool, "count": int}, ...}, ... ],
+          "populated": {field: bool, ...},   # any data file has it
+        }
+    """
+    if not DATA_BUCKET:
+        return {}
+    location = _table_location(q)
+    m = re.match(r"s3a?://([^/]+)/(.*)", location)
+    if not m or m.group(1) != DATA_BUCKET:
+        return {}
+
+    import boto3
+    import fastavro
+
+    s3 = boto3.client("s3", region_name=AWS_REGION)
+    prefix = m.group(2).rstrip("/") + "/"
+    keys = []
+    paginator = s3.get_paginator("list_objects_v2")
+    for page in paginator.paginate(Bucket=DATA_BUCKET, Prefix=prefix):
+        keys += [obj["Key"] for obj in page.get("Contents", [])]
+
+    manifest_key = _newest_manifest_key(keys)
+    if not manifest_key:
+        return {}
+
+    body = s3.get_object(Bucket=DATA_BUCKET, Key=manifest_key)["Body"].read()
+    import io
+
+    entries = []
+    reader = fastavro.reader(io.BytesIO(body))
+    for record in reader:
+        data_file = record.get("data_file") or {}
+        per_file = {"status": record.get("status")}
+        for field in _STATS_FIELDS:
+            val = data_file.get(field)
+            if val is None:
+                populated, count = False, 0
+            elif isinstance(val, (dict, list, tuple)):
+                populated, count = len(val) > 0, len(val)
+            else:
+                populated, count = True, 1
+            per_file[field] = {"populated": populated, "count": count}
+        entries.append(per_file)
+
+    populated = {
+        field: any(e[field]["populated"] for e in entries) for field in _STATS_FIELDS
+    }
+    return {"manifest": manifest_key, "entries": entries, "populated": populated}
 
 
 def _assert_real_iceberg(layout: dict) -> None:
@@ -661,9 +758,66 @@ def _skip(feature_id: str, name: str, version: str, why: str) -> TestResult:
     return r
 
 
+def _statistics_probe(version: str) -> TestResult:
+    """Create a managed Iceberg table, insert rows with known min/max, then
+    read the Iceberg manifest bytes off S3 and check whether the per-column
+    statistics maps are populated.
+
+    pass  -> the manifest carries bounds + counts (stats present)
+    fail  -> a genuine Iceberg manifest was read but its stats maps are empty
+    skip  -> stats could not be inspected (no bucket access / no manifest);
+             a SQL session alone cannot see them, so we do not guess
+    """
+    r = TestResult("statistics", "Statistics", f"v{version}")
+
+    def body(ns, r):
+        q = _create_iceberg(ns, "t", "id BIGINT, category STRING, amount DOUBLE",
+                            version=version)
+        # Known min/max so populated stats are unmistakable:
+        #   id [1,5], amount [10.5,500.25], category ['a','e']
+        sql(f"INSERT INTO {q} VALUES "
+            "(1,'a',10.5),(2,'b',42.0),(3,'c',100.0),(4,'d',250.75),(5,'e',500.25)")
+
+        stats = _inspect_manifest_stats(q)
+        if not stats or not stats.get("entries"):
+            r.result = "skip"
+            r.details = ("Iceberg manifest column statistics could not be inspected "
+                         "(no bucket access to the table location, or no data-file "
+                         "manifest found); not observable from a SQL session alone")
+            return
+
+        pop = stats["populated"]
+        core_present = pop["lower_bounds"] and pop["upper_bounds"] and pop["value_counts"]
+        present_names = [f for f in _STATS_FIELDS if pop[f]]
+        empty_names = [f for f in _STATS_FIELDS if not pop[f]]
+        n_files = len(stats["entries"])
+
+        if core_present:
+            r.result = "pass"
+            r.details = (
+                f"Iceberg manifest ({os.path.basename(stats['manifest'])}, {n_files} "
+                f"data file(s)) carries column statistics: populated="
+                f"{', '.join(present_names)}"
+                + (f"; empty={', '.join(empty_names)}" if empty_names else "")
+            )
+        else:
+            r.result = "fail"
+            r.details = (
+                f"Iceberg manifest ({os.path.basename(stats['manifest'])}, {n_files} "
+                f"data file(s)) has empty column statistics: missing="
+                f"{', '.join(empty_names)}"
+                + (f"; populated={', '.join(present_names)}" if present_names else "")
+            )
+
+    return _run(r, body)
+
+
 def test_statistics() -> TestResult:
-    return _skip("statistics", "Statistics", "v2",
-                 "Iceberg statistics files are not observable from a SQL warehouse session")
+    return _statistics_probe("2")
+
+
+def test_statistics_v3() -> TestResult:
+    return _statistics_probe("3")
 
 
 def test_bloom_filters() -> TestResult:
@@ -739,6 +893,7 @@ ALL_TESTS = [
     test_catalog_integration,
     test_unity_catalog,
     test_statistics,
+    test_statistics_v3,
     test_bloom_filters,
     test_hive_metastore,
     test_glue_catalog,
