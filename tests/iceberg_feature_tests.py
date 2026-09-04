@@ -1359,8 +1359,12 @@ def test_shredded_variant(version: str) -> TestResult:
     try:
         spark.sql(f"CREATE NAMESPACE IF NOT EXISTS local.{ns}")
         tbl = f"local.{ns}.{_unique('shrvar')}"
-        # Shredding is a write-side optimization of VARIANT; verify a VARIANT
-        # column round-trips on V3 with shredding enabled where available.
+        # Shredding is a write-side optimization of VARIANT. Accepting the
+        # table property proves nothing: engines happily carry the property
+        # while writing plain unshredded binary (EMR 8 / Spark 4.0 does exactly
+        # this). The honest measurement is the written Parquet file's footer:
+        # a truly shredded variant column has a typed_value sub-column next to
+        # metadata/value, an unshredded one has only metadata/value binary.
         spark.sql(f"""
             CREATE TABLE {tbl} (id BIGINT, data VARIANT)
             USING iceberg TBLPROPERTIES (
@@ -1371,10 +1375,6 @@ def test_shredded_variant(version: str) -> TestResult:
         spark.sql(f"INSERT INTO {tbl} SELECT 1, parse_json('{{\"user\":\"alice\",\"n\":2}}')")
         cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
         assert cnt == 1
-        _drop_table(spark, tbl)
-        spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
-        r.result = "pass"
-        r.details = "VARIANT column with shredding property created and written on V3 table"
     except Exception as e:
         emsg = str(e).lower()
         # Classified the same way as test_variant_type. An engine without the
@@ -1382,12 +1382,65 @@ def test_shredded_variant(version: str) -> TestResult:
         # supported", not a malfunction -- reporting it as an error made a known
         # gap look like a broken harness. Spark 3.5 (Glue 5.1) is exactly this
         # case: Iceberg 1.10 supports variant, the engine cannot express it.
+        try:
+            spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
+        except Exception:
+            pass
         if any(t in emsg for t in ("variant", "unsupported", "format")):
             r.result = "fail"
             r.details = f"Shredded variant not supported: {str(e)[:200]}"
         else:
             r.result = "error"
             r.details = str(e)[:300]
+        return r
+
+    # The write succeeded; now the actual measurement. Failures from here on
+    # are inspection problems (error), never a measured fail: the DDL phase
+    # above already established the engine accepts variant + the property.
+    try:
+        rows = spark.sql(f"SELECT file_path FROM {tbl}.files LIMIT 1").collect()
+        assert rows, "no data file registered in the .files metadata table"
+        file_path = rows[0][0]
+
+        # Read the file tail through Iceberg's own FileIO (the catalog's
+        # configured io-impl, e.g. S3FileIO with vended or configured
+        # credentials). The Hadoop filesystem route is NOT wired for s3://
+        # paths in this suite, so going through table.io() is what works in
+        # every environment (local FS, MinIO, EMR/Glue S3). The Parquet footer
+        # stores schema element names as plain UTF-8 strings, so a shredded
+        # file contains the literal bytes "typed_value" in its tail and an
+        # unshredded one does not.
+        jvm = spark.sparkContext._jvm
+        jtable = jvm.org.apache.iceberg.spark.Spark3Util.loadIcebergTable(
+            spark._jsparkSession, tbl)
+        input_file = jtable.io().newInputFile(file_path)
+        length = input_file.getLength()
+        stream = input_file.newStream()
+        try:
+            tail_start = max(0, length - 65536)
+            stream.seek(tail_start)
+            tail = bytes(jvm.org.apache.commons.io.IOUtils.toByteArray(stream))
+        finally:
+            stream.close()
+
+        _drop_table(spark, tbl)
+        spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
+
+        if b"typed_value" in tail:
+            r.result = "pass"
+            r.details = ("Written Parquet file is genuinely shredded: the footer "
+                         "schema carries typed_value sub-columns for the variant "
+                         f"column ({file_path.rsplit('/', 1)[-1]})")
+        else:
+            r.result = "fail"
+            r.details = ("Shredding property accepted but NOT honoured: the written "
+                         "Parquet footer has only the unshredded metadata/value "
+                         "binary for the variant column, no typed_value "
+                         f"sub-columns ({file_path.rsplit('/', 1)[-1]})")
+    except Exception as e:
+        r.result = "error"
+        r.details = ("Variant write succeeded but the Parquet footer could not be "
+                     f"inspected: {str(e)[:240]}")
     finally:
         try:
             spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
