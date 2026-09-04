@@ -346,10 +346,11 @@
       ]
     },
     "aws-emr:shredded-variant:v3": {
-      "level": "full",
-      "notes": "EMR 8.0 / Spark 4.0.2 supports shredded VARIANT using the standard Apache Parquet shredded implementation; the engine-side capability applies regardless of catalog.",
+      "level": "none",
+      "notes": "Not supported on EMR 8.0 / Spark 4.0.x. Spark 4.0 introduces the VARIANT data type, but its writer does not produce shredded variants (the Parquet typed/shredded variant encoding that stores common nested fields as real columns for pruning and predicate pushdown); VARIANT values are written as unshredded binary. Shredded-variant writing arrives with newer Spark and Parquet releases, not the Spark 4.0.2 bundled in EMR 8.0.",
       "caveats": [
-        "S3 Tables-side documentation does not yet explicitly document shredded VARIANT support"
+        "VARIANT columns themselves work (see variant-type); only the shredded storage layout is missing",
+        "Engine-side limitation: applies regardless of catalog, including S3 Tables"
       ]
     },
     "aws-emr:geometry-type:v3": {
