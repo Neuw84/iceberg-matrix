@@ -444,18 +444,6 @@
       ],
       "links": []
     },
-    "azure-fabric:hadoop-catalog:v2": {
-      "level": "unknown",
-      "notes": "Fabric does not support Hadoop catalog for Iceberg",
-      "caveats": [],
-      "links": []
-    },
-    "azure-fabric:hadoop-catalog:v3": {
-      "level": "unknown",
-      "notes": "Fabric does not support Hadoop catalog for Iceberg",
-      "caveats": [],
-      "links": []
-    },
     "azure-fabric:table-creation:v2": {
       "level": "unknown",
       "notes": "Fabric creates Delta Lake tables (via Spark notebooks, pipelines, etc.) that are automatically virtualized as Iceberg for external readers. External writers (e.g., Snowflake) can create Iceberg tables directly in OneLake.",

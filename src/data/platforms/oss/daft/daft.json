@@ -266,16 +266,6 @@
         "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
       ]
     },
-    "daft:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "Hadoop catalog is not supported by PyIceberg and therefore not available in Daft",
-      "caveats": []
-    },
-    "daft:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Hadoop catalog is not supported by PyIceberg",
-      "caveats": []
-    },
     "daft:table-creation:v2": {
       "level": "full",
       "notes": "Daft supports creating Iceberg tables via Session.create_table() and PyIceberg integration",

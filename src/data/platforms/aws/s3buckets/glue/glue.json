@@ -486,22 +486,6 @@
         "Requires Databricks REST Catalog endpoint configuration"
       ]
     },
-    "aws-glue:hadoop-catalog:v2": {
-      "level": "full",
-      "notes": "Hadoop catalog supported via Glue ETL. Glue: Can use Hadoop catalog via custom Spark configuration on Glue; not recommended for production",
-      "caveats": [
-        "Requires custom Spark configuration",
-        "No atomic rename guarantee on S3; Glue Data Catalog recommended instead"
-      ]
-    },
-    "aws-glue:hadoop-catalog:v3": {
-      "level": "full",
-      "notes": "Hadoop catalog supported via Glue ETL. Glue: Can use Hadoop catalog via custom Spark configuration on Glue 5.0+; not recommended",
-      "caveats": [
-        "Requires custom Spark configuration",
-        "No atomic rename guarantee on S3; Glue Data Catalog recommended instead"
-      ]
-    },
     "aws-glue:table-creation:v2": {
       "level": "full",
       "notes": "Create Iceberg tables via Spark SQL DDL (CREATE TABLE, CTAS) or Glue Data Catalog CreateTable API on Glue 3.0+",

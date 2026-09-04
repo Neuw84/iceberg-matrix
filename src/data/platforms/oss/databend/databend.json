@@ -468,22 +468,6 @@
         "V3 format support is not documented on the Databend Iceberg engine page"
       ]
     },
-    "databend:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "Databend does not document a Hadoop / FileSystem catalog type for its Iceberg engine; the documented Iceberg catalog connection TYPE values are limited to 'rest', 'glue', 'storage' (S3Tables), and 'hive', so a Hadoop-style filesystem catalog cannot be configured through CREATE CATALOG ... TYPE = 'iceberg'",
-      "caveats": [
-        "No 'hadoop' (or filesystem-based) connection TYPE is listed on the Databend Iceberg engine docs",
-        "Tables stored in a Hadoop catalog layout would need to be exposed through one of the documented catalog types (REST, Glue, Storage / S3Tables, or Hive) instead"
-      ]
-    },
-    "databend:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Databend does not document a Hadoop / FileSystem catalog type for its Iceberg engine on V3 tables either; the documented catalog connection TYPE values remain limited to 'rest', 'glue', 'storage' (S3Tables), and 'hive', and V3 format-version behavior is not separately documented",
-      "caveats": [
-        "No 'hadoop' (or filesystem-based) connection TYPE is listed on the Databend Iceberg engine docs",
-        "V3 format support is not documented on the Databend Iceberg engine page"
-      ]
-    },
     "databend:variant-type:v2": {
       "level": "none",
       "notes": "Variant type is a V3 feature; not applicable to V2",

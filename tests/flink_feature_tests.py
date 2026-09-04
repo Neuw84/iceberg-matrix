@@ -1698,21 +1698,6 @@ def test_rest_catalog(version: str) -> TestResult:
     return r
 
 
-def test_hadoop_catalog(version: str) -> TestResult:
-    r = TestResult("hadoop-catalog", "Hadoop Catalog", version)
-    ok, out = _catalog_roundtrip(version, "hadoop")
-    if ok and _marker(out, "MARKCAT=2"):
-        r.result = "pass"
-        r.details = (
-            f"catalog-type='hadoop' on a filesystem warehouse ({HADOOP_WAREHOUSE}): "
-            "table created, written, read back and dropped"
-        )
-    else:
-        r.result = "fail" if ok else "error"
-        r.details = _error_reason(out)
-    return r
-
-
 def test_aws_glue_catalog(version: str) -> TestResult:
     return _external_service("aws-glue-catalog", "AWS Glue Catalog", version,
                              "AWS credentials and a Glue Data Catalog")
@@ -1756,7 +1741,6 @@ ALL_TESTS = [
     test_bloom_filters,
     test_catalog_integration,
     test_rest_catalog,
-    test_hadoop_catalog,
     test_aws_glue_catalog,
     test_unity_catalog,
     test_snowflake_horizon_catalog,

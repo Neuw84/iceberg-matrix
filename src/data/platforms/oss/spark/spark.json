@@ -497,28 +497,6 @@
         }
       ]
     },
-    "spark:hadoop-catalog:v2": {
-      "level": "full",
-      "notes": "Native Hadoop catalog support via catalog type 'hadoop'. Uses a directory-based layout in HDFS or compatible file systems",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
-      ]
-    },
-    "spark:hadoop-catalog:v3": {
-      "level": "full",
-      "notes": "Hadoop catalog supports V3 tables",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
-      ]
-    },
     "spark:table-creation:v2": {
       "level": "full",
       "notes": "Full CREATE TABLE support as the reference Iceberg implementation",

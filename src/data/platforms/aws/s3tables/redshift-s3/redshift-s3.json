@@ -488,22 +488,6 @@
         }
       ]
     },
-    "aws-redshift-s3:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "S3 Tables does not support Hadoop catalog",
-      "caveats": []
-    },
-    "aws-redshift-s3:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg v3 features in Amazon Redshift",
-          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
-        }
-      ]
-    },
     "aws-redshift-s3:variant-type:v2": {
       "level": "none",
       "notes": "Variant type is a V3 feature",

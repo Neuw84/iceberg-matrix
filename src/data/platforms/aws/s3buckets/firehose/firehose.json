@@ -217,16 +217,6 @@
       "notes": "Firehose does not support Iceberg V3",
       "caveats": []
     },
-    "aws-firehose:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "Firehose does not support Hadoop catalog",
-      "caveats": []
-    },
-    "aws-firehose:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Firehose does not support Iceberg V3",
-      "caveats": []
-    },
     "aws-firehose:table-creation:v2": {
       "level": "none",
       "notes": "Firehose cannot create Iceberg tables; the table must already exist",

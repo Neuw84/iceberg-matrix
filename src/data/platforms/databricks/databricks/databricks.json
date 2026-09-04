@@ -596,18 +596,6 @@
         }
       ]
     },
-    "databricks:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "Databricks does not support Hadoop catalog for Iceberg.",
-      "caveats": [],
-      "links": []
-    },
-    "databricks:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Databricks does not support Hadoop catalog for Iceberg.",
-      "caveats": [],
-      "links": []
-    },
     "databricks:table-creation:v2": {
       "level": "full",
       "notes": "Supports CREATE TABLE ... USING iceberg for native managed Iceberg tables in Unity Catalog. External engines can also create tables via the REST Catalog API. Note: UniForm (TBLPROPERTIES delta.universalFormat.enabledFormats = 'iceberg') creates Delta tables with Iceberg reads \u2014 not native Iceberg.",

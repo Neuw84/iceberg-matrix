@@ -607,13 +607,6 @@ def test_catalog_integration() -> TestResult:
     return _catalog_test(r, body)
 
 
-def test_hadoop_catalog() -> TestResult:
-    r = TestResult("hadoop-catalog", "Hadoop Catalog", "v2")
-    r.result = "fail"
-    r.details = "DuckDB Iceberg supports only REST-based catalogs (Hadoop catalog unsupported)"
-    return r
-
-
 def test_rest_catalog() -> TestResult:
     r = TestResult("rest-catalog", "REST Catalog", "v2")
 
@@ -789,7 +782,6 @@ ALL_TESTS = [
     test_statistics,
     test_bloom_filters,
     test_catalog_integration,
-    test_hadoop_catalog,
     test_rest_catalog,
     test_glue_catalog,
     test_unity_catalog,

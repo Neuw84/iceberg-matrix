@@ -476,22 +476,6 @@
         "Requires Databricks REST Catalog endpoint configuration"
       ]
     },
-    "aws-emr:hadoop-catalog:v2": {
-      "level": "full",
-      "notes": "Hadoop catalog supported via Spark on EMR. Glue: Can use Hadoop catalog via custom Spark configuration on Glue; not recommended for production",
-      "caveats": [
-        "Requires custom Spark configuration",
-        "No atomic rename guarantee on S3; Glue Data Catalog recommended instead"
-      ]
-    },
-    "aws-emr:hadoop-catalog:v3": {
-      "level": "full",
-      "notes": "Hadoop catalog supported via Spark 4.0.2 on EMR 8.0 with V3 tables; not recommended for production",
-      "caveats": [
-        "Requires custom Spark configuration",
-        "No atomic rename guarantee on S3; Glue Data Catalog recommended instead"
-      ]
-    },
     "aws-emr:table-creation:v2": {
       "level": "full",
       "notes": "Create Iceberg tables via Spark SQL DDL (CREATE TABLE, CTAS) or Glue Data Catalog CreateTable API on Glue 3.0+",
