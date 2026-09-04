@@ -633,9 +633,12 @@
       "caveats": []
     },
     "spark:shredded-variant:v3": {
-      "level": "full",
-      "notes": "OSS Spark supports writing shredded Variant data in Iceberg-Spark (Spark 4.0/4.1), with reading backed by ArrayData.getVariant for row-based Parquet readers (Iceberg 1.11.0).",
-      "caveats": [],
+      "level": "none",
+      "notes": "Not written in practice. Measured live (Spark 4.1.2 + Iceberg 1.11.0 against an Iceberg REST catalog): a V3 table created with write.parquet.variant-shredding.enabled=true accepts VARIANT inserts, but the written Parquet footer carries only the unshredded metadata/value binary for the variant column -- no typed_value sub-columns, so no shredding actually happens. The earlier full rating was based on the shredding property being accepted, which proves nothing about the written layout.",
+      "caveats": [
+        "VARIANT columns themselves work (see variant-type); only the shredded storage layout is missing",
+        "Measured by reading the written Parquet footer through Iceberg's FileIO (tests/iceberg_feature_tests.py test_shredded_variant)"
+      ],
       "links": [
         {
           "label": "Apache Iceberg 1.11.0 release notes",

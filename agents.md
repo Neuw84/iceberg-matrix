@@ -47,7 +47,7 @@ A React single-page application that displays an interactive compatibility matri
 │   │       │       ├── redshift-s3/redshift-s3.json
 │   │       │       └── firehose/firehose.json        # staged, NOT imported
 │   │       ├── gcp/                  # bigquery/, dataproc/
-│   │       ├── azure/                # synapse/, fabric/
+│   │       ├── azure/                # fabric/ (synapse removed: Microsoft directs Synapse Spark to Fabric)
 │   │       ├── databricks/           # databricks/
 │   │       ├── snowflake/            # split by Iceberg storage mode:
 │   │       │   ├── managed/snowflake/snowflake.json   # Snowflake-provided storage

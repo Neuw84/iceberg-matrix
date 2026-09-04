@@ -354,10 +354,11 @@
       ]
     },
     "aws-glue:shredded-variant:v3": {
-      "level": "full",
-      "notes": "Measured on Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0) against S3 Tables through the federated s3tablescatalog: a VARIANT column carrying the shredding property is created and written on a V3 table. Unreachable on Glue 5.1, where the VARIANT type itself was rejected. AWS describes shredding as automatic on Glue 6.0.",
+      "level": "none",
+      "notes": "Not written in practice. The earlier full rating was measured on Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0) against S3 Tables through the federated s3tablescatalog by checking that a VARIANT column carrying the shredding property is created and written -- which proves property acceptance, not shredding. The same Spark 4.1 / Iceberg 1.11 line measured with a footer-level probe (OSS Spark 4.1.2 + Iceberg 1.11.0) writes only unshredded metadata/value binary with no typed_value sub-columns, so the shredded layout is not produced.",
       "caveats": [
-        "The test confirms the shredding property is accepted and the table is written; it does not verify the physical sub-field layout on disk."
+        "VARIANT columns themselves work (see variant-type); only the shredded storage layout is missing",
+        "Pending live re-measurement on Glue with the hardened footer-inspection probe; the amzn build could in principle differ from OSS"
       ],
       "links": [
         {
