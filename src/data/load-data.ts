@@ -20,7 +20,8 @@ import tRedshift from "./platforms/aws/s3tables/redshift-s3/redshift-s3.json";
 // --- Non-AWS vendors (order: gcp, azure, databricks, snowflake, oss) ---
 import bigquery from "./platforms/gcp/bigquery/bigquery.json";
 import dataproc from "./platforms/gcp/dataproc/dataproc.json";
-import synapse from "./platforms/azure/synapse/synapse.json";
+// synapse removed (Microsoft has Synapse Spark in maintenance/LTS and directs
+// workloads to Fabric Runtime 2.0, which the azure-fabric row covers)
 import fabric from "./platforms/azure/fabric/fabric.json";
 import databricks from "./platforms/databricks/databricks/databricks.json";
 // Snowflake has two storage modes, mirroring the AWS s3buckets/s3tables split:
@@ -50,7 +51,6 @@ export interface EngineFile {
 const preSnowflakeEngines: EngineFile[] = [
   bigquery,
   dataproc,
-  synapse,
   fabric,
   databricks,
 ];
