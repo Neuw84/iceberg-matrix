@@ -2,11 +2,11 @@
   "platforms": [
     {
       "id": "google-dataproc",
-      "name": "Dataproc (2.3)",
+      "name": "Managed Spark (3.0.13)",
       "vendor": "Google",
       "category": "cloud",
       "group": "GCP",
-      "docUrl": "https://cloud.google.com/dataproc/docs"
+      "docUrl": "https://docs.cloud.google.com/managed-spark/docs"
     }
   ],
   "support": {
@@ -145,13 +145,33 @@
     },
     "google-dataproc:read-support:v2": {
       "level": "full",
-      "notes": "Full read support via Spark on Dataproc",
-      "caveats": []
+      "notes": "Full read support via Spark. Google renamed the service to Managed Service for Apache Spark (formerly Dataproc / Serverless for Apache Spark); runtime 3.0.13 (March 2026) bundles Apache Spark 4.0.1 (Java 21, Scala 2.13, Python 3.12) with built-in Iceberg, and Iceberg 1.10 is the current default in the latest images (August 2026 release notes).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Managed Service for Apache Spark runtime 3.0 components",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-3.0"
+        },
+        {
+          "label": "Managed Service for Apache Spark release notes (Iceberg 1.10)",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/release-notes"
+        }
+      ]
     },
     "google-dataproc:read-support:v3": {
       "level": "full",
-      "notes": "Full read support",
-      "caveats": []
+      "notes": "Full read support. Managed Spark runtime 3.0.13 bundles Apache Spark 4.0.1 with built-in Iceberg, and Iceberg 1.10 is the current default in the latest images -- an Iceberg release line with substantially complete format-version 3 read support.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Managed Service for Apache Spark runtime 3.0 components",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-3.0"
+        },
+        {
+          "label": "Managed Service for Apache Spark release notes (Iceberg 1.10)",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/release-notes"
+        }
+      ]
     },
     "google-dataproc:write-insert:v2": {
       "level": "full",

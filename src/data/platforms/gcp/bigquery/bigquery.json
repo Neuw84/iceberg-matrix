@@ -374,7 +374,7 @@
     },
     "google-bigquery:write-insert:v2": {
       "level": "full",
-      "notes": "INSERT INTO supported via GoogleSQL DML. Also supports batch loading via LOAD DATA and streaming via BigQuery Storage Write API",
+      "notes": "INSERT INTO supported via GoogleSQL DML. Also supports batch loading via LOAD DATA and streaming via BigQuery Storage Write API. Two write paths exist: Iceberg managed tables (BigQuery-owned, DML GA) and Apache Iceberg V2 tables in the Lakehouse runtime catalog (V2 GA as a table format; BigQuery DML on them is Preview, while open-source engines read and write the same tables at GA level through the Iceberg REST catalog).",
       "caveats": [
         "Writing from external engines historically required BigQuery; external-engine writes are now in Preview via the BigLake Iceberg REST Catalog"
       ],
@@ -382,6 +382,10 @@
         {
           "label": "BigLake Iceberg tables in BigQuery",
           "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
+        },
+        {
+          "label": "Compare table types (Lakehouse)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
         }
       ]
     },
@@ -400,7 +404,7 @@
     },
     "google-bigquery:write-merge-update-delete:v2": {
       "level": "full",
-      "notes": "MERGE, UPDATE, DELETE supported via GoogleSQL DML for BigLake Iceberg tables. Multi-statement transactions are available in Preview. Only one concurrent mutating DML statement runs per table; additional statements are queued",
+      "notes": "MERGE, UPDATE, DELETE supported via GoogleSQL DML for Iceberg managed tables (GA). Multi-statement transactions are available in Preview. Only one concurrent mutating DML statement runs per table; additional statements are queued. BigQuery DML also works against Apache Iceberg V2 tables in the Lakehouse runtime catalog (Preview), which open-source engines read and write at GA level through the Iceberg REST catalog.",
       "caveats": [
         "Multi-statement transactions are in Preview and require sign-up",
         "Only one concurrent mutating DML statement per table; additional are queued",
@@ -410,6 +414,10 @@
         {
           "label": "BigLake Iceberg tables in BigQuery",
           "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
+        },
+        {
+          "label": "Compare table types (Lakehouse)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
         }
       ]
     },
@@ -512,7 +520,7 @@
     },
     "google-bigquery:rest-catalog:v2": {
       "level": "partial",
-      "notes": "The Lakehouse runtime catalog (formerly BigLake metastore; renamed April 20, 2026) exposes a Google-managed Iceberg REST catalog as the recommended path for new workloads, giving BigQuery and open-source engines (Spark, Flink, Trino) a single source of truth. Since June 25, 2026 BigQuery can also run SQL DDL and DML (INSERT, UPDATE, DELETE, MERGE) directly against Iceberg tables in the runtime catalog (Preview), with opt-in automatic table management (compaction, garbage collection) and credential vending for storage access.",
+      "notes": "The Lakehouse runtime catalog (formerly BigLake metastore; renamed April 20, 2026) exposes a Google-managed Iceberg REST catalog as the recommended path for new workloads. Apache Iceberg V2 tables in the runtime catalog are GA (V1 unsupported, V3 Preview): open-source engines (Spark, Flink, Trino) read and write them at GA level, including streaming writes, and since June 25, 2026 BigQuery runs SQL DDL and DML (INSERT, UPDATE, DELETE, MERGE) against them in Preview, with opt-in automatic table management (compaction, garbage collection) and credential vending for storage access.",
       "caveats": [
         "BigQuery DML/DDL against runtime-catalog Iceberg tables is Preview, not GA",
         "gcloud command group still named biglake despite the Lakehouse rename",
@@ -526,6 +534,10 @@
         {
           "label": "Lakehouse release notes (BigQuery writes for Iceberg REST catalog tables, June 25, 2026)",
           "url": "https://docs.cloud.google.com/lakehouse/docs/release-notes"
+        },
+        {
+          "label": "Compare table types (Lakehouse)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
         }
       ]
     },
@@ -657,7 +669,7 @@
     },
     "google-bigquery:table-creation:v2": {
       "level": "full",
-      "notes": "BigQuery supports creating BigLake Iceberg tables via SQL DDL (CREATE TABLE), bq CLI, and REST API. Requires Cloud resource connection and Cloud Storage bucket",
+      "notes": "BigQuery supports creating Iceberg managed tables via SQL DDL (CREATE TABLE), bq CLI, and REST API; requires a Cloud resource connection and Cloud Storage bucket. Apache Iceberg V2 tables in the Lakehouse runtime catalog are also supported (V2 GA; BigQuery DDL/DML on them is Preview), giving engine-interoperable tables through the Iceberg REST catalog rather than BigQuery-owned storage.",
       "caveats": [
         "Requires a Cloud resource connection with write permissions to Cloud Storage",
         "Must specify file_format=PARQUET and table_format=ICEBERG",
@@ -667,6 +679,10 @@
         {
           "label": "BigLake Iceberg tables in BigQuery",
           "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
+        },
+        {
+          "label": "Compare table types (Lakehouse)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
         }
       ]
     },
