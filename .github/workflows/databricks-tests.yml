@@ -131,7 +131,7 @@ jobs:
         env:
           DATABRICKS_ONLY: ${{ inputs.only }}
         run: >
-          uv run --with databricks-sql-connector --with boto3
+          uv run --with databricks-sql-connector --with boto3 --with fastavro
           python tests/databricks_feature_tests.py
 
       - name: Tear down billable resources
