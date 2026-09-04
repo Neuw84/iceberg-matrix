@@ -187,16 +187,6 @@
       "notes": "Firehose does not support Iceberg V3",
       "caveats": []
     },
-    "aws-firehose:hive-metastore:v2": {
-      "level": "none",
-      "notes": "Firehose uses AWS Glue Catalog exclusively for Iceberg",
-      "caveats": []
-    },
-    "aws-firehose:hive-metastore:v3": {
-      "level": "none",
-      "notes": "Firehose does not support Iceberg V3",
-      "caveats": []
-    },
     "aws-firehose:aws-glue-catalog:v2": {
       "level": "full",
       "notes": "Firehose uses AWS Glue Data Catalog for Iceberg table delivery",
@@ -217,26 +207,6 @@
       "notes": "Firehose does not support Iceberg V3",
       "caveats": []
     },
-    "aws-firehose:nessie:v2": {
-      "level": "none",
-      "notes": "Firehose does not support Nessie catalog",
-      "caveats": []
-    },
-    "aws-firehose:nessie:v3": {
-      "level": "none",
-      "notes": "Firehose does not support Iceberg V3",
-      "caveats": []
-    },
-    "aws-firehose:polaris:v2": {
-      "level": "none",
-      "notes": "Firehose does not support Polaris catalog",
-      "caveats": []
-    },
-    "aws-firehose:polaris:v3": {
-      "level": "none",
-      "notes": "Firehose does not support Iceberg V3",
-      "caveats": []
-    },
     "aws-firehose:unity-catalog:v2": {
       "level": "none",
       "notes": "Firehose does not support Unity Catalog",
@@ -253,16 +223,6 @@
       "caveats": []
     },
     "aws-firehose:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Firehose does not support Iceberg V3",
-      "caveats": []
-    },
-    "aws-firehose:jdbc-catalog:v2": {
-      "level": "none",
-      "notes": "Firehose does not support JDBC catalog",
-      "caveats": []
-    },
-    "aws-firehose:jdbc-catalog:v3": {
       "level": "none",
       "notes": "Firehose does not support Iceberg V3",
       "caveats": []
@@ -395,6 +355,32 @@
       "level": "none",
       "notes": "Firehose does not support Iceberg V3.",
       "caveats": []
+    },
+    "aws-firehose:google-lakehouse:v2": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "aws-firehose:google-lakehouse:v3": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

@@ -470,13 +470,6 @@ def test_catalog_integration() -> TestResult:
     return r
 
 
-def test_hive_metastore() -> TestResult:
-    r = TestResult("hive-metastore", "Hive Metastore")
-    r.result = "skip"
-    r.details = "Requires running Hive Metastore; Daft supports it via PyIceberg"
-    return r
-
-
 def test_aws_glue_catalog() -> TestResult:
     r = TestResult("aws-glue-catalog", "AWS Glue Catalog")
     r.result = "skip"
@@ -491,20 +484,6 @@ def test_rest_catalog() -> TestResult:
     return r
 
 
-def test_nessie() -> TestResult:
-    r = TestResult("nessie", "Nessie")
-    r.result = "skip"
-    r.details = "Requires running Nessie server; accessible via PyIceberg REST interface"
-    return r
-
-
-def test_polaris() -> TestResult:
-    r = TestResult("polaris", "Polaris")
-    r.result = "skip"
-    r.details = "Requires running Polaris server; accessible via PyIceberg REST interface"
-    return r
-
-
 def test_unity_catalog() -> TestResult:
     r = TestResult("unity-catalog", "Unity Catalog")
     r.result = "skip"
@@ -516,13 +495,6 @@ def test_hadoop_catalog() -> TestResult:
     r = TestResult("hadoop-catalog", "Hadoop Catalog")
     r.result = "fail"
     r.details = "Hadoop catalog not supported by PyIceberg, therefore not available in Daft"
-    return r
-
-
-def test_jdbc_catalog() -> TestResult:
-    r = TestResult("jdbc-catalog", "JDBC Catalog")
-    r.result = "fail"
-    r.details = "JDBC catalog is a Java concept; not available in Daft/PyIceberg"
     return r
 
 
@@ -599,12 +571,8 @@ ALL_TESTS = [
     test_bloom_filters,
     test_catalog_integration,
     test_hadoop_catalog,
-    test_jdbc_catalog,
     test_rest_catalog,
-    test_hive_metastore,
     test_aws_glue_catalog,
-    test_nessie,
-    test_polaris,
     test_unity_catalog,
     test_variant_type,
     test_shredded_variant,

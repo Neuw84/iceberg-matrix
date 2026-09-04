@@ -482,28 +482,6 @@
         }
       ]
     },
-    "doris:hive-metastore:v2": {
-      "level": "full",
-      "notes": "Doris supports the Iceberg hms catalog type for Hive Metastore integration",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        }
-      ]
-    },
-    "doris:hive-metastore:v3": {
-      "level": "full",
-      "notes": "Doris 4.1 supports Hive Metastore for V3 Iceberg tables via the hms catalog type",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        }
-      ]
-    },
     "doris:aws-glue-catalog:v2": {
       "level": "partial",
       "notes": "Doris supports AWS Glue as an Iceberg catalog via the glue catalog type",
@@ -545,58 +523,6 @@
       "level": "full",
       "notes": "Doris 4.1 supports the Iceberg REST Catalog for V3 tables",
       "caveats": [],
-      "links": [
-        {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        }
-      ]
-    },
-    "doris:nessie:v2": {
-      "level": "unknown",
-      "notes": "Doris has no documented Nessie catalog integration",
-      "caveats": [
-        "Nessie catalog support not documented in Doris 4.x"
-      ],
-      "links": [
-        {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        }
-      ]
-    },
-    "doris:nessie:v3": {
-      "level": "unknown",
-      "notes": "Doris has no documented Nessie catalog integration for V3 tables",
-      "caveats": [
-        "Nessie catalog support not documented in Doris 4.x"
-      ],
-      "links": [
-        {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        }
-      ]
-    },
-    "doris:polaris:v2": {
-      "level": "partial",
-      "notes": "Doris can access Polaris through the generic REST Catalog configuration; there is no dedicated Polaris integration",
-      "caveats": [
-        "No dedicated Polaris connector; access is via the generic Iceberg REST Catalog"
-      ],
-      "links": [
-        {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        }
-      ]
-    },
-    "doris:polaris:v3": {
-      "level": "partial",
-      "notes": "Doris 4.1 can access Polaris for V3 Iceberg tables through the generic REST Catalog configuration",
-      "caveats": [
-        "No dedicated Polaris connector; access is via the generic Iceberg REST Catalog"
-      ],
       "links": [
         {
           "label": "Doris 4.x Iceberg Catalog",
@@ -671,32 +597,6 @@
       "level": "full",
       "notes": "Doris 4.1 supports the Hadoop (FileSystem) catalog for V3 Iceberg tables",
       "caveats": [],
-      "links": [
-        {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        }
-      ]
-    },
-    "doris:jdbc-catalog:v2": {
-      "level": "partial",
-      "notes": "Doris supports a JDBC Iceberg catalog via the jdbc catalog type, introduced in Doris 4.1.0",
-      "caveats": [
-        "JDBC catalog is experimental and was introduced in Doris 4.1.0"
-      ],
-      "links": [
-        {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        }
-      ]
-    },
-    "doris:jdbc-catalog:v3": {
-      "level": "partial",
-      "notes": "Doris 4.1 supports a JDBC Iceberg catalog for V3 tables via the jdbc catalog type",
-      "caveats": [
-        "JDBC catalog is experimental and was introduced in Doris 4.1.0"
-      ],
       "links": [
         {
           "label": "Doris 4.x Iceberg Catalog",
@@ -819,6 +719,32 @@
       "level": "unknown",
       "notes": "Not yet measured; recorded as unknown rather than inferred. Doris publishes no Iceberg V3 unknown-type mapping.",
       "caveats": []
+    },
+    "doris:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "doris:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

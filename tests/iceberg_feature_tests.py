@@ -1201,12 +1201,6 @@ def test_hadoop_catalog(version: str) -> TestResult:
 
 # --- Catalogs that need external services: skipped in CI (both versions) ---
 
-def test_jdbc_catalog(version: str) -> TestResult:
-    r = TestResult("jdbc-catalog", "JDBC Catalog", version)
-    r.result = "skip"
-    r.details = "JDBC catalog test skipped in CI (requires external JDBC database)"
-    return r
-
 
 def test_rest_catalog(version: str) -> TestResult:
     r = TestResult("rest-catalog", "REST Catalog", version)
@@ -1238,13 +1232,6 @@ def test_rest_catalog(version: str) -> TestResult:
     except Exception as e:
         r.result = "error"
         r.details = str(e)[:300]
-    return r
-
-
-def test_hive_metastore(version: str) -> TestResult:
-    r = TestResult("hive-metastore", "Hive Metastore", version)
-    r.result = "skip"
-    r.details = "Hive Metastore test skipped in CI (requires running Hive Metastore service)"
     return r
 
 
@@ -1281,20 +1268,6 @@ def test_aws_glue_catalog(version: str) -> TestResult:
     except Exception as e:
         r.result = "error"
         r.details = str(e)[:300]
-    return r
-
-
-def test_nessie(version: str) -> TestResult:
-    r = TestResult("nessie", "Nessie", version)
-    r.result = "skip"
-    r.details = "Nessie test skipped in CI (requires running Nessie server)"
-    return r
-
-
-def test_polaris(version: str) -> TestResult:
-    r = TestResult("polaris", "Polaris", version)
-    r.result = "skip"
-    r.details = "Polaris test skipped in CI (requires running Polaris server)"
     return r
 
 
@@ -1756,12 +1729,8 @@ ALL_TESTS = [
     test_bloom_filters,
     test_catalog_integration,
     test_hadoop_catalog,
-    test_jdbc_catalog,
     test_rest_catalog,
-    test_hive_metastore,
     test_aws_glue_catalog,
-    test_nessie,
-    test_polaris,
     test_unity_catalog,
     test_snowflake_horizon_catalog,
     test_variant_type,

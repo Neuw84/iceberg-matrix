@@ -112,11 +112,6 @@
       "notes": "Bloom filters and Puffin files supported via Spark on EMR with S3 Tables",
       "caveats": []
     },
-    "aws-emr:hive-metastore:v2": {
-      "level": "none",
-      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
-      "caveats": []
-    },
     "aws-emr:aws-glue-catalog:v2": {
       "level": "full",
       "notes": "The Glue Data Catalog is how EMR Serverless reaches S3 Tables: the table bucket is mounted as the federated s3tablescatalog and addressed with catalog-impl=GlueCatalog plus glue.id=<account>:s3tablescatalog/<bucket>. Measured: namespace and table creation, insert, row-level update, read, and drop.",
@@ -131,16 +126,6 @@
       "notes": "S3 Tables exposes a REST-compatible catalog API used by EMR",
       "caveats": []
     },
-    "aws-emr:nessie:v2": {
-      "level": "none",
-      "notes": "S3 Tables does not support Nessie catalog",
-      "caveats": []
-    },
-    "aws-emr:polaris:v2": {
-      "level": "none",
-      "notes": "S3 Tables does not support Polaris catalog",
-      "caveats": []
-    },
     "aws-emr:unity-catalog:v2": {
       "level": "none",
       "notes": "S3 Tables does not support Unity Catalog",
@@ -149,11 +134,6 @@
     "aws-emr:hadoop-catalog:v2": {
       "level": "none",
       "notes": "S3 Tables does not support Hadoop catalog",
-      "caveats": []
-    },
-    "aws-emr:jdbc-catalog:v2": {
-      "level": "none",
-      "notes": "S3 Tables does not support JDBC catalog",
       "caveats": []
     },
     "aws-emr:variant-type:v2": {
@@ -294,11 +274,6 @@
       "notes": "V3 bloom filters supported via Spark on EMR with S3 Tables",
       "caveats": []
     },
-    "aws-emr:hive-metastore:v3": {
-      "level": "none",
-      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
-      "caveats": []
-    },
     "aws-emr:aws-glue-catalog:v3": {
       "level": "full",
       "notes": "The Glue Data Catalog is how EMR Serverless reaches S3 Tables: the table bucket is mounted as the federated s3tablescatalog and addressed with catalog-impl=GlueCatalog plus glue.id=<account>:s3tablescatalog/<bucket>. Measured on V3 tables: namespace and table creation, insert, row-level update, read, and drop.",
@@ -313,16 +288,6 @@
       "notes": "S3 Tables exposes a REST-compatible catalog API used by EMR for V3",
       "caveats": []
     },
-    "aws-emr:nessie:v3": {
-      "level": "none",
-      "notes": "S3 Tables does not support Nessie catalog",
-      "caveats": []
-    },
-    "aws-emr:polaris:v3": {
-      "level": "none",
-      "notes": "S3 Tables does not support Polaris catalog",
-      "caveats": []
-    },
     "aws-emr:unity-catalog:v3": {
       "level": "none",
       "notes": "S3 Tables does not support Unity Catalog",
@@ -331,11 +296,6 @@
     "aws-emr:hadoop-catalog:v3": {
       "level": "none",
       "notes": "S3 Tables does not support Hadoop catalog",
-      "caveats": []
-    },
-    "aws-emr:jdbc-catalog:v3": {
-      "level": "none",
-      "notes": "S3 Tables does not support JDBC catalog",
       "caveats": []
     },
     "aws-emr:variant-type:v3": {
@@ -442,6 +402,32 @@
         "Promotion of an unknown column to a concrete type later was not exercised; only declaration, write and read were measured."
       ],
       "links": []
+    },
+    "aws-emr:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "aws-emr:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

@@ -431,28 +431,6 @@
         }
       ]
     },
-    "spark:hive-metastore:v2": {
-      "level": "full",
-      "notes": "Native Hive Metastore catalog support via catalog type 'hive'. Supports SparkSessionCatalog for mixed Iceberg and non-Iceberg tables in the same Hive Metastore",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
-      ]
-    },
-    "spark:hive-metastore:v3": {
-      "level": "full",
-      "notes": "Hive Metastore catalog fully supports V3 tables",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
-      ]
-    },
     "spark:aws-glue-catalog:v2": {
       "level": "full",
       "notes": "AWS Glue Catalog supported natively via catalog type 'glue' with the iceberg-aws module",
@@ -489,50 +467,6 @@
     "spark:rest-catalog:v3": {
       "level": "full",
       "notes": "REST Catalog fully supports V3 tables",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
-      ]
-    },
-    "spark:nessie:v2": {
-      "level": "full",
-      "notes": "Nessie catalog supported natively via catalog type 'nessie'. Provides Git-like version control for data tables",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
-        }
-      ]
-    },
-    "spark:nessie:v3": {
-      "level": "full",
-      "notes": "Nessie catalog supports V3 tables",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
-        }
-      ]
-    },
-    "spark:polaris:v2": {
-      "level": "full",
-      "notes": "Polaris catalog fully supported via the REST Catalog API, as Polaris implements the Iceberg REST Catalog specification",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
-      ]
-    },
-    "spark:polaris:v3": {
-      "level": "full",
-      "notes": "Polaris supports V3 tables via REST Catalog API",
       "caveats": [],
       "links": [
         {
@@ -582,28 +516,6 @@
         {
           "label": "Catalog Configuration",
           "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalogs"
-        }
-      ]
-    },
-    "spark:jdbc-catalog:v2": {
-      "level": "full",
-      "notes": "JDBC catalog supported natively via catalog type 'jdbc'. Stores Iceberg metadata in a relational database",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
-        }
-      ]
-    },
-    "spark:jdbc-catalog:v3": {
-      "level": "full",
-      "notes": "JDBC catalog supports V3 tables",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Catalog Configuration",
-          "url": "https://iceberg.apache.org/docs/latest/spark-configuration/#catalog-configuration"
         }
       ]
     },
@@ -825,6 +737,32 @@
       "level": "unknown",
       "notes": "Not yet measured; recorded as unknown rather than inferred. Spark 4.1 has a VOID type that Iceberg's unknown type maps to, so support is plausible; the suite now probes UNKNOWN and VOID.",
       "caveats": []
+    },
+    "spark:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "spark:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

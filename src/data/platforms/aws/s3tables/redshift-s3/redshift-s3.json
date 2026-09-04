@@ -403,22 +403,6 @@
         }
       ]
     },
-    "aws-redshift-s3:hive-metastore:v2": {
-      "level": "none",
-      "notes": "S3 Tables uses its own catalog; Hive Metastore not applicable",
-      "caveats": []
-    },
-    "aws-redshift-s3:hive-metastore:v3": {
-      "level": "none",
-      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg v3 features in Amazon Redshift",
-          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
-        }
-      ]
-    },
     "aws-redshift-s3:aws-glue-catalog:v2": {
       "level": "full",
       "notes": "The Glue Data Catalog is how Redshift reaches S3 Tables at all. A table bucket is a federated Glue catalog, and Redshift addresses it through a Glue resource link named by an external schema; tables are then created, written, read and dropped through it.",
@@ -459,57 +443,6 @@
       ]
     },
     "aws-redshift-s3:rest-catalog:v3": {
-      "level": "none",
-      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg v3 features in Amazon Redshift",
-          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
-        }
-      ]
-    },
-    "aws-redshift-s3:nessie:v2": {
-      "level": "none",
-      "notes": "S3 Tables does not support Nessie catalog",
-      "caveats": []
-    },
-    "aws-redshift-s3:nessie:v3": {
-      "level": "none",
-      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg v3 features in Amazon Redshift",
-          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
-        }
-      ]
-    },
-    "aws-redshift-s3:polaris:v2": {
-      "level": "partial",
-      "notes": "Reachable read-only through AWS Glue catalog federation, not natively. Apache Polaris (including Snowflake Polaris) is federated into the Glue Data Catalog as a federated Iceberg catalog, and Redshift queries the resulting tables through a Glue database resource link (external schema or the automounted awsdatacatalog), with Lake Formation vending scoped credentials. Redshift still has no Iceberg REST client of its own -- the Data Catalog speaks Iceberg REST to the remote catalog on its behalf -- so this is a query path over federation rather than native catalog support.",
-      "caveats": [
-        "Reached indirectly: the remote catalog is federated into the Glue Data Catalog, and Redshift queries it through a Glue database resource link, not by speaking Iceberg REST itself",
-        "Read path only. Access is granted as Lake Formation SELECT/DESCRIBE on the federated tables; creating or writing tables in the remote catalog from Redshift is not part of this",
-        "Requires Lake Formation to register the federation and vend scoped credentials; external schemas additionally require catalog, compute and S3 bucket in the same Region (automount handles cross-Region)",
-        "Not verified by this suite: no federated remote catalog is configured in the test account"
-      ],
-      "links": [
-        {
-          "label": "Querying AWS Glue IRC federated catalogs with Amazon Redshift",
-          "url": "https://docs.aws.amazon.com/redshift/latest/dg/glue-irc-federated-catalogs.html"
-        },
-        {
-          "label": "Federate to Snowflake Iceberg Catalog (Horizon and Polaris)",
-          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation-snowflake.html"
-        },
-        {
-          "label": "Catalog federation to remote Iceberg catalogs",
-          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation.html"
-        }
-      ]
-    },
-    "aws-redshift-s3:polaris:v3": {
       "level": "none",
       "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
       "caveats": [],
@@ -561,22 +494,6 @@
       "caveats": []
     },
     "aws-redshift-s3:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg v3 features in Amazon Redshift",
-          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
-        }
-      ]
-    },
-    "aws-redshift-s3:jdbc-catalog:v2": {
-      "level": "none",
-      "notes": "S3 Tables does not support JDBC catalog",
-      "caveats": []
-    },
-    "aws-redshift-s3:jdbc-catalog:v3": {
       "level": "none",
       "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
       "caveats": [],
@@ -737,6 +654,32 @@
         {
           "label": "Iceberg v3 features in Amazon Redshift",
           "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
+        }
+      ]
+    },
+    "aws-redshift-s3:google-lakehouse:v2": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "aws-redshift-s3:google-lakehouse:v3": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
         }
       ]
     }

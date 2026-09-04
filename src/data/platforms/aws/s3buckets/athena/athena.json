@@ -196,16 +196,6 @@
       "notes": "Athena does not support Iceberg V3",
       "caveats": []
     },
-    "aws-athena:hive-metastore:v2": {
-      "level": "none",
-      "notes": "Athena uses AWS Glue Catalog exclusively",
-      "caveats": []
-    },
-    "aws-athena:hive-metastore:v3": {
-      "level": "none",
-      "notes": "Athena does not support Iceberg V3",
-      "caveats": []
-    },
     "aws-athena:aws-glue-catalog:v2": {
       "level": "full",
       "notes": "Native integration with AWS Glue Data Catalog",
@@ -222,34 +212,6 @@
       "caveats": []
     },
     "aws-athena:rest-catalog:v3": {
-      "level": "none",
-      "notes": "Athena does not support Iceberg V3",
-      "caveats": []
-    },
-    "aws-athena:nessie:v2": {
-      "level": "none",
-      "notes": "Athena does not support Nessie catalog",
-      "caveats": []
-    },
-    "aws-athena:nessie:v3": {
-      "level": "none",
-      "notes": "Athena does not support Iceberg V3",
-      "caveats": []
-    },
-    "aws-athena:polaris:v2": {
-      "level": "partial",
-      "notes": "Athena can access Polaris catalog via AWS Glue Data Catalog federation",
-      "caveats": [
-        "Requires catalog federation setup in AWS Glue Data Catalog"
-      ],
-      "links": [
-        {
-          "label": "Access Snowflake Horizon Catalog data using catalog federation",
-          "url": "https://aws.amazon.com/blogs/big-data/access-snowflake-horizon-catalog-data-using-catalog-federation-in-the-aws-glue-data-catalog/"
-        }
-      ]
-    },
-    "aws-athena:polaris:v3": {
       "level": "none",
       "notes": "Athena does not support Iceberg V3",
       "caveats": []
@@ -279,16 +241,6 @@
       "caveats": []
     },
     "aws-athena:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Athena does not support Iceberg V3",
-      "caveats": []
-    },
-    "aws-athena:jdbc-catalog:v2": {
-      "level": "none",
-      "notes": "Athena does not support JDBC catalog",
-      "caveats": []
-    },
-    "aws-athena:jdbc-catalog:v3": {
       "level": "none",
       "notes": "Athena does not support Iceberg V3",
       "caveats": []
@@ -444,6 +396,32 @@
       "level": "none",
       "notes": "Athena does not support Iceberg V3, so the V3 unknown type cannot exist here.",
       "caveats": []
+    },
+    "aws-athena:google-lakehouse:v2": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "aws-athena:google-lakehouse:v3": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

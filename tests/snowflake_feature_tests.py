@@ -831,11 +831,6 @@ def test_bloom_filters() -> TestResult:
                  "Bloom-filter write properties are not exposed for managed Iceberg tables")
 
 
-def test_hive_metastore() -> TestResult:
-    return _skip("hive-metastore", "Hive Metastore", "v2",
-                 "External catalog wiring is out of scope for a managed-catalog run")
-
-
 def test_glue_catalog() -> TestResult:
     return _skip("aws-glue-catalog", "AWS Glue Catalog", "v2",
                  "A Glue catalog integration is a separate object; out of scope here")
@@ -847,16 +842,6 @@ def test_rest_catalog() -> TestResult:
                  "IRC reader is out of scope for a managed-catalog run")
 
 
-def test_nessie() -> TestResult:
-    return _skip("nessie", "Nessie", "v2",
-                 "External catalog wiring is out of scope for a managed-catalog run")
-
-
-def test_polaris() -> TestResult:
-    return _skip("polaris", "Polaris", "v2",
-                 "Open Catalog (Polaris) is a separate service; out of scope here")
-
-
 def test_unity_catalog() -> TestResult:
     return _skip("unity-catalog", "Unity Catalog", "v2",
                  "Unity Catalog is a Databricks catalog; not applicable to Snowflake")
@@ -865,11 +850,6 @@ def test_unity_catalog() -> TestResult:
 def test_hadoop_catalog() -> TestResult:
     return _skip("hadoop-catalog", "Hadoop Catalog", "v2",
                  "Path-based catalogs cannot be attached to a Snowflake session")
-
-
-def test_jdbc_catalog() -> TestResult:
-    return _skip("jdbc-catalog", "JDBC Catalog", "v2",
-                 "JDBC catalogs cannot be attached to a Snowflake session")
 
 
 ALL_TESTS = [
@@ -902,13 +882,9 @@ ALL_TESTS = [
     test_unity_catalog,
     test_statistics,
     test_bloom_filters,
-    test_hive_metastore,
     test_glue_catalog,
     test_rest_catalog,
-    test_nessie,
-    test_polaris,
     test_hadoop_catalog,
-    test_jdbc_catalog,
 ]
 
 

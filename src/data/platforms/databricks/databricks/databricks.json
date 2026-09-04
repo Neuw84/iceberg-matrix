@@ -371,7 +371,7 @@
     },
     "databricks:read-support:v2": {
       "level": "partial",
-      "notes": "Reads native managed Iceberg v2 tables via Unity Catalog (GA, DBR 16.4 LTS+) and foreign Iceberg tables read-only via Lakehouse Federation, but not the full v2 spec: it cannot read equality-delete files (only position deletes / deletion vectors), does not honour expression-based partition transforms, and rejects several Iceberg data types (UUID, Fixed(L), TIME, nested STRUCT with required fields). A v2 table written by another engine using those constructs is therefore not fully readable. Note: UniForm is a separate Delta Lake feature that exposes Delta tables as Iceberg — it is not native Iceberg.",
+      "notes": "Reads native managed Iceberg v2 tables via Unity Catalog (GA, DBR 16.4 LTS+) and foreign Iceberg tables read-only via Lakehouse Federation, but not the full v2 spec: it cannot read equality-delete files (only position deletes / deletion vectors), does not honour expression-based partition transforms, and rejects several Iceberg data types (UUID, Fixed(L), TIME, nested STRUCT with required fields). A v2 table written by another engine using those constructs is therefore not fully readable. Note: UniForm is a separate Delta Lake feature that exposes Delta tables as Iceberg \u2014 it is not native Iceberg.",
       "caveats": [
         "Managed Iceberg tables are GA",
         "Equality-delete files are not read (Databricks deletes are position deletes / deletion vectors)",
@@ -412,7 +412,7 @@
       "notes": "INSERT INTO fully supported for native managed Iceberg tables in Unity Catalog. External engines can also write via the Iceberg REST Catalog API. Note: UniForm tables are read-only for Iceberg clients.",
       "caveats": [
         "Managed Iceberg tables are GA",
-        "UniForm (Delta + Iceberg reads) tables are read-only for Iceberg clients — this is not native Iceberg"
+        "UniForm (Delta + Iceberg reads) tables are read-only for Iceberg clients \u2014 this is not native Iceberg"
       ],
       "links": [
         {
@@ -496,42 +496,6 @@
         }
       ]
     },
-    "databricks:hive-metastore:v2": {
-      "level": "partial",
-      "notes": "Can read Iceberg tables from external Hive Metastore and AWS Glue via Lakehouse Federation foreign catalogs. Read-only for external HMS. Foreign Iceberg tables have limited platform feature support.",
-      "caveats": [
-        "External Hive Metastore and Glue federation is read-only",
-        "Foreign Iceberg tables have limited platform feature support"
-      ],
-      "links": [
-        {
-          "label": "Hive metastore federation",
-          "url": "https://docs.databricks.com/aws/en/query-federation/hms-federation-concepts"
-        },
-        {
-          "label": "Lakehouse Federation",
-          "url": "https://docs.databricks.com/aws/en/query-federation/"
-        }
-      ]
-    },
-    "databricks:hive-metastore:v3": {
-      "level": "partial",
-      "notes": "Can read Iceberg tables from external Hive Metastore via Lakehouse Federation. Read-only for external HMS.",
-      "caveats": [
-        "External Hive Metastore federation is read-only",
-        "Foreign Iceberg tables have limited platform feature support"
-      ],
-      "links": [
-        {
-          "label": "Hive metastore federation",
-          "url": "https://docs.databricks.com/aws/en/query-federation/hms-federation-concepts"
-        },
-        {
-          "label": "Lakehouse Federation",
-          "url": "https://docs.databricks.com/aws/en/query-federation/"
-        }
-      ]
-    },
     "databricks:aws-glue-catalog:v2": {
       "level": "partial",
       "notes": "Can read Iceberg tables from AWS Glue Catalog via Lakehouse Federation foreign catalogs. Read-only access.",
@@ -597,44 +561,6 @@
         }
       ]
     },
-    "databricks:nessie:v2": {
-      "level": "none",
-      "notes": "Databricks does not natively support Nessie catalog.",
-      "caveats": [],
-      "links": []
-    },
-    "databricks:nessie:v3": {
-      "level": "none",
-      "notes": "Databricks does not natively support Nessie catalog.",
-      "caveats": [],
-      "links": []
-    },
-    "databricks:polaris:v2": {
-      "level": "unknown",
-      "notes": "Databricks documentation does not mention Polaris catalog integration. Unity Catalog supports the Iceberg REST Catalog API, which could theoretically connect to Polaris, but this is not documented.",
-      "caveats": [
-        "Not documented in Databricks Iceberg documentation"
-      ],
-      "links": [
-        {
-          "label": "Iceberg REST Catalog access",
-          "url": "https://docs.databricks.com/aws/en/external-access/iceberg"
-        }
-      ]
-    },
-    "databricks:polaris:v3": {
-      "level": "unknown",
-      "notes": "Databricks documentation does not mention Polaris catalog integration for Iceberg v3 tables.",
-      "caveats": [
-        "Not documented in Databricks Iceberg documentation"
-      ],
-      "links": [
-        {
-          "label": "Iceberg REST Catalog access",
-          "url": "https://docs.databricks.com/aws/en/external-access/iceberg"
-        }
-      ]
-    },
     "databricks:unity-catalog:v2": {
       "level": "full",
       "notes": "Native Unity Catalog with Iceberg REST Catalog API support. Manages lifecycle tasks including snapshot expiration and file compaction. Supports credential vending for external engine access. Managed Iceberg tables are in Public Preview (DBR 16.4 LTS+).",
@@ -682,21 +608,9 @@
       "caveats": [],
       "links": []
     },
-    "databricks:jdbc-catalog:v2": {
-      "level": "none",
-      "notes": "Databricks does not support JDBC catalog for Iceberg.",
-      "caveats": [],
-      "links": []
-    },
-    "databricks:jdbc-catalog:v3": {
-      "level": "none",
-      "notes": "Databricks does not support JDBC catalog for Iceberg.",
-      "caveats": [],
-      "links": []
-    },
     "databricks:table-creation:v2": {
       "level": "full",
-      "notes": "Supports CREATE TABLE ... USING iceberg for native managed Iceberg tables in Unity Catalog. External engines can also create tables via the REST Catalog API. Note: UniForm (TBLPROPERTIES delta.universalFormat.enabledFormats = 'iceberg') creates Delta tables with Iceberg reads — not native Iceberg.",
+      "notes": "Supports CREATE TABLE ... USING iceberg for native managed Iceberg tables in Unity Catalog. External engines can also create tables via the REST Catalog API. Note: UniForm (TBLPROPERTIES delta.universalFormat.enabledFormats = 'iceberg') creates Delta tables with Iceberg reads \u2014 not native Iceberg.",
       "caveats": [
         "Managed Iceberg tables are GA",
         "Predictive optimization must be enabled for managed Iceberg table creation",
@@ -802,7 +716,7 @@
       "level": "full",
       "notes": "Row lineage is required and automatically enabled on all native Iceberg v3 tables. Tracks incremental changes with unique row IDs and last-modified sequence numbers. Requires DBR 18.0+ (GA).",
       "caveats": [
-        "Row lineage is required for all v3 tables — cannot be disabled",
+        "Row lineage is required for all v3 tables \u2014 cannot be disabled",
         "Iceberg v3 is GA (requires DBR 18.0+; DBR 18.2+ for geospatial types)",
         "Databricks Iceberg v3 is implemented via Delta Lake + UniForm (IcebergCompatV3) under the hood; 3rd-party Iceberg engines can read managed v3 tables via credential vending but cannot write to them"
       ],
@@ -905,9 +819,9 @@
     },
     "databricks:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "Databricks can connect to Snowflake Horizon Catalog via ICEBERG_REST catalog integration for read access. Databricks does not support writes to externally managed Iceberg tables — this is a Databricks engine limitation, not a Horizon Catalog limitation. Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog.",
+      "notes": "Databricks can connect to Snowflake Horizon Catalog via ICEBERG_REST catalog integration for read access. Databricks does not support writes to externally managed Iceberg tables \u2014 this is a Databricks engine limitation, not a Horizon Catalog limitation. Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog.",
       "caveats": [
-        "Read-only — Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Read-only \u2014 Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
         "Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog",
         "Managed Iceberg tables in Databricks are in Public Preview (requires DBR 16.4 LTS+)"
       ],
@@ -920,9 +834,9 @@
     },
     "databricks:snowflake-horizon-catalog:v3": {
       "level": "partial",
-      "notes": "Databricks can read Iceberg V3 tables via the Horizon Catalog REST API; however, Databricks does not support the full V3 spec. Tables using V3-only features such as nanosecond timestamps or deletion vectors may fail to read. Write support is not available — this is a Databricks engine limitation, not a Horizon Catalog limitation.",
+      "notes": "Databricks can read Iceberg V3 tables via the Horizon Catalog REST API; however, Databricks does not support the full V3 spec. Tables using V3-only features such as nanosecond timestamps or deletion vectors may fail to read. Write support is not available \u2014 this is a Databricks engine limitation, not a Horizon Catalog limitation.",
       "caveats": [
-        "Read-only — Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
+        "Read-only \u2014 Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
         "Tables using V3-only features (nanosecond timestamps, deletion vectors) may fail to read",
         "Databricks does not support the full Iceberg V3 spec"
       ],
@@ -962,6 +876,32 @@
       "level": "unknown",
       "notes": "Not yet measured; recorded as unknown rather than inferred. The suite probes a VOID column on a managed Iceberg table, so the next warehouse run will settle this.",
       "caveats": []
+    },
+    "databricks:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "databricks:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

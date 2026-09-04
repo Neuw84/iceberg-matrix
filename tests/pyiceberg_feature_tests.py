@@ -605,13 +605,6 @@ def test_catalog_integration() -> TestResult:
     return r
 
 
-def test_hive_metastore() -> TestResult:
-    r = TestResult("hive-metastore", "Hive Metastore")
-    r.result = "skip"
-    r.details = "Requires running Hive Metastore service; cannot test in CI without Docker"
-    return r
-
-
 def test_aws_glue_catalog() -> TestResult:
     r = TestResult("aws-glue-catalog", "AWS Glue Catalog")
     r.result = "skip"
@@ -626,20 +619,6 @@ def test_rest_catalog() -> TestResult:
     return r
 
 
-def test_nessie() -> TestResult:
-    r = TestResult("nessie", "Nessie")
-    r.result = "skip"
-    r.details = "Requires running Nessie server"
-    return r
-
-
-def test_polaris() -> TestResult:
-    r = TestResult("polaris", "Polaris")
-    r.result = "skip"
-    r.details = "Requires running Polaris server"
-    return r
-
-
 def test_unity_catalog() -> TestResult:
     r = TestResult("unity-catalog", "Unity Catalog")
     r.result = "skip"
@@ -651,13 +630,6 @@ def test_hadoop_catalog() -> TestResult:
     r = TestResult("hadoop-catalog", "Hadoop Catalog")
     r.result = "fail"
     r.details = "PyIceberg does not support Hadoop catalog"
-    return r
-
-
-def test_jdbc_catalog() -> TestResult:
-    r = TestResult("jdbc-catalog", "JDBC Catalog")
-    r.result = "fail"
-    r.details = "PyIceberg does not support JDBC catalog (Python, not JVM)"
     return r
 
 
@@ -694,7 +666,6 @@ def test_bloom_filters() -> TestResult:
     r.result = "fail"
     r.details = "PyIceberg does not support writing or reading bloom filter indexes"
     return r
-
 
 
 def test_variant_type() -> TestResult:
@@ -858,12 +829,8 @@ ALL_TESTS = [
     test_bloom_filters,
     test_catalog_integration,
     test_hadoop_catalog,
-    test_jdbc_catalog,
     test_rest_catalog,
-    test_hive_metastore,
     test_aws_glue_catalog,
-    test_nessie,
-    test_polaris,
     test_unity_catalog,
     test_variant_type,
     test_shredded_variant,

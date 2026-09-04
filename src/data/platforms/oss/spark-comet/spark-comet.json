@@ -16,70 +16,70 @@
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:position-deletes:v3": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:equality-deletes:v2": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:equality-deletes:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:merge-on-read:v2": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:merge-on-read:v3": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:copy-on-write:v2": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:copy-on-write:v3": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:schema-evolution:v2": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:schema-evolution:v3": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:column-default-values:v2": {
@@ -91,7 +91,7 @@
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:nanosecond-timestamps:v2": {
@@ -103,35 +103,35 @@
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:hidden-partitioning:v2": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:hidden-partitioning:v3": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:partition-evolution:v2": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:partition-evolution:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:multi-arg-transforms:v2": {
@@ -143,231 +143,175 @@
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:time-travel:v2": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:time-travel:v3": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:table-maintenance:v2": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:table-maintenance:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:branching-tagging:v2": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:branching-tagging:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:read-support:v2": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:read-support:v3": {
       "level": "partial",
       "notes": "Partially accelerated by Apache DataFusion Comet (native_iceberg_compat Parquet scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:write-insert:v2": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:write-insert:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:write-merge-update-delete:v2": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:write-merge-update-delete:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:catalog-integration:v2": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:catalog-integration:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-comet:hive-metastore:v2": {
-      "level": "none",
-      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-comet:hive-metastore:v3": {
-      "level": "none",
-      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:aws-glue-catalog:v2": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:aws-glue-catalog:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:rest-catalog:v2": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:rest-catalog:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-comet:nessie:v2": {
-      "level": "none",
-      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-comet:nessie:v3": {
-      "level": "none",
-      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-comet:polaris:v2": {
-      "level": "none",
-      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-comet:polaris:v3": {
-      "level": "none",
-      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:unity-catalog:v2": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:unity-catalog:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:hadoop-catalog:v2": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:hadoop-catalog:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-comet:jdbc-catalog:v2": {
-      "level": "none",
-      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-comet:jdbc-catalog:v3": {
-      "level": "none",
-      "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:table-creation:v2": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:table-creation:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:variant-type:v2": {
@@ -379,7 +323,7 @@
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:shredded-variant:v2": {
@@ -391,7 +335,7 @@
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:geometry-type:v2": {
@@ -403,7 +347,7 @@
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:lineage:v2": {
@@ -415,7 +359,7 @@
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:statistics:v2": {
@@ -464,14 +408,14 @@
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:snowflake-horizon-catalog:v3": {
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:deletion-vectors:v2": {
@@ -484,7 +428,7 @@
       "level": "none",
       "notes": "Not natively accelerated by Apache DataFusion Comet; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-comet:unknown-type:v2": {
@@ -496,6 +440,32 @@
       "level": "unknown",
       "notes": "Not yet measured; recorded as unknown rather than inferred. Comet accelerates operators rather than adding types, so this follows vanilla Spark.",
       "caveats": []
+    },
+    "spark-comet:google-lakehouse:v2": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "spark-comet:google-lakehouse:v3": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

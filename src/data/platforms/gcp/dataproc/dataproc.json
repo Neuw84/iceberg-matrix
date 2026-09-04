@@ -203,16 +203,6 @@
       "notes": "Supports BigLake Metastore, Hive Metastore, and custom catalogs",
       "caveats": []
     },
-    "google-dataproc:hive-metastore:v2": {
-      "level": "full",
-      "notes": "Native Hive Metastore support on Dataproc",
-      "caveats": []
-    },
-    "google-dataproc:hive-metastore:v3": {
-      "level": "full",
-      "notes": "Native Hive Metastore support on Dataproc",
-      "caveats": []
-    },
     "google-dataproc:aws-glue-catalog:v2": {
       "level": "partial",
       "notes": "Can connect to AWS Glue Catalog via custom Spark configuration",
@@ -237,26 +227,6 @@
       "notes": "REST Catalog supported via Spark on Dataproc",
       "caveats": []
     },
-    "google-dataproc:nessie:v2": {
-      "level": "full",
-      "notes": "Nessie catalog supported via Spark on Dataproc",
-      "caveats": []
-    },
-    "google-dataproc:nessie:v3": {
-      "level": "full",
-      "notes": "Nessie catalog supported via Spark on Dataproc",
-      "caveats": []
-    },
-    "google-dataproc:polaris:v2": {
-      "level": "full",
-      "notes": "Polaris supported via REST Catalog on Dataproc",
-      "caveats": []
-    },
-    "google-dataproc:polaris:v3": {
-      "level": "full",
-      "notes": "Polaris supported via REST Catalog on Dataproc",
-      "caveats": []
-    },
     "google-dataproc:unity-catalog:v2": {
       "level": "partial",
       "notes": "Can connect to Unity Catalog via REST Catalog API",
@@ -279,16 +249,6 @@
     "google-dataproc:hadoop-catalog:v3": {
       "level": "full",
       "notes": "Hadoop catalog supported via Spark on Dataproc",
-      "caveats": []
-    },
-    "google-dataproc:jdbc-catalog:v2": {
-      "level": "full",
-      "notes": "JDBC catalog supported via Spark on Dataproc",
-      "caveats": []
-    },
-    "google-dataproc:jdbc-catalog:v3": {
-      "level": "full",
-      "notes": "JDBC catalog supported via Spark on Dataproc",
       "caveats": []
     },
     "google-dataproc:table-creation:v2": {
@@ -442,6 +402,30 @@
       "level": "unknown",
       "notes": "Not yet measured; recorded as unknown rather than inferred. Dataproc reaches Iceberg through Spark, so the answer follows the bundled Spark and Iceberg versions.",
       "caveats": []
+    },
+    "google-dataproc:google-lakehouse:v2": {
+      "level": "full",
+      "notes": "Google's own engine on the Google Lakehouse runtime catalog (formerly BigLake metastore): Iceberg v2 tables are GA over the Iceberg REST catalog endpoint, read and written natively.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "google-dataproc:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google's own engine on the Google Lakehouse runtime catalog. Iceberg v3 tables (with binary deletion vectors) are supported in Preview over the REST catalog endpoint.",
+      "caveats": [
+        "v3 is Preview, not GA"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

@@ -16,70 +16,70 @@
       "level": "partial",
       "notes": "Partially accelerated by the Gluten Velox backend (native Parquet/ORC scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:position-deletes:v3": {
       "level": "partial",
       "notes": "Partially accelerated by the Gluten Velox backend (native Parquet/ORC scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:equality-deletes:v2": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:equality-deletes:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:merge-on-read:v2": {
       "level": "partial",
       "notes": "Partially accelerated by the Gluten Velox backend (native Parquet/ORC scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:merge-on-read:v3": {
       "level": "partial",
       "notes": "Partially accelerated by the Gluten Velox backend (native Parquet/ORC scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:copy-on-write:v2": {
       "level": "partial",
       "notes": "Partially accelerated by the Gluten Velox backend (native Parquet/ORC scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:copy-on-write:v3": {
       "level": "partial",
       "notes": "Partially accelerated by the Gluten Velox backend (native Parquet/ORC scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:schema-evolution:v2": {
       "level": "partial",
       "notes": "Partially accelerated by the Gluten Velox backend (native Parquet/ORC scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:schema-evolution:v3": {
       "level": "partial",
       "notes": "Partially accelerated by the Gluten Velox backend (native Parquet/ORC scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:column-default-values:v2": {
@@ -91,7 +91,7 @@
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:nanosecond-timestamps:v2": {
@@ -103,35 +103,35 @@
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:hidden-partitioning:v2": {
       "level": "partial",
       "notes": "Partially accelerated by the Gluten Velox backend (native Parquet/ORC scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:hidden-partitioning:v3": {
       "level": "partial",
       "notes": "Partially accelerated by the Gluten Velox backend (native Parquet/ORC scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:partition-evolution:v2": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:partition-evolution:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:multi-arg-transforms:v2": {
@@ -143,7 +143,7 @@
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:time-travel:v2": {
@@ -160,210 +160,154 @@
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:table-maintenance:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:branching-tagging:v2": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:branching-tagging:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:read-support:v2": {
       "level": "partial",
       "notes": "Partially accelerated by the Gluten Velox backend (native Parquet/ORC scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:read-support:v3": {
       "level": "partial",
       "notes": "Partially accelerated by the Gluten Velox backend (native Parquet/ORC scan); cases the native engine cannot offload fall back to vanilla Spark, which provides the full feature support.",
       "caveats": [
-        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Unsupported cases fall back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:write-insert:v2": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:write-insert:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:write-merge-update-delete:v2": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:write-merge-update-delete:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:catalog-integration:v2": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:catalog-integration:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-gluten:hive-metastore:v2": {
-      "level": "none",
-      "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-gluten:hive-metastore:v3": {
-      "level": "none",
-      "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:aws-glue-catalog:v2": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:aws-glue-catalog:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:rest-catalog:v2": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:rest-catalog:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-gluten:nessie:v2": {
-      "level": "none",
-      "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-gluten:nessie:v3": {
-      "level": "none",
-      "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-gluten:polaris:v2": {
-      "level": "none",
-      "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-gluten:polaris:v3": {
-      "level": "none",
-      "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:unity-catalog:v2": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:unity-catalog:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:hadoop-catalog:v2": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:hadoop-catalog:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-gluten:jdbc-catalog:v2": {
-      "level": "none",
-      "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
-      ]
-    },
-    "spark-gluten:jdbc-catalog:v3": {
-      "level": "none",
-      "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:table-creation:v2": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:table-creation:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:variant-type:v2": {
@@ -375,7 +319,7 @@
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:shredded-variant:v2": {
@@ -387,7 +331,7 @@
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:geometry-type:v2": {
@@ -399,7 +343,7 @@
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:lineage:v2": {
@@ -411,7 +355,7 @@
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:statistics:v2": {
@@ -460,14 +404,14 @@
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:snowflake-horizon-catalog:v3": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:deletion-vectors:v2": {
@@ -480,7 +424,7 @@
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
       "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark’s support level)"
+        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
     "spark-gluten:unknown-type:v2": {
@@ -492,6 +436,32 @@
       "level": "unknown",
       "notes": "Not yet measured; recorded as unknown rather than inferred. The Gluten Velox backend accelerates operators rather than adding types, so this follows vanilla Spark.",
       "caveats": []
+    },
+    "spark-gluten:google-lakehouse:v2": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "spark-gluten:google-lakehouse:v3": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

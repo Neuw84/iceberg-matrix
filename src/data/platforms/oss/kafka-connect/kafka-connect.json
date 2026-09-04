@@ -208,16 +208,6 @@
       "notes": "Supports REST, Hive, Hadoop as built-in catalog types, plus Glue, DynamoDB, Nessie, JDBC, and BigQuery Metastore via catalog-impl",
       "caveats": []
     },
-    "kafka-connect:hive-metastore:v2": {
-      "level": "full",
-      "notes": "Hive Metastore is a built-in catalog type; requires HMS client distribution or adding HMS client dependency",
-      "caveats": []
-    },
-    "kafka-connect:hive-metastore:v3": {
-      "level": "full",
-      "notes": "Hive Metastore is a built-in catalog type; requires HMS client distribution or adding HMS client dependency",
-      "caveats": []
-    },
     "kafka-connect:aws-glue-catalog:v2": {
       "level": "full",
       "notes": "AWS Glue Catalog supported via iceberg.catalog.catalog-impl with GlueCatalog; documented with configuration examples",
@@ -238,30 +228,6 @@
       "notes": "REST Catalog is a built-in catalog type with first-class support and documented configuration examples",
       "caveats": []
     },
-    "kafka-connect:nessie:v2": {
-      "level": "full",
-      "notes": "Nessie supported via iceberg.catalog.catalog-impl with NessieCatalog; documented with configuration examples",
-      "caveats": []
-    },
-    "kafka-connect:nessie:v3": {
-      "level": "full",
-      "notes": "Nessie supported via iceberg.catalog.catalog-impl with NessieCatalog; documented with configuration examples",
-      "caveats": []
-    },
-    "kafka-connect:polaris:v2": {
-      "level": "partial",
-      "notes": "Polaris can be used via REST Catalog protocol as Polaris implements the Iceberg REST Catalog spec",
-      "caveats": [
-        "Not explicitly documented; works through REST Catalog compatibility"
-      ]
-    },
-    "kafka-connect:polaris:v3": {
-      "level": "partial",
-      "notes": "Polaris can be used via REST Catalog protocol as Polaris implements the Iceberg REST Catalog spec",
-      "caveats": [
-        "Not explicitly documented; works through REST Catalog compatibility"
-      ]
-    },
     "kafka-connect:unity-catalog:v2": {
       "level": "none",
       "notes": "Unity Catalog is not supported by the Kafka Connect Iceberg sink connector",
@@ -281,20 +247,6 @@
       "level": "full",
       "notes": "Hadoop is a built-in catalog type with first-class support",
       "caveats": []
-    },
-    "kafka-connect:jdbc-catalog:v2": {
-      "level": "partial",
-      "notes": "JDBC Catalog supported via catalog-impl but JDBC drivers are not included in the default distribution",
-      "caveats": [
-        "Requires adding JDBC driver dependency manually"
-      ]
-    },
-    "kafka-connect:jdbc-catalog:v3": {
-      "level": "partial",
-      "notes": "JDBC Catalog supported via catalog-impl but JDBC drivers are not included in the default distribution",
-      "caveats": [
-        "Requires adding JDBC driver dependency manually"
-      ]
     },
     "kafka-connect:table-creation:v2": {
       "level": "partial",
@@ -456,6 +408,32 @@
       "level": "none",
       "notes": "No documented support for the V3 unknown type in the sink connector.",
       "caveats": []
+    },
+    "kafka-connect:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "kafka-connect:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

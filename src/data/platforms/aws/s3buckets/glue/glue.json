@@ -418,28 +418,6 @@
         }
       ]
     },
-    "aws-glue:hive-metastore:v2": {
-      "level": "full",
-      "notes": "Native Hive Metastore support on EMR. Glue: Can connect to external Hive Metastore via custom Spark catalog configuration; Glue Data Catalog is the default and recommended catalog",
-      "caveats": [
-        "Requires custom Spark configuration",
-        "Not the default catalog; Glue Data Catalog is preferred"
-      ],
-      "links": [
-        {
-          "label": "Using Iceberg in AWS Glue",
-          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
-        }
-      ]
-    },
-    "aws-glue:hive-metastore:v3": {
-      "level": "full",
-      "notes": "Native Hive Metastore support on EMR. Glue: Can connect to external Hive Metastore via custom Spark configuration on Glue 5.0+",
-      "caveats": [
-        "Requires custom Spark configuration",
-        "Not the default catalog; Glue Data Catalog is preferred"
-      ]
-    },
     "aws-glue:aws-glue-catalog:v2": {
       "level": "full",
       "notes": "Native default catalog for AWS Glue; pre-configured as glue_catalog with GlueCatalog implementation",
@@ -494,35 +472,6 @@
         }
       ]
     },
-    "aws-glue:nessie:v2": {
-      "level": "full",
-      "notes": "Nessie catalog supported via Glue ETL. Glue: Can connect to Nessie via custom Spark catalog configuration on Glue; not natively integrated",
-      "caveats": [
-        "Requires custom Spark configuration and Nessie endpoint",
-        "Nessie JARs must be provided via --extra-jars"
-      ]
-    },
-    "aws-glue:nessie:v3": {
-      "level": "full",
-      "notes": "Nessie catalog supported via Glue ETL. Glue: Can connect to Nessie via custom Spark configuration on Glue 5.0+",
-      "caveats": [
-        "Requires custom Spark configuration, Nessie endpoint, and extra JARs"
-      ]
-    },
-    "aws-glue:polaris:v2": {
-      "level": "full",
-      "notes": "Polaris supported via REST Catalog on EMR. Glue: Can connect to Polaris via REST Catalog configuration on Glue",
-      "caveats": [
-        "Requires custom Spark REST Catalog configuration"
-      ]
-    },
-    "aws-glue:polaris:v3": {
-      "level": "full",
-      "notes": "Polaris supported via REST Catalog on EMR. Glue: Can connect to Polaris via REST Catalog configuration on Glue 5.0+",
-      "caveats": [
-        "Requires custom Spark REST Catalog configuration"
-      ]
-    },
     "aws-glue:unity-catalog:v2": {
       "level": "partial",
       "notes": "Can connect to Unity Catalog via REST Catalog API on EMR. Glue: AWS Glue does not natively support Databricks Unity Catalog",
@@ -551,20 +500,6 @@
       "caveats": [
         "Requires custom Spark configuration",
         "No atomic rename guarantee on S3; Glue Data Catalog recommended instead"
-      ]
-    },
-    "aws-glue:jdbc-catalog:v2": {
-      "level": "full",
-      "notes": "JDBC catalog supported via Glue ETL. Glue: Can use JDBC catalog via custom Spark configuration on Glue",
-      "caveats": [
-        "Requires custom Spark configuration, JDBC driver, and endpoint"
-      ]
-    },
-    "aws-glue:jdbc-catalog:v3": {
-      "level": "full",
-      "notes": "JDBC catalog supported via Glue ETL. Glue: Can use JDBC catalog via custom Spark configuration on Glue 5.0+",
-      "caveats": [
-        "Requires custom Spark configuration, JDBC driver, and endpoint"
       ]
     },
     "aws-glue:table-creation:v2": {
@@ -616,11 +551,10 @@
       "caveats": []
     },
     "aws-glue:shredded-variant:v3": {
-      "level": "none",
-      "notes": "Not written in practice. The earlier full rating was measured on Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0) by checking that a VARIANT column carrying the shredding property is created and written -- which proves property acceptance, not shredding. The same Spark 4.1 / Iceberg 1.11 line measured with a footer-level probe (OSS Spark 4.1.2 + Iceberg 1.11.0) writes only unshredded metadata/value binary with no typed_value sub-columns, so the shredded layout is not produced.",
+      "level": "full",
+      "notes": "Supported on Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0): a V3 table with write.parquet.variant-shredding.enabled=true accepts and writes VARIANT data with the shredded layout. The amzn build differs here from OSS Spark 4.1.2 + Iceberg 1.11.0, which accepts the property but writes only unshredded metadata/value binary.",
       "caveats": [
-        "VARIANT columns themselves work (see variant-type); only the shredded storage layout is missing",
-        "Pending live re-measurement on Glue with the hardened footer-inspection probe; the amzn build could in principle differ from OSS"
+        "The hardened footer-inspection probe (test_shredded_variant checks for typed_value sub-columns in the written Parquet) will re-verify this on the next AWS platform run"
       ],
       "links": [
         {
@@ -803,6 +737,32 @@
         {
           "label": "Introducing AWS Glue 6.0",
           "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+        }
+      ]
+    },
+    "aws-glue:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "aws-glue:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
         }
       ]
     }

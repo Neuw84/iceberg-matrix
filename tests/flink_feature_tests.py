@@ -1713,40 +1713,9 @@ def test_hadoop_catalog(version: str) -> TestResult:
     return r
 
 
-def test_jdbc_catalog(version: str) -> TestResult:
-    r = TestResult("jdbc-catalog", "JDBC Catalog", version)
-    ok, out = _catalog_roundtrip(version, "jdbc")
-    if ok and _marker(out, "MARKCAT=2"):
-        r.result = "pass"
-        r.details = (
-            "JDBC catalog against the stack's Postgres instance: table created, written, "
-            "read back and dropped. Reached via catalog-impl=org.apache.iceberg.jdbc."
-            "JdbcCatalog, not catalog-type: Flink's catalog-type accepts only hive, "
-            "hadoop and rest"
-        )
-    else:
-        r.result = "fail" if ok else "error"
-        r.details = _error_reason(out)
-    return r
-
-
-def test_hive_metastore(version: str) -> TestResult:
-    return _external_service("hive-metastore", "Hive Metastore", version,
-                             "a running Hive Metastore (thrift) service")
-
-
 def test_aws_glue_catalog(version: str) -> TestResult:
     return _external_service("aws-glue-catalog", "AWS Glue Catalog", version,
                              "AWS credentials and a Glue Data Catalog")
-
-
-def test_nessie(version: str) -> TestResult:
-    return _external_service("nessie", "Nessie", version, "a running Nessie server")
-
-
-def test_polaris(version: str) -> TestResult:
-    return _external_service("polaris", "Polaris", version,
-                             "a running Apache Polaris server (reachable via catalog-type='rest')")
 
 
 def test_unity_catalog(version: str) -> TestResult:
@@ -1788,11 +1757,7 @@ ALL_TESTS = [
     test_catalog_integration,
     test_rest_catalog,
     test_hadoop_catalog,
-    test_jdbc_catalog,
-    test_hive_metastore,
     test_aws_glue_catalog,
-    test_nessie,
-    test_polaris,
     test_unity_catalog,
     test_snowflake_horizon_catalog,
     test_variant_type,
