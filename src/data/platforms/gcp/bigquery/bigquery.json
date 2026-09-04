@@ -458,30 +458,6 @@
         }
       ]
     },
-    "google-bigquery:hive-metastore:v2": {
-      "level": "none",
-      "notes": "BigQuery uses BigLake metastore as the native catalog; Hive Metastore is not mentioned as supported",
-      "caveats": [],
-      "links": [
-        {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
-        }
-      ]
-    },
-    "google-bigquery:hive-metastore:v3": {
-      "level": "none",
-      "notes": "BigQuery only supports Iceberg V2; Hive Metastore integration is read-only and V2 only",
-      "caveats": [
-        "Only Iceberg V2 format is supported for snapshot export"
-      ],
-      "links": [
-        {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
-        }
-      ]
-    },
     "google-bigquery:aws-glue-catalog:v2": {
       "level": "partial",
       "notes": "Reachable through borderless Lakehouse cross-cloud federation (Preview since June 5, 2026): AWS Glue is federated into the Lakehouse runtime catalog over the Iceberg REST catalog protocol, and BigQuery or Spark query the synchronized tables directly without copying data, optionally over a private Cross-Cloud Interconnect to S3. This is a federation/query path, not native Glue catalog support.",
@@ -559,42 +535,6 @@
         }
       ]
     },
-    "google-bigquery:nessie:v2": {
-      "level": "none",
-      "notes": "BigQuery does not support Nessie catalog; BigLake metastore is the native catalog",
-      "caveats": []
-    },
-    "google-bigquery:nessie:v3": {
-      "level": "none",
-      "notes": "BigQuery does not support Nessie catalog",
-      "caveats": [
-        "Only Iceberg V2 format is supported for snapshot export"
-      ],
-      "links": [
-        {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
-        }
-      ]
-    },
-    "google-bigquery:polaris:v2": {
-      "level": "none",
-      "notes": "BigQuery does not support Polaris; BigLake metastore is the native catalog",
-      "caveats": []
-    },
-    "google-bigquery:polaris:v3": {
-      "level": "none",
-      "notes": "BigQuery does not natively support Polaris",
-      "caveats": [
-        "Only Iceberg V2 format is supported for snapshot export"
-      ],
-      "links": [
-        {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
-        }
-      ]
-    },
     "google-bigquery:unity-catalog:v2": {
       "level": "partial",
       "notes": "Reachable through borderless Lakehouse cross-cloud federation (Preview since April 2026): Databricks Unity Catalog (on AWS or Google Cloud) is federated into the Lakehouse runtime catalog over the Iceberg REST catalog protocol, and BigQuery or Spark query the synchronized tables directly without copying data. Authentication via Secret Manager OAuth or OIDC token federation; optional private Cross-Cloud Interconnect transport and intelligent caching (Preview) reduce egress. This is a federation/query path, not native Unity Catalog support.",
@@ -639,24 +579,6 @@
     "google-bigquery:hadoop-catalog:v3": {
       "level": "none",
       "notes": "BigQuery does not support Hadoop catalog",
-      "caveats": [
-        "Only Iceberg V2 format is supported for snapshot export"
-      ],
-      "links": [
-        {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
-        }
-      ]
-    },
-    "google-bigquery:jdbc-catalog:v2": {
-      "level": "none",
-      "notes": "BigQuery does not support JDBC catalog; BigLake metastore is the native catalog",
-      "caveats": []
-    },
-    "google-bigquery:jdbc-catalog:v3": {
-      "level": "none",
-      "notes": "BigQuery does not support JDBC catalog",
       "caveats": [
         "Only Iceberg V2 format is supported for snapshot export"
       ],
@@ -904,6 +826,30 @@
       "level": "none",
       "notes": "BigQuery only supports Iceberg V2 snapshot export; V3 types are not supported.",
       "caveats": []
+    },
+    "google-bigquery:google-lakehouse:v2": {
+      "level": "full",
+      "notes": "Google's own engine on the Google Lakehouse runtime catalog (formerly BigLake metastore): Iceberg v2 tables are GA over the Iceberg REST catalog endpoint, read and written natively.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "google-bigquery:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google's own engine on the Google Lakehouse runtime catalog. Iceberg v3 tables (with binary deletion vectors) are supported in Preview over the REST catalog endpoint.",
+      "caveats": [
+        "v3 is Preview, not GA"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

@@ -1744,23 +1744,6 @@ def test_rest_catalog(version: str) -> TestResult:
                                 "a generic Iceberg REST catalog")
 
 
-def test_hive_metastore(version: str) -> TestResult:
-    # Redshift does have a FROM HIVE METASTORE clause, and it is the one non-Glue
-    # source it recognises: measured in this account it creates the schema even
-    # against a dead endpoint, whereas the REST clause is indistinguishable from
-    # nonsense. That clause is for Hive external tables though, and Redshift's
-    # Iceberg reader is bound to the Data Catalog, so it does not make this a
-    # route to Iceberg. Proving that either way needs a live metastore, so the
-    # detail says exactly how far the evidence goes.
-    return _non_glue_catalog(
-        "hive-metastore", "Hive Metastore", version,
-        "a Hive Metastore holding Iceberg tables",
-        "is not such a route: FROM HIVE METASTORE is recognised, but it registers "
-        "Hive external tables rather than Iceberg ones, and this was not verified "
-        "against a live metastore",
-    )
-
-
 def test_hadoop_catalog(version: str) -> TestResult:
     return _non_glue_catalog(
         "hadoop-catalog", "Hadoop Catalog", version,
@@ -1768,25 +1751,6 @@ def test_hadoop_catalog(version: str) -> TestResult:
         "has no external-schema form, since a warehouse path on S3 cannot be "
         "registered as a catalog without Glue metadata behind it",
     )
-
-
-def test_jdbc_catalog(version: str) -> TestResult:
-    return _non_glue_catalog(
-        "jdbc-catalog", "JDBC Catalog", version,
-        "a JDBC-backed Iceberg catalog",
-        "has no external-schema form; FROM POSTGRES and FROM MYSQL exist for "
-        "federated query against those databases, not for reading an Iceberg "
-        "catalog stored in them",
-    )
-
-
-def test_nessie(version: str) -> TestResult:
-    return _rest_backed_catalog("nessie", "Nessie", version, "Nessie")
-
-
-def test_polaris(version: str) -> TestResult:
-    return _rest_backed_catalog("polaris", "Polaris", version,
-                                "Apache Polaris")
 
 
 def test_unity_catalog(version: str) -> TestResult:
@@ -2002,11 +1966,7 @@ ALL_TESTS = [
     test_bloom_filters,
     test_aws_glue_catalog,
     test_rest_catalog,
-    test_hive_metastore,
     test_hadoop_catalog,
-    test_jdbc_catalog,
-    test_nessie,
-    test_polaris,
     test_unity_catalog,
     test_snowflake_horizon_catalog,
     test_variant_type,

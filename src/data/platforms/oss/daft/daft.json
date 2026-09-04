@@ -228,18 +228,6 @@
         "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
       ]
     },
-    "daft:hive-metastore:v2": {
-      "level": "full",
-      "notes": "Hive Metastore catalog supported via PyIceberg",
-      "caveats": []
-    },
-    "daft:hive-metastore:v3": {
-      "level": "unknown",
-      "notes": "Daft has not announced Iceberg V3 support",
-      "caveats": [
-        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
-      ]
-    },
     "daft:aws-glue-catalog:v2": {
       "level": "full",
       "notes": "AWS Glue Catalog supported via PyIceberg",
@@ -258,34 +246,6 @@
       "caveats": []
     },
     "daft:rest-catalog:v3": {
-      "level": "unknown",
-      "notes": "Daft has not announced Iceberg V3 support",
-      "caveats": [
-        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
-      ]
-    },
-    "daft:nessie:v2": {
-      "level": "partial",
-      "notes": "Nessie catalog accessible via PyIceberg REST Catalog interface",
-      "caveats": [
-        "Accessed through REST catalog protocol; not a native PyIceberg catalog type"
-      ]
-    },
-    "daft:nessie:v3": {
-      "level": "unknown",
-      "notes": "Daft has not announced Iceberg V3 support",
-      "caveats": [
-        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
-      ]
-    },
-    "daft:polaris:v2": {
-      "level": "partial",
-      "notes": "Polaris catalog accessible via PyIceberg REST Catalog interface",
-      "caveats": [
-        "Accessed through REST catalog protocol"
-      ]
-    },
-    "daft:polaris:v3": {
       "level": "unknown",
       "notes": "Daft has not announced Iceberg V3 support",
       "caveats": [
@@ -314,18 +274,6 @@
     "daft:hadoop-catalog:v3": {
       "level": "none",
       "notes": "Hadoop catalog is not supported by PyIceberg",
-      "caveats": []
-    },
-    "daft:jdbc-catalog:v2": {
-      "level": "none",
-      "notes": "JDBC catalog is a Java concept; PyIceberg has a SQL catalog but not JDBC. Daft does not support JDBC catalogs",
-      "caveats": [
-        "PyIceberg offers a SQL catalog as an alternative"
-      ]
-    },
-    "daft:jdbc-catalog:v3": {
-      "level": "none",
-      "notes": "JDBC catalog is not supported; PyIceberg has SQL catalog as alternative",
       "caveats": []
     },
     "daft:table-creation:v2": {
@@ -485,6 +433,32 @@
       "level": "none",
       "notes": "Daft has not announced Iceberg V3 support; the unknown type is a V3 feature.",
       "caveats": []
+    },
+    "daft:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "daft:google-lakehouse:v3": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

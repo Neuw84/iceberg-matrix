@@ -141,13 +141,6 @@
       "description": "Probabilistic data structure written in Puffin files to efficiently skip data files that definitely don't contain matching values, improving point lookup query performance"
     },
     {
-      "id": "hive-metastore",
-      "name": "Hive Metastore",
-      "category": "catalog-support",
-      "introducedIn": "v2",
-      "description": "Apache Hive Metastore catalog implementation for managing Iceberg table metadata using the Hive Thrift protocol"
-    },
-    {
       "id": "aws-glue-catalog",
       "name": "AWS Glue Catalog",
       "category": "catalog-support",
@@ -160,20 +153,6 @@
       "category": "catalog-support",
       "introducedIn": "v2",
       "description": "Vendor-neutral REST API-based catalog specification for managing Iceberg table metadata over HTTP"
-    },
-    {
-      "id": "nessie",
-      "name": "Nessie",
-      "category": "catalog-support",
-      "introducedIn": "v2",
-      "description": "Project Nessie catalog providing Git-like versioning, branching, and tagging for Iceberg table metadata"
-    },
-    {
-      "id": "polaris",
-      "name": "Polaris",
-      "category": "catalog-support",
-      "introducedIn": "v2",
-      "description": "Apache Polaris (incubating) open-source catalog service implementing the Iceberg REST Catalog API with fine-grained access control"
     },
     {
       "id": "unity-catalog",
@@ -190,18 +169,18 @@
       "description": "Snowflake Horizon Catalog \u2014 Snowflake's managed catalog service based on Apache Polaris, implementing the Iceberg REST Catalog API with cross-engine RBAC and fine-grained table governance"
     },
     {
+      "id": "google-lakehouse",
+      "name": "Google Lakehouse",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "Google Lakehouse runtime catalog (formerly BigLake metastore) exposing the Iceberg REST Catalog API, with cross-cloud federation of remote catalogs (borderless Lakehouse)"
+    },
+    {
       "id": "hadoop-catalog",
       "name": "Hadoop Catalog",
       "category": "catalog-support",
       "introducedIn": "v2",
       "description": "File-system based catalog that stores Iceberg metadata directly on HDFS or compatible storage without an external service"
-    },
-    {
-      "id": "jdbc-catalog",
-      "name": "JDBC Catalog",
-      "category": "catalog-support",
-      "introducedIn": "v2",
-      "description": "JDBC-based catalog that stores Iceberg table metadata in a relational database such as PostgreSQL or MySQL"
     },
     {
       "id": "variant-type",

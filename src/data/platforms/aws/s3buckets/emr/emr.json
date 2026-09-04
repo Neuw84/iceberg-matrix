@@ -408,28 +408,6 @@
         }
       ]
     },
-    "aws-emr:hive-metastore:v2": {
-      "level": "full",
-      "notes": "Native Hive Metastore support on EMR. Glue: Can connect to external Hive Metastore via custom Spark catalog configuration; Glue Data Catalog is the default and recommended catalog",
-      "caveats": [
-        "Requires custom Spark configuration",
-        "Not the default catalog; Glue Data Catalog is preferred"
-      ],
-      "links": [
-        {
-          "label": "Using Iceberg in AWS Glue",
-          "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
-        }
-      ]
-    },
-    "aws-emr:hive-metastore:v3": {
-      "level": "full",
-      "notes": "Native Hive Metastore support on EMR 8.0 / Spark 4.0.2 for V3 tables",
-      "caveats": [
-        "Requires custom Spark configuration",
-        "Not the default catalog; Glue Data Catalog is preferred"
-      ]
-    },
     "aws-emr:aws-glue-catalog:v2": {
       "level": "full",
       "notes": "Native default catalog for AWS Glue; pre-configured as glue_catalog with GlueCatalog implementation",
@@ -484,35 +462,6 @@
         }
       ]
     },
-    "aws-emr:nessie:v2": {
-      "level": "full",
-      "notes": "Nessie catalog supported via Spark on EMR. Glue: Can connect to Nessie via custom Spark catalog configuration on Glue; not natively integrated",
-      "caveats": [
-        "Requires custom Spark configuration and Nessie endpoint",
-        "Nessie JARs must be provided via --extra-jars"
-      ]
-    },
-    "aws-emr:nessie:v3": {
-      "level": "full",
-      "notes": "Nessie catalog supported via Spark 4.0.2 on EMR 8.0 with V3 tables",
-      "caveats": [
-        "Requires custom Spark configuration, Nessie endpoint, and extra JARs"
-      ]
-    },
-    "aws-emr:polaris:v2": {
-      "level": "full",
-      "notes": "Polaris supported via REST Catalog on EMR. Glue: Can connect to Polaris via REST Catalog configuration on Glue",
-      "caveats": [
-        "Requires custom Spark REST Catalog configuration"
-      ]
-    },
-    "aws-emr:polaris:v3": {
-      "level": "full",
-      "notes": "Polaris supported via REST Catalog on EMR 8.0 / Spark 4.0.2 with V3 tables",
-      "caveats": [
-        "Requires custom Spark REST Catalog configuration"
-      ]
-    },
     "aws-emr:unity-catalog:v2": {
       "level": "partial",
       "notes": "Can connect to Unity Catalog via REST Catalog API on EMR. Glue: AWS Glue does not natively support Databricks Unity Catalog",
@@ -541,20 +490,6 @@
       "caveats": [
         "Requires custom Spark configuration",
         "No atomic rename guarantee on S3; Glue Data Catalog recommended instead"
-      ]
-    },
-    "aws-emr:jdbc-catalog:v2": {
-      "level": "full",
-      "notes": "JDBC catalog supported via Spark on EMR. Glue: Can use JDBC catalog via custom Spark configuration on Glue",
-      "caveats": [
-        "Requires custom Spark configuration, JDBC driver, and endpoint"
-      ]
-    },
-    "aws-emr:jdbc-catalog:v3": {
-      "level": "full",
-      "notes": "JDBC catalog supported via Spark 4.0.2 on EMR 8.0 with V3 tables",
-      "caveats": [
-        "Requires custom Spark configuration, JDBC driver, and endpoint"
       ]
     },
     "aws-emr:table-creation:v2": {
@@ -794,6 +729,32 @@
         "Promotion of an unknown column to a concrete type later was not exercised; only declaration, write and read were measured."
       ],
       "links": []
+    },
+    "aws-emr:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "aws-emr:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

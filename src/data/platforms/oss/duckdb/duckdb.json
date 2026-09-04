@@ -471,28 +471,6 @@
         }
       ]
     },
-    "duckdb:hive-metastore:v2": {
-      "level": "none",
-      "notes": "DuckDB does not support Hive Metastore; only REST-based catalogs are supported",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg REST Catalogs",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
-        }
-      ]
-    },
-    "duckdb:hive-metastore:v3": {
-      "level": "none",
-      "notes": "DuckDB does not support Hive Metastore",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg REST Catalogs",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
-        }
-      ]
-    },
     "duckdb:aws-glue-catalog:v2": {
       "level": "full",
       "notes": "DuckDB supports AWS Glue via dedicated ENDPOINT_TYPE 'glue' or SigV4 authorization",
@@ -553,54 +531,6 @@
         }
       ]
     },
-    "duckdb:nessie:v2": {
-      "level": "none",
-      "notes": "DuckDB does not natively support Nessie catalog; no documented REST compatibility",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg REST Catalogs",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
-        }
-      ]
-    },
-    "duckdb:nessie:v3": {
-      "level": "none",
-      "notes": "DuckDB does not support Nessie catalog",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg REST Catalogs",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
-        }
-      ]
-    },
-    "duckdb:polaris:v2": {
-      "level": "full",
-      "notes": "DuckDB supports Polaris via REST Catalog with explicit documentation and examples",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg REST Catalogs",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
-        }
-      ]
-    },
-    "duckdb:polaris:v3": {
-      "level": "full",
-      "notes": "Polaris via REST Catalog fully supports V3 tables for reads and writes since v1.5.3",
-      "caveats": [],
-      "links": [
-        {
-          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
-          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
-        },
-        {
-          "label": "Iceberg REST Catalogs",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
-        }
-      ]
-    },
     "duckdb:unity-catalog:v2": {
       "level": "partial",
       "notes": "DuckDB may connect to Unity Catalog via REST Catalog API but this is not officially documented",
@@ -641,28 +571,6 @@
     "duckdb:hadoop-catalog:v3": {
       "level": "none",
       "notes": "DuckDB does not support Hadoop catalog",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg REST Catalogs",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
-        }
-      ]
-    },
-    "duckdb:jdbc-catalog:v2": {
-      "level": "none",
-      "notes": "DuckDB does not support JDBC catalog; only REST-based catalogs are supported",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg REST Catalogs",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
-        }
-      ]
-    },
-    "duckdb:jdbc-catalog:v3": {
-      "level": "none",
-      "notes": "DuckDB does not support JDBC catalog",
       "caveats": [],
       "links": [
         {
@@ -906,6 +814,32 @@
       "level": "none",
       "notes": "DuckDB's Iceberg support lists the unknown type alongside GEOGRAPHY as still unimplemented, targeted at a later release, so it is documented as absent rather than merely unmeasured.",
       "caveats": []
+    },
+    "duckdb:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "duckdb:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

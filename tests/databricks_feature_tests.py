@@ -874,11 +874,6 @@ def test_bloom_filters() -> TestResult:
                  "Bloom-filter write properties are not exposed for managed Iceberg tables")
 
 
-def test_hive_metastore() -> TestResult:
-    return _skip("hive-metastore", "Hive Metastore", "v2",
-                 "External catalog wiring is out of scope for a single-workspace run")
-
-
 def test_glue_catalog() -> TestResult:
     return _skip("aws-glue-catalog", "AWS Glue Catalog", "v2",
                  "External catalog wiring is out of scope for a single-workspace run")
@@ -889,16 +884,6 @@ def test_rest_catalog() -> TestResult:
                  "Requires Lakehouse Federation setup against an external IRC endpoint")
 
 
-def test_nessie() -> TestResult:
-    return _skip("nessie", "Nessie", "v2",
-                 "External catalog wiring is out of scope for a single-workspace run")
-
-
-def test_polaris() -> TestResult:
-    return _skip("polaris", "Polaris", "v2",
-                 "External catalog wiring is out of scope for a single-workspace run")
-
-
 def test_snowflake_horizon_catalog() -> TestResult:
     return _skip("snowflake-horizon-catalog", "Snowflake Horizon Catalog", "v2",
                  "External catalog wiring is out of scope for a single-workspace run")
@@ -907,11 +892,6 @@ def test_snowflake_horizon_catalog() -> TestResult:
 def test_hadoop_catalog() -> TestResult:
     return _skip("hadoop-catalog", "Hadoop Catalog", "v2",
                  "Path-based catalogs cannot be attached to a UC SQL warehouse")
-
-
-def test_jdbc_catalog() -> TestResult:
-    return _skip("jdbc-catalog", "JDBC Catalog", "v2",
-                 "JDBC catalogs cannot be attached to a UC SQL warehouse")
 
 
 ALL_TESTS = [
@@ -944,14 +924,10 @@ ALL_TESTS = [
     test_statistics,
     test_statistics_v3,
     test_bloom_filters,
-    test_hive_metastore,
     test_glue_catalog,
     test_rest_catalog,
-    test_nessie,
-    test_polaris,
     test_snowflake_horizon_catalog,
     test_hadoop_catalog,
-    test_jdbc_catalog,
 ]
 
 

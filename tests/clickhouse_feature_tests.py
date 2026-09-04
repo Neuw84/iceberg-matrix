@@ -644,38 +644,6 @@ def test_hadoop_catalog() -> TestResult:
     return r
 
 
-def test_jdbc_catalog() -> TestResult:
-    """ClickHouse does not support JDBC catalog."""
-    r = TestResult("jdbc-catalog", "JDBC Catalog")
-    r.result = "fail"
-    r.details = "ClickHouse does not support JDBC catalog"
-    return r
-
-
-def test_hive_metastore() -> TestResult:
-    """ClickHouse does not support Hive Metastore catalog."""
-    r = TestResult("hive-metastore", "Hive Metastore")
-    r.result = "fail"
-    r.details = "ClickHouse does not support Hive Metastore catalog for Iceberg"
-    return r
-
-
-def test_nessie() -> TestResult:
-    """ClickHouse does not support Nessie catalog."""
-    r = TestResult("nessie", "Nessie")
-    r.result = "fail"
-    r.details = "ClickHouse does not support Nessie catalog"
-    return r
-
-
-def test_polaris() -> TestResult:
-    """ClickHouse does not support Polaris catalog."""
-    r = TestResult("polaris", "Polaris")
-    r.result = "fail"
-    r.details = "ClickHouse does not support Polaris catalog"
-    return r
-
-
 def test_aws_glue_catalog() -> TestResult:
     """ClickHouse does not support AWS Glue catalog."""
     r = TestResult("aws-glue-catalog", "AWS Glue Catalog")
@@ -793,12 +761,8 @@ ALL_TESTS = [
     test_bloom_filters,
     test_catalog_integration,
     test_hadoop_catalog,
-    test_jdbc_catalog,
     test_rest_catalog,
-    test_hive_metastore,
     test_aws_glue_catalog,
-    test_nessie,
-    test_polaris,
     test_unity_catalog,
     test_variant_type,
     test_shredded_variant,

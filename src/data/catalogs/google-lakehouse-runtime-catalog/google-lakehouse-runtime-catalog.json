@@ -42,22 +42,29 @@
       "links": [{ "label": "Source", "url": "https://docs.cloud.google.com/lakehouse/docs/about-lakehouse-catalogs" }]
     },
     "google-lakehouse-runtime-catalog:serves-own-irc:current": {
-      "level": "partial",
-      "notes": "Two paths: IRC-native runtime-catalog tables are externally read and write with spec-compliant vended credentials, while BigQuery-managed (federated) Iceberg is read-only to external engines with no credential vending.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.cloud.google.com/lakehouse/docs/use-catalog-federation" }]
+      "level": "full",
+      "notes": "Serves its own Iceberg tables over a spec-compliant Iceberg REST catalog endpoint with credential vending. Open-source engines (Spark, Flink, Trino) read and write runtime-catalog Iceberg tables at GA, including streaming writes, and since June 2026 BigQuery runs DDL/DML against the same tables (Preview). The BigQuery-managed (snapshot-export) Iceberg path is the read-only fallback, but IRC-native serving is now the primary, first-class path.",
+      "caveats": [
+        "BigQuery-side DDL/DML on runtime-catalog tables is Preview; OSS engine read/write is GA"
+      ],
+      "links": [{ "label": "Use the BigLake metastore Iceberg REST catalog", "url": "https://docs.cloud.google.com/bigquery/docs/blms-rest-catalog" }]
     },
     "google-lakehouse-runtime-catalog:rw-foreign-irc:current": {
-      "level": "none",
-      "notes": "No GA path to read or write foreign tables via IRC: cross-cloud Lakehouse (an IRC client to Unity and Glue) is Preview and read-only.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.cloud.google.com/lakehouse/docs/about-cross-cloud-lakehouse" }]
+      "level": "partial",
+      "notes": "Foreign tables in remote IRC catalogs (Databricks Unity, AWS Glue, Snowflake Horizon) are reachable read-only through borderless / cross-cloud Lakehouse, which federates them into the runtime catalog over the Iceberg REST protocol and queries them from BigQuery or Spark without copying data. There is no write-back path to the foreign catalog, and the capability is Preview.",
+      "caveats": [
+        "Read/query only: no write-back to the foreign catalog",
+        "Preview (cross-cloud / borderless Lakehouse), not GA"
+      ],
+      "links": [{ "label": "About borderless Lakehouse (cross-cloud data access)", "url": "https://docs.cloud.google.com/lakehouse/docs/about-borderless-lakehouse" }]
     },
     "google-lakehouse-runtime-catalog:federation-broker:current": {
-      "level": "none",
-      "notes": "No GA catalog-of-catalogs IRC brokering; cross-cloud Lakehouse brokers external Unity and Glue catalogs but is Preview, so it is not credited.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.cloud.google.com/lakehouse/docs/about-cross-cloud-lakehouse" }]
+      "level": "partial",
+      "notes": "Cross-cloud / borderless Lakehouse acts as a catalog-of-catalogs broker: it synchronizes metadata from remote Iceberg REST catalogs (Unity, Glue, Horizon) and SAP BDC into the runtime catalog so a single BigQuery or Spark session queries across them. Brokering is Preview (SAP BDC federation reached GA), so it is credited as partial rather than full.",
+      "caveats": [
+        "Preview for the Unity/Glue/Horizon IRC brokers (SAP BDC federation is GA)"
+      ],
+      "links": [{ "label": "About borderless Lakehouse (cross-cloud data access)", "url": "https://docs.cloud.google.com/lakehouse/docs/about-borderless-lakehouse" }]
     },
     "google-lakehouse-runtime-catalog:multi-engine-multi-cloud:current": {
       "level": "partial",

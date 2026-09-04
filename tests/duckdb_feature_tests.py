@@ -614,13 +614,6 @@ def test_hadoop_catalog() -> TestResult:
     return r
 
 
-def test_jdbc_catalog() -> TestResult:
-    r = TestResult("jdbc-catalog", "JDBC Catalog", "v2")
-    r.result = "fail"
-    r.details = "DuckDB Iceberg supports only REST-based catalogs (JDBC catalog unsupported)"
-    return r
-
-
 def test_rest_catalog() -> TestResult:
     r = TestResult("rest-catalog", "REST Catalog", "v2")
 
@@ -636,34 +629,11 @@ def test_rest_catalog() -> TestResult:
     return _catalog_test(r, body)
 
 
-def test_hive_metastore() -> TestResult:
-    r = TestResult("hive-metastore", "Hive Metastore", "v2")
-    r.result = "fail"
-    r.details = "DuckDB Iceberg supports only REST-based catalogs (Hive Metastore unsupported)"
-    return r
-
-
 def test_glue_catalog() -> TestResult:
     r = TestResult("aws-glue-catalog", "AWS Glue Catalog", "v2")
     # Supported via ENDPOINT_TYPE 'GLUE' but requires real AWS credentials/endpoint.
     r.result = "skip"
     r.details = "AWS Glue (SageMaker Lakehouse) catalog requires AWS credentials; not exercised locally"
-    return r
-
-
-def test_nessie() -> TestResult:
-    r = TestResult("nessie", "Nessie", "v2")
-    r.result = "fail"
-    r.details = "DuckDB Iceberg does not natively support the Nessie catalog"
-    return r
-
-
-def test_polaris() -> TestResult:
-    r = TestResult("polaris", "Polaris", "v2")
-    # Polaris speaks the Iceberg REST protocol (which we exercise via the fixture),
-    # but a Polaris-specific test needs a Polaris server. Not fabricated.
-    r.result = "skip"
-    r.details = "Polaris uses the Iceberg REST protocol; a Polaris-specific server is not run here"
     return r
 
 
@@ -820,12 +790,8 @@ ALL_TESTS = [
     test_bloom_filters,
     test_catalog_integration,
     test_hadoop_catalog,
-    test_jdbc_catalog,
     test_rest_catalog,
-    test_hive_metastore,
     test_glue_catalog,
-    test_nessie,
-    test_polaris,
     test_unity_catalog,
     test_variant_type,
     test_shredded_variant,

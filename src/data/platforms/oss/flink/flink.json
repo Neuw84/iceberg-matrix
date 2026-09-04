@@ -457,18 +457,6 @@
         }
       ]
     },
-    "flink:hive-metastore:v2": {
-      "level": "full",
-      "notes": "Built-in Hive Metastore catalog support via catalog-type='hive'",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#hive-catalog"
-    },
-    "flink:hive-metastore:v3": {
-      "level": "full",
-      "notes": "Built-in Hive Metastore catalog support via catalog-type='hive'",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#hive-catalog"
-    },
     "flink:aws-glue-catalog:v2": {
       "level": "full",
       "notes": "Supported via catalog-impl=org.apache.iceberg.aws.glue.GlueCatalog with the iceberg-aws bundle on the classpath. Flink's catalog-type option accepts only hive, hadoop and rest, so Glue is not selectable with catalog-type='glue'. Not exercised here (needs AWS credentials).",
@@ -504,44 +492,6 @@
     "flink:rest-catalog:v3": {
       "level": "full",
       "notes": "Built-in REST Catalog support via catalog-type='rest'",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
-    },
-    "flink:nessie:v2": {
-      "level": "full",
-      "notes": "Supported via catalog-impl=org.apache.iceberg.nessie.NessieCatalog. Flink's catalog-type option accepts only hive, hadoop and rest, so Nessie is not selectable with catalog-type='nessie'. Not exercised here (needs a Nessie server).",
-      "caveats": [
-        "Configured via catalog-impl, not catalog-type"
-      ],
-      "links": [
-        {
-          "label": "Flink catalog configuration",
-          "url": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
-        }
-      ]
-    },
-    "flink:nessie:v3": {
-      "level": "full",
-      "notes": "Supported via catalog-impl=org.apache.iceberg.nessie.NessieCatalog. Flink's catalog-type option accepts only hive, hadoop and rest, so Nessie is not selectable with catalog-type='nessie'. Not exercised here (needs a Nessie server).",
-      "caveats": [
-        "Configured via catalog-impl, not catalog-type"
-      ],
-      "links": [
-        {
-          "label": "Flink catalog configuration",
-          "url": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
-        }
-      ]
-    },
-    "flink:polaris:v2": {
-      "level": "full",
-      "notes": "Polaris supported via REST Catalog API (catalog-type='rest')",
-      "caveats": [],
-      "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
-    },
-    "flink:polaris:v3": {
-      "level": "full",
-      "notes": "Polaris supported via REST Catalog API (catalog-type='rest')",
       "caveats": [],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
@@ -584,32 +534,6 @@
         {
           "label": "Flink DDL",
           "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
-        }
-      ]
-    },
-    "flink:jdbc-catalog:v2": {
-      "level": "full",
-      "notes": "Full support against a relational database such as Postgres. Configured with catalog-impl=org.apache.iceberg.jdbc.JdbcCatalog, since Flink's catalog-type option accepts only hive, hadoop and rest.",
-      "caveats": [
-        "Configured via catalog-impl, not catalog-type"
-      ],
-      "links": [
-        {
-          "label": "Flink catalog configuration",
-          "url": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
-        }
-      ]
-    },
-    "flink:jdbc-catalog:v3": {
-      "level": "full",
-      "notes": "Full support against a relational database such as Postgres, configured with catalog-impl=org.apache.iceberg.jdbc.JdbcCatalog.",
-      "caveats": [
-        "Configured via catalog-impl, not catalog-type"
-      ],
-      "links": [
-        {
-          "label": "Flink catalog configuration",
-          "url": "https://iceberg.apache.org/docs/latest/flink-configuration/#catalog-configuration"
         }
       ]
     },
@@ -825,6 +749,32 @@
       "level": "unknown",
       "notes": "Not yet measured; recorded as unknown rather than inferred. Flink SQL has no obvious spelling for a null-only placeholder column; the suite now probes UNKNOWN and NULL, so the next run will settle this.",
       "caveats": []
+    },
+    "flink:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "flink:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

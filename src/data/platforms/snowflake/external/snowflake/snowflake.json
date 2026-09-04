@@ -619,32 +619,6 @@
         }
       ]
     },
-    "snowflake:hive-metastore:v2": {
-      "level": "none",
-      "notes": "Snowflake does not support Hive Metastore as a catalog for Iceberg tables",
-      "caveats": [
-        "Hive Metastore is not a supported catalog integration"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        }
-      ]
-    },
-    "snowflake:hive-metastore:v3": {
-      "level": "none",
-      "notes": "Snowflake does not support Hive Metastore for Iceberg",
-      "caveats": [
-        "Hive Metastore is not a supported catalog integration"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        }
-      ]
-    },
     "snowflake:aws-glue-catalog:v2": {
       "level": "full",
       "notes": "Snowflake supports AWS Glue as an external catalog for Iceberg tables. Read access via external tables and write support via REST catalog integration.",
@@ -708,67 +682,6 @@
     "snowflake:rest-catalog:v3": {
       "level": "full",
       "notes": "REST Catalog supported for Iceberg V3 tables. Generally available (as of May 7, 2026).",
-      "caveats": [
-        "Generally available (as of May 7, 2026)"
-      ],
-      "links": [
-        {
-          "label": "Iceberg V3 Support (GA)",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
-        },
-        {
-          "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
-        }
-      ]
-    },
-    "snowflake:nessie:v2": {
-      "level": "none",
-      "notes": "Snowflake does not support Nessie as a catalog for Iceberg tables",
-      "caveats": [
-        "Nessie catalog is not a supported catalog integration"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        }
-      ]
-    },
-    "snowflake:nessie:v3": {
-      "level": "none",
-      "notes": "Snowflake does not support Nessie catalog",
-      "caveats": [
-        "Nessie catalog is not a supported catalog integration"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        }
-      ]
-    },
-    "snowflake:polaris:v2": {
-      "level": "full",
-      "notes": "Snowflake Horizon Catalog is built on the open-source Polaris project, providing native Polaris catalog integration.",
-      "caveats": [
-        "Snowflake Horizon Catalog is Snowflake's managed service built on Polaris",
-        "Native integration with full read and write support"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        },
-        {
-          "label": "Iceberg tables overview",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
-        }
-      ]
-    },
-    "snowflake:polaris:v3": {
-      "level": "full",
-      "notes": "Snowflake Horizon Catalog (Polaris) supported for Iceberg V3 tables. Generally available (as of May 7, 2026).",
       "caveats": [
         "Generally available (as of May 7, 2026)"
       ],
@@ -847,32 +760,6 @@
       "notes": "Snowflake does not support Hadoop catalog",
       "caveats": [
         "Hadoop catalog is not a supported catalog integration"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        }
-      ]
-    },
-    "snowflake:jdbc-catalog:v2": {
-      "level": "none",
-      "notes": "Snowflake does not support JDBC catalog for Iceberg tables",
-      "caveats": [
-        "JDBC catalog is not a supported catalog integration"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        }
-      ]
-    },
-    "snowflake:jdbc-catalog:v3": {
-      "level": "none",
-      "notes": "Snowflake does not support JDBC catalog",
-      "caveats": [
-        "JDBC catalog is not a supported catalog integration"
       ],
       "links": [
         {
@@ -1189,6 +1076,32 @@
       "level": "unknown",
       "notes": "Not yet measured; recorded as unknown rather than inferred. Snowflake has not published a statement on the Iceberg V3 unknown type.",
       "caveats": []
+    },
+    "snowflake:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "snowflake:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }

@@ -14,7 +14,7 @@
       "level": "unknown",
       "notes": "OneLake virtualizes Iceberg tables as Delta Lake using Apache XTable, which converts positional delete files during Iceberg-to-Delta conversion",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "Position deletes are translated during metadata virtualization; not a native Iceberg engine"
       ],
       "links": [
@@ -45,7 +45,7 @@
       "level": "unknown",
       "notes": "Equality delete support depends on the Apache XTable virtualization layer that converts Iceberg metadata to Delta Lake format",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "Equality delete handling depends on XTable conversion fidelity"
       ],
       "links": [
@@ -67,7 +67,7 @@
       "level": "unknown",
       "notes": "When reading external Iceberg tables via shortcuts, merge-on-read is handled by the XTable virtualization layer converting to Delta Lake",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "Fabric uses Delta Lake merge strategies internally, not Iceberg MoR"
       ],
       "links": [
@@ -89,7 +89,7 @@
       "level": "unknown",
       "notes": "Fabric uses Delta Lake copy-on-write internally; when Delta tables are virtualized as Iceberg, the underlying CoW behavior is preserved",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "CoW is the underlying Delta Lake behavior, not native Iceberg CoW"
       ],
       "links": [
@@ -111,7 +111,7 @@
       "level": "unknown",
       "notes": "Schema evolution works on the Delta Lake side; for Iceberg shortcuts, metadata changes may not be immediately reflected until a data change occurs",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "Iceberg metadata changes (add/drop/rename columns) may require a data change to trigger re-conversion"
       ],
       "links": [
@@ -161,7 +161,7 @@
       "level": "unknown",
       "notes": "Iceberg hidden partitioning is preserved when reading via OneLake shortcuts; Fabric creates Delta partitioned tables natively, which are virtualized as Iceberg",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "Partitioning is translated between formats during virtualization"
       ],
       "links": [
@@ -183,7 +183,7 @@
       "level": "unknown",
       "notes": "Partition evolution support depends on the metadata virtualization layer; may have limitations compared to native Iceberg partition evolution",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "Partition evolution may not fully round-trip through Delta-Iceberg virtualization"
       ],
       "links": [
@@ -219,7 +219,7 @@
       "level": "unknown",
       "notes": "Time travel is available on Delta Lake tables within Fabric; for Iceberg shortcuts virtualized as Delta, time travel operates on the Delta log, not Iceberg snapshots",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "Time travel operates on virtualized Delta log, not native Iceberg snapshot history"
       ],
       "links": [
@@ -241,7 +241,7 @@
       "level": "unknown",
       "notes": "Fabric provides automatic optimization (compaction, V-Order) for Delta Lake tables; for Iceberg shortcuts, maintenance must be performed by the source Iceberg writer",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "Auto-optimization applies to Delta tables only; Iceberg shortcuts require external maintenance"
       ],
       "links": [
@@ -313,7 +313,7 @@
       "level": "unknown",
       "notes": "Fabric writes Delta Lake tables natively, which are auto-virtualized as Iceberg for external readers. External tools (e.g., Snowflake) can write Iceberg tables directly to OneLake. Fabric itself does not write native Iceberg format.",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "Fabric engines write Delta Lake, not native Iceberg; external Iceberg writers (Snowflake) can write directly to OneLake"
       ],
       "links": [
@@ -339,7 +339,7 @@
       "level": "unknown",
       "notes": "DML operations (MERGE, UPDATE, DELETE) operate on Delta Lake tables within Fabric; changes are reflected in the virtualized Iceberg view. No native Iceberg DML from Fabric engines.",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "DML is Delta Lake-based; Iceberg view is read-only from Fabric perspective"
       ],
       "links": [
@@ -383,18 +383,6 @@
       ],
       "links": []
     },
-    "azure-fabric:hive-metastore:v2": {
-      "level": "unknown",
-      "notes": "Fabric does not support Hive Metastore for Iceberg catalog integration",
-      "caveats": [],
-      "links": []
-    },
-    "azure-fabric:hive-metastore:v3": {
-      "level": "unknown",
-      "notes": "Fabric does not support Hive Metastore for Iceberg catalog integration",
-      "caveats": [],
-      "links": []
-    },
     "azure-fabric:aws-glue-catalog:v2": {
       "level": "unknown",
       "notes": "Fabric does not support AWS Glue Catalog",
@@ -434,30 +422,6 @@
       ],
       "links": []
     },
-    "azure-fabric:nessie:v2": {
-      "level": "unknown",
-      "notes": "Fabric does not support Nessie catalog",
-      "caveats": [],
-      "links": []
-    },
-    "azure-fabric:nessie:v3": {
-      "level": "unknown",
-      "notes": "Fabric does not support Nessie catalog",
-      "caveats": [],
-      "links": []
-    },
-    "azure-fabric:polaris:v2": {
-      "level": "unknown",
-      "notes": "Fabric does not natively support Polaris catalog",
-      "caveats": [],
-      "links": []
-    },
-    "azure-fabric:polaris:v3": {
-      "level": "unknown",
-      "notes": "Fabric does not natively support Polaris catalog",
-      "caveats": [],
-      "links": []
-    },
     "azure-fabric:unity-catalog:v2": {
       "level": "unknown",
       "notes": "OneLake Table APIs (Preview) support the Unity Catalog API open standard for metadata read operations, in addition to the Iceberg REST Catalog API",
@@ -492,23 +456,11 @@
       "caveats": [],
       "links": []
     },
-    "azure-fabric:jdbc-catalog:v2": {
-      "level": "unknown",
-      "notes": "Fabric does not support JDBC catalog for Iceberg",
-      "caveats": [],
-      "links": []
-    },
-    "azure-fabric:jdbc-catalog:v3": {
-      "level": "unknown",
-      "notes": "Fabric does not support JDBC catalog for Iceberg",
-      "caveats": [],
-      "links": []
-    },
     "azure-fabric:table-creation:v2": {
       "level": "unknown",
       "notes": "Fabric creates Delta Lake tables (via Spark notebooks, pipelines, etc.) that are automatically virtualized as Iceberg for external readers. External writers (e.g., Snowflake) can create Iceberg tables directly in OneLake.",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "Native Iceberg table creation only via external writers (e.g., Snowflake); Fabric creates Delta tables virtualized as Iceberg"
       ],
       "links": [
@@ -590,7 +542,7 @@
       "level": "unknown",
       "notes": "When Fabric virtualizes Delta Lake tables as Iceberg via Apache XTable, column statistics are translated from Delta Lake statistics to Iceberg manifest statistics. For external Iceberg tables read via OneLake shortcuts, existing statistics are preserved.",
       "caveats": [
-        "Iceberg support is via metadata virtualization (Apache XTable) — Fabric natively uses Delta Lake, not Iceberg",
+        "Iceberg support is via metadata virtualization (Apache XTable) \u2014 Fabric natively uses Delta Lake, not Iceberg",
         "Statistics quality depends on the Delta-to-Iceberg virtualization fidelity"
       ],
       "links": [
@@ -612,7 +564,7 @@
       "level": "unknown",
       "notes": "Fabric does not support Iceberg bloom filters. Delta Lake tables virtualized as Iceberg do not include bloom filter metadata in the Iceberg representation.",
       "caveats": [
-        "Iceberg support is via metadata virtualization — Fabric natively uses Delta Lake, not Iceberg"
+        "Iceberg support is via metadata virtualization \u2014 Fabric natively uses Delta Lake, not Iceberg"
       ],
       "links": [
         {
@@ -698,6 +650,32 @@
       "level": "unknown",
       "notes": "Iceberg V3 is not yet supported in Microsoft Fabric, and no V3 type has been measured there.",
       "caveats": []
+    },
+    "azure-fabric:google-lakehouse:v2": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "azure-fabric:google-lakehouse:v3": {
+      "level": "unknown",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, so an engine with REST-catalog support could in principle attach to it, but this specific pairing has not been measured. See the catalogs page for the Google Lakehouse runtime catalog's own capabilities.",
+      "caveats": [
+        "Not yet measured for this engine"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
     }
   }
 }
