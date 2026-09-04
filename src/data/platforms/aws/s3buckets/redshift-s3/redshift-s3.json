@@ -421,24 +421,100 @@
       "caveats": []
     },
     "aws-redshift-s3:polaris:v2": {
-      "level": "none",
-      "notes": "Redshift does not support Polaris catalog",
-      "caveats": []
+      "level": "partial",
+      "notes": "Reachable read-only through AWS Glue catalog federation, not natively. Apache Polaris (including Snowflake Polaris) is federated into the Glue Data Catalog as a federated Iceberg catalog, and Redshift queries the resulting tables through a Glue database resource link (external schema or the automounted awsdatacatalog), with Lake Formation vending scoped credentials. Redshift still has no Iceberg REST client of its own -- the Data Catalog speaks Iceberg REST to the remote catalog on its behalf -- so this is a query path over federation rather than native catalog support.",
+      "caveats": [
+        "Reached indirectly: the remote catalog is federated into the Glue Data Catalog, and Redshift queries it through a Glue database resource link, not by speaking Iceberg REST itself",
+        "Read path only. Access is granted as Lake Formation SELECT/DESCRIBE on the federated tables; creating or writing tables in the remote catalog from Redshift is not part of this",
+        "Requires Lake Formation to register the federation and vend scoped credentials; external schemas additionally require catalog, compute and S3 bucket in the same Region (automount handles cross-Region)",
+        "Not verified by this suite: no federated remote catalog is configured in the test account"
+      ],
+      "links": [
+        {
+          "label": "Querying AWS Glue IRC federated catalogs with Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/glue-irc-federated-catalogs.html"
+        },
+        {
+          "label": "Federate to Snowflake Iceberg Catalog (Horizon and Polaris)",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation-snowflake.html"
+        },
+        {
+          "label": "Catalog federation to remote Iceberg catalogs",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation.html"
+        }
+      ]
     },
     "aws-redshift-s3:polaris:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "partial",
+      "notes": "Reachable read-only through AWS Glue catalog federation, not natively. Apache Polaris (including Snowflake Polaris) is federated into the Glue Data Catalog as a federated Iceberg catalog, and Redshift queries the resulting tables through a Glue database resource link (external schema or the automounted awsdatacatalog), with Lake Formation vending scoped credentials. Redshift still has no Iceberg REST client of its own -- the Data Catalog speaks Iceberg REST to the remote catalog on its behalf -- so this is a query path over federation rather than native catalog support. Redshift reaches format-version 3 tables in S3 buckets mode (measured on Redshift Serverless 1.0.416217), so the federation path is not blocked by the table format here.",
+      "caveats": [
+        "Reached indirectly: the remote catalog is federated into the Glue Data Catalog, and Redshift queries it through a Glue database resource link, not by speaking Iceberg REST itself",
+        "Read path only. Access is granted as Lake Formation SELECT/DESCRIBE on the federated tables; creating or writing tables in the remote catalog from Redshift is not part of this",
+        "Requires Lake Formation to register the federation and vend scoped credentials; external schemas additionally require catalog, compute and S3 bucket in the same Region (automount handles cross-Region)",
+        "Not verified by this suite: no federated remote catalog is configured in the test account"
+      ],
+      "links": [
+        {
+          "label": "Querying AWS Glue IRC federated catalogs with Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/glue-irc-federated-catalogs.html"
+        },
+        {
+          "label": "Federate to Snowflake Iceberg Catalog (Horizon and Polaris)",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation-snowflake.html"
+        },
+        {
+          "label": "Catalog federation to remote Iceberg catalogs",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation.html"
+        }
+      ]
     },
     "aws-redshift-s3:unity-catalog:v2": {
-      "level": "none",
-      "notes": "Redshift does not support Unity Catalog",
-      "caveats": []
+      "level": "partial",
+      "notes": "Reachable read-only through AWS Glue catalog federation, not natively. Databricks Unity Catalog is federated into the Glue Data Catalog as a federated Iceberg catalog, and Redshift queries the resulting tables through a Glue database resource link (external schema or the automounted awsdatacatalog), with Lake Formation vending scoped credentials. Redshift still has no Iceberg REST client of its own -- the Data Catalog speaks Iceberg REST to the remote catalog on its behalf -- so this is a query path over federation rather than native catalog support.",
+      "caveats": [
+        "Reached indirectly: the remote catalog is federated into the Glue Data Catalog, and Redshift queries it through a Glue database resource link, not by speaking Iceberg REST itself",
+        "Read path only. Access is granted as Lake Formation SELECT/DESCRIBE on the federated tables; creating or writing tables in the remote catalog from Redshift is not part of this",
+        "Requires Lake Formation to register the federation and vend scoped credentials; external schemas additionally require catalog, compute and S3 bucket in the same Region (automount handles cross-Region)",
+        "Not verified by this suite: no federated remote catalog is configured in the test account"
+      ],
+      "links": [
+        {
+          "label": "Querying AWS Glue IRC federated catalogs with Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/glue-irc-federated-catalogs.html"
+        },
+        {
+          "label": "Federate to Databricks Unity Catalog",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation-databricks.html"
+        },
+        {
+          "label": "Catalog federation to remote Iceberg catalogs",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation.html"
+        }
+      ]
     },
     "aws-redshift-s3:unity-catalog:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "partial",
+      "notes": "Reachable read-only through AWS Glue catalog federation, not natively. Databricks Unity Catalog is federated into the Glue Data Catalog as a federated Iceberg catalog, and Redshift queries the resulting tables through a Glue database resource link (external schema or the automounted awsdatacatalog), with Lake Formation vending scoped credentials. Redshift still has no Iceberg REST client of its own -- the Data Catalog speaks Iceberg REST to the remote catalog on its behalf -- so this is a query path over federation rather than native catalog support. Redshift reaches format-version 3 tables in S3 buckets mode (measured on Redshift Serverless 1.0.416217), so the federation path is not blocked by the table format here.",
+      "caveats": [
+        "Reached indirectly: the remote catalog is federated into the Glue Data Catalog, and Redshift queries it through a Glue database resource link, not by speaking Iceberg REST itself",
+        "Read path only. Access is granted as Lake Formation SELECT/DESCRIBE on the federated tables; creating or writing tables in the remote catalog from Redshift is not part of this",
+        "Requires Lake Formation to register the federation and vend scoped credentials; external schemas additionally require catalog, compute and S3 bucket in the same Region (automount handles cross-Region)",
+        "Not verified by this suite: no federated remote catalog is configured in the test account"
+      ],
+      "links": [
+        {
+          "label": "Querying AWS Glue IRC federated catalogs with Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/glue-irc-federated-catalogs.html"
+        },
+        {
+          "label": "Federate to Databricks Unity Catalog",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation-databricks.html"
+        },
+        {
+          "label": "Catalog federation to remote Iceberg catalogs",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation.html"
+        }
+      ]
     },
     "aws-redshift-s3:hadoop-catalog:v2": {
       "level": "none",
@@ -624,23 +700,52 @@
       ]
     },
     "aws-redshift-s3:snowflake-horizon-catalog:v2": {
-      "level": "none",
-      "notes": "Redshift reaches Iceberg only through the AWS Glue Data Catalog. Snowflake Horizon is consumed over Iceberg REST, and this Redshift version has no Iceberg REST client.",
+      "level": "partial",
+      "notes": "Reachable read-only through AWS Glue catalog federation, not natively. Snowflake Horizon Catalog is federated into the Glue Data Catalog as a federated Iceberg catalog, and Redshift queries the resulting tables through a Glue database resource link (external schema or the automounted awsdatacatalog), with Lake Formation vending scoped credentials. Redshift still has no Iceberg REST client of its own -- the Data Catalog speaks Iceberg REST to the remote catalog on its behalf -- so this is a query path over federation rather than native catalog support.",
       "caveats": [
-        "CREATE EXTERNAL SCHEMA ... FROM ICEBERG REST CATALOG is not recognised: it produces the same error as a deliberately meaningless catalog clause, so the clause is discarded rather than understood"
+        "Reached indirectly: the remote catalog is federated into the Glue Data Catalog, and Redshift queries it through a Glue database resource link, not by speaking Iceberg REST itself",
+        "Read path only. Access is granted as Lake Formation SELECT/DESCRIBE on the federated tables; creating or writing tables in the remote catalog from Redshift is not part of this",
+        "Requires Lake Formation to register the federation and vend scoped credentials; external schemas additionally require catalog, compute and S3 bucket in the same Region (automount handles cross-Region)",
+        "Not verified by this suite: no federated remote catalog is configured in the test account"
       ],
       "links": [
         {
-          "label": "Querying Iceberg tables in Redshift",
-          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+          "label": "Querying AWS Glue IRC federated catalogs with Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/glue-irc-federated-catalogs.html"
+        },
+        {
+          "label": "Federate to Snowflake Iceberg Catalog (Horizon and Polaris)",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation-snowflake.html"
+        },
+        {
+          "label": "Catalog federation to remote Iceberg catalogs",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation.html"
         }
       ]
     },
     "aws-redshift-s3:snowflake-horizon-catalog:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3 tables. This is a Redshift engine limitation.",
-      "caveats": [],
-      "links": []
+      "level": "partial",
+      "notes": "Reachable read-only through AWS Glue catalog federation, not natively. Snowflake Horizon Catalog is federated into the Glue Data Catalog as a federated Iceberg catalog, and Redshift queries the resulting tables through a Glue database resource link (external schema or the automounted awsdatacatalog), with Lake Formation vending scoped credentials. Redshift still has no Iceberg REST client of its own -- the Data Catalog speaks Iceberg REST to the remote catalog on its behalf -- so this is a query path over federation rather than native catalog support. Redshift reaches format-version 3 tables in S3 buckets mode (measured on Redshift Serverless 1.0.416217), so the federation path is not blocked by the table format here.",
+      "caveats": [
+        "Reached indirectly: the remote catalog is federated into the Glue Data Catalog, and Redshift queries it through a Glue database resource link, not by speaking Iceberg REST itself",
+        "Read path only. Access is granted as Lake Formation SELECT/DESCRIBE on the federated tables; creating or writing tables in the remote catalog from Redshift is not part of this",
+        "Requires Lake Formation to register the federation and vend scoped credentials; external schemas additionally require catalog, compute and S3 bucket in the same Region (automount handles cross-Region)",
+        "Not verified by this suite: no federated remote catalog is configured in the test account"
+      ],
+      "links": [
+        {
+          "label": "Querying AWS Glue IRC federated catalogs with Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/glue-irc-federated-catalogs.html"
+        },
+        {
+          "label": "Federate to Snowflake Iceberg Catalog (Horizon and Polaris)",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation-snowflake.html"
+        },
+        {
+          "label": "Catalog federation to remote Iceberg catalogs",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/catalog-federation.html"
+        }
+      ]
     },
     "aws-redshift-s3:deletion-vectors:v2": {
       "level": "none",

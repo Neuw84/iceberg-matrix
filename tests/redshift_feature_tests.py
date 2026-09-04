@@ -588,24 +588,34 @@ def _rest_clause_recognised() -> tuple:
 
 def _rest_backed_catalog(feature_id: str, feature_name: str, version: str,
                          what: str) -> TestResult:
-    """A catalog that is reached over Iceberg REST, which Redshift has no client for."""
+    """A catalog Redshift cannot address natively, but can reach read-only
+    through AWS Glue catalog federation.
+
+    Two different questions live here, and only the first is measurable from
+    this account. Redshift has no Iceberg REST client of its own, so it cannot
+    name such a catalog in an external schema directly -- that is what
+    _rest_clause_recognised() establishes. But the catalog is still reachable:
+    federating it into the Glue Data Catalog (Lake Formation registers it and
+    vends scoped credentials) lets Redshift query the resulting tables through
+    a Glue database resource link, with the Data Catalog speaking Iceberg REST
+    to the remote catalog on Redshift's behalf. That path is read-only
+    (Lake Formation SELECT/DESCRIBE) and needs a federated catalog configured,
+    which this test account has none of.
+
+    So the honest report is skip, not fail: absence of a native REST client is
+    real evidence, but it no longer settles the cell, and nothing here
+    exercises the federation path that does.
+    """
     r = TestResult(feature_id, feature_name, version)
-    recognised, evidence = _rest_clause_recognised()
-    if recognised is False:
-        r.result = "fail"
-        r.details = (
-            f"Redshift reads Iceberg only through the Glue Data Catalog, and {what} "
-            f"is reached over Iceberg REST, which this version has no client for: "
-            f"{evidence}"
-        )
-    else:
-        r.result = "skip"
-        r.details = (
-            f"{what} is reached over Iceberg REST; this run could not establish "
-            f"that Redshift lacks a REST client, and no live endpoint was "
-            f"available to read a table through, so support is unverified: "
-            f"{evidence}"
-        )
+    _, evidence = _rest_clause_recognised()
+    r.result = "skip"
+    r.details = (
+        f"{what} is not addressable natively -- Redshift has no Iceberg REST "
+        f"client ({evidence}) -- but it is reachable read-only by federating it "
+        f"into the Glue Data Catalog and querying through a resource link. No "
+        f"federated catalog is configured in this account, so the federation "
+        f"path is unverified here"
+    )
     return r
 
 
