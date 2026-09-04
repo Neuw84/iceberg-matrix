@@ -227,24 +227,29 @@ def _newest_manifest_key(keys: list) -> str:
 def _inspect_manifest_stats(q: str) -> dict:
     """Download the newest Iceberg manifest for table q and summarise stats.
 
-    Returns {} when inspection is not possible (no bucket, location off-bucket,
-    no manifest found) so the caller degrades to skip rather than a false
-    verdict. On success returns:
+    On success returns:
         {
           "manifest": <key>,
           "entries": [ {field: {"populated": bool, "count": int}, ...}, ... ],
           "populated": {field: bool, ...},   # any data file has it
         }
+    When inspection is not possible it returns a dict WITHOUT "entries" but WITH
+    a "diag" string explaining why (no bucket, location off-bucket, no manifest,
+    no data-file entries), so the caller can degrade to skip while still
+    reporting the concrete reason rather than a generic one.
     """
     if not DATA_BUCKET:
-        return {}
+        return {"diag": "AWS_DATA_BUCKET not set"}
     location = _table_location(q)
     m = re.match(r"s3a?://([^/]+)/(.*)", location)
-    if not m or m.group(1) != DATA_BUCKET:
-        return {}
+    if not m:
+        return {"diag": f"table location is not an s3:// URI: {location!r}"}
+    if m.group(1) != DATA_BUCKET:
+        return {"diag": f"table location bucket {m.group(1)!r} != AWS_DATA_BUCKET"}
 
     import boto3
     import fastavro
+    import io
 
     s3 = boto3.client("s3", region_name=AWS_REGION)
     prefix = m.group(2).rstrip("/") + "/"
@@ -253,12 +258,16 @@ def _inspect_manifest_stats(q: str) -> dict:
     for page in paginator.paginate(Bucket=DATA_BUCKET, Prefix=prefix):
         keys += [obj["Key"] for obj in page.get("Contents", [])]
 
+    avro_keys = [k for k in keys if k.endswith(".avro")]
     manifest_key = _newest_manifest_key(keys)
     if not manifest_key:
-        return {}
+        return {"diag": (
+            f"no data-file manifest under {prefix!r}: "
+            f"{len(keys)} objects, {len(avro_keys)} .avro "
+            f"({', '.join(os.path.basename(k) for k in avro_keys[:5]) or 'none'})"
+        )}
 
     body = s3.get_object(Bucket=DATA_BUCKET, Key=manifest_key)["Body"].read()
-    import io
 
     entries = []
     reader = fastavro.reader(io.BytesIO(body))
@@ -275,6 +284,9 @@ def _inspect_manifest_stats(q: str) -> dict:
                 populated, count = True, 1
             per_file[field] = {"populated": populated, "count": count}
         entries.append(per_file)
+
+    if not entries:
+        return {"diag": f"manifest {os.path.basename(manifest_key)} had zero data-file entries"}
 
     populated = {
         field: any(e[field]["populated"] for e in entries) for field in _STATS_FIELDS
@@ -778,12 +790,23 @@ def _statistics_probe(version: str) -> TestResult:
         sql(f"INSERT INTO {q} VALUES "
             "(1,'a',10.5),(2,'b',42.0),(3,'c',100.0),(4,'d',250.75),(5,'e',500.25)")
 
-        stats = _inspect_manifest_stats(q)
-        if not stats or not stats.get("entries"):
+        # Managed Iceberg metadata can land on S3 slightly after the INSERT
+        # commits (UC writes it out of band), so poll the location a few times
+        # before concluding the manifest is missing.
+        import time
+
+        stats = {}
+        for attempt in range(6):
+            stats = _inspect_manifest_stats(q)
+            if stats.get("entries"):
+                break
+            time.sleep(5)
+
+        if not stats.get("entries"):
             r.result = "skip"
-            r.details = ("Iceberg manifest column statistics could not be inspected "
-                         "(no bucket access to the table location, or no data-file "
-                         "manifest found); not observable from a SQL session alone")
+            r.details = ("Iceberg manifest column statistics could not be inspected: "
+                         + stats.get("diag", "unknown reason")
+                         + " (not observable from a SQL session alone)")
             return
 
         pop = stats["populated"]
