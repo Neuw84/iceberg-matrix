@@ -742,32 +742,6 @@
         }
       ]
     },
-    "snowflake:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "Snowflake does not support Hadoop catalog for Iceberg tables",
-      "caveats": [
-        "Hadoop catalog is not a supported catalog integration"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        }
-      ]
-    },
-    "snowflake:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Snowflake does not support Hadoop catalog",
-      "caveats": [
-        "Hadoop catalog is not a supported catalog integration"
-      ],
-      "links": [
-        {
-          "label": "Configure catalog integration",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration"
-        }
-      ]
-    },
     "snowflake:table-creation:v2": {
       "level": "full",
       "notes": "Snowflake supports creating Iceberg tables as Snowflake-managed tables (using an external volume or Snowflake-managed storage), or as externally managed tables linked to an external catalog. As of June 1, 2026 (GA), you can create Iceberg tables using Snowflake storage \u2014 no external volume required, with Fail-safe protection and transient table support. A DEFAULT_METADATA_WRITE_FORMAT account/database/schema parameter (GA June 2026) allows creating Iceberg tables via standard CREATE TABLE without the ICEBERG keyword.",

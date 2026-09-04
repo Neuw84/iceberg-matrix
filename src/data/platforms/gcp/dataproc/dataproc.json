@@ -241,16 +241,6 @@
         "Requires Databricks REST Catalog endpoint configuration"
       ]
     },
-    "google-dataproc:hadoop-catalog:v2": {
-      "level": "full",
-      "notes": "Hadoop catalog supported via Spark on Dataproc",
-      "caveats": []
-    },
-    "google-dataproc:hadoop-catalog:v3": {
-      "level": "full",
-      "notes": "Hadoop catalog supported via Spark on Dataproc",
-      "caveats": []
-    },
     "google-dataproc:table-creation:v2": {
       "level": "full",
       "notes": "Dataproc supports creating Iceberg tables via Spark DDL",

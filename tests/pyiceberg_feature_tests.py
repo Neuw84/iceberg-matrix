@@ -626,13 +626,6 @@ def test_unity_catalog() -> TestResult:
     return r
 
 
-def test_hadoop_catalog() -> TestResult:
-    r = TestResult("hadoop-catalog", "Hadoop Catalog")
-    r.result = "fail"
-    r.details = "PyIceberg does not support Hadoop catalog"
-    return r
-
-
 def test_statistics() -> TestResult:
     r = TestResult("statistics", "Statistics")
     try:
@@ -828,7 +821,6 @@ ALL_TESTS = [
     test_statistics,
     test_bloom_filters,
     test_catalog_integration,
-    test_hadoop_catalog,
     test_rest_catalog,
     test_aws_glue_catalog,
     test_unity_catalog,

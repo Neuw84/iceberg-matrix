@@ -18,9 +18,7 @@ elsewhere. If no catalog answers there and none was explicitly requested, the
 suite falls back to a local Hadoop catalog so it still runs standalone; when
 ICEBERG_REST_URI *was* set explicitly, an unreachable catalog is left to fail
 loudly rather than silently downgrading CI. Set ICEBERG_REST_URI to an empty
-string to ask for the Hadoop catalog on purpose. A secondary local-filesystem
-Hadoop catalog ("hadoop_local") is always configured for the hadoop-catalog
-feature test.
+string to ask for the Hadoop catalog on purpose.
 
 Usage:
     python tests/iceberg_feature_tests.py
@@ -327,11 +325,6 @@ def get_spark():
         # (EMR, Glue, OSS Spark) is measured under the same session, otherwise
         # the cell records our configuration instead of the engine.
         .config("spark.sql.defaultColumn.enabled", "true")
-        # Secondary local-filesystem Hadoop catalog, always available, used by
-        # the hadoop-catalog feature test.
-        .config("spark.sql.catalog.hadoop_local", "org.apache.iceberg.spark.SparkCatalog")
-        .config("spark.sql.catalog.hadoop_local.type", "hadoop")
-        .config("spark.sql.catalog.hadoop_local.warehouse", WAREHOUSE_URI)
     )
 
     if PLATFORM_CATALOG:
@@ -1163,45 +1156,6 @@ def test_catalog_integration(version: str) -> TestResult:
     return r
 
 
-def test_hadoop_catalog(version: str) -> TestResult:
-    r = TestResult("hadoop-catalog", "Hadoop Catalog", version)
-    # With S3 Tables the table bucket *is* the catalog, so a Hadoop catalog is
-    # not an option there at all. The suite's hadoop_local catalog would still
-    # pass, because it is a local-filesystem catalog inside the container, but
-    # that says nothing about the platform under test -- it would report a
-    # capability S3 Tables does not have.
-    if STORAGE_MODE == "s3tables":
-        r.result = "skip"
-        r.details = ("Not applicable: S3 Tables is the catalog, so the suite's "
-                     "local-filesystem Hadoop catalog is not evidence about this platform")
-        return r
-    spark = get_spark()
-    ns = _ns()
-    try:
-        # Always exercised against the dedicated local-filesystem Hadoop
-        # catalog, regardless of what the primary catalog is.
-        spark.sql(f"CREATE NAMESPACE IF NOT EXISTS hadoop_local.{ns}")
-        tbl = f"hadoop_local.{ns}.{_unique('hadoop')}"
-        spark.sql(f"""
-            CREATE TABLE {tbl} (id BIGINT, val STRING)
-            USING iceberg TBLPROPERTIES ('format-version'='{_fmt(version)}')
-        """)
-        spark.sql(f"INSERT INTO {tbl} VALUES (1,'test')")
-        cnt = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
-        assert cnt == 1
-        _drop_table(spark, tbl)
-        spark.sql(f"DROP NAMESPACE IF EXISTS hadoop_local.{ns}")
-        r.result = "pass"
-        r.details = "Hadoop catalog: create, write, read, drop all work on local filesystem"
-    except Exception as e:
-        r.result = "error"
-        r.details = str(e)
-    return r
-
-
-# --- Catalogs that need external services: skipped in CI (both versions) ---
-
-
 def test_rest_catalog(version: str) -> TestResult:
     r = TestResult("rest-catalog", "REST Catalog", version)
     if not REST_URI:
@@ -1728,7 +1682,6 @@ ALL_TESTS = [
     test_statistics,
     test_bloom_filters,
     test_catalog_integration,
-    test_hadoop_catalog,
     test_rest_catalog,
     test_aws_glue_catalog,
     test_unity_catalog,

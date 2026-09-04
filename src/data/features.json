@@ -176,13 +176,6 @@
       "description": "Google Lakehouse runtime catalog (formerly BigLake metastore) exposing the Iceberg REST Catalog API, with cross-cloud federation of remote catalogs (borderless Lakehouse)"
     },
     {
-      "id": "hadoop-catalog",
-      "name": "Hadoop Catalog",
-      "category": "catalog-support",
-      "introducedIn": "v2",
-      "description": "File-system based catalog that stores Iceberg metadata directly on HDFS or compatible storage without an external service"
-    },
-    {
       "id": "variant-type",
       "name": "Variant Type",
       "category": "v3-data-types",

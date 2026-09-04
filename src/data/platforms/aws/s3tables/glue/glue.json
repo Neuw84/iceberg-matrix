@@ -130,11 +130,6 @@
       "notes": "S3 Tables does not support Unity Catalog",
       "caveats": []
     },
-    "aws-glue:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "S3 Tables does not support Hadoop catalog",
-      "caveats": []
-    },
     "aws-glue:variant-type:v2": {
       "level": "none",
       "notes": "Variant type is a V3 feature",
@@ -295,11 +290,6 @@
     "aws-glue:unity-catalog:v3": {
       "level": "none",
       "notes": "S3 Tables does not support Unity Catalog",
-      "caveats": []
-    },
-    "aws-glue:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "S3 Tables does not support Hadoop catalog",
       "caveats": []
     },
     "aws-glue:variant-type:v3": {

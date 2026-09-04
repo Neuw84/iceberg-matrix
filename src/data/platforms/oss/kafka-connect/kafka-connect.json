@@ -238,16 +238,6 @@
       "notes": "Unity Catalog is not supported by the Kafka Connect Iceberg sink connector",
       "caveats": []
     },
-    "kafka-connect:hadoop-catalog:v2": {
-      "level": "full",
-      "notes": "Hadoop is a built-in catalog type with first-class support",
-      "caveats": []
-    },
-    "kafka-connect:hadoop-catalog:v3": {
-      "level": "full",
-      "notes": "Hadoop is a built-in catalog type with first-class support",
-      "caveats": []
-    },
     "kafka-connect:table-creation:v2": {
       "level": "partial",
       "notes": "Supports automatic table creation via iceberg.tables.auto-create-enabled with schema inferred from incoming records",

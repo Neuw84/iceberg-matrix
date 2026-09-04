@@ -582,28 +582,6 @@
         }
       ]
     },
-    "doris:hadoop-catalog:v2": {
-      "level": "full",
-      "notes": "Doris supports the Hadoop (FileSystem) catalog via the hadoop catalog type",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        }
-      ]
-    },
-    "doris:hadoop-catalog:v3": {
-      "level": "full",
-      "notes": "Doris 4.1 supports the Hadoop (FileSystem) catalog for V3 Iceberg tables",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        }
-      ]
-    },
     "doris:variant-type:v2": {
       "level": "none",
       "notes": "Variant type is a V3 feature; not applicable to V2",

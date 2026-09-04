@@ -235,16 +235,6 @@
       "notes": "Athena does not support Iceberg V3",
       "caveats": []
     },
-    "aws-athena:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "Athena does not support Hadoop catalog",
-      "caveats": []
-    },
-    "aws-athena:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Athena does not support Iceberg V3",
-      "caveats": []
-    },
     "aws-athena:table-creation:v2": {
       "level": "full",
       "notes": "Athena supports CREATE TABLE for Iceberg tables via CTAS and standard DDL",

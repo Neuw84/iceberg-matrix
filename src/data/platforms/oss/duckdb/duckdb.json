@@ -557,28 +557,6 @@
         }
       ]
     },
-    "duckdb:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "DuckDB does not support Hadoop catalog; only REST-based catalogs are supported",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg REST Catalogs",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
-        }
-      ]
-    },
-    "duckdb:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "DuckDB does not support Hadoop catalog",
-      "caveats": [],
-      "links": [
-        {
-          "label": "Iceberg REST Catalogs",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/iceberg_rest_catalogs"
-        }
-      ]
-    },
     "duckdb:table-creation:v2": {
       "level": "full",
       "notes": "DuckDB supports CREATE TABLE and DROP TABLE via SQL DDL since v1.4.0",

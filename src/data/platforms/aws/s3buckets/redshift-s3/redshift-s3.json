@@ -448,16 +448,6 @@
         }
       ]
     },
-    "aws-redshift-s3:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "Redshift does not support Hadoop catalog",
-      "caveats": []
-    },
-    "aws-redshift-s3:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
-    },
     "aws-redshift-s3:variant-type:v2": {
       "level": "none",
       "notes": "Variant type is a V3 feature",

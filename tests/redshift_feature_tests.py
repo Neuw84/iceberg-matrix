@@ -1744,15 +1744,6 @@ def test_rest_catalog(version: str) -> TestResult:
                                 "a generic Iceberg REST catalog")
 
 
-def test_hadoop_catalog(version: str) -> TestResult:
-    return _non_glue_catalog(
-        "hadoop-catalog", "Hadoop Catalog", version,
-        "a filesystem (Hadoop) Iceberg catalog",
-        "has no external-schema form, since a warehouse path on S3 cannot be "
-        "registered as a catalog without Glue metadata behind it",
-    )
-
-
 def test_unity_catalog(version: str) -> TestResult:
     return _rest_backed_catalog("unity-catalog", "Unity Catalog", version,
                                 "Databricks Unity Catalog")
@@ -1966,7 +1957,6 @@ ALL_TESTS = [
     test_bloom_filters,
     test_aws_glue_catalog,
     test_rest_catalog,
-    test_hadoop_catalog,
     test_unity_catalog,
     test_snowflake_horizon_catalog,
     test_variant_type,

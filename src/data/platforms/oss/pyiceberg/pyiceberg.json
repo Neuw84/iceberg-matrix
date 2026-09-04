@@ -295,16 +295,6 @@
         "Requires Unity Catalog Iceberg REST endpoint configuration"
       ]
     },
-    "pyiceberg:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "PyIceberg does not implement the Hadoop catalog (JVM-based); use SQL or REST catalog instead",
-      "caveats": []
-    },
-    "pyiceberg:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Hadoop catalog is JVM-only; not applicable to PyIceberg",
-      "caveats": []
-    },
     "pyiceberg:variant-type:v2": {
       "level": "none",
       "notes": "Variant type is a V3 feature not applicable to V2",

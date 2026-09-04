@@ -636,14 +636,6 @@ def test_rest_catalog() -> TestResult:
     return r
 
 
-def test_hadoop_catalog() -> TestResult:
-    """ClickHouse does not support Hadoop catalog."""
-    r = TestResult("hadoop-catalog", "Hadoop Catalog")
-    r.result = "fail"
-    r.details = "ClickHouse does not support Hadoop catalog; uses direct path-based access"
-    return r
-
-
 def test_aws_glue_catalog() -> TestResult:
     """ClickHouse does not support AWS Glue catalog."""
     r = TestResult("aws-glue-catalog", "AWS Glue Catalog")
@@ -760,7 +752,6 @@ ALL_TESTS = [
     test_statistics,
     test_bloom_filters,
     test_catalog_integration,
-    test_hadoop_catalog,
     test_rest_catalog,
     test_aws_glue_catalog,
     test_unity_catalog,

@@ -889,11 +889,6 @@ def test_snowflake_horizon_catalog() -> TestResult:
                  "External catalog wiring is out of scope for a single-workspace run")
 
 
-def test_hadoop_catalog() -> TestResult:
-    return _skip("hadoop-catalog", "Hadoop Catalog", "v2",
-                 "Path-based catalogs cannot be attached to a UC SQL warehouse")
-
-
 ALL_TESTS = [
     test_table_creation,
     test_read_support,
@@ -927,7 +922,6 @@ ALL_TESTS = [
     test_glue_catalog,
     test_rest_catalog,
     test_snowflake_horizon_catalog,
-    test_hadoop_catalog,
 ]
 
 

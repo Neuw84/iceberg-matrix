@@ -847,11 +847,6 @@ def test_unity_catalog() -> TestResult:
                  "Unity Catalog is a Databricks catalog; not applicable to Snowflake")
 
 
-def test_hadoop_catalog() -> TestResult:
-    return _skip("hadoop-catalog", "Hadoop Catalog", "v2",
-                 "Path-based catalogs cannot be attached to a Snowflake session")
-
-
 ALL_TESTS = [
     test_table_creation,
     test_read_support,
@@ -884,7 +879,6 @@ ALL_TESTS = [
     test_bloom_filters,
     test_glue_catalog,
     test_rest_catalog,
-    test_hadoop_catalog,
 ]
 
 

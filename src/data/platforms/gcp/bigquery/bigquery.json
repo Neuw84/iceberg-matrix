@@ -571,24 +571,6 @@
         }
       ]
     },
-    "google-bigquery:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "BigQuery does not support Hadoop catalog; BigLake metastore is the native catalog",
-      "caveats": []
-    },
-    "google-bigquery:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "BigQuery does not support Hadoop catalog",
-      "caveats": [
-        "Only Iceberg V2 format is supported for snapshot export"
-      ],
-      "links": [
-        {
-          "label": "BigLake Iceberg tables in BigQuery",
-          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
-        }
-      ]
-    },
     "google-bigquery:table-creation:v2": {
       "level": "full",
       "notes": "BigQuery supports creating Iceberg managed tables via SQL DDL (CREATE TABLE), bq CLI, and REST API; requires a Cloud resource connection and Cloud Storage bucket. Apache Iceberg V2 tables in the Lakehouse runtime catalog are also supported (V2 GA; BigQuery DDL/DML on them is Preview), giving engine-interoperable tables through the Iceberg REST catalog rather than BigQuery-owned storage.",

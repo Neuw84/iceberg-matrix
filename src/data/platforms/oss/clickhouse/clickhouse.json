@@ -507,28 +507,6 @@
         }
       ]
     },
-    "clickhouse:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "ClickHouse Iceberg table functions do not support Hadoop catalog.",
-      "caveats": [],
-      "links": [
-        {
-          "label": "ClickHouse Iceberg table function",
-          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
-        }
-      ]
-    },
-    "clickhouse:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "ClickHouse Iceberg table functions do not support Hadoop catalog.",
-      "caveats": [],
-      "links": [
-        {
-          "label": "ClickHouse Iceberg table function",
-          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
-        }
-      ]
-    },
     "clickhouse:table-creation:v2": {
       "level": "none",
       "notes": "ClickHouse Iceberg integration via table functions is read-only; creating Iceberg tables is not supported.",

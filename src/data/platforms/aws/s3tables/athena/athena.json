@@ -247,16 +247,6 @@
       "notes": "Athena does not support Iceberg V3 with S3 Tables",
       "caveats": []
     },
-    "aws-athena:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "S3 Tables does not support Hadoop catalog",
-      "caveats": []
-    },
-    "aws-athena:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Athena does not support Iceberg V3 with S3 Tables",
-      "caveats": []
-    },
     "aws-athena:variant-type:v2": {
       "level": "none",
       "notes": "Variant type is a V3 feature",

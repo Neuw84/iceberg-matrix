@@ -511,32 +511,6 @@
       ],
       "docUrl": "https://iceberg.apache.org/docs/latest/flink-ddl/#rest-catalog"
     },
-    "flink:hadoop-catalog:v2": {
-      "level": "full",
-      "notes": "Full support via catalog-type='hadoop' on a filesystem warehouse. Flink does not ship Hadoop jars; Hadoop 3.3+ client jars must be added to the classpath, since Iceberg 1.11's Hadoop file IO calls FileSystem.openFile(), absent from older Hadoop 2 jars.",
-      "caveats": [
-        "Needs Hadoop 3.3+ jars on the Flink classpath"
-      ],
-      "links": [
-        {
-          "label": "Flink DDL",
-          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
-        }
-      ]
-    },
-    "flink:hadoop-catalog:v3": {
-      "level": "full",
-      "notes": "Full support via catalog-type='hadoop' on a filesystem warehouse. Requires Hadoop 3.3+ client jars: Iceberg 1.11's Hadoop file IO calls FileSystem.openFile(), absent from the older flink-shaded-hadoop-2 uber jar, which makes every read fail with NoSuchMethodError.",
-      "caveats": [
-        "Needs Hadoop 3.3+ jars on the Flink classpath"
-      ],
-      "links": [
-        {
-          "label": "Flink DDL",
-          "url": "https://iceberg.apache.org/docs/latest/flink-ddl/"
-        }
-      ]
-    },
     "flink:table-creation:v2": {
       "level": "full",
       "notes": "Flink supports creating Iceberg tables via Flink SQL DDL with CREATE TABLE, CREATE TABLE LIKE, and PARTITIONED BY (identity columns only)",

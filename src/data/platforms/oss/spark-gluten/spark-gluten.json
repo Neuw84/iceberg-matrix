@@ -282,20 +282,6 @@
         "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
       ]
     },
-    "spark-gluten:hadoop-catalog:v2": {
-      "level": "none",
-      "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
-      ]
-    },
-    "spark-gluten:hadoop-catalog:v3": {
-      "level": "none",
-      "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
-      "caveats": [
-        "Falls back to vanilla Spark (see the Vanilla toggle for Spark\u2019s support level)"
-      ]
-    },
     "spark-gluten:table-creation:v2": {
       "level": "none",
       "notes": "Not natively accelerated by the Gluten Velox backend; this operation falls back to vanilla Spark, which provides the full feature support (see the Vanilla toggle).",
