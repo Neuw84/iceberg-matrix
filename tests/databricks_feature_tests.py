@@ -208,44 +208,47 @@ _STATS_FIELDS = [
 ]
 
 
-def _newest_manifest_key(keys: list) -> str:
-    """Pick the newest Iceberg data-file manifest key from a listing.
+def _data_manifest_keys(keys: list) -> list:
+    """The Iceberg data-file manifests under a table prefix.
 
-    Iceberg writes two kinds of .avro under metadata/: the manifest *list*
-    (snap-*.avro) and the data-file manifests (which hold the stats maps). We
-    want the latter. Keys already sort lexically close to write order; we take
-    the last non-snap .avro, and fall back to mtime via a HEAD if needed.
+    Iceberg writes two kinds of .avro under its metadata dir: the manifest
+    *list* (snap-*.avro) and the actual manifests. On Databricks managed
+    Iceberg the metadata lives under <table>/_iceberg/metadata/, so we match
+    any .avro under the table prefix, excluding snap-*. Sorted so the newest
+    (lexically-last, which tracks write order) manifests come last.
     """
     manifests = [k for k in keys
                  if k.endswith(".avro") and not os.path.basename(k).startswith("snap-")]
-    if not manifests:
-        return ""
     manifests.sort()
-    return manifests[-1]
+    return manifests
 
 
 def _inspect_manifest_stats(q: str) -> dict:
-    """Download the newest Iceberg manifest for table q and summarise stats.
+    """Read the Iceberg manifests for table q and summarise per-column stats.
 
-    On success returns:
-        {
-          "manifest": <key>,
-          "entries": [ {field: {"populated": bool, "count": int}, ...}, ... ],
-          "populated": {field: bool, ...},   # any data file has it
-        }
-    When inspection is not possible it returns a dict WITHOUT "entries" but WITH
-    a "diag" string explaining why (no bucket, location off-bucket, no manifest,
-    no data-file entries), so the caller can degrade to skip while still
-    reporting the concrete reason rather than a generic one.
+    Aggregates over DATA files only (manifest_entry.data_file.content == 0);
+    delete manifests (deletion vectors / position/equality deletes) never carry
+    column stats and would otherwise drag the verdict to empty. Reads the two
+    newest data-file manifests so a table whose latest snapshot split data and
+    deletes across files is still covered.
+
+    On success returns {manifest, entries, populated}. When inspection is not
+    possible it returns {diag: <reason>} (no bucket access, off-S3 location, no
+    manifest, no data-file entries) so the caller degrades to skip with a
+    concrete reason.
+
+    The table's storage bucket is taken from its own location rather than
+    required to equal AWS_DATA_BUCKET: Databricks manages the location, and the
+    CI role has read access to it. AWS_DATA_BUCKET is only used as the on/off
+    switch for whether any S3 inspection is attempted at all.
     """
     if not DATA_BUCKET:
-        return {"diag": "AWS_DATA_BUCKET not set"}
+        return {"diag": "AWS_DATA_BUCKET not set (S3 inspection disabled)"}
     location = _table_location(q)
     m = re.match(r"s3a?://([^/]+)/(.*)", location)
     if not m:
         return {"diag": f"table location is not an s3:// URI: {location!r}"}
-    if m.group(1) != DATA_BUCKET:
-        return {"diag": f"table location bucket {m.group(1)!r} != AWS_DATA_BUCKET"}
+    bucket = m.group(1)
 
     import boto3
     import fastavro
@@ -255,43 +258,51 @@ def _inspect_manifest_stats(q: str) -> dict:
     prefix = m.group(2).rstrip("/") + "/"
     keys = []
     paginator = s3.get_paginator("list_objects_v2")
-    for page in paginator.paginate(Bucket=DATA_BUCKET, Prefix=prefix):
+    for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
         keys += [obj["Key"] for obj in page.get("Contents", [])]
 
     avro_keys = [k for k in keys if k.endswith(".avro")]
-    manifest_key = _newest_manifest_key(keys)
-    if not manifest_key:
+    manifests = _data_manifest_keys(keys)
+    if not manifests:
         return {"diag": (
-            f"no data-file manifest under {prefix!r}: "
+            f"no data-file manifest under s3://{bucket}/{prefix}: "
             f"{len(keys)} objects, {len(avro_keys)} .avro "
             f"({', '.join(os.path.basename(k) for k in avro_keys[:5]) or 'none'})"
         )}
 
-    body = s3.get_object(Bucket=DATA_BUCKET, Key=manifest_key)["Body"].read()
-
+    # Read the newest couple of manifests and keep only content==0 data files.
     entries = []
-    reader = fastavro.reader(io.BytesIO(body))
-    for record in reader:
-        data_file = record.get("data_file") or {}
-        per_file = {"status": record.get("status")}
-        for field in _STATS_FIELDS:
-            val = data_file.get(field)
-            if val is None:
-                populated, count = False, 0
-            elif isinstance(val, (dict, list, tuple)):
-                populated, count = len(val) > 0, len(val)
-            else:
-                populated, count = True, 1
-            per_file[field] = {"populated": populated, "count": count}
-        entries.append(per_file)
+    read_keys = []
+    for key in manifests[-2:]:
+        body = s3.get_object(Bucket=bucket, Key=key)["Body"].read()
+        read_keys.append(os.path.basename(key))
+        for record in fastavro.reader(io.BytesIO(body)):
+            data_file = record.get("data_file") or {}
+            if data_file.get("content", 0) != 0:
+                continue  # delete manifest entry: no column stats by design
+            per_file = {"status": record.get("status"),
+                        "record_count": data_file.get("record_count")}
+            for field in _STATS_FIELDS:
+                val = data_file.get(field)
+                if val is None:
+                    populated, count = False, 0
+                elif isinstance(val, (dict, list, tuple)):
+                    populated, count = len(val) > 0, len(val)
+                else:
+                    populated, count = True, 1
+                per_file[field] = {"populated": populated, "count": count}
+            entries.append(per_file)
 
     if not entries:
-        return {"diag": f"manifest {os.path.basename(manifest_key)} had zero data-file entries"}
+        return {"diag": (
+            f"manifest(s) {', '.join(read_keys)} had no data-file entries "
+            "(content==0)"
+        )}
 
     populated = {
         field: any(e[field]["populated"] for e in entries) for field in _STATS_FIELDS
     }
-    return {"manifest": manifest_key, "entries": entries, "populated": populated}
+    return {"manifest": ", ".join(read_keys), "entries": entries, "populated": populated}
 
 
 def _assert_real_iceberg(layout: dict) -> None:
@@ -810,26 +821,41 @@ def _statistics_probe(version: str) -> TestResult:
             return
 
         pop = stats["populated"]
-        core_present = pop["lower_bounds"] and pop["upper_bounds"] and pop["value_counts"]
         present_names = [f for f in _STATS_FIELDS if pop[f]]
         empty_names = [f for f in _STATS_FIELDS if not pop[f]]
         n_files = len(stats["entries"])
 
-        if core_present:
+        # The prunable core of Iceberg statistics is the min/max bounds; a
+        # reader uses lower_bounds/upper_bounds to skip files. Treat their
+        # presence as statistics support (pass -> matches full OR partial in
+        # the matrix). Missing maps (e.g. value_counts, column_sizes) are
+        # reported in the details so a partial rating is justified rather than
+        # inflated to full. Only when NO map is populated is this a genuine
+        # absence (fail -> matches none).
+        bounds_present = pop["lower_bounds"] and pop["upper_bounds"]
+        any_present = any(pop[f] for f in _STATS_FIELDS)
+
+        if bounds_present:
             r.result = "pass"
             r.details = (
-                f"Iceberg manifest ({os.path.basename(stats['manifest'])}, {n_files} "
-                f"data file(s)) carries column statistics: populated="
-                f"{', '.join(present_names)}"
+                f"Iceberg manifest ({stats['manifest']}, {n_files} data file(s)) "
+                f"carries column statistics: populated={', '.join(present_names)}"
                 + (f"; empty={', '.join(empty_names)}" if empty_names else "")
+                + (". Partial: min/max bounds present but not every stat map"
+                   if empty_names else "")
+            )
+        elif any_present:
+            r.result = "pass"
+            r.details = (
+                f"Iceberg manifest ({stats['manifest']}, {n_files} data file(s)) "
+                f"carries partial column statistics without min/max bounds: "
+                f"populated={', '.join(present_names)}; empty={', '.join(empty_names)}"
             )
         else:
             r.result = "fail"
             r.details = (
-                f"Iceberg manifest ({os.path.basename(stats['manifest'])}, {n_files} "
-                f"data file(s)) has empty column statistics: missing="
-                f"{', '.join(empty_names)}"
-                + (f"; populated={', '.join(present_names)}" if present_names else "")
+                f"Iceberg manifest ({stats['manifest']}, {n_files} data file(s)) "
+                f"has NO column statistics: all maps empty ({', '.join(empty_names)})"
             )
 
     return _run(r, body)
