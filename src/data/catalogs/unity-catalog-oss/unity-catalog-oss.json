@@ -12,17 +12,19 @@
   "support": {
     "unity-catalog-oss:rest-spec-support:current": {
       "level": "partial",
-      "notes": "Exposes an Iceberg REST endpoint (/api/2.1/unity-catalog/iceberg) that serves Delta UniForm tables to Iceberg clients such as Trino and DuckDB.",
+      "notes": "Exposes an Iceberg REST endpoint (/api/2.1/unity-catalog/iceberg) that serves Delta UniForm tables to Iceberg clients such as Trino and DuckDB. The 0.6.0 server advertises exactly seven endpoints - list and load namespace, table exists, load table, load view, report metrics and list tables - and loadTable vends short-lived storage credentials for the table location.",
       "caveats": [
-        "Read-oriented: tables can't be created or committed through the IRC endpoint",
-        "No Iceberg view support",
-        "Only Delta tables with UniForm enabled are visible to Iceberg clients"
+        "Read-only: no create, commit, drop or rename endpoints, so tables can't be created or committed through IRC",
+        "No Iceberg view support: the load-view endpoint exists only so clients can probe table-then-view and always returns 404",
+        "Only Delta tables with UniForm enabled are visible to Iceberg clients",
+        "Every IRC endpoint requires metastore OWNER, so external access can't be scoped per schema or per table",
+        "Nested namespaces aren't supported, and vended credentials are hard-coded to read privileges"
       ],
       "links": [{ "label": "UniForm tables docs", "url": "https://docs.unitycatalog.io/usage/tables/uniform/" }]
     },
     "unity-catalog-oss:v2-spec-support:current": {
       "level": "full",
-      "notes": "UniForm generates format v2 Iceberg metadata for Delta tables served over the REST endpoint.",
+      "notes": "UniForm generates format v2 Iceberg metadata for Delta tables, which the server (Iceberg 1.11.0 since 0.6.0) parses and serves over the REST endpoint.",
       "caveats": [
         "UniForm requires deletion vectors to be disabled on the Delta side, so the generated v2 metadata never carries delete files"
       ],
@@ -30,9 +32,9 @@
     },
     "unity-catalog-oss:v3-spec-support:current": {
       "level": "unknown",
-      "notes": "No format v3 support announced for the OSS server; UniForm metadata generation targets format v2.",
+      "notes": "No format v3 support announced for the OSS server. It parses metadata with a v3-capable Iceberg library (1.11.0), but the only tables it serves are Delta UniForm tables, whose generated metadata targets format v2; native Iceberg table lifecycle is a v0.7 and beyond roadmap item.",
       "caveats": [],
-      "links": [{ "label": "Unity Catalog OSS docs", "url": "https://docs.unitycatalog.io/" }]
+      "links": [{ "label": "Unity Catalog OSS roadmap", "url": "https://github.com/unitycatalog/unitycatalog/blob/main/roadmap.md" }]
     },
     "unity-catalog-oss:managed-offering:current": {
       "level": "none",
@@ -42,9 +44,9 @@
     },
     "unity-catalog-oss:serves-own-irc:current": {
       "level": "none",
-      "notes": "The IRC path is a secondary, read-leaning surface (Delta UniForm read-as-Iceberg) rather than full table lifecycle, and it vends no credentials: the documented read example authenticates with token 'not_used' and the engine supplies its own storage keys. Held to the same read+write-with-vended-credentials bar as every catalog, it does not qualify.",
+      "notes": "The IRC path is read-only - the server advertises no create, commit, drop or rename endpoints - and it serves Delta UniForm tables read-as-Iceberg rather than its own Iceberg tables. Credentials are vended (loadTable returns short-lived, location-scoped storage credentials), but held to the read-and-write bar this criterion applies to every catalog, it does not qualify. Iceberg tables with create, read and write are a v0.7 and beyond roadmap item.",
       "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.unitycatalog.io/usage/tables/uniform/#read-delta-uniform-tables-via-iceberg-rest-catalog" }]
+      "links": [{ "label": "Source", "url": "https://github.com/unitycatalog/unitycatalog/blob/main/roadmap.md" }]
     },
     "unity-catalog-oss:rw-foreign-irc:current": {
       "level": "none",
@@ -56,20 +58,22 @@
     },
     "unity-catalog-oss:federation-broker:current": {
       "level": "none",
-      "notes": "No catalog-of-catalogs brokering in the OSS edition.",
+      "notes": "No catalog-of-catalogs brokering in the OSS edition; federating other sources (JDBC, Iceberg REST, Hive metastore) is a v0.8 and beyond roadmap item.",
       "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.unitycatalog.io/" }]
+      "links": [{ "label": "Source", "url": "https://github.com/unitycatalog/unitycatalog/blob/main/roadmap.md" }]
     },
     "unity-catalog-oss:multi-engine-multi-cloud:current": {
       "level": "partial",
-      "notes": "Mostly Spark, DuckDB and Daft via the UC-native API; not broad IRC.",
+      "notes": "Spark, DuckDB and Daft via the UC-native API, plus read-only IRC for any Iceberg client; the unitycatalog-hadoop module extends vended-credential reuse to engines such as Flink and Trino. Storage covers S3, ADLS and GCS.",
       "caveats": [],
       "links": [{ "label": "Source", "url": "https://docs.unitycatalog.io/" }]
     },
     "unity-catalog-oss:governance-cred-vending:current": {
       "level": "partial",
-      "notes": "Coarse object grants exist but authorization is off by default; no named-role RBAC, row/column masks or ABAC (all marked unplanned on the roadmap), and credential vending is static pre-configured keys rather than short-lived STS-style vending.",
-      "caveats": [],
+      "notes": "Credential vending is real: storage credentials and external locations vend short-lived, path-scoped credentials (AWS STS, Azure user-delegation SAS, GCS OAuth) with automatic renewal. Governance is the weak half - authorization is off by default (server.authorization=disable), grants are coarse object privileges, and named-role RBAC, row filters, column masks and ABAC are all still uncommitted on the roadmap even beyond v0.8.",
+      "caveats": [
+        "The Iceberg REST path vends read-only credentials and requires metastore OWNER"
+      ],
       "links": [{ "label": "Source", "url": "https://github.com/unitycatalog/unitycatalog/blob/main/roadmap.md" }]
     }
   }
