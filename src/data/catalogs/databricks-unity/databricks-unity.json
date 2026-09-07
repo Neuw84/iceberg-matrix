@@ -12,64 +12,123 @@
   "support": {
     "databricks-unity:rest-spec-support:current": {
       "level": "partial",
-      "notes": "Iceberg REST endpoint (/api/2.1/unity-catalog/iceberg) with credential vending: external engines read and write Unity-managed Iceberg tables and read Delta tables via Iceberg reads (UniForm).",
+      "notes": "Spec-compliant IRC at /api/2.1/unity-catalog/iceberg-rest, whose /v1/config advertises the full namespace and table lifecycle (create, commit, drop, rename), the loadCredentials endpoint and scan planning: external engines such as Spark, Flink, Trino, PyIceberg and Snowflake read and write Unity-managed Iceberg tables with vended credentials, and read Delta tables via Iceberg reads.",
       "caveats": [
-        "Delta tables with Iceberg reads are read-only for external Iceberg clients",
-        "Foreign Iceberg tables aren't auto-refreshed over IRC (REFRESH FOREIGN TABLE needed) and don't get credential vending"
+        "Iceberg views aren't served: loadView returns 404 even for a real Unity Catalog view, and listViews isn't implemented",
+        "Multi-table transactions and register-table aren't implemented",
+        "Only managed Iceberg tables accept IRC writes; Delta tables with Iceberg reads and foreign Iceberg tables are read-only",
+        "Foreign Iceberg tables get no credential vending and aren't auto-refreshed over IRC (REFRESH FOREIGN TABLE needed)",
+        "Unity Catalog blocks external commits that would put duplicate data files in one snapshot",
+        "The older /api/2.1/unity-catalog/iceberg endpoint is legacy and read-only, and advertises no endpoints at all"
       ],
-      "links": [{ "label": "Iceberg client access docs", "url": "https://docs.databricks.com/aws/en/external-access/iceberg.html" }]
+      "links": [
+        {
+          "label": "Iceberg client access docs",
+          "url": "https://docs.databricks.com/aws/en/external-access/iceberg"
+        }
+      ]
     },
     "databricks-unity:v2-spec-support:current": {
       "level": "full",
-      "notes": "Managed Iceberg tables and Iceberg reads over Delta (UniForm) produce format v2 metadata by default.",
+      "notes": "Managed Iceberg tables and Delta tables with Iceberg reads produce format v2 metadata by default.",
       "caveats": [],
-      "links": [{ "label": "Iceberg on Databricks", "url": "https://docs.databricks.com/aws/en/external-access/iceberg.html" }]
+      "links": [
+        {
+          "label": "Iceberg on Databricks",
+          "url": "https://docs.databricks.com/aws/en/external-access/iceberg"
+        }
+      ]
     },
     "databricks-unity:v3-spec-support:current": {
       "level": "partial",
-      "notes": "Iceberg v3 is GA for managed tables on Databricks Runtime 18+: deletion vectors (on by default), the variant type and row lineage.",
+      "notes": "Iceberg v3 is GA on Databricks Runtime 18 LTS and above, for both managed Iceberg tables and managed Delta tables with Iceberg reads: deletion vectors (on by default), the variant type, row lineage, the geometry and geography types, and write defaults.",
       "caveats": [
-        "Column default values (write and initial defaults) aren't supported",
-        "Unknown type and nanosecond-precision timestamps aren't supported",
-        "Multi-argument transforms aren't supported"
+        "Initial defaults aren't supported: ADD COLUMN with a DEFAULT is rejected, so a default can only be set for future inserts",
+        "Unknown type and nanosecond-precision timestamps aren't supported (TIMESTAMP_NS is rejected outright)",
+        "Multi-argument transforms aren't supported: PARTITIONED BY (bucket(4, col)) is rejected"
       ],
-      "links": [{ "label": "Iceberg v3 features docs", "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3" }]
+      "links": [
+        {
+          "label": "Iceberg v3 features docs",
+          "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"
+        }
+      ]
     },
     "databricks-unity:managed-offering:current": {
       "level": "full",
       "notes": "Fully managed across AWS, Azure and GCP.",
       "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.databricks.com/en/data-governance/unity-catalog/" }]
+      "links": [
+        {
+          "label": "Source",
+          "url": "https://docs.databricks.com/en/data-governance/unity-catalog/"
+        }
+      ]
     },
     "databricks-unity:serves-own-irc:current": {
-      "level": "partial",
-      "notes": "Only native Unity-managed Iceberg is read and write over IRC; Delta-via-UniForm and foreign Iceberg are exposed read-only, and most Databricks tables are Delta, so only some served paths offer write.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.databricks.com/aws/en/external-access/iceberg" }]
+      "level": "full",
+      "notes": "Unity-managed Iceberg tables are read and write over the spec-compliant IRC endpoint: an external PyIceberg client lists, scans, appends to and even creates managed Iceberg tables with no storage keys of its own, and the commits land as regular Unity Catalog managed tables. Credentials are short-lived and path-scoped (one-hour default expiry), served by the spec's dedicated loadCredentials endpoint.",
+      "caveats": [
+        "Delta tables with Iceberg reads and foreign Iceberg tables are served read-only over the same endpoint",
+        "loadTable returns an empty storage-credentials array even when the client sends X-Iceberg-Access-Delegation: vended-credentials; the credentials arrive in the legacy config field instead",
+        "Credential vending covers only some reader clients; unsupported clients must configure their own storage access"
+      ],
+      "links": [
+        {
+          "label": "Source",
+          "url": "https://docs.databricks.com/aws/en/external-access/iceberg"
+        }
+      ]
     },
     "databricks-unity:rw-foreign-irc:current": {
       "level": "none",
-      "notes": "One-directional: foreign Iceberg is read-only with no credential vending, and access requires a persistent base-location storage credential (a Unity external location over the tables' storage paths) plus manual REFRESH FOREIGN TABLE rather than vended credentials.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.databricks.com/aws/en/external-access/iceberg" }]
+      "notes": "One-directional and not over IRC: foreign Iceberg tables are read-only in Databricks, and catalog federation reaches them through proprietary connectors (AWS Glue, Hive metastore, Snowflake) rather than as an IRC client, with no generic Iceberg REST connection type. Access needs a persistent base-location storage credential (a Unity external location plus authorized paths) instead of credentials vended by the remote catalog.",
+      "caveats": [
+        "Foreign-table metadata does auto-refresh on Databricks-side queries; the manual REFRESH FOREIGN TABLE requirement applies to reads through Unity Catalog's own IRC endpoint"
+      ],
+      "links": [
+        {
+          "label": "Source",
+          "url": "https://docs.databricks.com/aws/en/query-federation/catalog-federation"
+        }
+      ]
     },
     "databricks-unity:federation-broker:current": {
       "level": "none",
-      "notes": "Lakehouse/Catalog Federation brokers many sources but is proprietary rather than spec-compliant IRC: it requires a persistent, broadly-scoped base-location storage credential instead of the short-lived, path-scoped credentials the IRC spec vends (and Iceberg is read-only through it).",
+      "notes": "Unity Catalog does re-serve federated foreign Iceberg tables over its own IRC endpoint, but not as a spec-compliant broker: those tables get neither credential vending nor auto-refresh, the federated sources are consumed through proprietary connectors with no generic Iceberg REST connection type, and access requires a persistent, broadly-scoped base-location storage credential rather than the short-lived, path-scoped credentials the IRC spec vends.",
       "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.databricks.com/aws/en/query-federation/catalog-federation" }]
+      "links": [
+        {
+          "label": "Source",
+          "url": "https://docs.databricks.com/aws/en/query-federation/catalog-federation"
+        }
+      ]
     },
     "databricks-unity:multi-engine-multi-cloud:current": {
       "level": "full",
       "notes": "AWS, Azure and GCP; broad engine support inside Databricks.",
       "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.databricks.com/en/data-governance/unity-catalog/" }]
+      "links": [
+        {
+          "label": "Source",
+          "url": "https://docs.databricks.com/en/data-governance/unity-catalog/"
+        }
+      ]
     },
     "databricks-unity:governance-cred-vending:current": {
       "level": "partial",
-      "notes": "Strong ABAC and row/column filters within Databricks, but they are not enforced on external-engine IRC reads.",
-      "caveats": [],
-      "links": [{ "label": "Source", "url": "https://docs.databricks.com/aws/en/tables/foreign" }]
+      "notes": "Credential vending is spec-compliant (short-lived, table-scoped, one-hour default expiry), and cross-engine ABAC now enforces ABAC policies plus standalone row filters and column masks on external Iceberg client reads, but that enforcement is Beta and narrow.",
+      "caveats": [
+        "Cross-engine ABAC is Beta and needs Iceberg-Spark 1.11 or above on Apache Spark 4.0 or above, so other IRC clients get no fine-grained enforcement",
+        "Only reads are allowed from external engines once fine-grained controls are enforced, and only on managed tables with catalog commits",
+        "Dynamic views, projecting variant columns and filtering on binary columns aren't supported under cross-engine ABAC"
+      ],
+      "links": [
+        {
+          "label": "Cross-engine ABAC",
+          "url": "https://docs.databricks.com/aws/en/external-access/cross-engine-abac"
+        }
+      ]
     }
   }
 }
