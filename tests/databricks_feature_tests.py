@@ -20,10 +20,9 @@ Environment:
     DATABRICKS_HOST          (required) e.g. https://dbc-xxxx.cloud.databricks.com
     DATABRICKS_TOKEN         (required) PAT or service-principal OAuth token
     DATABRICKS_WAREHOUSE_ID  (required) SQL warehouse id (Connection details tab)
-    DATABRICKS_HTTP_PATH     optional compute override: an http_path to a cluster
-                             (sql/protocolv1/o/0/<cluster-id>) or another
-                             warehouse, so the same probes can run on a pinned
-                             DBR runtime (e.g. 16.4 LTS) instead of the warehouse
+    DATABRICKS_HTTP_PATH     optional compute override: an http_path to another
+                             warehouse or a cluster, so the same probes can run
+                             on different compute than the default warehouse
     DATABRICKS_CATALOG       UC catalog to create run schemas in (default: icebergmatrix)
     AWS_DATA_BUCKET          bucket backing the catalog's managed location; enables
                              the S3 layout inspection AND the Iceberg manifest
@@ -46,9 +45,8 @@ from datetime import datetime, timezone
 HOST = os.environ.get("DATABRICKS_HOST", "").rstrip("/")
 TOKEN = os.environ.get("DATABRICKS_TOKEN", "")
 WAREHOUSE_ID = os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
-# Optional compute override: full http_path to a cluster or another warehouse
-# (e.g. "sql/protocolv1/o/0/<cluster-id>" for a pinned-DBR cluster). Empty
-# means the SQL warehouse above.
+# Optional compute override: full http_path to another warehouse or a cluster.
+# Empty means the SQL warehouse above.
 HTTP_PATH = os.environ.get("DATABRICKS_HTTP_PATH", "").strip()
 CATALOG = os.environ.get("DATABRICKS_CATALOG", "icebergmatrix")
 DATA_BUCKET = os.environ.get("AWS_DATA_BUCKET", "")
@@ -90,10 +88,9 @@ def _connect():
         return _connection
     from databricks import sql as dbsql
 
-    # DATABRICKS_HTTP_PATH lets the suite target any compute: the default SQL
-    # warehouse (latest DBSQL), or an all-purpose cluster pinned to a specific
-    # Databricks Runtime (e.g. sql/protocolv1/o/0/<cluster-id> for a DBR 16.4
-    # LTS cluster) so the same probes can measure runtime differences.
+    # DATABRICKS_HTTP_PATH lets the suite target other compute than the
+    # default SQL warehouse, so the same probes can measure differences
+    # across warehouses or clusters when one is available.
     http_path = HTTP_PATH or f"/sql/1.0/warehouses/{WAREHOUSE_ID}"
     _connection = dbsql.connect(
         server_hostname=HOST.replace("https://", ""),
