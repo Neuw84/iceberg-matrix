@@ -20,6 +20,10 @@ Environment:
     DATABRICKS_HOST          (required) e.g. https://dbc-xxxx.cloud.databricks.com
     DATABRICKS_TOKEN         (required) PAT or service-principal OAuth token
     DATABRICKS_WAREHOUSE_ID  (required) SQL warehouse id (Connection details tab)
+    DATABRICKS_HTTP_PATH     optional compute override: an http_path to a cluster
+                             (sql/protocolv1/o/0/<cluster-id>) or another
+                             warehouse, so the same probes can run on a pinned
+                             DBR runtime (e.g. 16.4 LTS) instead of the warehouse
     DATABRICKS_CATALOG       UC catalog to create run schemas in (default: icebergmatrix)
     AWS_DATA_BUCKET          bucket backing the catalog's managed location; enables
                              the S3 layout inspection AND the Iceberg manifest
@@ -42,6 +46,10 @@ from datetime import datetime, timezone
 HOST = os.environ.get("DATABRICKS_HOST", "").rstrip("/")
 TOKEN = os.environ.get("DATABRICKS_TOKEN", "")
 WAREHOUSE_ID = os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
+# Optional compute override: full http_path to a cluster or another warehouse
+# (e.g. "sql/protocolv1/o/0/<cluster-id>" for a pinned-DBR cluster). Empty
+# means the SQL warehouse above.
+HTTP_PATH = os.environ.get("DATABRICKS_HTTP_PATH", "").strip()
 CATALOG = os.environ.get("DATABRICKS_CATALOG", "icebergmatrix")
 DATA_BUCKET = os.environ.get("AWS_DATA_BUCKET", "")
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
@@ -82,16 +90,30 @@ def _connect():
         return _connection
     from databricks import sql as dbsql
 
+    # DATABRICKS_HTTP_PATH lets the suite target any compute: the default SQL
+    # warehouse (latest DBSQL), or an all-purpose cluster pinned to a specific
+    # Databricks Runtime (e.g. sql/protocolv1/o/0/<cluster-id> for a DBR 16.4
+    # LTS cluster) so the same probes can measure runtime differences.
+    http_path = HTTP_PATH or f"/sql/1.0/warehouses/{WAREHOUSE_ID}"
     _connection = dbsql.connect(
         server_hostname=HOST.replace("https://", ""),
-        http_path=f"/sql/1.0/warehouses/{WAREHOUSE_ID}",
+        http_path=http_path,
         access_token=TOKEN,
         session_configuration={"STATEMENT_TIMEOUT": "300"},
     )
     with _connection.cursor() as c:
-        c.execute("SELECT current_version().dbsql_version")
+        # current_version() exposes dbsql_version on SQL warehouses and
+        # dbr_version on clusters; take whichever is set so the report always
+        # records the runtime the measurement ran on.
+        c.execute("SELECT current_version().dbsql_version, "
+                  "current_version().dbr_version")
         row = c.fetchone()
-        _dbr_version = row[0] if row else "unknown"
+        if row:
+            dbsql_v, dbr_v = row[0], row[1]
+            _dbr_version = (f"DBSQL {dbsql_v}" if dbsql_v
+                            else f"DBR {dbr_v}" if dbr_v else "unknown")
+        else:
+            _dbr_version = "unknown"
     return _connection
 
 
@@ -257,9 +279,12 @@ def _inspect_manifest_stats(q: str) -> dict:
     s3 = boto3.client("s3", region_name=AWS_REGION)
     prefix = m.group(2).rstrip("/") + "/"
     keys = []
+    mtimes = {}
     paginator = s3.get_paginator("list_objects_v2")
     for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
-        keys += [obj["Key"] for obj in page.get("Contents", [])]
+        for obj in page.get("Contents", []):
+            keys.append(obj["Key"])
+            mtimes[obj["Key"]] = obj.get("LastModified")
 
     avro_keys = [k for k in keys if k.endswith(".avro")]
     manifests = _data_manifest_keys(keys)
@@ -302,7 +327,63 @@ def _inspect_manifest_stats(q: str) -> dict:
     populated = {
         field: any(e[field]["populated"] for e in entries) for field in _STATS_FIELDS
     }
-    return {"manifest": ", ".join(read_keys), "entries": entries, "populated": populated}
+    result = {"manifest": ", ".join(read_keys), "entries": entries,
+              "populated": populated}
+
+    # --- Manifest LIST (snap-*.avro): planning-level metadata ---
+    # The manifest list drives Iceberg scan planning: per-manifest file/row
+    # counters plus the partitions[] field-summary (lower/upper bound and
+    # contains_null per partition column) used to skip whole manifests.
+    # Snapshot ids in the filename are random, so pick the newest by S3
+    # LastModified rather than by name.
+    snaps = [k for k in avro_keys if os.path.basename(k).startswith("snap-")]
+    if snaps:
+        snaps.sort(key=lambda k: mtimes.get(k) or 0)
+        snap_key = snaps[-1]
+        body = s3.get_object(Bucket=bucket, Key=snap_key)["Body"].read()
+        ml_entries = []
+        counter_names = [
+            "added_data_files_count", "existing_data_files_count",
+            "deleted_data_files_count", "added_rows_count",
+            "existing_rows_count", "deleted_rows_count",
+        ]
+        for rec in fastavro.reader(io.BytesIO(body)):
+            counters = {c: rec.get(c) for c in counter_names}
+            parts = rec.get("partitions")
+            psum = []
+            if isinstance(parts, (list, tuple)):
+                for fs in parts:
+                    fs = fs or {}
+                    psum.append({
+                        "contains_null": fs.get("contains_null"),
+                        "contains_nan": fs.get("contains_nan"),
+                        "has_lower_bound": fs.get("lower_bound") is not None,
+                        "has_upper_bound": fs.get("upper_bound") is not None,
+                    })
+            ml_entries.append({
+                "manifest_path": os.path.basename(str(rec.get("manifest_path", ""))),
+                "content": rec.get("content"),
+                "counters": counters,
+                "partitions_count": len(psum),
+                "partitions": psum,
+                "partitions_populated": any(
+                    p["has_lower_bound"] or p["has_upper_bound"]
+                    or p["contains_null"] is not None for p in psum
+                ),
+            })
+        result["manifest_list"] = {
+            "file": os.path.basename(snap_key),
+            "entries": ml_entries,
+            "any_partitions_populated": any(
+                e["partitions_populated"] for e in ml_entries),
+            "any_row_counters_populated": any(
+                e["counters"].get(c) not in (None, -1)
+                for e in ml_entries
+                for c in ("added_rows_count", "existing_rows_count",
+                          "deleted_rows_count")
+            ),
+        }
+    return result
 
 
 def _assert_real_iceberg(layout: dict) -> None:
@@ -794,10 +875,21 @@ def _statistics_probe(version: str) -> TestResult:
     r = TestResult("statistics", "Statistics", f"v{version}")
 
     def body(ns, r):
-        q = _create_iceberg(ns, "t", "id BIGINT, category STRING, amount DOUBLE",
-                            version=version)
+        # Partitioned by category so the Iceberg manifest LIST carries a
+        # non-trivial partitions[] field-summary we can validate (partition
+        # pruning metadata). If managed Iceberg rejects PARTITIONED BY on this
+        # runtime, fall back to unpartitioned and note it: the column-stats
+        # measurement is still valid, only the partition-summary check degrades.
+        partitioned = True
+        try:
+            q = _create_iceberg(ns, "t", "id BIGINT, category STRING, amount DOUBLE",
+                                version=version, partitioned_by="category")
+        except Exception:  # noqa: BLE001 - measured fallback, not an error
+            partitioned = False
+            q = _create_iceberg(ns, "t", "id BIGINT, category STRING, amount DOUBLE",
+                                version=version)
         # Known min/max so populated stats are unmistakable:
-        #   id [1,5], amount [10.5,500.25], category ['a','e']
+        #   id [1,5], amount [10.5,500.25], category ['a','e'] (partition col)
         sql(f"INSERT INTO {q} VALUES "
             "(1,'a',10.5),(2,'b',42.0),(3,'c',100.0),(4,'d',250.75),(5,'e',500.25)")
 
@@ -825,6 +917,18 @@ def _statistics_probe(version: str) -> TestResult:
         empty_names = [f for f in _STATS_FIELDS if not pop[f]]
         n_files = len(stats["entries"])
 
+        # Manifest-list (partition stats) evidence, appended to whichever
+        # verdict the column stats produce below.
+        ml = stats.get("manifest_list")
+        if ml:
+            ml_note = (f"; manifest list {ml['file']}: partition summaries "
+                       f"{'POPULATED' if ml['any_partitions_populated'] else 'EMPTY'}"
+                       + ("" if partitioned else " (table fell back to unpartitioned)")
+                       + f", row counters "
+                       f"{'populated' if ml['any_row_counters_populated'] else 'empty'}")
+        else:
+            ml_note = "; manifest list not found for inspection"
+
         # The prunable core of Iceberg statistics is the min/max bounds; a
         # reader uses lower_bounds/upper_bounds to skip files. Treat their
         # presence as statistics support (pass -> matches full OR partial in
@@ -843,6 +947,7 @@ def _statistics_probe(version: str) -> TestResult:
                 + (f"; empty={', '.join(empty_names)}" if empty_names else "")
                 + (". Partial: min/max bounds present but not every stat map"
                    if empty_names else "")
+                + ml_note
             )
         elif any_present:
             r.result = "pass"
@@ -850,12 +955,14 @@ def _statistics_probe(version: str) -> TestResult:
                 f"Iceberg manifest ({stats['manifest']}, {n_files} data file(s)) "
                 f"carries partial column statistics without min/max bounds: "
                 f"populated={', '.join(present_names)}; empty={', '.join(empty_names)}"
+                + ml_note
             )
         else:
             r.result = "fail"
             r.details = (
                 f"Iceberg manifest ({stats['manifest']}, {n_files} data file(s)) "
                 f"has NO column statistics: all maps empty ({', '.join(empty_names)})"
+                + ml_note
             )
 
     return _run(r, body)
@@ -1032,8 +1139,10 @@ def generate_markdown(report: dict) -> str:
 
 
 def main():
-    missing = [n for n, v in [("DATABRICKS_HOST", HOST), ("DATABRICKS_TOKEN", TOKEN),
-                              ("DATABRICKS_WAREHOUSE_ID", WAREHOUSE_ID)] if not v]
+    required = [("DATABRICKS_HOST", HOST), ("DATABRICKS_TOKEN", TOKEN)]
+    if not HTTP_PATH:  # warehouse id only needed when no explicit compute path
+        required.append(("DATABRICKS_WAREHOUSE_ID", WAREHOUSE_ID))
+    missing = [n for n, v in required if not v]
     if missing:
         print(f"Missing required environment: {', '.join(missing)}")
         sys.exit(2)
