@@ -30,12 +30,13 @@
       "links": [{ "label": "Glue Iceberg docs", "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html" }]
     },
     "aws-glue-data-catalog:v3-spec-support:current": {
-      "level": "partial",
-      "notes": "Iceberg v3 deletion vectors and row lineage are supported (announced November 2025) across the Glue Data Catalog, S3 Tables and AWS analytics engines.",
-      "caveats": [
-        "The v3 announcement covers deletion vectors and row lineage; the new v3 data types (variant, geometry/geography, nanosecond timestamps) haven't been announced for the Data Catalog"
-      ],
-      "links": [{ "label": "AWS v3 announcement", "url": "https://aws.amazon.com/blogs/big-data/accelerate-data-lake-operations-with-apache-iceberg-v3-deletion-vectors-and-row-lineage/" }]
+      "level": "full",
+      "notes": "Full Iceberg v3 support with Glue 6.0: deletion vectors, row lineage and the v3 data types (variant, geometry/geography, nanosecond timestamps) across the Glue Data Catalog, S3 Tables and AWS analytics engines.",
+      "caveats": [],
+      "links": [
+        { "label": "AWS v3 announcement", "url": "https://aws.amazon.com/blogs/big-data/accelerate-data-lake-operations-with-apache-iceberg-v3-deletion-vectors-and-row-lineage/" },
+        { "label": "Glue 6.0 release", "url": "https://docs.aws.amazon.com/glue/latest/dg/release-notes.html" }
+      ]
     },
     "aws-glue-data-catalog:managed-offering:current": {
       "level": "full",
