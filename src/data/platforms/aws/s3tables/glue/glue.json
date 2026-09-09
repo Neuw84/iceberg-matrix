@@ -181,9 +181,11 @@
       "caveats": []
     },
     "aws-glue:type-promotion:v3": {
-      "level": "full",
-      "notes": "V3 type promotion supported via Glue ETL with S3 Tables",
-      "caveats": []
+      "level": "partial",
+      "notes": "Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0) accepts the three carry-over promotions on a V3 table (int to long, float to double, decimal precision widening) but rejects the v3-only date to timestamp promotion. Type promotion is an engine/library behavior independent of storage mode, so the S3 Tables result matches the S3-buckets measurement.",
+      "caveats": [
+        "date to timestamp (and date to timestamp_ns), valid v3 promotions per the spec, are rejected by Iceberg 1.11.0 on Glue 6.0"
+      ]
     },
     "aws-glue:column-default-values:v3": {
       "level": "full",
