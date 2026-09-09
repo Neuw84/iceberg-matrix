@@ -233,12 +233,18 @@ def _drop_table(spark, table: str) -> None:
 # ---------------------------------------------------------------------------
 
 class TestResult:
-    def __init__(self, feature_id: str, feature_name: str, version: str = "v2"):
+    def __init__(self, feature_id: str, feature_name: str, version: str = "v2",
+                 diagnostic: bool = False):
         self.feature_id = feature_id
         self.feature_name = feature_name
         self.result = "skip"  # pass | fail | skip | error
         self.details = ""
         self.version_tested = version
+        # Diagnostic rows report a finer-grained measurement than any single
+        # matrix cell (e.g. one row per individual type promotion). They are
+        # not compared against the matrix, never count as a discrepancy, and are
+        # excluded from coverage accounting.
+        self.diagnostic = diagnostic
 
     def to_dict(self):
         return {
@@ -247,6 +253,7 @@ class TestResult:
             "version": self.version_tested,
             "result": self.result,
             "details": self.details,
+            "diagnostic": self.diagnostic,
         }
 
 
@@ -743,35 +750,168 @@ def test_schema_evolution(version: str) -> TestResult:
     return r
 
 
-def test_type_promotion(version: str) -> TestResult:
-    r = TestResult("type-promotion", "Type Promotion / Widening", version)
+# Iceberg spec-valid primitive type promotions, per format version. Each tuple
+# is (label, from_type, seed_value, to_type_candidates, widened_only_value_
+# candidates). The widened-only value would not fit the original type, so a
+# column that silently kept the narrow type is caught; reading the seed row back
+# after the ALTER exercises the spec's bounds-decoding rule (old data-file bounds
+# were written at the narrower width and must still decode).
+#
+# to_type / widened value may be a list of candidate spellings tried in order:
+# Iceberg's zone-free timestamp is Spark TIMESTAMP_NTZ (bare TIMESTAMP is
+# timestamptz, whose date-promotion the spec disallows), and nanosecond
+# timestamps have no plain Spark type name (TIMESTAMP_NS is rejected by the
+# parser) but some builds accept TIMESTAMP_NTZ(9).
+_PROMOTIONS_V2 = [
+    ("int -> long", "INT", "1", "BIGINT", "2147483648"),
+    ("float -> double", "FLOAT", "CAST(1.5 AS FLOAT)", "DOUBLE", "1.7976931348623157E308"),
+    ("decimal precision widen", "DECIMAL(5,2)", "123.45", "DECIMAL(10,2)", "12345678.90"),
+]
+_PROMOTIONS_V3_EXTRA = [
+    ("date -> timestamp", "DATE", "DATE'2026-01-01'", "TIMESTAMP_NTZ",
+     "TIMESTAMP_NTZ'2026-06-15 12:34:56'"),
+    ("date -> timestamp_ns", "DATE", "DATE'2026-01-01'",
+     ["TIMESTAMP_NS", "TIMESTAMP_NTZ(9)"],
+     ["TIMESTAMP_NS'2026-06-15 12:34:56.123456789'",
+      "TIMESTAMP_NTZ'2026-06-15 12:34:56.123456789'"]),
+]
+
+
+def _promotions_for(version: str) -> list:
+    return _PROMOTIONS_V2 + (_PROMOTIONS_V3_EXTRA if version == "v3" else [])
+
+
+def _jvm_chain(e) -> str:
+    """Full JVM exception-cause chain, not the truncated Py4J first line.
+
+    Spark wraps Iceberg's real message ("Cannot change column type: ...") several
+    causes deep; str(e) shows only the outer Py4J line. Walk
+    java_exception.getCause() to reach it, keeping any parser marker
+    (UNSUPPORTED_DATATYPE) from an outer frame so an unknown type name can be
+    told apart from an Iceberg promotion rejection."""
+    je = getattr(e, "java_exception", None)
+    if je is None:
+        return str(e).splitlines()[0] if str(e) else ""
+    msgs, cur, seen = [], je, 0
+    while cur is not None and seen < 6:
+        m = cur.getMessage()
+        if m:
+            msgs.append(m.splitlines()[0])
+        cur = cur.getCause()
+        seen += 1
+    root = msgs[-1] if msgs else ""
+    marker = next((m for m in msgs if "UNSUPPORTED_DATATYPE" in m
+                   or "Unsupported data type" in m), "")
+    if marker and not root:
+        return marker
+    if marker and marker not in root:
+        return f"{marker} || {root}"
+    return root
+
+
+def _classify_promotion_error(msg: str) -> str:
+    """'unreachable' when the target type has no name in this SQL dialect (a
+    parser error, not an engine verdict); 'fail' when the promotion itself is
+    rejected."""
+    if (not msg or "UNSUPPORTED_DATATYPE" in msg or "Unsupported data type" in msg
+            or "ParseException" in msg):
+        return "unreachable"
+    return "fail"
+
+
+def _probe_one_promotion(spark, ns, version, idx, from_type, v1, to_type, v2):
+    """One promotion end to end. Returns (result, detail) with result in
+    {pass, fail, unreachable, error}. to_type/v2 may be candidate-spelling lists
+    tried in order."""
+    to_types = to_type if isinstance(to_type, list) else [to_type]
+    v2s = v2 if isinstance(v2, list) else [v2]
+    last = ("fail", "no attempt made")
+    for attempt, (tt, vv) in enumerate(zip(to_types, v2s)):
+        tbl = f"local.{ns}.{_unique(f'tp_{version}_{idx}_{attempt}')}"
+        try:
+            spark.sql(f"CREATE TABLE {tbl} (id INT, val {from_type}) "
+                      f"USING iceberg TBLPROPERTIES ('format-version'='{_fmt(version)}')")
+            spark.sql(f"INSERT INTO {tbl} VALUES (1, {v1})")
+        except Exception as e:
+            last = ("error", f"setup failed before ALTER ({tt}): {_jvm_chain(e)[:180]}")
+            _drop_table(spark, tbl)
+            continue
+        try:
+            spark.sql(f"ALTER TABLE {tbl} ALTER COLUMN val TYPE {tt}")
+        except Exception as e:
+            msg = _jvm_chain(e)
+            kind = _classify_promotion_error(msg)
+            last = (kind, (f"target {tt} not expressible in this Spark SQL dialect: {msg[:160]}")
+                    if kind == "unreachable"
+                    else f"{from_type} -> {tt} rejected: {msg[:160]}")
+            _drop_table(spark, tbl)  # drop before trying the next spelling or returning
+            if kind == "unreachable":
+                continue  # try the next candidate spelling
+            return last
+        try:
+            spark.sql(f"INSERT INTO {tbl} VALUES (2, {vv})")
+            n = spark.sql(f"SELECT count(*) FROM {tbl}").collect()[0][0]
+            old = spark.sql(f"SELECT val FROM {tbl} WHERE id = 1").collect()[0][0]
+        except Exception as e:
+            _drop_table(spark, tbl)
+            return ("fail", f"{from_type} -> {tt} altered but post-promotion read/write "
+                    f"failed: {_jvm_chain(e)[:150]}")
+        _drop_table(spark, tbl)
+        if n != 2:
+            return ("fail", f"{from_type} -> {tt}: expected 2 rows, got {n}")
+        if old is None:
+            return ("fail", f"{from_type} -> {tt}: pre-promotion value lost after ALTER")
+        return ("pass", f"{from_type} -> {tt} accepted; widened-only value stored, "
+                f"pre-promotion row still decodes")
+    return last
+
+
+def test_type_promotion(version: str) -> list:
+    """Per-promotion type-promotion probe.
+
+    Returns a list: one coarse matrix-comparable row (feature id
+    'type-promotion') plus one diagnostic row per individual promotion, so the
+    report states exactly which promotions the engine supports. The coarse
+    verdict is 'pass' when at least one spec-valid promotion succeeds (matching a
+    full/partial cell) and 'fail' only when none do (matching a none cell)."""
     spark = get_spark()
     ns = _ns()
+    promotions = _promotions_for(version)
+    coarse = TestResult("type-promotion", "Type Promotion / Widening", version)
+    rows: list[TestResult] = [coarse]
+
     try:
         spark.sql(f"CREATE NAMESPACE IF NOT EXISTS local.{ns}")
-        tbl = f"local.{ns}.{_unique('typepromo')}"
-        spark.sql(f"""
-            CREATE TABLE {tbl} (id INT, amount FLOAT)
-            USING iceberg TBLPROPERTIES ('format-version'='{_fmt(version)}')
-        """)
-        spark.sql(f"INSERT INTO {tbl} VALUES (1, 1.5)")
+        outcomes = []
+        for idx, (label, from_type, v1, to_type, v2) in enumerate(promotions):
+            res, detail = _probe_one_promotion(spark, ns, version, idx,
+                                                from_type, v1, to_type, v2)
+            outcomes.append((label, res, detail))
+            d = TestResult(f"type-promotion-{label.replace(' -> ', '-').replace(' ', '-')}",
+                           f"Type Promotion: {label}", version, diagnostic=True)
+            d.result = res
+            d.details = detail
+            rows.append(d)
+        # Best-effort namespace cleanup: a probe path that could not drop its
+        # table (e.g. an unreachable candidate spelling) must not turn the whole
+        # coarse cell into an error.
+        try:
+            spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
+        except Exception:
+            pass
 
-        spark.sql(f"ALTER TABLE {tbl} ALTER COLUMN id TYPE BIGINT")
-        spark.sql(f"ALTER TABLE {tbl} ALTER COLUMN amount TYPE DOUBLE")
-
-        spark.sql(f"INSERT INTO {tbl} VALUES (9999999999, 3.14159265358979)")
-        rows = spark.sql(f"SELECT * FROM {tbl} ORDER BY id").collect()
-        assert len(rows) == 2
-        assert rows[1][0] == 9999999999
-
-        _drop_table(spark, tbl)
-        spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
-        r.result = "pass"
-        r.details = "INT→BIGINT and FLOAT→DOUBLE promotions work correctly"
+        supported = [o for o in outcomes if o[1] == "pass"]
+        rejected = [o for o in outcomes if o[1] == "fail"]
+        summary = "; ".join(f"{lbl}: {res}" for lbl, res, _ in outcomes)
+        coarse.result = "pass" if supported else "fail"
+        coarse.details = (f"{len(supported)}/{len(promotions)} spec-valid promotions "
+                          f"accepted on v{_fmt(version)}. {summary}"
+                          + (f" | rejected: {', '.join(l for l, _, _ in rejected)}"
+                             if rejected else ""))
     except Exception as e:
-        r.result = "error"
-        r.details = str(e)
-    return r
+        coarse.result = "error"
+        coarse.details = str(e)
+    return rows
 
 
 def test_column_default_values(version: str) -> TestResult:
@@ -1750,7 +1890,9 @@ def compute_coverage(results: list["TestResult"]) -> dict:
     matrix and should be treated as a failure.
     """
     matrix = load_matrix_features()
-    tested_ids = {r.feature_id for r in results}
+    # Diagnostic rows are sub-measurements, not matrix features; exclude them so
+    # they neither satisfy coverage nor show up as "extra".
+    tested_ids = {r.feature_id for r in results if not getattr(r, "diagnostic", False)}
     uncovered = sorted(set(matrix) - tested_ids)
     extra = sorted(tested_ids - set(matrix))
     return {
@@ -1791,6 +1933,10 @@ def generate_report(results: list[TestResult]) -> dict:
     errors = sum(1 for r in results if r.result == "error")
 
     for r in results:
+        if getattr(r, "diagnostic", False):
+            # Finer-grained than any matrix cell: report but never compare.
+            tests_output.append({**r.to_dict(), "json_level": "n/a", "match": True})
+            continue
         json_level = json_support.get((r.feature_id, r.version_tested), "unknown")
         match = compute_match(r.result, json_level)
         if not match:
@@ -1946,9 +2092,14 @@ def main():
             print(f"\n--- Running {test_name} ---")
             try:
                 result = test_fn(version)
-                results.append(result)
-                icon = {"pass": "✅", "fail": "❌", "skip": "⏭️", "error": "⚠️"}.get(result.result, "?")
-                print(f"  {icon} {result.result}: {result.details[:100]}")
+                # A test may return one TestResult or a list of them (the
+                # type-promotion probe emits a coarse row plus per-promotion
+                # diagnostic rows).
+                batch = result if isinstance(result, list) else [result]
+                results.extend(batch)
+                for res in batch:
+                    icon = {"pass": "✅", "fail": "❌", "skip": "⏭️", "error": "⚠️"}.get(res.result, "?")
+                    print(f"  {icon} {res.result}: {res.details[:100]}")
             except Exception as e:
                 r = TestResult(
                     test_fn.__name__.replace("test_", "").replace("_", "-"),

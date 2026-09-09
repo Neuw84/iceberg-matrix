@@ -314,7 +314,8 @@ def _error_reason(out: str, limit: int = 220) -> str:
 # ---------------------------------------------------------------------------
 
 class TestResult:
-    def __init__(self, feature_id: str, feature_name: str, version: str = "v2"):
+    def __init__(self, feature_id: str, feature_name: str, version: str = "v2",
+                 diagnostic: bool = False):
         self.feature_id = feature_id
         self.feature_name = feature_name
         # partial means measured as genuinely half-supported, e.g. readable but
@@ -323,6 +324,11 @@ class TestResult:
         self.result = "skip"  # pass | partial | fail | skip | error
         self.details = ""
         self.version_tested = version
+        # Diagnostic rows report a finer-grained measurement than any single
+        # matrix cell (one row per individual type promotion). They are reported
+        # but not compared against the matrix, and are excluded from discrepancy
+        # and coverage accounting.
+        self.diagnostic = diagnostic
 
     def to_dict(self):
         return {
@@ -331,6 +337,7 @@ class TestResult:
             "version": self.version_tested,
             "result": self.result,
             "details": self.details,
+            "diagnostic": self.diagnostic,
         }
 
 
@@ -1229,65 +1236,120 @@ def test_schema_evolution(version: str) -> TestResult:
     return r
 
 
-def test_type_promotion(version: str) -> TestResult:
-    r = TestResult("type-promotion", "Type Promotion / Widening", version)
-    tbl = _unique("prom")
-    # Start from INT, FLOAT4 and a narrow DECIMAL so there is somewhere to widen
-    # to. The Iceberg spec allows int -> long, float -> double and a decimal
-    # precision increase at the same scale; narrowing is rejected by design. All
-    # three widenings are exercised because claiming full support on the strength
-    # of two of them would overstate what was measured.
+# Iceberg spec-valid primitive promotions, expressed in Redshift SQL. Each is
+# (label, from_type, seed_value, to_type, widened_only_value). The widened-only
+# value would not fit the original type, so a column that silently kept the
+# narrow type is caught. v3 adds date -> timestamp; Iceberg's zone-free
+# `timestamp` maps to Redshift TIMESTAMP (no zone), while `timestamptz`
+# (Redshift TIMESTAMPTZ) is the target the spec disallows from date.
+# `timestamp_ns` has no Redshift type name and is recorded as unreachable.
+_RS_PROMOTIONS_V2 = [
+    ("int -> long", "INT", "1", "BIGINT", "2147483648"),
+    ("float -> double", "FLOAT4", "1.5", "FLOAT8", "1.7976931348623157E308"),
+    ("decimal precision widen", "DECIMAL(9,2)", "2.50", "DECIMAL(18,2)", "1234567890123.45"),
+]
+_RS_PROMOTIONS_V3_EXTRA = [
+    ("date -> timestamp", "DATE", "DATE '2026-01-01'", "TIMESTAMP",
+     "TIMESTAMP '2026-06-15 12:34:56'"),
+    ("date -> timestamp_ns", "DATE", "DATE '2026-01-01'", "TIMESTAMP_NS",
+     "TIMESTAMP '2026-06-15 12:34:56'"),
+]
+
+
+def _rs_promotions_for(version: str) -> list:
+    return _RS_PROMOTIONS_V2 + (_RS_PROMOTIONS_V3_EXTRA if version == "v3" else [])
+
+
+def _rs_classify(out: str) -> str:
+    """'unreachable' when Redshift's parser has no such type name (not an engine
+    verdict on the promotion); 'fail' when the promotion itself is rejected."""
+    low = (out or "").lower()
+    if ("is not a valid" in low or "unsupported type" in low or "syntax error" in low
+            or 'type "timestamp_ns"' in low
+            or ("does not exist" in low and "type" in low)):
+        return "unreachable"
+    return "fail"
+
+
+def _rs_probe_one(version, label, from_type, v1, to_type, v2) -> tuple:
+    """One promotion end to end via Redshift SQL. Returns (result, detail)."""
+    tbl = _unique("tp")
     ok, out = _run_sql([
-        _create(tbl, "small_id INT, ratio FLOAT4, amount DECIMAL(9,2), name VARCHAR",
-                version),
-        f"INSERT INTO {_table(tbl)} VALUES (1, 1.5, 2.50, 'a')",
-        f"ALTER TABLE {_table(tbl)} ALTER COLUMN small_id TYPE BIGINT",
-        f"ALTER TABLE {_table(tbl)} ALTER COLUMN ratio TYPE FLOAT8",
-        f"SELECT small_id, name FROM {_table(tbl)}",
+        _create(tbl, f"id BIGINT, val {from_type}", version),
+        f"INSERT INTO {_table(tbl)} VALUES (1, {v1})",
     ])
     if not ok:
-        r.result = "fail"
-        r.details = f"Widening rejected: {_error_reason(out)}"
         _run_sql([f"DROP TABLE {_table(tbl)}"])
-        return r
-
-    # The third spec-allowed widening: decimal precision up at the same scale.
-    dec_ok, dec_out = _run_sql([
-        f"ALTER TABLE {_table(tbl)} ALTER COLUMN amount TYPE DECIMAL(18,2)",
-        f"SELECT amount FROM {_table(tbl)}",
+        return "error", f"setup failed before ALTER: {_error_reason(out, 160)}"
+    alt_ok, alt_out = _run_sql([
+        f"ALTER TABLE {_table(tbl)} ALTER COLUMN val TYPE {to_type}"
     ])
-
-    # Narrowing must be refused; if it were allowed that is a correctness problem
-    # worth recording rather than a pass.
-    narrow_ok, narrow_out = _run_sql([
-        f"ALTER TABLE {_table(tbl)} ALTER COLUMN small_id TYPE INT"
+    if not alt_ok:
+        kind = _rs_classify(alt_out)
+        _run_sql([f"DROP TABLE {_table(tbl)}"])
+        if kind == "unreachable":
+            return "unreachable", (f"target {to_type} not expressible in Redshift SQL: "
+                                   f"{_error_reason(alt_out, 150)}")
+        return "fail", f"{from_type} -> {to_type} rejected: {_error_reason(alt_out, 150)}"
+    ins_ok, ins_out = _run_sql([
+        f"INSERT INTO {_table(tbl)} VALUES (2, {v2})",
+        f"SELECT COUNT(*) FROM {_table(tbl)}",
+        f"SELECT val FROM {_table(tbl)} WHERE id = 1",
     ])
-    widenings = "int->bigint, float->double" + (
-        " and decimal precision" if dec_ok else "")
-    if narrow_ok:
-        r.result = "pass"
-        r.details = (
-            f"{widenings} accepted; narrowing back was also accepted, which the "
-            "Iceberg spec does not allow"
-        )
-    elif dec_ok:
-        r.result = "pass"
-        r.details = (
-            "All three spec-allowed widenings (int->bigint, float->double, decimal "
-            "precision increase) are accepted as metadata-only changes, and "
-            f"narrowing is refused ({_error_reason(narrow_out, 80)})"
+    _run_sql([f"DROP TABLE {_table(tbl)}"])
+    if not ins_ok:
+        return "fail", (f"{from_type} -> {to_type} altered but post-promotion read/write "
+                        f"failed: {_error_reason(ins_out, 150)}")
+    return "pass", (f"{from_type} -> {to_type} accepted; widened-only value stored, "
+                    f"pre-promotion row still decodes")
+
+
+def test_type_promotion(version: str) -> list:
+    """Per-promotion type-promotion probe.
+
+    Returns a list: one coarse matrix-comparable row (feature id
+    'type-promotion') plus one diagnostic row per individual promotion. Every
+    spec-valid promotion for the format version is exercised, so full/partial is
+    a measured verdict rather than an extrapolation from two of them.
+    """
+    coarse = TestResult("type-promotion", "Type Promotion / Widening", version)
+    rows: list = [coarse]
+    promotions = _rs_promotions_for(version)
+    outcomes = []
+    for label, from_type, v1, to_type, v2 in promotions:
+        res, detail = _rs_probe_one(version, label, from_type, v1, to_type, v2)
+        outcomes.append((label, res, detail))
+        d = TestResult(f"type-promotion-{label.replace(' -> ', '-').replace(' ', '-')}",
+                       f"Type Promotion: {label}", version, diagnostic=True)
+        d.result = res
+        d.details = detail
+        rows.append(d)
+
+    supported = [o for o in outcomes if o[1] == "pass"]
+    rejected = [o for o in outcomes if o[1] == "fail"]
+    errored = [o for o in outcomes if o[1] == "error"]
+    summary = "; ".join(f"{lbl}: {res}" for lbl, res, _ in outcomes)
+
+    if errored and not supported:
+        coarse.result = "error"
+        coarse.details = f"promotion probes could not run: {summary}"
+    elif not supported:
+        coarse.result = "fail"
+        coarse.details = f"No spec-valid promotion accepted on v{_fmt(version)}. {summary}"
+    elif rejected:
+        # Some spec-valid promotions work and some are rejected -> genuinely half.
+        coarse.result = "partial"
+        coarse.details = (
+            f"{len(supported)}/{len(promotions)} spec-valid promotions accepted on "
+            f"v{_fmt(version)}; rejected: {', '.join(l for l, _, _ in rejected)}. {summary}"
         )
     else:
-        # Two of the three work, so this is genuinely half the feature rather than
-        # all of it -- exactly what partial is for.
-        r.result = "partial"
-        r.details = (
-            "int->bigint and float->double are accepted and narrowing is refused, "
-            "but a decimal precision increase at the same scale is not: "
-            f"{_error_reason(dec_out, 110)}"
+        coarse.result = "pass"
+        coarse.details = (
+            f"All {len(supported)} spec-valid promotions accepted on v{_fmt(version)} "
+            f"as metadata-only changes. {summary}"
         )
-    _run_sql([f"DROP TABLE {_table(tbl)}"])
-    return r
+    return rows
 
 
 def test_column_default_values(version: str) -> TestResult:
@@ -1998,7 +2060,9 @@ def load_matrix_features() -> dict:
 
 def compute_coverage(results: list) -> dict:
     matrix = load_matrix_features()
-    tested = {r.feature_id for r in results}
+    # Diagnostic rows are sub-measurements, not matrix features; exclude them so
+    # they neither satisfy coverage nor show up as "extra".
+    tested = {r.feature_id for r in results if not getattr(r, "diagnostic", False)}
     uncovered = sorted(set(matrix) - tested)
     return {
         "matrix_feature_count": len(matrix),
@@ -2034,6 +2098,11 @@ def generate_report(results: list) -> dict:
     discrepancies = 0
     unverified = 0
     for r in results:
+        if getattr(r, "diagnostic", False):
+            # Finer-grained than any matrix cell: report but never compare.
+            tests_output.append({**r.to_dict(), "json_level": "n/a",
+                                 "match": True, "verified": r.result not in ("skip", "error")})
+            continue
         level = json_support.get((r.feature_id, r.version_tested), "unknown")
         match = compute_match(r.result, level)
         if not match:
@@ -2509,8 +2578,13 @@ def main():
                     )
                     result.result = "error"
                     result.details = f"Unhandled exception: {e}"
-                results.append(result)
-                print(f"  {result.result}: {result.details[:160]}")
+                # A test may return one TestResult or a list of them (the
+                # type-promotion probe emits a coarse row plus per-promotion
+                # diagnostic rows).
+                batch = result if isinstance(result, list) else [result]
+                results.extend(batch)
+                for res in batch:
+                    print(f"  {res.result}: {res.details[:160]}")
     finally:
         teardown_catalog()
 

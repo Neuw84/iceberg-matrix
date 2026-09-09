@@ -780,11 +780,9 @@
       ]
     },
     "databricks:type-promotion:v2": {
-      "level": "partial",
-      "notes": "ALTER TABLE ... ALTER COLUMN ... TYPE BIGINT (int to long widening) works on managed Iceberg tables (verified on DBSQL 2026.15 and serverless). The full matrix of spec-defined promotions is not documented.",
-      "caveats": [
-        "Only INT to BIGINT widening verified; other promotions untested and undocumented"
-      ],
+      "level": "full",
+      "notes": "Measured on managed Iceberg tables: all three v1/v2-valid spec promotions are accepted via ALTER TABLE ALTER COLUMN TYPE and round-trip a widened-only value: int to long, float to double, and decimal precision widening.",
+      "caveats": [],
       "links": [
         {
           "label": "Managed Iceberg tables",
@@ -793,10 +791,10 @@
       ]
     },
     "databricks:type-promotion:v3": {
-      "level": "unknown",
-      "notes": "Type promotion/widening for managed Iceberg v3 tables is not explicitly documented. Type widening is a documented Delta Lake feature but is not confirmed for native Iceberg tables.",
+      "level": "partial",
+      "notes": "Measured on managed Iceberg v3 tables: the three carry-over promotions (int to long, float to double, decimal precision widening) are accepted, but the v3-only date to timestamp promotion is rejected. Because managed Iceberg is Delta + UniForm under the hood, the ALTER falls under Delta's rules and fails with DELTA_UNSUPPORTED_ALTER_TABLE_CHANGE_COL_OP.",
       "caveats": [
-        "Not explicitly documented for managed Iceberg v3 tables"
+        "date to timestamp (and date to timestamp_ns), valid v3 promotions per the spec, are rejected with DELTA_UNSUPPORTED_ALTER_TABLE_CHANGE_COL_OP"
       ],
       "links": [
         {

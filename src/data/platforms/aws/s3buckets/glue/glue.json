@@ -656,9 +656,11 @@
       ]
     },
     "aws-glue:type-promotion:v3": {
-      "level": "full",
-      "notes": "Type promotion supported via Spark SQL on Glue 5.0+ for V3 Iceberg tables.",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Measured on Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0) via Glue ETL against the Iceberg Glue Data Catalog: the three carry-over promotions (int to long, float to double, decimal precision widening) are accepted on a V3 table, but the v3-only date to timestamp promotion is rejected by Iceberg (Cannot change column type: date -> timestamp). This matches open-source Spark 4.1 / Iceberg 1.11.0, so it is an Iceberg library limit rather than a Glue-build difference.",
+      "caveats": [
+        "date to timestamp (and date to timestamp_ns), valid v3 promotions per the spec, are rejected by Iceberg 1.11.0 on Glue 6.0"
+      ],
       "links": [
         {
           "label": "AWS Glue Iceberg schema evolution",
