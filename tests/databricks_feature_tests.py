@@ -395,12 +395,17 @@ def _assert_real_iceberg(layout: dict) -> None:
 # ---------------------------------------------------------------------------
 
 class TestResult:
-    def __init__(self, feature_id: str, feature_name: str, version: str = "v2"):
+    def __init__(self, feature_id: str, feature_name: str, version: str = "v2",
+                 diagnostic: bool = False):
         self.feature_id = feature_id
         self.feature_name = feature_name
         self.result = "skip"  # pass | fail | skip | error
         self.details = ""
         self.version_tested = version
+        # Diagnostic rows report a finer-grained measurement than any single
+        # matrix cell (e.g. one row per individual type promotion). They are
+        # not compared against the matrix and never count as a discrepancy.
+        self.diagnostic = diagnostic
 
     def to_dict(self):
         return {
@@ -409,6 +414,7 @@ class TestResult:
             "version": self.version_tested,
             "result": self.result,
             "details": self.details,
+            "diagnostic": self.diagnostic,
         }
 
 
@@ -626,6 +632,110 @@ def test_type_promotion() -> TestResult:
         r.details = "Spec promotions int->bigint and float->double applied to a populated table"
 
     return _run(r, body)
+
+
+# ---------------------------------------------------------------------------
+# Type-promotion detail probes
+# ---------------------------------------------------------------------------
+# The Iceberg spec enumerates the *valid* primitive type promotions and splits
+# them by format version: some are valid for v1/v2, and v3 adds date->timestamp
+# and date->timestamp_ns. These probes exercise each promotion individually on
+# a populated table (CREATE -> INSERT -> ALTER COLUMN TYPE -> read back), so we
+# can report exactly which promotions Databricks managed Iceberg honours and
+# which it rejects, rather than a single pass/fail. The read-back after the
+# ALTER also exercises the spec's bounds-decoding rule (old data-file bounds
+# were written at the narrower type and must still decode correctly).
+#
+# The second insert of each probe uses a value that only fits the widened type,
+# so a promoted column that silently kept the narrow type would fail or
+# truncate. Each promotion is reported as its own diagnostic row.
+
+
+def _probe_one_promotion(ns, version, idx, from_type, v1, to_type, v2) -> tuple:
+    """Run one promotion end to end.
+
+    Returns (result, details) where result is 'pass' when the ALTER is accepted
+    and both the pre-promotion and post-promotion rows read back, 'fail' when
+    the engine refuses the promotion (the datum for a promotion it does not
+    support), and 'error' for an unexpected harness failure.
+    """
+    try:
+        q = _create_iceberg(ns, f"tp_{version}_{idx}", f"id INT, val {from_type}",
+                            version=version)
+        sql(f"INSERT INTO {q} VALUES (1, {v1})")
+    except Exception as e:  # noqa: BLE001 - setup failure is not a promotion datum
+        return "error", f"setup failed before ALTER: {str(e).splitlines()[0][:180]}"
+    try:
+        sql(f"ALTER TABLE {q} ALTER COLUMN val TYPE {to_type}")
+    except Exception as e:  # noqa: BLE001 - rejection IS the measurement
+        return "fail", (f"{from_type} -> {to_type} rejected: "
+                        f"{str(e).splitlines()[0][:180]}")
+    # Widened-type value that would not fit the original type proves the column
+    # really carries the promoted type now; the pre-promotion row must still
+    # decode under the widened type (the spec's bounds-decoding rule).
+    try:
+        sql(f"INSERT INTO {q} VALUES (2, {v2})")
+        n = sql(f"SELECT count(*) FROM {q}")[0][0]
+        old = sql(f"SELECT val FROM {q} WHERE id = 1")[0][0]
+    except Exception as e:  # noqa: BLE001
+        return "fail", (f"{from_type} -> {to_type} altered but post-promotion "
+                        f"read/write failed: {str(e).splitlines()[0][:160]}")
+    if n != 2:
+        return "fail", f"{from_type} -> {to_type}: expected 2 rows after promotion, got {n}"
+    if old is None:
+        return "fail", f"{from_type} -> {to_type}: pre-promotion value lost after ALTER"
+    return "pass", (f"{from_type} -> {to_type} accepted; widened-only value stored "
+                    f"and pre-promotion row still decodes")
+
+
+# Each promotion is reported as its own diagnostic row so the matrix owner can
+# state exactly which promotions Databricks managed Iceberg supports. feature_id
+# is unique per promotion (not a matrix cell), and rows are flagged diagnostic
+# so they are excluded from matrix discrepancy accounting.
+def _type_promotion_detail(version: str, promotions: list) -> list:
+    def _make(idx, label_id, feature_name, from_type, v1, to_type, v2) -> TestResult:
+        r = TestResult(f"type-promotion-{label_id}", feature_name, f"v{version}",
+                       diagnostic=True)
+
+        def body(ns, r):
+            result, details = _probe_one_promotion(ns, version, idx,
+                                                    from_type, v1, to_type, v2)
+            r.result = result
+            r.details = details
+
+        return _run(r, body)
+
+    return [_make(idx, *p) for idx, p in enumerate(promotions)]
+
+
+# (label_id, feature_name, from_type, sample_value, to_type, widened_only_value)
+def test_type_promotion_detail() -> list:
+    """v1/v2-valid primitive promotions, each probed individually on a v2 table."""
+    promos = [
+        ("int-long", "Type Promotion: int -> long", "INT", "1", "BIGINT", "2147483648"),
+        ("float-double", "Type Promotion: float -> double", "FLOAT", "1.5",
+         "DOUBLE", "1.7976931348623157E308"),
+        ("decimal-widen", "Type Promotion: decimal precision widen", "DECIMAL(5,2)",
+         "123.45", "DECIMAL(10,2)", "12345678.90"),
+    ]
+    return _type_promotion_detail("2", promos)
+
+
+def test_type_promotion_v3_detail() -> list:
+    """v3-valid promotions: the v2 set plus date -> timestamp / timestamp_ns,
+    each probed individually on a v3 table."""
+    promos = [
+        ("int-long", "Type Promotion: int -> long", "INT", "1", "BIGINT", "2147483648"),
+        ("float-double", "Type Promotion: float -> double", "FLOAT", "1.5",
+         "DOUBLE", "1.7976931348623157E308"),
+        ("decimal-widen", "Type Promotion: decimal precision widen", "DECIMAL(5,2)",
+         "123.45", "DECIMAL(10,2)", "12345678.90"),
+        ("date-timestamp", "Type Promotion: date -> timestamp", "DATE",
+         "DATE'2026-01-01'", "TIMESTAMP", "TIMESTAMP'2026-06-15 12:34:56'"),
+        ("date-timestamp-ns", "Type Promotion: date -> timestamp_ns", "DATE",
+         "DATE'2026-01-01'", "TIMESTAMP_NS", "TIMESTAMP_NS'2026-06-15 12:34:56.123456789'"),
+    ]
+    return _type_promotion_detail("3", promos)
 
 
 def test_column_default_values() -> TestResult:
@@ -1005,6 +1115,8 @@ ALL_TESTS = [
     test_equality_deletes,
     test_schema_evolution,
     test_type_promotion,
+    test_type_promotion_detail,
+    test_type_promotion_v3_detail,
     test_column_default_values,
     test_time_travel,
     test_table_maintenance,
@@ -1059,6 +1171,11 @@ def generate_report(results: list) -> dict:
     json_support = load_json_support()
     tests_output, discrepancies = [], 0
     for r in results:
+        if getattr(r, "diagnostic", False):
+            # Diagnostic rows are finer-grained than any matrix cell; report
+            # them but never compare against the matrix or count discrepancies.
+            tests_output.append({**r.to_dict(), "json_level": "n/a", "match": True})
+            continue
         json_level = json_support.get((r.feature_id, r.version_tested), "unknown")
         match = compute_match(r.result, json_level)
         if not match:
@@ -1124,6 +1241,27 @@ def generate_markdown(report: dict) -> str:
                      f"{match_str} | {details} |")
     lines.append("")
 
+    diag = [t for t in report["tests"] if t.get("diagnostic")]
+    if diag:
+        lines += [
+            "## Type Promotion Detail",
+            "",
+            "Per-promotion probe (CREATE → INSERT → ALTER COLUMN TYPE → read "
+            "back a widened-only value). These are diagnostic rows and are not "
+            "compared against the matrix.",
+            "",
+            "| Promotion | Version | Supported | Evidence |",
+            "|-----------|---------|-----------|----------|",
+        ]
+        supported = {"pass": "✅ yes", "fail": "❌ no", "error": "⚠️ error",
+                     "skip": "⏭️ skip"}
+        for t in diag:
+            d = t["details"].replace("\n", " ").replace("|", "\\|") if t["details"] else ""
+            name = t["feature_name"].replace("Type Promotion: ", "")
+            lines.append(f"| {name} | {t['version']} | "
+                         f"{supported.get(t['result'], t['result'])} | {d} |")
+        lines.append("")
+
     discs = [t for t in report["tests"] if not t["match"]]
     if discs:
         lines += ["## ⚠️ Discrepancies", ""]
@@ -1169,9 +1307,13 @@ def main():
                                 test_fn.__name__)
             result.result = "error"
             result.details = f"Unhandled exception: {e}"
-        results.append(result)
-        icon = {"pass": "✅", "fail": "❌", "skip": "⏭️", "error": "⚠️"}.get(result.result, "?")
-        print(f"  {icon} {result.result}: {result.details[:120]}")
+        # A probe may return a single TestResult or a list of them (the
+        # type-promotion detail probes emit one diagnostic row per promotion).
+        batch = result if isinstance(result, list) else [result]
+        results.extend(batch)
+        for res in batch:
+            icon = {"pass": "✅", "fail": "❌", "skip": "⏭️", "error": "⚠️"}.get(res.result, "?")
+            print(f"  {icon} {res.result}: {res.details[:120]}")
 
     report = generate_report(results)
     json_path = os.path.join(REPORT_DIR, "databricks-iceberg-test-report.json")
