@@ -106,7 +106,7 @@
     },
     "spark:schema-evolution:v2": {
       "level": "full",
-      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int\u2192long, float\u2192double), and modify nullability",
+      "notes": "Full schema evolution via ALTER TABLE: add, drop, rename, reorder columns, widen types (int→long, float→double), and modify nullability",
       "caveats": [],
       "links": [
         {
@@ -645,7 +645,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL \u2013 ALTER TABLE",
+          "label": "Spark DDL – ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         },
         {
@@ -660,7 +660,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL \u2013 ALTER TABLE",
+          "label": "Spark DDL – ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
@@ -712,9 +712,12 @@
       "caveats": []
     },
     "spark:unknown-type:v3": {
-      "level": "unknown",
-      "notes": "Not yet measured; recorded as unknown rather than inferred. Spark 4.1 has a VOID type that Iceberg's unknown type maps to, so support is plausible; the suite now probes UNKNOWN and VOID.",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured (Spark 4.1.2 + Iceberg 1.11.0, REST catalog): a column declared as VOID on a format-version 3 table maps to the Iceberg unknown type; a row is written and read back with the column null.",
+      "caveats": [
+        "Spark spells the type VOID; there is no UNKNOWN keyword in Spark SQL",
+        "The column can only hold null, as the spec requires"
+      ]
     },
     "spark:google-lakehouse:v2": {
       "level": "partial",

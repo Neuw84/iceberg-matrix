@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "clickhouse",
-      "name": "ClickHouse (26.1)",
+      "name": "ClickHouse (26.9)",
       "vendor": "ClickHouse Inc.",
       "category": "open-source",
       "group": "3rd Party",
@@ -11,12 +11,17 @@
   ],
   "support": {
     "clickhouse:position-deletes:v2": {
-      "level": "none",
-      "notes": "Not supported as a write operation. ClickHouse's Iceberg integration via table functions is read-only; there is no write path at all. It can read V2 tables with position deletes via icebergS3/icebergLocal, but that is a read capability, not this operation.",
+      "level": "full",
+      "notes": "Measured (ClickHouse 26.9): DELETE FROM on an ENGINE = IcebergS3 table writes a Parquet position-delete file (content=1) rather than rewriting data files; position deletes written by other engines are read correctly by icebergS3().",
       "caveats": [
-        "Read capability: reads V2 position delete files via table functions"
+        "Iceberg writes are beta: requires SET allow_insert_into_iceberg = 1",
+        "Commits are written to the table's storage location only: they bypass the REST catalog, so a catalog-attached engine (Spark) does not see them until the catalog is re-pointed"
       ],
       "links": [
+        {
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
+        },
         {
           "label": "ClickHouse Iceberg table function",
           "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
@@ -67,12 +72,17 @@
       ]
     },
     "clickhouse:merge-on-read:v2": {
-      "level": "none",
-      "notes": "Not supported as a write operation. ClickHouse's Iceberg integration via table functions is read-only; there is no write path at all. It can read merge-on-read tables with both position and equality deletes, but that is a read capability, not this operation.",
+      "level": "full",
+      "notes": "Measured (ClickHouse 26.9): row-level DELETE/UPDATE use merge-on-read -- a position-delete file is written and merged at scan time; merge-on-read tables written by other engines (position and equality deletes) are read correctly.",
       "caveats": [
-        "Read capability: reads MoR tables (position and equality deletes) via table functions"
+        "Merge-on-read is the only strategy: there is no copy-on-write switch (see Copy-on-Write)",
+        "Iceberg writes are beta: requires SET allow_insert_into_iceberg = 1"
       ],
       "links": [
+        {
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
+        },
         {
           "label": "ClickHouse Iceberg table function",
           "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
@@ -116,7 +126,7 @@
     },
     "clickhouse:schema-evolution:v2": {
       "level": "partial",
-      "notes": "Reading schema-evolved Iceberg tables is supported via the icebergS3/icebergLocal table functions (recommended approach): add/remove columns, reorder, nullable promotion, and limited type casting (int\u2192long, float\u2192double, decimal widening). Cannot change nested structures or array/map element types.",
+      "notes": "Reading schema-evolved Iceberg tables is supported via the icebergS3/icebergLocal table functions (recommended approach): add/remove columns, reorder, nullable promotion, and limited type casting (int→long, float→double, decimal widening). Cannot change nested structures or array/map element types.",
       "caveats": [
         "Read-only via table functions; cannot perform schema changes",
         "No nested structure or array/map element type evolution",
@@ -130,15 +140,15 @@
       ]
     },
     "clickhouse:schema-evolution:v3": {
-      "level": "none",
-      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "level": "full",
+      "notes": "Measured (ClickHouse 26.9): after Spark adds a column to a V3 table, icebergS3() reads the evolved schema (old rows NULL in the new column, new rows populated); ADD/RENAME/DROP COLUMN also work on ClickHouse's own IcebergS3 tables.",
       "caveats": [
-        "Iceberg V3 format not supported"
+        "ClickHouse cannot create or evolve a schema containing Bool, Decimal, FixedString or 8/16-bit integers"
       ],
       "links": [
         {
-          "label": "ClickHouse Iceberg table function",
-          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
         }
       ]
     },
@@ -193,12 +203,17 @@
       ]
     },
     "clickhouse:hidden-partitioning:v3": {
-      "level": "none",
-      "notes": "ClickHouse only supports reading Iceberg V1 and V2 via table functions; V3 is not yet supported.",
+      "level": "full",
+      "notes": "Measured (ClickHouse 26.9): icebergS3() reads a Spark-created V3 table partitioned by months(d) and prunes with a date predicate (1 of 3 rows scanned).",
       "caveats": [
-        "Iceberg V3 format not supported"
+        "Partition pruning needs use_iceberg_partition_pruning = 1",
+        "ClickHouse's own DDL can only declare identity, icebergBucket and icebergTruncate transforms"
       ],
       "links": [
+        {
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
+        },
         {
           "label": "ClickHouse Iceberg table function",
           "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
@@ -206,10 +221,10 @@
       ]
     },
     "clickhouse:partition-evolution:v2": {
-      "level": "unknown",
-      "notes": "Reading partition-evolved Iceberg tables via the icebergS3/icebergLocal table functions (recommended approach) is not explicitly documented.",
+      "level": "partial",
+      "notes": "Measured (ClickHouse 26.9): after Spark evolves a table's partition spec, icebergS3() reads rows written under both specs (5 rows). ClickHouse cannot evolve a spec itself.",
       "caveats": [
-        "Read-only via table functions; cannot modify partitioning"
+        "Read side only: no ALTER TABLE surface to change the partition spec"
       ],
       "links": [
         {
@@ -276,13 +291,17 @@
       ]
     },
     "clickhouse:table-maintenance:v2": {
-      "level": "none",
-      "notes": "ClickHouse Iceberg integration via table functions is read-only; no table maintenance operations are supported.",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Measured (ClickHouse 26.9): OPTIMIZE TABLE ... MANIFEST (with allow_experimental_iceberg_compaction = 1 and iceberg_manifest_min_count_to_compact lowered) rewrites the manifests into a new 'replace' snapshot. Plain OPTIMIZE TABLE is a no-op on data files, and there is no snapshot expiry or orphan-file removal.",
+      "caveats": [
+        "Manifest compaction only; data files are never rewritten",
+        "Experimental (allow_experimental_iceberg_compaction) and format-version 2 only",
+        "No expire_snapshots / remove_orphan_files equivalent"
+      ],
       "links": [
         {
-          "label": "ClickHouse Iceberg table function",
-          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
         }
       ]
     },
@@ -333,10 +352,11 @@
       ]
     },
     "clickhouse:read-support:v3": {
-      "level": "none",
-      "notes": "ClickHouse currently supports reading Iceberg V1 and V2 only via table functions; V3 support is not yet available.",
+      "level": "full",
+      "notes": "Measured (ClickHouse 26.9): the icebergS3() table function reads a Spark-written format-version 3 table (plain data files, row lineage columns exposed).",
       "caveats": [
-        "Iceberg V3 format not supported"
+        "V3 tables that carry Puffin deletion vectors cannot be read (see Deletion Vectors)",
+        "V3 unknown-type columns make the schema unparseable (see Unknown Type)"
       ],
       "links": [
         {
@@ -346,13 +366,17 @@
       ]
     },
     "clickhouse:write-insert:v2": {
-      "level": "none",
-      "notes": "ClickHouse Iceberg integration via table functions (icebergS3/icebergLocal) is read-only; no INSERT support.",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Measured (ClickHouse 26.9): INSERT ... VALUES and INSERT ... SELECT into an ENGINE = IcebergS3 table both commit new Parquet data files and a new metadata.json.",
+      "caveats": [
+        "Iceberg writes are beta: requires SET allow_insert_into_iceberg = 1",
+        "Commits are written to the table's storage location only: they bypass the REST catalog, so a catalog-attached engine (Spark) does not see them until the catalog is re-pointed",
+        "Writes go through ENGINE = IcebergS3 (a table declared with an explicit schema); the icebergS3() table function remains read-only"
+      ],
       "links": [
         {
-          "label": "ClickHouse Iceberg table function",
-          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
         }
       ]
     },
@@ -370,13 +394,18 @@
       ]
     },
     "clickhouse:write-merge-update-delete:v2": {
-      "level": "none",
-      "notes": "ClickHouse Iceberg integration via table functions is read-only; no MERGE/UPDATE/DELETE support.",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Measured (ClickHouse 26.9): DELETE FROM and ALTER TABLE ... UPDATE both commit against an ENGINE = IcebergS3 table; MERGE INTO is not part of ClickHouse SQL (syntax error).",
+      "caveats": [
+        "No MERGE INTO",
+        "Iceberg writes are beta: requires SET allow_insert_into_iceberg = 1",
+        "Commits are written to the table's storage location only: they bypass the REST catalog, so a catalog-attached engine (Spark) does not see them until the catalog is re-pointed",
+        "DELETE fails with a planner error on a table that already contains equality-delete files"
+      ],
       "links": [
         {
-          "label": "ClickHouse Iceberg table function",
-          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
         }
       ]
     },
@@ -452,19 +481,25 @@
       ]
     },
     "clickhouse:rest-catalog:v2": {
-      "level": "full",
-      "notes": "Iceberg REST Catalog is supported via the icebergS3 table function (recommended approach) with storage_catalog_type='rest', and also via the experimental DataLakeCatalog engine with catalog_type='rest'.",
+      "level": "partial",
+      "notes": "Measured (ClickHouse 26.9 against Apache Polaris 1.7): the DataLakeCatalog engine (catalog_type = 'rest', OAuth2 client credentials) lists namespaces and tables and resolves table metadata, but reading table data fails with 404s because the object path gets the bucket doubled when the catalog's storage endpoint is path-style S3 (MinIO). Reading the same tables through icebergS3() at the catalog-recorded location works.",
       "caveats": [
-        "DataLakeCatalog engine is experimental (requires allow_experimental_database_iceberg = 1)"
+        "DataLakeCatalog engine is experimental (requires allow_experimental_database_iceberg = 1)",
+        "Data reads through the catalog fail on path-style S3 endpoints; not re-verified against virtual-hosted AWS S3, where the doubled-bucket bug may not apply",
+        "Writes go around the catalog: ClickHouse commits to storage only"
       ],
       "links": [
         {
-          "label": "ClickHouse Iceberg table function",
-          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
-        },
-        {
           "label": "ClickHouse + REST Catalog guide",
           "url": "https://clickhouse.com/docs/use-cases/data-lake/rest-catalog"
+        },
+        {
+          "label": "DataLakeCatalog database engine",
+          "url": "https://clickhouse.com/docs/engines/database-engines/datalakecatalog"
+        },
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
         }
       ]
     },
@@ -508,10 +543,18 @@
       ]
     },
     "clickhouse:table-creation:v2": {
-      "level": "none",
-      "notes": "ClickHouse Iceberg integration via table functions is read-only; creating Iceberg tables is not supported.",
-      "caveats": [],
+      "level": "full",
+      "notes": "Measured (ClickHouse 26.9): CREATE TABLE ... ENGINE = IcebergS3(url, key, secret) with an explicit schema creates a new Iceberg table on object storage (metadata.json written) and INSERT commits to it.",
+      "caveats": [
+        "Writes go through ENGINE = IcebergS3 (a table declared with an explicit schema); the icebergS3() table function remains read-only",
+        "Iceberg writes are beta: requires SET allow_insert_into_iceberg = 1",
+        "DROP TABLE only detaches the ClickHouse table; the Iceberg files stay in storage"
+      ],
       "links": [
+        {
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
+        },
         {
           "label": "ClickHouse Iceberg table function",
           "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
@@ -519,13 +562,16 @@
       ]
     },
     "clickhouse:table-creation:v3": {
-      "level": "none",
-      "notes": "ClickHouse Iceberg integration via table functions is read-only; creating Iceberg tables is not supported.",
-      "caveats": [],
+      "level": "full",
+      "notes": "Measured (ClickHouse 26.9): CREATE TABLE ... ENGINE = IcebergS3 ... SETTINGS iceberg_format_version = 3 writes a table whose metadata.json records format-version 3.",
+      "caveats": [
+        "Writes go through ENGINE = IcebergS3 (a table declared with an explicit schema); the icebergS3() table function remains read-only",
+        "Iceberg writes are beta: requires SET allow_insert_into_iceberg = 1"
+      ],
       "links": [
         {
-          "label": "ClickHouse Iceberg table function",
-          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
         }
       ]
     },
@@ -535,9 +581,17 @@
       "caveats": []
     },
     "clickhouse:variant-type:v3": {
-      "level": "unknown",
-      "notes": "ClickHouse V3 variant type support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Measured (ClickHouse 26.9): Variant(...) and JSON columns are rejected on an IcebergS3 table (\"Unsupported type for iceberg Variant\"), and a Spark-written V3 table with a VARIANT column cannot be read because the Iceberg schema fails to parse.",
+      "caveats": [
+        "Neither write nor read of Iceberg V3 variant columns"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
+        }
+      ]
     },
     "clickhouse:shredded-variant:v2": {
       "level": "none",
@@ -545,9 +599,17 @@
       "caveats": []
     },
     "clickhouse:shredded-variant:v3": {
-      "level": "unknown",
-      "notes": "ClickHouse V3 shredded variant support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Measured (ClickHouse 26.9): ClickHouse cannot write an Iceberg VARIANT column at all, so it cannot shred one, and tables with a variant column are unreadable.",
+      "caveats": [
+        "Depends on Variant Type, which is unsupported"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
+        }
+      ]
     },
     "clickhouse:geometry-type:v2": {
       "level": "none",
@@ -555,9 +617,18 @@
       "caveats": []
     },
     "clickhouse:geometry-type:v3": {
-      "level": "unknown",
-      "notes": "ClickHouse V3 geometry type support is not yet documented",
-      "caveats": []
+      "level": "partial",
+      "notes": "Measured (ClickHouse 26.9): with allow_experimental_geo_types_in_iceberg = 1 a V3 IcebergS3 table with a Point column is created, written and read back ((1.5,2.5)).",
+      "caveats": [
+        "Experimental setting required (allow_experimental_geo_types_in_iceberg)",
+        "Point measured; other geometry shapes and GEOGRAPHY not verified"
+      ],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
+        }
+      ]
     },
     "clickhouse:lineage:v2": {
       "level": "none",
@@ -565,9 +636,15 @@
       "caveats": []
     },
     "clickhouse:lineage:v3": {
-      "level": "unknown",
-      "notes": "ClickHouse V3 lineage support is not yet documented",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured (ClickHouse 26.9): a Spark-written V3 table's row lineage is exposed to queries -- the _row_id virtual column is readable via icebergS3().",
+      "caveats": [],
+      "links": [
+        {
+          "label": "ClickHouse Iceberg table function",
+          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+        }
+      ]
     },
     "clickhouse:statistics:v2": {
       "level": "partial",
@@ -596,15 +673,16 @@
       ]
     },
     "clickhouse:bloom-filters:v2": {
-      "level": "none",
-      "notes": "ClickHouse does not support reading Iceberg Parquet-level bloom filters or Puffin-based bloom filter statistics via table functions. ClickHouse has its own bloom filter index types but they do not apply to external Iceberg tables.",
+      "level": "partial",
+      "notes": "Measured (ClickHouse 26.9): with output_format_parquet_write_bloom_filter = 1 (a session setting, on by default in this build) ClickHouse writes Parquet bloom filters into the Iceberg data files it produces (4128 bytes for the test column). The Iceberg table property write.parquet.bloom-filter-enabled.column.* is not honoured.",
       "caveats": [
-        "Read-only via table functions; no bloom filter support"
+        "Controlled by ClickHouse's Parquet output settings, not by Iceberg table properties",
+        "Whether icebergS3() reads use the filters to skip row groups is not observable"
       ],
       "links": [
         {
-          "label": "ClickHouse Iceberg table function",
-          "url": "https://clickhouse.com/docs/sql-reference/table-functions/iceberg"
+          "label": "ClickHouse Iceberg table engine",
+          "url": "https://clickhouse.com/docs/engines/table-engines/integrations/iceberg"
         }
       ]
     },
@@ -623,7 +701,7 @@
     },
     "clickhouse:type-promotion:v2": {
       "level": "partial",
-      "notes": "ClickHouse can read Iceberg tables that have undergone type promotion (int\u2192long, float\u2192double, decimal precision widening) via the icebergS3/icebergLocal table functions (recommended approach). Cannot perform type promotion itself \u2014 that must be done by another engine (e.g. Spark). Nested structure and array/map element type changes are not supported.",
+      "notes": "ClickHouse can read Iceberg tables that have undergone type promotion (int→long, float→double, decimal precision widening) via the icebergS3/icebergLocal table functions (recommended approach). Cannot perform type promotion itself — that must be done by another engine (e.g. Spark). Nested structure and array/map element type changes are not supported.",
       "caveats": [
         "Read-only via table functions; cannot perform type promotion",
         "No nested structure or array/map element type evolution",

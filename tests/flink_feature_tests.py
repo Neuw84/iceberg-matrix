@@ -24,7 +24,7 @@ Two execution modes:
 Set FLINK_MODE to force one.
 
 Usage:
-    tests/docker/start-lakekeeper.sh
+    tests/docker/start-polaris.sh
     tests/docker/start-flink.sh
     python tests/flink_feature_tests.py
 
@@ -64,9 +64,10 @@ FLINK_VERSION = os.environ.get("FLINK_VERSION", "2.3.0")
 FLINK_ICEBERG_VERSION = os.environ.get("FLINK_ICEBERG_VERSION", "1.11.0")
 
 # Host address the cluster uses to reach the catalog and MinIO. Both must be
-# reachable from inside the Flink container as well as from the host, because
-# Lakekeeper's GET /v1/config returns an "overrides.uri" that the Iceberg REST
-# client applies over the configured URI (see docker-compose.lakekeeper.yml).
+# reachable from inside the Flink container as well as from the host: Polaris
+# hands every client the S3 endpoint recorded on the catalog (the host's IP,
+# see docker-compose.polaris.yml), and the Flink container itself must resolve
+# the catalog URI, for which "localhost" would point at the container.
 def _default_host() -> str:
     try:
         import socket
@@ -82,8 +83,10 @@ def _default_host() -> str:
 
 _HOST = os.environ.get("FLINK_HOST_IP") or _default_host()
 
-REST_URI = os.environ.get("ICEBERG_REST_URI", f"http://{_HOST}:8181/catalog")
+REST_URI = os.environ.get("ICEBERG_REST_URI", f"http://{_HOST}:8181/api/catalog")
 REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "demo")
+REST_CREDENTIAL = os.environ.get("ICEBERG_REST_CREDENTIAL", "root:s3cr3t")
+REST_SCOPE = os.environ.get("ICEBERG_REST_SCOPE", "PRINCIPAL_ROLE:ALL")
 S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", f"http://{_HOST}:9000")
 S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "minio")
 S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "minio12345")
@@ -309,11 +312,18 @@ def _prelude(version: str = "v3", catalog: str = "rest", streaming: bool = False
         f"SET 'execution.runtime-mode' = '{'streaming' if streaming else 'batch'}'",
     ]
     if catalog == "rest":
+        auth = ""
+        if REST_CREDENTIAL:
+            auth = f"""
+            'credential'='{REST_CREDENTIAL}',
+            'scope'='{REST_SCOPE}',
+            'oauth2-server-uri'='{REST_URI.rstrip('/')}/v1/oauth/tokens',
+            'token-refresh-enabled'='false',"""
         stmts.append(f"""CREATE CATALOG test_catalog WITH (
             'type'='iceberg',
             'catalog-type'='rest',
             'uri'='{REST_URI}',
-            'warehouse'='{REST_WAREHOUSE}',
+            'warehouse'='{REST_WAREHOUSE}',{auth}
             'io-impl'='org.apache.iceberg.aws.s3.S3FileIO',
             's3.endpoint'='{S3_ENDPOINT}',
             's3.path-style-access'='true',
@@ -379,12 +389,65 @@ def _v3_only(feature_id: str, feature_name: str) -> TestResult:
     return r
 
 
-def _rest_prefix() -> str:
-    """The catalog's request prefix, needed for direct REST calls."""
+_REST_TOKEN = None
+
+
+def _rest_token() -> str:
+    """OAuth2 bearer token for direct REST calls, or "" when the catalog runs
+    without auth (blank ICEBERG_REST_CREDENTIAL). Fetched once per run via the
+    client-credentials grant, the same way the Iceberg Java client does it."""
+    global _REST_TOKEN
+    if _REST_TOKEN is not None:
+        return _REST_TOKEN
+    if not REST_CREDENTIAL or ":" not in REST_CREDENTIAL:
+        _REST_TOKEN = ""
+        return _REST_TOKEN
+    import base64
+    import urllib.parse
     import urllib.request
-    base = REST_URI.rstrip("/")
-    with urllib.request.urlopen(f"{base}/v1/config?warehouse={REST_WAREHOUSE}", timeout=15) as resp:
-        return json.load(resp)["defaults"]["prefix"]
+    client_id, _, secret = REST_CREDENTIAL.partition(":")
+    basic = base64.b64encode(f"{client_id}:{secret}".encode()).decode()
+    data = urllib.parse.urlencode(
+        {"grant_type": "client_credentials", "scope": REST_SCOPE}
+    ).encode()
+    req = urllib.request.Request(
+        f"{REST_URI.rstrip('/')}/v1/oauth/tokens", data=data, method="POST",
+        headers={"Authorization": f"Basic {basic}",
+                 "Content-Type": "application/x-www-form-urlencoded"},
+    )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        _REST_TOKEN = json.load(resp)["access_token"]
+    return _REST_TOKEN
+
+
+def _rest_request(method: str, path: str, body=None, timeout: int = 30):
+    """Authenticated JSON request against the REST catalog; returns parsed JSON.
+
+    ``path`` is relative to the catalog base (e.g. "v1/config?warehouse=demo").
+    """
+    import urllib.request
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    token = _rest_token()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    req = urllib.request.Request(
+        f"{REST_URI.rstrip('/')}/{path}",
+        data=json.dumps(body).encode() if body is not None else None,
+        headers=headers, method=method,
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        raw = resp.read()
+        return json.loads(raw) if raw else {}
+
+
+def _rest_prefix() -> str:
+    """The catalog's request prefix, needed for direct REST calls.
+
+    The REST spec allows the server to place it under either "overrides"
+    (Polaris) or "defaults" (Lakekeeper); accept both.
+    """
+    cfg = _rest_request("GET", f"v1/config?warehouse={REST_WAREHOUSE}", timeout=15)
+    return cfg.get("overrides", {}).get("prefix") or cfg.get("defaults", {}).get("prefix", "")
 
 
 def _rest_table_metadata(table: str, namespace: str = "test_db"):
@@ -393,14 +456,48 @@ def _rest_table_metadata(table: str, namespace: str = "test_db"):
     Used to inspect state that Flink SQL cannot surface, such as V3 row lineage
     counters and the partition-spec history.
     """
-    import urllib.request
     try:
-        base = REST_URI.rstrip("/")
-        url = f"{base}/v1/{_rest_prefix()}/namespaces/{namespace}/tables/{table}"
-        with urllib.request.urlopen(url, timeout=30) as resp:
-            return json.load(resp).get("metadata", {})
+        data = _rest_request(
+            "GET", f"v1/{_rest_prefix()}/namespaces/{namespace}/tables/{table}"
+        )
+        return data.get("metadata", {})
     except Exception:  # noqa: BLE001
         return None
+
+
+def _parquet_footers(table: str, namespace: str = "test_db"):
+    """Open every Parquet data file of a table straight from object storage and
+    return ``(list_of_ParquetFile, note)``; ``(None, reason)`` when it cannot.
+
+    Flink SQL exposes nothing about the physical layout of the files it wrote
+    (bloom filters, variant shredding), so the suite looks at the Parquet
+    footers itself: the table location comes from the REST catalog, the files
+    from MinIO through pyarrow's S3 filesystem. pyarrow is optional -- when it
+    is missing the callers report the cell as not exercised rather than guessing.
+    """
+    try:
+        import pyarrow.parquet as pq
+        from pyarrow import fs as pafs
+    except ImportError:
+        return None, "pyarrow not installed; Parquet footers cannot be inspected"
+    meta = _rest_table_metadata(table, namespace)
+    location = (meta or {}).get("location")
+    if not location or not location.startswith("s3://"):
+        return None, f"table location not available from the catalog ({location!r})"
+    endpoint = S3_ENDPOINT if "://" in S3_ENDPOINT else f"http://{S3_ENDPOINT}"
+    scheme, _, host = endpoint.partition("://")
+    try:
+        s3 = pafs.S3FileSystem(access_key=S3_KEY_ID, secret_key=S3_SECRET,
+                               endpoint_override=host, scheme=scheme,
+                               region=os.environ.get("ICEBERG_S3_REGION", "us-east-1"),
+                               force_virtual_addressing=False)
+        prefix = location[len("s3://"):].rstrip("/") + "/data"
+        infos = s3.get_file_info(pafs.FileSelector(prefix, recursive=True, allow_not_found=True))
+        paths = [i.path for i in infos if i.is_file and i.path.endswith(".parquet")]
+        files = [pq.ParquetFile(s3.open_input_file(p)) for p in paths]
+        return files, f"{len(files)} Parquet data file(s) under {prefix}"
+    except Exception as e:  # noqa: BLE001
+        return None, f"could not read Parquet files from {location}: {str(e).splitlines()[0][:120]}"
 
 
 def _rest_evolve_spec(table: str, namespace: str = "test_db") -> bool:
@@ -411,11 +508,8 @@ def _rest_evolve_spec(table: str, namespace: str = "test_db") -> bool:
     appended and the default spec pointer moves, leaving existing data files bound
     to the old spec.
     """
-    import urllib.request
     try:
-        base = REST_URI.rstrip("/")
-        prefix = _rest_prefix()
-        url = f"{base}/v1/{prefix}/namespaces/{namespace}/tables/{table}"
+        path = f"v1/{_rest_prefix()}/namespaces/{namespace}/tables/{table}"
         md = _rest_table_metadata(table, namespace)
         cur = [s for s in md["partition-specs"] if s["spec-id"] == md["default-spec-id"]][0]
         ts_field = [f for f in md["schemas"][-1]["fields"] if f["name"] == "ts"][0]
@@ -431,12 +525,7 @@ def _rest_evolve_spec(table: str, namespace: str = "test_db") -> bool:
             "updates": [{"action": "add-spec", "spec": new_spec},
                         {"action": "set-default-spec", "spec-id": -1}],
         }
-        req = urllib.request.Request(
-            url, data=json.dumps(body).encode(),
-            headers={"Content-Type": "application/json"}, method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            json.load(resp)
+        _rest_request("POST", path, body)
         return True
     except Exception:  # noqa: BLE001
         return False
@@ -448,9 +537,7 @@ def _rest_set_tags(table: str, tags: dict, namespace: str = "test_db") -> bool:
     Flink has no ref DDL, so tags for the tag-read and tag-to-tag scan tests have
     to come from the catalog itself.
     """
-    import urllib.request
     try:
-        base = REST_URI.rstrip("/")
         md = _rest_table_metadata(table, namespace)
         body = {
             "requirements": [{"type": "assert-table-uuid", "uuid": md["table-uuid"]}],
@@ -460,55 +547,48 @@ def _rest_set_tags(table: str, tags: dict, namespace: str = "test_db") -> bool:
                 for name, snap_id in tags.items()
             ],
         }
-        req = urllib.request.Request(
-            f"{base}/v1/{_rest_prefix()}/namespaces/{namespace}/tables/{table}",
-            data=json.dumps(body).encode(),
-            headers={"Content-Type": "application/json"}, method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            json.load(resp)
+        _rest_request("POST", f"v1/{_rest_prefix()}/namespaces/{namespace}/tables/{table}", body)
         return True
     except Exception:  # noqa: BLE001
         return False
 
 
-def _rest_create_transform_partitioned(version: str, namespace: str = "test_db"):
-    """Create a day(ts)-partitioned table straight through the REST catalog API.
+def _rest_create_transform_partitioned(version: str, namespace: str = "test_db",
+                                       schema_fields=None, spec_fields=None,
+                                       prefix_name: str = "hpext"):
+    """Create a transform-partitioned table straight through the REST catalog API.
 
     Flink DDL cannot express transform partitioning, so a table that exercises the
     hidden-partitioning read/write path has to be created by something else. Going
     to the catalog's own HTTP API avoids adding an engine or library just for this.
-    Returns the table name, or None if the catalog rejected the request.
+    Defaults to a day(ts)-partitioned (id, ts) table; callers may pass their own
+    Iceberg JSON ``schema_fields`` / ``spec_fields``.
+    Returns ``(name, None)`` on success or ``(None, error)`` if the catalog rejected it.
     """
-    import urllib.error
-    import urllib.request
-    base = REST_URI.rstrip("/")
-    name = _unique("hpext")
+    name = _unique(prefix_name)
     try:
-        with urllib.request.urlopen(f"{base}/v1/config?warehouse={REST_WAREHOUSE}", timeout=15) as resp:
-            prefix = json.load(resp)["defaults"]["prefix"]
+        prefix = _rest_prefix()
         body = {
             "name": name,
-            "schema": {"type": "struct", "schema-id": 0, "fields": [
+            "schema": {"type": "struct", "schema-id": 0, "fields": schema_fields or [
                 {"id": 1, "name": "id", "required": False, "type": "long"},
                 {"id": 2, "name": "ts", "required": False, "type": "timestamptz"},
             ]},
-            "partition-spec": {"spec-id": 0, "fields": [
+            "partition-spec": {"spec-id": 0, "fields": spec_fields or [
                 {"source-id": 2, "field-id": 1000, "name": "ts_day", "transform": "day"},
             ]},
             "stage-create": False,
             "properties": {"format-version": _fmt(version)},
         }
-        req = urllib.request.Request(
-            f"{base}/v1/{prefix}/namespaces/{namespace}/tables",
-            data=json.dumps(body).encode(),
-            headers={"Content-Type": "application/json"}, method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            json.load(resp)
-        return name
-    except Exception:  # noqa: BLE001
-        return None
+        _rest_request("POST", f"v1/{prefix}/namespaces/{namespace}/tables", body)
+        return name, None
+    except Exception as e:  # noqa: BLE001
+        body_text = ""
+        try:
+            body_text = e.read().decode()[:200]  # urllib HTTPError carries the response
+        except Exception:  # noqa: BLE001
+            pass
+        return None, f"{str(e).splitlines()[0][:100]} {body_text}".strip()
 
 
 def _external_service(feature_id: str, feature_name: str, version: str, what: str) -> TestResult:
@@ -1255,7 +1335,7 @@ def test_hidden_partitioning(version: str) -> TestResult:
     # Flink cannot declare it, so create a day(ts)-partitioned table through the
     # catalog API and check the half that actually matters: can Flink write into a
     # hidden-partitioned table, honour the transform, and prune on it?
-    ext = _rest_create_transform_partitioned(version)
+    ext, _ = _rest_create_transform_partitioned(version)
     if not ext:
         r.result = "fail"
         r.details = (
@@ -1373,12 +1453,55 @@ def test_multi_arg_transforms(version: str) -> TestResult:
     if version == "v2":
         return _v3_only("multi-arg-transforms", "Multi-Argument Transforms")
     r = TestResult("multi-arg-transforms", "Multi-Argument Transforms", version)
-    r.result = "skip"
-    r.details = (
-        "Not exercised: Flink DDL cannot express any transform partitioning at all "
-        "(PARTITIONED BY only takes plain column names), so a multi-argument "
-        "transform cannot be declared from SQL"
+    # Flink DDL cannot express any transform partitioning (PARTITIONED BY only
+    # takes plain column names), so as with hidden partitioning the table is
+    # created through the catalog API -- here with a V3 multi-argument
+    # bucket(4, a, b) spec (`source-ids`) -- and the half Flink can be measured
+    # on is whether it reads and writes such a table.
+    ext, err = _rest_create_transform_partitioned(
+        version, prefix_name="maext",
+        schema_fields=[
+            {"id": 1, "name": "id", "required": False, "type": "long"},
+            {"id": 2, "name": "a", "required": False, "type": "string"},
+            {"id": 3, "name": "b", "required": False, "type": "string"},
+        ],
+        spec_fields=[
+            {"source-ids": [2, 3], "field-id": 1000, "name": "ab_bucket", "transform": "bucket[4]"},
+        ],
     )
+    if not ext:
+        r.result = "skip"
+        r.details = (
+            "Not exercised: Flink DDL cannot declare transforms, and the catalog rejected "
+            f"a multi-argument bucket(4, a, b) spec so no such table could be provided: {err}"
+        )
+        return r
+    ok, out = _run_sql(_prelude(version) + [
+        f"SELECT CONCAT('MARKREAD=', CAST(COUNT(*) AS STRING)) AS m FROM {ext}",
+        f"INSERT INTO {ext} VALUES (1, 'x', 'y'), (2, 'p', 'q')",
+        f"SELECT CONCAT('MARKALL=', CAST(COUNT(*) AS STRING)) AS m FROM {ext}",
+        f"DROP TABLE {ext}",
+    ])
+    if ok and _marker(out, "MARKALL=2"):
+        r.result = "pass"
+        r.details = (
+            "Flink cannot declare a multi-argument transform (no transform DDL at all), but "
+            "on a bucket(4, a, b)-partitioned V3 table created through the catalog API it "
+            "read the empty table and wrote 2 rows honouring the spec"
+        )
+    elif ok and _marker(out, "MARKREAD=0"):
+        r.result = "fail"
+        r.details = (
+            "Flink reads a table with a multi-argument partition spec but cannot write to it: "
+            f"{_error_reason(out, 140)}"
+        )
+    else:
+        r.result = "fail"
+        r.details = (
+            "Flink cannot use a table with a multi-argument partition spec "
+            f"(bucket(4, a, b), created via the catalog API): {_error_reason(out, 150)}"
+        )
+        _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {ext}"])
     return r
 
 
@@ -1424,26 +1547,50 @@ def test_shredded_variant(version: str) -> TestResult:
         return _v3_only("shredded-variant", "Shredded Variant")
     r = TestResult("shredded-variant", "Shredded Variant", version)
     tbl = _unique("shred")
-    # Shredding is a writer-side physical layout choice; there is no SQL surface
-    # to request it and no metadata table exposing whether it happened.
+    # Shredding is a writer-side physical layout choice with no SQL surface, so
+    # after Flink writes the table the suite opens the Parquet file it produced
+    # and checks whether the variant column carries a `typed_value` child (the
+    # Parquet variant shredding layout) next to `metadata`/`value`.
     ok, out = _run_sql(_prelude(version) + [
         f"""CREATE TABLE {tbl} (id BIGINT, v VARIANT) WITH (
             'format-version'='3', 'write.parquet.variant-shredding.enabled'='true')""",
         f"INSERT INTO {tbl} SELECT CAST(1 AS BIGINT), PARSE_JSON('{{\"a\":42}}')",
         f"SELECT CONCAT('MARKCNT=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl}",
-        f"DROP TABLE {tbl}",
     ])
-    r.result = "skip"
-    if ok and _marker(out, "MARKCNT=1"):
+    if not (ok and _marker(out, "MARKCNT=1")):
+        r.result = "fail"
         r.details = (
-            "Not verifiable from SQL: the shredding table property is accepted and data "
-            "round-trips, but whether the writer actually shredded the variant is not "
-            "observable through any Flink SQL surface or metadata table"
+            "Cannot write a VARIANT column with the shredding property set: "
+            f"{_error_reason(out, 140)}"
+        )
+        _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
+        return r
+    files, note = _parquet_footers(tbl)
+    _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
+    if files is None:
+        r.result = "skip"
+        r.details = f"Not exercised: variant written, but {note}"
+        return r
+    shredded, layouts = False, []
+    for f in files:
+        schema = f.schema_arrow
+        if "v" in schema.names:
+            vt = schema.field("v").type
+            children = [vt.field(i).name for i in range(vt.num_fields)] if hasattr(vt, "num_fields") else []
+            layouts.append(children)
+            if "typed_value" in children:
+                shredded = True
+    if shredded:
+        r.result = "pass"
+        r.details = (
+            "write.parquet.variant-shredding.enabled honoured: the Parquet variant column "
+            f"carries a typed_value child (layout {layouts[0]}; {note})"
         )
     else:
+        r.result = "fail"
         r.details = (
-            "Not verifiable from SQL: no Flink SQL surface requests or reports variant "
-            f"shredding ({_error_reason(out, 110)})"
+            "write.parquet.variant-shredding.enabled accepted but the Parquet written has "
+            f"no typed_value child, i.e. the variant is not shredded (layout {layouts}; {note})"
         )
     return r
 
@@ -1639,19 +1786,43 @@ def test_bloom_filters(version: str) -> TestResult:
         f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b')",
         f"SELECT CONCAT('MARKCNT=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl}",
         f"SELECT CONCAT('MARKSEL=', CAST(COUNT(*) AS STRING)) AS m FROM {tbl} WHERE val = 'a'",
-        f"DROP TABLE {tbl}",
     ])
-    r.result = "skip"
-    if ok and _marker(out, "MARKCNT=2") and _marker(out, "MARKSEL=1"):
+    if not (ok and _marker(out, "MARKCNT=2") and _marker(out, "MARKSEL=1")):
+        r.result = "fail"
         r.details = (
-            "Not verifiable from SQL: the Parquet bloom-filter write property is accepted "
-            "and point lookups return correct results, but no Flink SQL surface or Iceberg "
-            "metadata table reports whether a bloom filter was written or used to skip data"
+            "Table with write.parquet.bloom-filter-enabled.column.val could not be written "
+            f"and read back: {_error_reason(out, 140)}"
+        )
+        _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
+        return r
+    # No Flink SQL surface reports whether a bloom filter was written, so look at
+    # the footer of the Parquet file Flink produced: a bloom_filter_offset on the
+    # `val` column chunk is the evidence.
+    files, note = _parquet_footers(tbl)
+    _run_sql(_prelude(version) + [f"DROP TABLE IF EXISTS {tbl}"])
+    if files is None:
+        r.result = "skip"
+        r.details = f"Not exercised: data written and point lookup correct, but {note}"
+        return r
+    has_bloom = False
+    for f in files:
+        md = f.metadata
+        for rg in range(md.num_row_groups):
+            for ci in range(md.num_columns):
+                col = md.row_group(rg).column(ci)
+                if col.path_in_schema == "val" and getattr(col, "bloom_filter_offset", None):
+                    has_bloom = True
+    if has_bloom:
+        r.result = "pass"
+        r.details = (
+            "write.parquet.bloom-filter-enabled.column.val honoured: the Parquet footer "
+            f"records a bloom filter for `val` and point lookups are correct ({note})"
         )
     else:
+        r.result = "fail"
         r.details = (
-            "Not verifiable from SQL: bloom filter presence is not observable through "
-            f"Flink SQL ({_error_reason(out, 110)})"
+            "write.parquet.bloom-filter-enabled.column.val accepted but the Parquet Flink "
+            f"wrote carries no bloom filter for `val` ({note})"
         )
     return r
 
@@ -1689,7 +1860,7 @@ def test_rest_catalog(version: str) -> TestResult:
     if ok and _marker(out, "MARKCAT=2"):
         r.result = "pass"
         r.details = (
-            "catalog-type='rest' against a live Lakekeeper REST catalog: table created, "
+            "catalog-type='rest' against a live Polaris REST catalog: table created, "
             "written, read back and dropped"
         )
     else:
@@ -1711,6 +1882,12 @@ def test_unity_catalog(version: str) -> TestResult:
 def test_snowflake_horizon_catalog(version: str) -> TestResult:
     return _external_service("snowflake-horizon-catalog", "Snowflake Horizon Catalog", version,
                              "a Snowflake account with Horizon Catalog enabled")
+
+
+def test_google_lakehouse(version: str) -> TestResult:
+    return _external_service("google-lakehouse", "Google Lakehouse", version,
+                             "a Google Cloud project with the Lakehouse runtime catalog "
+                             "(BigLake metastore REST endpoint) and credentials")
 
 
 # ---------------------------------------------------------------------------
@@ -1744,6 +1921,7 @@ ALL_TESTS = [
     test_aws_glue_catalog,
     test_unity_catalog,
     test_snowflake_horizon_catalog,
+    test_google_lakehouse,
     test_variant_type,
     test_shredded_variant,
     test_geometry_type,

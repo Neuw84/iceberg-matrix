@@ -16,7 +16,7 @@ the narrower width and must still decode).
 
 This is a read-only diagnostic: it neither edits the matrix nor is compared
 against it. It reuses tests/spark_fixture.get_spark(), so it needs the same
-running Lakekeeper REST catalog + MinIO stack and the same env vars as
+running Polaris REST catalog + MinIO stack and the same env vars as
 tests/iceberg_feature_tests.py.
 
 Run (from the repo root), e.g.:

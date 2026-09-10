@@ -4,8 +4,8 @@
 # tests/flink_feature_tests.py, then wait until a TaskManager has registered so
 # the SQL client can actually run jobs.
 #
-# Requires the Lakekeeper + MinIO stack to be up first:
-#   tests/docker/start-lakekeeper.sh
+# Requires the Polaris + MinIO stack to be up first:
+#   tests/docker/start-polaris.sh
 #   tests/docker/start-flink.sh
 #   python tests/flink_feature_tests.py
 #
@@ -28,7 +28,7 @@ export FLINK_VERSION="${FLINK_VERSION:-2.3.0}"
 export ICEBERG_VERSION="${ICEBERG_VERSION:-1.11.0}"
 export ICEBERG_FLINK_MAJOR="${ICEBERG_FLINK_MAJOR:-2.1}"
 
-FLINK_HOST_IP="${FLINK_HOST_IP:-${LAKEKEEPER_S3_HOST:-$(detect_host_ip)}}"
+FLINK_HOST_IP="${FLINK_HOST_IP:-${POLARIS_S3_HOST:-$(detect_host_ip)}}"
 if [[ -z "${FLINK_HOST_IP}" ]]; then
   echo "[flink] could not determine this host's IP address; set FLINK_HOST_IP" >&2
   exit 1
@@ -67,7 +67,7 @@ wait_for_slots
 cat <<EOF
 [flink] cluster is up. Run the feature tests with:
 
-  export ICEBERG_REST_URI=http://${FLINK_HOST_IP}:8181/catalog
+  export ICEBERG_REST_URI=http://${FLINK_HOST_IP}:8181/api/catalog
   export ICEBERG_S3_ENDPOINT=http://${FLINK_HOST_IP}:9000
   python tests/flink_feature_tests.py
 

@@ -552,10 +552,10 @@
       "caveats": []
     },
     "flink:shredded-variant:v3": {
-      "level": "unknown",
-      "notes": "Not observable from Flink SQL: the Parquet variant-shredding write property is accepted, but no Flink SQL surface or Iceberg metadata table reports whether the writer actually shredded the variant.",
+      "level": "none",
+      "notes": "Measured (Flink 2.3 + Iceberg 1.11.0): write.parquet.variant-shredding.enabled=true is accepted and the VARIANT data round-trips, but the Parquet file Flink writes has only metadata/value children on the variant column -- no typed_value, i.e. the variant is not shredded.",
       "caveats": [
-        "Not observable through Flink SQL or metadata tables"
+        "The table property is accepted silently; the Flink Parquet writer does not implement shredding"
       ],
       "links": [
         {
@@ -628,17 +628,19 @@
       ]
     },
     "flink:bloom-filters:v2": {
-      "level": "unknown",
-      "notes": "Not observable from Flink SQL: the Parquet bloom-filter write property is accepted and point lookups return correct results, but neither Flink nor the Iceberg metadata tables report whether a bloom filter was written or used to skip data.",
+      "level": "full",
+      "notes": "Measured (Flink 2.3 + Iceberg 1.11.0): a table created with write.parquet.bloom-filter-enabled.column.val=true writes Parquet data files whose footer records a bloom filter for that column (bloom_filter_offset present), and point lookups return correct results.",
       "caveats": [
-        "Not observable through Flink SQL or metadata tables"
+        "Verified by inspecting the Parquet footers Flink wrote; Flink SQL itself exposes nothing about bloom filters",
+        "Whether the reader uses the filter to skip row groups is not observable from Flink SQL"
       ]
     },
     "flink:bloom-filters:v3": {
-      "level": "unknown",
-      "notes": "Not observable from Flink SQL: the Parquet bloom-filter write property is accepted and point lookups return correct results, but neither Flink nor the Iceberg metadata tables report whether a bloom filter was written or used to skip data.",
+      "level": "full",
+      "notes": "Measured (Flink 2.3 + Iceberg 1.11.0): a table created with write.parquet.bloom-filter-enabled.column.val=true writes Parquet data files whose footer records a bloom filter for that column (bloom_filter_offset present), and point lookups return correct results.",
       "caveats": [
-        "Not observable through Flink SQL or metadata tables"
+        "Verified by inspecting the Parquet footers Flink wrote; Flink SQL itself exposes nothing about bloom filters",
+        "Whether the reader uses the filter to skip row groups is not observable from Flink SQL"
       ]
     },
     "flink:type-promotion:v2": {
@@ -720,9 +722,11 @@
       "caveats": []
     },
     "flink:unknown-type:v3": {
-      "level": "unknown",
-      "notes": "Not yet measured; recorded as unknown rather than inferred. Flink SQL has no obvious spelling for a null-only placeholder column; the suite now probes UNKNOWN and NULL, so the next run will settle this.",
-      "caveats": []
+      "level": "none",
+      "notes": "Measured (Flink 2.3): Flink SQL has no spelling for the Iceberg V3 unknown type -- both UNKNOWN and NULL as a column type are parser errors -- so such a column cannot be declared.",
+      "caveats": [
+        "Parser error for UNKNOWN and for NULL used as a column type"
+      ]
     },
     "flink:google-lakehouse:v2": {
       "level": "partial",

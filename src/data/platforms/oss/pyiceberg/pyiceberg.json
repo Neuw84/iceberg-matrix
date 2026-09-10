@@ -414,7 +414,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "PyIceberg API \u2013 Schema evolution",
+          "label": "PyIceberg API – Schema evolution",
           "url": "https://py.iceberg.apache.org/api/"
         },
         {
@@ -429,7 +429,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "PyIceberg API \u2013 Schema evolution",
+          "label": "PyIceberg API – Schema evolution",
           "url": "https://py.iceberg.apache.org/api/"
         }
       ]
@@ -478,9 +478,11 @@
       "caveats": []
     },
     "pyiceberg:unknown-type:v3": {
-      "level": "unknown",
-      "notes": "Not yet measured; recorded as unknown rather than inferred. The suite imports UnknownType and skips when the installed PyIceberg does not expose it, so a run distinguishes absent from unverified.",
-      "caveats": []
+      "level": "full",
+      "notes": "Measured (PyIceberg 0.11.1): UnknownType is modelled, and a V3 table with a Spark-written VOID (unknown) column loads through the REST catalog and scans with the column null.",
+      "caveats": [
+        "Creating a V3 table with PyIceberg itself is blocked by the general lack of V3 write support (apache/iceberg-python#1551); the read path is what was measured"
+      ]
     },
     "pyiceberg:google-lakehouse:v2": {
       "level": "partial",

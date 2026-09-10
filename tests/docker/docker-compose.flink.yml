@@ -7,13 +7,13 @@
 #   docker compose -f docker-compose.flink.yml exec -T jobmanager \
 #     /opt/flink/bin/sql-client.sh embedded -f /work/<script>.sql
 #
-# Catalog connectivity: the cluster talks to the Lakekeeper REST catalog and
-# MinIO from tests/docker/docker-compose.lakekeeper.yml over the host's own IP
-# (published ports) rather than over a shared compose network. That is required,
-# not just convenient -- Lakekeeper returns a storage endpoint on loadTable that
-# overrides the client's own, and the warehouse advertises the host IP so that
-# both host-side engines and containers resolve the same address. See the note at
-# the top of docker-compose.lakekeeper.yml.
+# Catalog connectivity: the cluster talks to the Polaris REST catalog and MinIO
+# from tests/docker/docker-compose.polaris.yml over the host's own IP (published
+# ports) rather than over a shared compose network. That is required, not just
+# convenient -- Polaris returns the catalog's S3 endpoint on loadTable, and that
+# endpoint is recorded as the host IP so that both host-side engines and
+# containers resolve the same address. See the note at the top of
+# docker-compose.polaris.yml.
 #
 # Bring it up with tests/docker/start-flink.sh (which detects the host IP), and
 # tear it down with tests/docker/stop-flink.sh.
@@ -39,6 +39,12 @@ services:
         jobmanager.rpc.address: jobmanager
         rest.address: jobmanager
         rest.bind-address: 0.0.0.0
+        # Explicit, small footprints: the suite's jobs are tiny, and without
+        # these Flink's defaults (1600m + 1728m) plus the SQL-client JVMs that
+        # run inside this container can exceed the Docker VM's memory and get
+        # the taskmanager OOM-killed (exit 137) mid-run.
+        jobmanager.memory.process.size: 1024m
+        env.java.opts.client: -Xmx640m
         taskmanager.numberOfTaskSlots: 4
         parallelism.default: 1
         execution.checkpointing.interval: 5s
@@ -64,6 +70,7 @@ services:
     environment:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: jobmanager
+        taskmanager.memory.process.size: 1280m
         taskmanager.numberOfTaskSlots: 4
         parallelism.default: 1
         execution.checkpointing.interval: 5s

@@ -11,10 +11,10 @@ The goal is parity: the test outcome for every (feature, version) pair should
 agree with the support level recorded in the matrix data. Any disagreement is
 reported as a "discrepancy".
 
-The primary catalog ("local") is an Iceberg REST catalog by default: Lakekeeper
-backed by MinIO, which both CI and tests/docker/start-lakekeeper.sh stand up.
-The suite looks for one at http://127.0.0.1:8181/catalog unless ICEBERG_REST_URI points
-elsewhere. If no catalog answers there and none was explicitly requested, the
+The primary catalog ("local") is an Iceberg REST catalog by default: Apache
+Polaris backed by MinIO, which both CI and tests/docker/start-polaris.sh stand up.
+The suite looks for one at http://127.0.0.1:8181/api/catalog unless ICEBERG_REST_URI
+points elsewhere. If no catalog answers there and none was explicitly requested, the
 suite falls back to a local Hadoop catalog so it still runs standalone; when
 ICEBERG_REST_URI *was* set explicitly, an unreachable catalog is left to fail
 loudly rather than silently downgrading CI. Set ICEBERG_REST_URI to an empty
@@ -40,6 +40,9 @@ import urllib.request
 import uuid
 from datetime import datetime
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import spark_fixture  # noqa: E402 - sibling module; only write_equality_delete is used
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -122,12 +125,16 @@ NS_PREFIX = os.environ.get("MATRIX_NS_PREFIX", "ns_")
 # REST catalog configuration. An Iceberg REST catalog is the default: the suite
 # targets DEFAULT_REST_URI unless ICEBERG_REST_URI says otherwise. Setting
 # ICEBERG_REST_URI to an empty string opts out and uses the Hadoop catalog.
-# The defaults match the Lakekeeper + MinIO stack in tests/docker (Lakekeeper
-# serves the Iceberg REST API under /catalog and addresses warehouses by name).
-DEFAULT_REST_URI = "http://127.0.0.1:8181/catalog"
+# The defaults match the Apache Polaris + MinIO stack in tests/docker (Polaris
+# serves the Iceberg REST API under /api/catalog, addresses catalogs by name and
+# authenticates with OAuth2 client credentials; blank ICEBERG_REST_CREDENTIAL
+# disables auth for catalogs that run without it).
+DEFAULT_REST_URI = "http://127.0.0.1:8181/api/catalog"
 REST_URI_EXPLICIT = "ICEBERG_REST_URI" in os.environ
 REST_URI = os.environ.get("ICEBERG_REST_URI", DEFAULT_REST_URI)
 REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "demo")
+REST_CREDENTIAL = os.environ.get("ICEBERG_REST_CREDENTIAL", "root:s3cr3t")
+REST_SCOPE = os.environ.get("ICEBERG_REST_SCOPE", "PRINCIPAL_ROLE:ALL")
 S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", "http://127.0.0.1:9000")
 S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "minio")
 S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "minio12345")
@@ -372,6 +379,15 @@ def get_spark():
             .config("spark.sql.catalog.local.s3.secret-access-key", S3_SECRET)
             .config("spark.sql.catalog.local.client.region", S3_REGION)
         )
+        if REST_CREDENTIAL:
+            builder = (
+                builder
+                .config("spark.sql.catalog.local.credential", REST_CREDENTIAL)
+                .config("spark.sql.catalog.local.scope", REST_SCOPE)
+                .config("spark.sql.catalog.local.oauth2-server-uri",
+                        f"{REST_URI.rstrip('/')}/v1/oauth/tokens")
+                .config("spark.sql.catalog.local.token-refresh-enabled", "false")
+            )
     else:
         print("[INFO] ICEBERG_REST_URI not set; primary catalog falls back to local Hadoop")
         builder = (
@@ -599,49 +615,86 @@ def test_position_deletes(version: str) -> TestResult:
     return r
 
 
-def test_equality_deletes(version: str) -> TestResult:
-    # Rated none: Spark SQL DELETE/UPDATE/MERGE never produce equality delete
-    # files (content=2) -- only positional deletes on v2 or deletion vectors on
-    # v3. The row-level operation this feature names is a write operation, and
-    # Spark's DML cannot perform it, so absence of a content=2 file is the
-    # datum, not a bare pass on the DELETE succeeding (which the previous
-    # version of this test asserted, conflating this feature with
-    # position-deletes). Spark can still *read* equality delete files written
-    # by another engine, e.g. Flink upserts, but that is a read capability, not
-    # this operation, and reads are covered by read-support instead.
+def test_equality_deletes(version: str) -> list:
+    """Equality deletes, measured on both halves.
+
+    The cell is a *write* capability: does the engine's own DML emit an
+    equality-delete file (content=2)? Spark SQL DELETE/UPDATE/MERGE never do --
+    only positional deletes on v2 or deletion vectors on v3 -- so the matrix
+    rates it none. Asserting that from documentation is weak, so this test:
+
+      1. Runs a merge-on-read DELETE and counts content=2 files. Zero is the
+         datum for the coarse (matrix-compared) row.
+      2. Commits a *real* equality-delete file to the same table with the
+         Iceberg Java API through Spark's JVM (spark_fixture.write_equality_delete,
+         the same library a Flink upsert sink uses) and checks Spark's scan
+         applies it. That is the read half, reported as a diagnostic row: it
+         is not what the cell measures, but a reader that ignored the file
+         would be a correctness bug worth surfacing next to the write verdict.
+
+    Returns [coarse, diagnostic].
+    """
     r = TestResult("equality-deletes", "Equality Deletes", version)
+    d = TestResult("equality-deletes-read", "Equality Deletes: read a Java-API eq-delete",
+                   version, diagnostic=True)
     spark = get_spark()
     ns = _ns()
     try:
         spark.sql(f"CREATE NAMESPACE IF NOT EXISTS local.{ns}")
         tbl = f"local.{ns}.{_unique('eqdel')}"
         spark.sql(f"""
-            CREATE TABLE {tbl} (id BIGINT, val STRING)
+            CREATE TABLE {tbl} (id BIGINT, k STRING, val STRING)
             USING iceberg TBLPROPERTIES (
                 'format-version'='{_fmt(version)}',
                 'write.delete.mode'='merge-on-read'
             )
         """)
-        spark.sql(f"INSERT INTO {tbl} VALUES (1,'a'),(2,'b'),(3,'c')")
-        spark.sql(f"DELETE FROM {tbl} WHERE id=2")
+        spark.sql(f"INSERT INTO {tbl} VALUES (1,'a','x'),(2,'b','y'),(3,'c','z'),(4,'d','w')")
 
+        # Half 1: the engine's own DML.
+        spark.sql(f"DELETE FROM {tbl} WHERE id=4")
         delete_files = spark.sql(f"SELECT content FROM {tbl}.all_delete_files").collect()
-        eq_delete_count = sum(1 for row in delete_files if row[0] == 2)
+        eq_from_dml = sum(1 for row in delete_files if row[0] == 2)
+        if eq_from_dml > 0:
+            r.result = "pass"
+            r.details = f"DELETE produced {eq_from_dml} equality delete file(s)"
+        else:
+            r.result = "fail"
+            r.details = ("Spark DML produced no equality delete files (content=2); "
+                        f"{len(delete_files)} delete file(s) total, all positional/DV")
+
+        # Half 2: a real equality delete on k='b', written via the Java API,
+        # then read back by Spark's own scan.
+        try:
+            produced = spark_fixture.write_equality_delete(spark, tbl, "k", "b")
+            spark.sql(f"REFRESH TABLE {tbl}")
+            ids = [row[0] for row in
+                   spark.sql(f"SELECT id FROM {tbl} ORDER BY id").collect()]
+            eq_files = sum(1 for row in
+                           spark.sql(f"SELECT content FROM {tbl}.all_delete_files").collect()
+                           if row[0] == 2)
+            if ids == [1, 3] and eq_files >= 1:
+                d.result = "pass"
+                d.details = (f"Java-API equality delete ({produced['content']}, "
+                            f"{produced['record_count']} record) committed; Spark scan "
+                            f"applied it and the DML delete: ids={ids}")
+            else:
+                d.result = "fail"
+                d.details = (f"Spark mis-read the equality delete: ids={ids} (expected [1, 3]), "
+                            f"content=2 files={eq_files}")
+        except Exception as e:  # noqa: BLE001 - the read half must not mask the write half
+            d.result = "error"
+            d.details = f"{type(e).__name__}: {str(e).splitlines()[0][:220]}"
 
         _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
-
-        if eq_delete_count > 0:
-            r.result = "pass"
-            r.details = f"DELETE produced {eq_delete_count} equality delete file(s)"
-        else:
-            r.result = "fail"
-            r.details = ("DELETE produced no equality delete files (content=2); "
-                        f"{len(delete_files)} delete file(s) total, all positional/DV")
     except Exception as e:
         r.result = "error"
-        r.details = str(e)
-    return r
+        r.details = str(e)[:300]
+        if d.result == "skip":
+            d.result = "error"
+            d.details = "not reached: " + str(e)[:200]
+    return [r, d]
 
 
 def test_merge_on_read(version: str) -> TestResult:
@@ -1117,7 +1170,7 @@ def test_partition_evolution(version: str) -> TestResult:
 
         # Evolve on a different source column. A second time transform on ts
         # (month(ts) beside year(ts)) is a redundant time partition: the Java
-        # client tolerates it, but a spec-strict catalog such as Lakekeeper
+        # client tolerates it, but a spec-strict catalog (Lakekeeper did this)
         # rejects the commit, which says nothing about whether partition
         # evolution itself works.
         spark.sql(f"ALTER TABLE {tbl} ADD PARTITION FIELD bucket(4, id)")
@@ -1376,6 +1429,14 @@ def test_snowflake_horizon_catalog(version: str) -> TestResult:
     r = TestResult("snowflake-horizon-catalog", "Snowflake Horizon Catalog", version)
     r.result = "skip"
     r.details = "Snowflake Horizon Catalog test skipped in CI (requires Snowflake REST endpoint)"
+    return r
+
+
+def test_google_lakehouse(version: str) -> TestResult:
+    r = TestResult("google-lakehouse", "Google Lakehouse", version)
+    r.result = "skip"
+    r.details = ("Google Lakehouse catalog test skipped in CI (requires a Google Cloud "
+                 "project with the Lakehouse runtime catalog REST endpoint and credentials)")
     return r
 
 
@@ -1826,6 +1887,7 @@ ALL_TESTS = [
     test_aws_glue_catalog,
     test_unity_catalog,
     test_snowflake_horizon_catalog,
+    test_google_lakehouse,
     test_variant_type,
     test_shredded_variant,
     test_geometry_type,

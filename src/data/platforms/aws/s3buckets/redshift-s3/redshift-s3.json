@@ -595,10 +595,10 @@
       ]
     },
     "aws-redshift-s3:type-promotion:v3": {
-      "level": "full",
-      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode): int->bigint and float->double are accepted on a v3 table as metadata-only widenings, and narrowing back is correctly refused.",
+      "level": "partial",
+      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 buckets mode) per individual promotion: the three carry-over promotions (int->bigint, float->double, decimal precision widen) are accepted on a v3 table as metadata-only widenings, but the v3-only date->timestamp promotion is rejected ('Only type widening is supported for Iceberg tables. Supported type changes: integer to bigint, real to double...') and date->timestamp_ns is unreachable ('Unsupported data type timestamp_ns for Iceberg table'). This matches Spark, Glue and Databricks: the date promotions are an Iceberg 1.11 library gap rather than a Redshift-specific one.",
       "caveats": [
-        "Limited to the promotions the Iceberg spec allows"
+        "date->timestamp (a valid v3 promotion per the spec) is rejected; date->timestamp_ns is not expressible because Redshift has no nanosecond timestamp type"
       ],
       "links": [
         {
