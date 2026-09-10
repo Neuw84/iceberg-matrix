@@ -42,6 +42,7 @@ Requirements:
 import json
 import os
 import sys
+import re
 import shutil
 import urllib.error
 import urllib.request
@@ -93,6 +94,23 @@ S3_REGION = os.environ.get("ICEBERG_S3_REGION", "us-east-1")
 NO_CATALOG_DETAIL = (
     "Requires an Iceberg REST catalog (set ICEBERG_REST_URI); not configured in this run"
 )
+
+# Iceberg format versions to exercise. Every version-agnostic test runs once
+# per version (its tables are created with that format-version, see
+# _VersionedConnection); the V3-only tests run once. Comma-separated, e.g.
+# "v2" to run only V2.
+FORMAT_VERSIONS = [v.strip() for v in
+                   os.environ.get("DUCKDB_FORMAT_VERSIONS", "v2,v3").split(",") if v.strip()]
+# Where the compact Feature x V2/V3 support table is written. Empty disables it.
+MATRIX_MD = os.environ.get("DUCKDB_MATRIX_MD", os.path.join(REPORT_DIR, "duckdb.md"))
+
+# The format version the currently running test targets. Set by main() before
+# each pass; TestResult and _catalog_connection read it.
+CURRENT_VERSION = "v2"
+
+
+def _fmt() -> str:
+    return CURRENT_VERSION[1:]  # "v2" -> "2"
 
 
 # ---------------------------------------------------------------------------
@@ -154,8 +172,51 @@ def _plain_connection() -> "duckdb.DuckDBPyConnection":
     return con
 
 
+_CREATE_IB_TABLE = re.compile(r"^\s*CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?ib\.", re.IGNORECASE)
+
+
+def _version_sql(sql: str) -> str:
+    """Pin ``CREATE TABLE ib.*`` statements to CURRENT_VERSION.
+
+    The tests spell their DDL once, without a format version; DuckDB defaults
+    that to V2. When the suite is running its V3 pass, the same DDL has to
+    produce format-version 3 tables, so ``WITH ('format-version'='3')`` is
+    spliced in: into an existing WITH clause, before PARTITIONED BY, or at the
+    end. Statements that already name a format-version (the V3-only tests) and
+    CREATE TABLE ... AS SELECT are left alone.
+    """
+    if CURRENT_VERSION == "v2" or not _CREATE_IB_TABLE.match(sql) or "format-version" in sql:
+        return sql
+    if re.search(r"\bAS\s+SELECT\b", sql, re.IGNORECASE):
+        return sql
+    prop = f"'format-version'='{_fmt()}'"
+    m = re.search(r"\bWITH\s*\(", sql, re.IGNORECASE)
+    if m:
+        return sql[:m.end()] + prop + ", " + sql[m.end():]
+    m = re.search(r"\bPARTITIONED\s+BY\b", sql, re.IGNORECASE)
+    if m:
+        return sql[:m.start()] + f"WITH ({prop}) " + sql[m.start():]
+    return sql.rstrip().rstrip(";") + f" WITH ({prop})"
+
+
+class _VersionedConnection:
+    """Thin proxy over a DuckDBPyConnection that runs DDL through _version_sql."""
+
+    def __init__(self, con):
+        self._con = con
+
+    def execute(self, sql, *args, **kwargs):
+        return self._con.execute(_version_sql(sql), *args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._con, name)
+
+
 def _catalog_connection() -> "duckdb.DuckDBPyConnection":
     """Connect to DuckDB and ATTACH the configured Iceberg REST catalog as ``ib``.
+
+    Returned wrapped in _VersionedConnection so every ``CREATE TABLE ib.*`` the
+    tests issue targets CURRENT_VERSION.
 
     The catalog is attached writable: we pass the catalog *name* (not an
     ``s3://`` URI) and ``ACCESS_DELEGATION_MODE 'none'`` so DuckDB uses the local
@@ -273,12 +334,14 @@ def _catalog_test(r: "TestResult", body):
 # ---------------------------------------------------------------------------
 
 class TestResult:
-    def __init__(self, feature_id: str, feature_name: str, version: str = "v2"):
+    def __init__(self, feature_id: str, feature_name: str, version: str = None):
         self.feature_id = feature_id
         self.feature_name = feature_name
         self.result = "skip"  # pass | fail | skip | error
         self.details = ""
-        self.version_tested = version
+        # Version-agnostic tests take the version of the current pass; the
+        # V3-only tests pass "v3" explicitly.
+        self.version_tested = version or CURRENT_VERSION
 
     def to_dict(self):
         return {
@@ -295,7 +358,7 @@ class TestResult:
 # ---------------------------------------------------------------------------
 
 def test_table_creation() -> TestResult:
-    r = TestResult("table-creation", "Table Creation", "v2")
+    r = TestResult("table-creation", "Table Creation")
 
     def body(con, ns, r):
         con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR)")
@@ -312,7 +375,7 @@ def test_table_creation() -> TestResult:
 
 
 def test_read_support() -> TestResult:
-    r = TestResult("read-support", "Read Support", "v2")
+    r = TestResult("read-support", "Read Support")
 
     def body(con, ns, r):
         con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR)")
@@ -326,7 +389,7 @@ def test_read_support() -> TestResult:
 
 
 def test_write_insert() -> TestResult:
-    r = TestResult("write-insert", "Write (INSERT)", "v2")
+    r = TestResult("write-insert", "Write (INSERT)")
 
     def body(con, ns, r):
         con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR)")
@@ -341,7 +404,7 @@ def test_write_insert() -> TestResult:
 
 
 def test_write_merge_update_delete() -> TestResult:
-    r = TestResult("write-merge-update-delete", "Write (MERGE/UPDATE/DELETE)", "v2")
+    r = TestResult("write-merge-update-delete", "Write (MERGE/UPDATE/DELETE)")
 
     def body(con, ns, r):
         con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR)")
@@ -391,7 +454,7 @@ def _spark_assisted_row_level_test(r: "TestResult", write_mode: str, expect: str
     con = None
     try:
         ns = spark_fixture.new_namespace()
-        spark_fixture.create_fixture(ns, name, "v2", write_mode)
+        spark_fixture.create_fixture(ns, name, CURRENT_VERSION, write_mode)
         con = _catalog_connection()
         try:
             con.execute(f"DELETE FROM ib.{ns}.{name} WHERE id=2")
@@ -443,7 +506,7 @@ def test_position_deletes() -> TestResult:
     # requested; DuckDB issues the DELETE through the same REST catalog; Spark
     # reads the delete-file content types back. A position-delete file (not
     # equality) is the expected evidence for DuckDB's own DML.
-    r = TestResult("position-deletes", "Position Deletes", "v2")
+    r = TestResult("position-deletes", "Position Deletes")
     return _spark_assisted_row_level_test(r, "merge-on-read", "position")
 
 
@@ -460,7 +523,7 @@ def test_equality_deletes() -> TestResult:
     #   2. DuckDB cannot WRITE one -- the actual verdict for this cell.
     # A definitive read that filters the row, with no DuckDB write path, is the
     # measured basis for fail (== matrix "none"), far stronger than a bare skip.
-    r = TestResult("equality-deletes", "Equality Deletes", "v2")
+    r = TestResult("equality-deletes", "Equality Deletes")
     if not spark_fixture.available():
         r.result = "skip"
         r.details = spark_fixture.NOT_AVAILABLE_DETAIL
@@ -474,7 +537,7 @@ def test_equality_deletes() -> TestResult:
     con = None
     try:
         ns = spark_fixture.new_namespace()
-        produced = spark_fixture.create_equality_delete_fixture(ns, name, "v2")
+        produced = spark_fixture.create_equality_delete_fixture(ns, name, CURRENT_VERSION)
         if produced["delete_files"].get("equality", 0) < 1:
             r.result = "error"
             r.details = (f"harness could not produce an equality-delete file: "
@@ -522,7 +585,7 @@ def test_merge_on_read() -> TestResult:
     # files produced at all is the evidence for the write *strategy*, and
     # DuckDB's DELETE produces the same position-delete file either way -- but
     # kept as a separate test since it is a separate matrix cell.
-    r = TestResult("merge-on-read", "Merge-on-Read", "v2")
+    r = TestResult("merge-on-read", "Merge-on-Read")
     return _spark_assisted_row_level_test(r, "merge-on-read", "position")
 
 
@@ -533,12 +596,12 @@ def test_copy_on_write() -> TestResult:
     # write.delete.mode=copy-on-write explicitly and checking DuckDB actually
     # honours it (no delete files at all) is the measurement, not an inference
     # from an unrelated INSERT.
-    r = TestResult("copy-on-write", "Copy-on-Write", "v2")
+    r = TestResult("copy-on-write", "Copy-on-Write")
     return _spark_assisted_row_level_test(r, "copy-on-write", "none")
 
 
 def test_schema_evolution() -> TestResult:
-    r = TestResult("schema-evolution", "Schema Evolution", "v2")
+    r = TestResult("schema-evolution", "Schema Evolution")
 
     def body(con, ns, r):
         con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR)")
@@ -555,7 +618,7 @@ def test_schema_evolution() -> TestResult:
 
 
 def test_type_promotion() -> TestResult:
-    r = TestResult("type-promotion", "Type Promotion / Widening", "v2")
+    r = TestResult("type-promotion", "Type Promotion / Widening")
     # Iceberg type promotion is done with ALTER TABLE ... ALTER COLUMN ... TYPE
     # (int->bigint, float->double, decimal widen). Measure DuckDB's own DDL
     # rather than asserting from docs: create a table, attempt each documented
@@ -617,7 +680,7 @@ def test_type_promotion() -> TestResult:
 
 
 def test_time_travel() -> TestResult:
-    r = TestResult("time-travel", "Time Travel / Snapshots", "v2")
+    r = TestResult("time-travel", "Time Travel / Snapshots")
 
     def body(con, ns, r):
         con.execute(f"CREATE TABLE ib.{ns}.t (id INT)")
@@ -640,7 +703,7 @@ def test_time_travel() -> TestResult:
 
 
 def test_table_maintenance() -> TestResult:
-    r = TestResult("table-maintenance", "Table Maintenance", "v2")
+    r = TestResult("table-maintenance", "Table Maintenance")
     # Maintenance ops are compaction / rewrite_data_files / expire_snapshots /
     # rewrite_manifests. Spark exposes them as CALL <catalog>.system.<proc>().
     # Measure DuckDB's own surface rather than asserting: create a table with
@@ -678,7 +741,7 @@ def test_table_maintenance() -> TestResult:
 
 
 def test_branching_tagging() -> TestResult:
-    r = TestResult("branching-tagging", "Branching & Tagging", "v2")
+    r = TestResult("branching-tagging", "Branching & Tagging")
     # Branch/tag DDL in Iceberg-capable engines is ALTER TABLE ... CREATE
     # BRANCH/TAG. Measure DuckDB's own surface: create a snapshot, attempt the
     # branch and tag statements, and record the rejections that confirm none.
@@ -709,7 +772,7 @@ def test_branching_tagging() -> TestResult:
 
 
 def test_hidden_partitioning() -> TestResult:
-    r = TestResult("hidden-partitioning", "Hidden Partitioning", "v2")
+    r = TestResult("hidden-partitioning", "Hidden Partitioning")
 
     def body(con, ns, r):
         con.execute(
@@ -728,7 +791,7 @@ def test_hidden_partitioning() -> TestResult:
 
 
 def test_partition_evolution() -> TestResult:
-    r = TestResult("partition-evolution", "Partition Evolution", "v2")
+    r = TestResult("partition-evolution", "Partition Evolution")
 
     def body(con, ns, r):
         con.execute(
@@ -779,7 +842,7 @@ def test_multi_arg_transforms() -> TestResult:
 
 
 def test_statistics() -> TestResult:
-    r = TestResult("statistics", "Statistics (Column Metrics)", "v2")
+    r = TestResult("statistics", "Statistics (Column Metrics)")
 
     def body(con, ns, r):
         con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR)")
@@ -796,7 +859,7 @@ def test_statistics() -> TestResult:
 
 
 def test_bloom_filters() -> TestResult:
-    r = TestResult("bloom-filters", "Bloom Filters", "v2")
+    r = TestResult("bloom-filters", "Bloom Filters")
     # Iceberg bloom filters are requested with the table property
     # write.parquet.bloom-filter-enabled.column.<col>. Measure whether DuckDB
     # honours it: set the property, write data, and check the Parquet data
@@ -857,7 +920,7 @@ def test_bloom_filters() -> TestResult:
 
 
 def test_catalog_integration() -> TestResult:
-    r = TestResult("catalog-integration", "Catalog Integration", "v2")
+    r = TestResult("catalog-integration", "Catalog Integration")
 
     def body(con, ns, r):
         # A successful ATTACH + namespace + table lifecycle proves catalog integration.
@@ -874,7 +937,7 @@ def test_catalog_integration() -> TestResult:
 
 
 def test_rest_catalog() -> TestResult:
-    r = TestResult("rest-catalog", "REST Catalog", "v2")
+    r = TestResult("rest-catalog", "REST Catalog")
 
     def body(con, ns, r):
         # We are attached to a real Iceberg REST catalog; do a write round-trip.
@@ -890,7 +953,7 @@ def test_rest_catalog() -> TestResult:
 
 
 def test_glue_catalog() -> TestResult:
-    r = TestResult("aws-glue-catalog", "AWS Glue Catalog", "v2")
+    r = TestResult("aws-glue-catalog", "AWS Glue Catalog")
     # Supported via ENDPOINT_TYPE 'GLUE' but requires real AWS credentials/endpoint.
     r.result = "skip"
     r.details = "AWS Glue (SageMaker Lakehouse) catalog requires AWS credentials; not exercised locally"
@@ -898,7 +961,7 @@ def test_glue_catalog() -> TestResult:
 
 
 def test_unity_catalog() -> TestResult:
-    r = TestResult("unity-catalog", "Unity Catalog", "v2")
+    r = TestResult("unity-catalog", "Unity Catalog")
     r.result = "skip"
     r.details = "Unity Catalog REST connectivity is undocumented for DuckDB; requires a Unity server"
     return r
@@ -1062,6 +1125,65 @@ def test_lineage() -> TestResult:
     return _catalog_test(r, body)
 
 
+def test_deletion_vectors() -> TestResult:
+    r = TestResult("deletion-vectors", "Deletion Vectors", "v3")
+
+    def body(con, ns, r):
+        # Write half: on a V3 table DuckDB's own DELETE must be encoded as a
+        # binary deletion vector (a Puffin file), not a Parquet position-delete.
+        con.execute(f"CREATE TABLE ib.{ns}.t (id INT, name VARCHAR) WITH ('format-version'='3')")
+        con.execute(f"INSERT INTO ib.{ns}.t VALUES (1,'a'),(2,'b'),(3,'c')")
+        con.execute(f"DELETE FROM ib.{ns}.t WHERE id = 2")
+        meta = con.execute(
+            f"SELECT content, file_format FROM iceberg_metadata(ib.{ns}.t)"
+        ).fetchall()
+        formats = sorted({str(fmt).lower() for _, fmt in meta})
+        wrote_dv = "puffin" in formats
+        ids = [row[0] for row in con.execute(f"SELECT id FROM ib.{ns}.t ORDER BY id").fetchall()]
+        write = (f"DELETE on a V3 table wrote a Puffin deletion vector (file formats {formats}; "
+                 f"live ids {ids})" if wrote_dv else
+                 f"DELETE on a V3 table wrote no deletion vector (file formats {formats})")
+        # Read half: a deletion vector written by another engine (Spark 4.1 +
+        # Iceberg 1.11 emit DVs for merge-on-read deletes on V3) must be applied.
+        read, reads = "read half not exercised (Spark fixture unavailable)", None
+        if spark_fixture.available():
+            sns = spark_fixture.new_namespace()
+            try:
+                spark_fixture.create_fixture(sns, "t", "v3", "merge-on-read")
+                spark_fixture.get_spark().sql(f"DELETE FROM local.{sns}.t WHERE id = 2")
+                fmts = spark_fixture.delete_file_formats_from_storage(sns, "t")
+                got = [row[0] for row in con.execute(f"SELECT id FROM ib.{sns}.t ORDER BY id").fetchall()]
+                reads = got == [1, 3]
+                read = (f"reads a Spark-written deletion vector correctly (delete formats {sorted(fmts)}, "
+                        f"ids {got})" if reads else
+                        f"MIS-READS a Spark-written deletion vector (delete formats {sorted(fmts)}, "
+                        f"ids {got}, expected [1, 3])")
+            except Exception as e:  # noqa: BLE001 - the refusal is the datum
+                reads = False
+                read = f"cannot read a Spark-written deletion vector ({str(e).splitlines()[0][:140]})"
+            finally:
+                spark_fixture.drop_fixture(sns, "t")
+        r.result = "pass" if (wrote_dv and reads is not False and ids == [1, 3]) else "fail"
+        r.details = f"DuckDB {write}; {read}"
+
+    return _catalog_test(r, body)
+
+
+def test_snowflake_horizon_catalog() -> TestResult:
+    r = TestResult("snowflake-horizon-catalog", "Snowflake Horizon Catalog")
+    r.result = "skip"
+    r.details = "Not exercised: requires a Snowflake account with Horizon Catalog's Iceberg REST endpoint"
+    return r
+
+
+def test_google_lakehouse() -> TestResult:
+    r = TestResult("google-lakehouse", "Google Lakehouse")
+    r.result = "skip"
+    r.details = ("Not exercised: requires a Google Cloud project with the Lakehouse runtime "
+                 "catalog (BigLake metastore REST endpoint) and credentials")
+    return r
+
+
 def test_column_default_values() -> TestResult:
     r = TestResult("column-default-values", "Column Default Values", "v3")
 
@@ -1108,12 +1230,15 @@ ALL_TESTS = [
     test_rest_catalog,
     test_glue_catalog,
     test_unity_catalog,
+    test_snowflake_horizon_catalog,
+    test_google_lakehouse,
     test_variant_type,
     test_shredded_variant,
     test_geometry_type,
     test_nanosecond_timestamps,
     test_unknown_type,
     test_lineage,
+    test_deletion_vectors,
 ]
 
 
@@ -1230,10 +1355,8 @@ def generate_markdown(report: dict) -> str:
         details = t["details"][:80].replace("\n", " ").replace("\r", "").replace("|", "\\|") if t["details"] else ""
         feature_name = t["feature_name"].replace("|", "\\|")
         json_level = t["json_level"].replace("|", "\\|") if t["json_level"] else ""
-        lines.append(
-            f"| {feature_name} | {t['version']} | {emoji} {t['result']} "
-            f"| {json_level} | {match_str} | {details} |"
-        )
+        lines.append(f"| {feature_name} | {t['version']} | {emoji} {t['result']} "
+                     f"| {json_level} | {match_str} | {details} |")
 
     lines.append("")
 
@@ -1255,6 +1378,47 @@ def generate_markdown(report: dict) -> str:
 # Main
 # ---------------------------------------------------------------------------
 
+def cell_verdict(result: str, json_level: str) -> str:
+    """Collapse a measured result into the pass / partial / no vocabulary of
+    the support table. A pass on a cell the matrix rates partial stays partial
+    (the test details record the limitation); skip means not measured."""
+    if result == "pass":
+        return "partial" if json_level == "partial" else "pass"
+    if result == "fail":
+        return "no"
+    if result == "error":
+        return "error"
+    return "n/a"
+
+
+def generate_matrix_markdown(report: dict, details_path: str = "duckdb-iceberg-test-report.md") -> str:
+    """Compact Feature x V2/V3 table of measured support (duckdb.md)."""
+    by_key = {(t["feature_id"], t["version"]): t for t in report["tests"]}
+    order, names = [], {}
+    for t in report["tests"]:
+        if t["feature_id"] not in names:
+            order.append(t["feature_id"])
+            names[t["feature_id"]] = t["feature_name"]
+    versions = [v for v in ("v2", "v3") if any(k[1] == v for k in by_key)]
+    lines = [f"# DuckDB {report['duckdb_version']} x Apache Iceberg -- measured support", "",
+             f"Measured on {report['timestamp'][:10]} against the Iceberg REST catalog at "
+             f"{report['rest_catalog'] or 'n/a'}. `pass` = the feature worked as exercised, "
+             "`partial` = worked with a recorded limitation, `no` = not supported, "
+             "`n/a` = not measured in this run, `--` = not applicable to that format version.", "",
+             "| Feature | " + " | ".join(v.upper() for v in versions) + " |",
+             "|---------|" + "|".join("-----" for _ in versions) + "|"]
+    for fid in order:
+        cells = []
+        for v in versions:
+            t = by_key.get((fid, v))
+            cells.append(cell_verdict(t["result"], t["json_level"]) if t else "--")
+        lines.append(f"| {names[fid]} | " + " | ".join(cells) + " |")
+    lines.append("")
+    lines.append(f"Details for every cell (what was exercised and what DuckDB answered) "
+                 f"are in `{details_path}`.")
+    return "\n".join(lines) + "\n"
+
+
 def main():
     print("=" * 70)
     print("  DuckDB Iceberg Feature Test Suite")
@@ -1274,22 +1438,33 @@ def main():
     os.makedirs(WAREHOUSE_DIR, exist_ok=True)
     os.makedirs(REPORT_DIR, exist_ok=True)
 
-    # Run all tests
+    # Run all tests, once per format version. Version-agnostic tests pick up
+    # CURRENT_VERSION (their DDL is pinned to it by _VersionedConnection); the
+    # V3-only tests always report v3 whatever the pass, so they run once.
+    global CURRENT_VERSION
     results = []
-    for test_fn in ALL_TESTS:
-        test_name = test_fn.__name__
-        print(f"\n--- Running {test_name} ---")
-        try:
-            result = test_fn()
-            results.append(result)
-            icon = {"pass": "✅", "fail": "❌", "skip": "⏭️", "error": "⚠️"}.get(result.result, "?")
-            print(f"  {icon} {result.result}: {result.details[:120]}")
-        except Exception as e:
-            r = TestResult(test_name.replace("test_", "").replace("_", "-"), test_name)
-            r.result = "error"
-            r.details = f"Unhandled exception: {e}"
-            results.append(r)
-            print(f"  ⚠️ error: {e}")
+    v3_only = set()
+    for version in FORMAT_VERSIONS:
+        CURRENT_VERSION = version
+        print(f"\n{'#' * 70}\n  Format version {version}\n{'#' * 70}")
+        for test_fn in ALL_TESTS:
+            test_name = test_fn.__name__
+            if test_name in v3_only:
+                continue
+            print(f"\n--- Running {test_name} [{version}] ---")
+            try:
+                result = test_fn()
+                if result.version_tested != version:
+                    v3_only.add(test_name)
+                results.append(result)
+                icon = {"pass": "✅", "fail": "❌", "skip": "⏭️", "error": "⚠️"}.get(result.result, "?")
+                print(f"  {icon} {result.result}: {result.details[:120]}")
+            except Exception as e:
+                r = TestResult(test_name.replace("test_", "").replace("_", "-"), test_name)
+                r.result = "error"
+                r.details = f"Unhandled exception: {e}"
+                results.append(r)
+                print(f"  ⚠️ error: {e}")
 
     # Generate report
     print("\n" + "=" * 70)
@@ -1310,6 +1485,13 @@ def main():
     with open(md_path, "w") as f:
         f.write(md_content)
     print(f"Markdown report: {md_path}")
+    # Compact Feature x V2/V3 support table
+    if MATRIX_MD:
+        os.makedirs(os.path.dirname(os.path.abspath(MATRIX_MD)), exist_ok=True)
+        rel = os.path.relpath(md_path, os.path.dirname(os.path.abspath(MATRIX_MD)))
+        with open(MATRIX_MD, "w") as f:
+            f.write(generate_matrix_markdown(report, rel))
+        print(f"Support table: {MATRIX_MD}")
 
     # Print summary
     s = report["summary"]
