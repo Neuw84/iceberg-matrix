@@ -126,6 +126,33 @@ curl -fSL -o "iceberg-spark-runtime-4.1_2.13-${ICEBERG_VERSION}.jar" \
 uv run python tests/iceberg_feature_tests.py
 ```
 
+### Shared Iceberg REST catalog (Apache Polaris + MinIO)
+
+All the open-source engine suites (`iceberg_feature_tests.py` for Spark,
+`duckdb_feature_tests.py`, `pyiceberg_feature_tests.py`, `daft_feature_tests.py`,
+`clickhouse_feature_tests.py`, `flink_feature_tests.py`) run against one shared
+Iceberg REST catalog so that a table created by one engine can be inspected or
+mutated by another. The catalog is [Apache Polaris](https://polaris.apache.org)
+1.7 backed by MinIO, defined in `tests/docker/docker-compose.polaris.yml`:
+
+```bash
+./tests/docker/start-polaris.sh   # Polaris on :8181, MinIO on :9000, catalog "demo"
+source tests/docker/env.sh        # ICEBERG_REST_URI / _CREDENTIAL / _SCOPE, MinIO creds
+uv run python tests/duckdb_feature_tests.py
+./tests/docker/stop-polaris.sh    # tears down and wipes the volumes
+```
+
+Auth is OAuth2 client credentials (`root:s3cr3t`, scope `PRINCIPAL_ROLE:ALL`) at
+`http://127.0.0.1:8181/api/catalog`. `tests/spark_fixture.py` is the shared
+helper every suite uses to have Spark (or, for V3 GEOMETRY / `timestamp_ns`
+columns that Spark cannot write, DuckDB) create fixture tables in that catalog:
+merge-on-read vs copy-on-write tables, equality-delete files written through
+the Iceberg Java API, deletion vectors, column defaults. Each engine suite then
+measures the read/write half it can actually exercise instead of asserting the
+matrix value. Flink runs in Docker (`tests/docker/start-flink.sh`) against the
+same catalog; run the suites one at a time, concurrent Spark + Flink runs can
+exhaust Docker memory.
+
 The suite also enforces **matrix coverage**: every feature defined in
 `src/data/features.json` must have a corresponding `test_*` function registered
 in `ALL_TESTS`. If a feature is added to the matrix without a test, the run

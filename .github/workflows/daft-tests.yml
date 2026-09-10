@@ -1,4 +1,4 @@
-name: ClickHouse Iceberg Feature Tests
+name: Daft Feature Tests
 
 on:
   pull_request:
@@ -14,9 +14,9 @@ env:
   ICEBERG_VERSION: "1.11.0"
 
 jobs:
-  clickhouse-tests:
+  daft-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
 
     steps:
       - name: Checkout repository
@@ -26,12 +26,6 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "17"
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v7
@@ -43,12 +37,21 @@ jobs:
         with:
           enable-cache: true
 
-      # PySpark + the Iceberg runtime drive tests/spark_fixture.py: Spark creates
-      # the merge-on-read / equality-delete / deletion-vector fixtures in the
-      # shared Polaris catalog that ClickHouse then reads; PyIceberg builds the
-      # V3 column-default fixture.
-      - name: Install Python dependencies
-        run: uv pip install --system pyspark==4.1.2 'pyiceberg[sql-sqlite,pyarrow]==0.11.1'
+      # Java + PySpark + the Iceberg runtime are needed by tests/spark_fixture.py
+      # and by the REST-catalog tests: Spark creates fixtures through the same
+      # Polaris catalog Daft then reads or writes into. Without them those cells
+      # report skip.
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # duckdb is the producer for the V3 GEOMETRY fixture (neither Spark's
+      # Iceberg connector nor PyIceberg can write one) -- see
+      # spark_fixture.create_geometry_fixture.
+      - name: Install Daft + PyIceberg + PySpark + DuckDB
+        run: uv pip install --system getdaft 'pyiceberg[sql-sqlite,pyarrow]==0.11.1' pyspark==4.1.2 duckdb==1.5.5
 
       - name: Download Iceberg Spark runtime + AWS bundle JARs
         run: |
@@ -64,16 +67,7 @@ jobs:
       - name: Start Polaris REST catalog + MinIO
         run: ./tests/docker/start-polaris.sh
 
-      - name: Install ClickHouse
-        run: |
-          sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
-          curl -fsSL 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key' | sudo gpg --dearmor -o /usr/share/keyrings/clickhouse-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" | sudo tee /etc/apt/sources.list.d/clickhouse.list
-          sudo apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y clickhouse-client clickhouse-common-static
-          clickhouse local --version
-
-      - name: Run ClickHouse Iceberg feature tests
+      - name: Run Daft feature tests
         env:
           ICEBERG_REST_URI: http://127.0.0.1:8181/api/catalog
           ICEBERG_REST_WAREHOUSE: demo
@@ -86,8 +80,7 @@ jobs:
         run: |
           export REPO_ROOT="${GITHUB_WORKSPACE}"
           export REPORT_DIR="${GITHUB_WORKSPACE}/test-reports"
-          export ICEBERG_JAR="${ICEBERG_JAR}"
-          python tests/clickhouse_feature_tests.py
+          python tests/daft_feature_tests.py
         continue-on-error: true
 
       - name: Tear down Polaris REST catalog
@@ -98,7 +91,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: clickhouse-iceberg-test-report
+          name: daft-iceberg-test-report
           path: test-reports/
           retention-days: 30
 
@@ -108,7 +101,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const reportPath = 'test-reports/clickhouse-iceberg-test-report.md';
+            const reportPath = 'test-reports/daft-iceberg-test-report.md';
             if (!fs.existsSync(reportPath)) {
               console.log('No report found, skipping comment');
               return;
@@ -121,7 +114,7 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.issue.number,
             });
-            const marker = '<!-- clickhouse-iceberg-test-report -->';
+            const marker = '<!-- daft-iceberg-test-report -->';
             const existing = comments.find(c => c.body.includes(marker));
             const commentBody = `${marker}\n${truncated}`;
 

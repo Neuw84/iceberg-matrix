@@ -9,10 +9,14 @@ permissions:
   contents: read
   pull-requests: write
 
+env:
+  SPARK_VERSION: "4.1"
+  ICEBERG_VERSION: "1.11.0"
+
 jobs:
   pyiceberg-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - name: Checkout repository
@@ -33,16 +37,56 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Install PyIceberg
-        run: uv pip install --system 'pyiceberg[sql-sqlite,pyarrow]==0.11.1'
+      # Java + PySpark + the Iceberg runtime are needed by tests/spark_fixture.py
+      # and by the REST-catalog tests: Spark creates fixtures through the same
+      # Polaris catalog PyIceberg then mutates/reads. Without them those cells
+      # report skip.
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # duckdb is the producer for the V3 GEOMETRY fixture (neither Spark's
+      # Iceberg connector nor PyIceberg can write one) -- see
+      # spark_fixture.create_geometry_fixture.
+      - name: Install PyIceberg + PySpark + DuckDB
+        run: uv pip install --system 'pyiceberg[sql-sqlite,pyarrow]==0.11.1' pyspark==4.1.2 duckdb==1.5.5
+
+      - name: Download Iceberg Spark runtime + AWS bundle JARs
+        run: |
+          BASE="https://repo1.maven.org/maven2/org/apache/iceberg"
+          RUNTIME_JAR="iceberg-spark-runtime-${SPARK_VERSION}_2.13-${ICEBERG_VERSION}.jar"
+          AWS_JAR="iceberg-aws-bundle-${ICEBERG_VERSION}.jar"
+          curl -fSL -o "${RUNTIME_JAR}" \
+            "${BASE}/iceberg-spark-runtime-${SPARK_VERSION}_2.13/${ICEBERG_VERSION}/${RUNTIME_JAR}"
+          curl -fSL -o "${AWS_JAR}" \
+            "${BASE}/iceberg-aws-bundle/${ICEBERG_VERSION}/${AWS_JAR}"
+          echo "ICEBERG_JAR=$(pwd)/${RUNTIME_JAR},$(pwd)/${AWS_JAR}" >> $GITHUB_ENV
+
+      - name: Start Polaris REST catalog + MinIO
+        run: ./tests/docker/start-polaris.sh
 
       - name: Run PyIceberg feature tests
+        env:
+          ICEBERG_REST_URI: http://127.0.0.1:8181/api/catalog
+          ICEBERG_REST_WAREHOUSE: demo
+          ICEBERG_REST_CREDENTIAL: root:s3cr3t
+          ICEBERG_REST_SCOPE: PRINCIPAL_ROLE:ALL
+          ICEBERG_S3_ENDPOINT: 127.0.0.1:9000
+          ICEBERG_S3_KEY_ID: minio
+          ICEBERG_S3_SECRET: minio12345
+          ICEBERG_S3_REGION: us-east-1
         run: |
           export REPO_ROOT="${GITHUB_WORKSPACE}"
           export REPORT_DIR="${GITHUB_WORKSPACE}/test-reports"
           export ICEBERG_WAREHOUSE="${RUNNER_TEMP}/pyiceberg-warehouse"
           python tests/pyiceberg_feature_tests.py
         continue-on-error: true
+
+      - name: Tear down Polaris REST catalog
+        if: always()
+        run: ./tests/docker/stop-polaris.sh
 
       - name: Upload test report
         if: always()

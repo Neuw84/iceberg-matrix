@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "duckdb",
-      "name": "DuckDB (1.5.4)",
+      "name": "DuckDB (1.5.5)",
       "vendor": "DuckDB Foundation",
       "category": "open-source",
       "group": "3rd Party",
@@ -251,10 +251,10 @@
       "links": []
     },
     "duckdb:multi-arg-transforms:v3": {
-      "level": "unknown",
-      "notes": "Multi-argument transform support on V3 tables not yet documented",
+      "level": "none",
+      "notes": "Measured on DuckDB 1.5.5: CREATE TABLE ... WITH ('format-version'='3') PARTITIONED BY (bucket(8, a, b)) is rejected with a parser error. DuckDB's partition DDL only accepts the single-column bucket()/truncate()/identity transforms.",
       "caveats": [
-        "V3-only feature; DuckDB support not yet documented"
+        "Only single-argument partition transforms are accepted"
       ],
       "links": [
         {
@@ -615,15 +615,19 @@
       "links": []
     },
     "duckdb:shredded-variant:v3": {
-      "level": "none",
-      "notes": "Shredded variant is a V3-only feature not supported by DuckDB's Iceberg extension",
+      "level": "full",
+      "notes": "Measured on DuckDB 1.5.5: writing a VARIANT column with a consistent object shape ({kind, x}) to a V3 table produces Parquet data files whose schema carries per-field shredded sub-columns (payload.typed_value.kind.{value,typed_value}, payload.typed_value.x.{value,typed_value}) alongside payload.metadata/payload.value, matching the Parquet variant-shredding layout. A scalar-only VARIANT gets a single payload.typed_value slot, so the shredding is content-driven rather than a fixed placeholder.",
       "caveats": [
-        "V3-only feature; DuckDB V3 support limited to V2-compatible data types"
+        "Shredding is decided by the writer automatically; there is no user-facing control over which fields are shredded"
       ],
       "links": [
         {
-          "label": "Iceberg Extension Overview",
-          "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+          "label": "Parquet Variant Shredding specification",
+          "url": "https://parquet.apache.org/docs/file-format/types/variantshredding/"
+        },
+        {
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 support)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         }
       ]
     },
@@ -722,11 +726,11 @@
       ]
     },
     "duckdb:type-promotion:v2": {
-      "level": "none",
-      "notes": "DuckDB's Iceberg extension supports read and basic write operations (INSERT, UPDATE, DELETE) but does not support ALTER TABLE column type changes for Iceberg tables. Type promotions must be performed using Spark or another DDL-capable engine.",
+      "level": "partial",
+      "notes": "Measured on DuckDB 1.5.5: ALTER TABLE ... ALTER COLUMN ... TYPE performs the documented v2 promotions (int -> bigint, float -> double, decimal(9,2) -> decimal(18,2)) against a REST catalog. The new schema is committed to Iceberg metadata (other engines see the widened types) and DuckDB reads its own pre-promotion rows back correctly as the wider type. Rated partial because the promoted data files are not proven interoperable: Spark 4.1 / Iceberg 1.11's vectorized reader fails on the DuckDB-promoted int -> bigint file (BigIntVector cannot be cast to IntVector).",
       "caveats": [
-        "DuckDB can read Iceberg tables that have been type-promoted by other engines",
-        "ALTER TABLE column type changes are not supported for Iceberg tables in DuckDB"
+        "Cross-engine reads of DuckDB-promoted files are not guaranteed (Spark vectorized reader failed on int -> bigint)",
+        "date -> timestamp promotion is V3-only and not part of the v2 set"
       ],
       "links": [
         {
@@ -740,12 +744,18 @@
       ]
     },
     "duckdb:type-promotion:v3": {
-      "level": "none",
-      "notes": "DuckDB does not support ALTER TABLE column type changes for Iceberg V3 tables.",
+      "level": "partial",
+      "notes": "Same ALTER COLUMN TYPE path as v2: int -> bigint, float -> double and decimal widening are performed and read back within DuckDB 1.5.5. The V3-only date -> timestamp / timestamp_ns promotions and cross-engine readability of promoted files are not proven.",
       "caveats": [
-        "ALTER TABLE type changes not supported for Iceberg tables in DuckDB"
+        "V3-only date -> timestamp(_ns) promotion not measured",
+        "Cross-engine reads of DuckDB-promoted files are not guaranteed"
       ],
-      "links": []
+      "links": [
+        {
+          "label": "Announcing DuckDB v1.5.2 (Iceberg ALTER TABLE)",
+          "url": "https://duckdb.org/2026/04/13/announcing-duckdb-152"
+        }
+      ]
     },
     "duckdb:snowflake-horizon-catalog:v2": {
       "level": "full",

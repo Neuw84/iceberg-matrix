@@ -61,13 +61,15 @@ jobs:
             "${BASE}/iceberg-aws-bundle/${ICEBERG_VERSION}/${AWS_JAR}"
           echo "ICEBERG_JAR=$(pwd)/${RUNTIME_JAR},$(pwd)/${AWS_JAR}" >> $GITHUB_ENV
 
-      - name: Start Lakekeeper REST catalog + MinIO
-        run: ./tests/docker/start-lakekeeper.sh
+      - name: Start Polaris REST catalog + MinIO
+        run: ./tests/docker/start-polaris.sh
 
       - name: Run Iceberg feature tests
         env:
-          ICEBERG_REST_URI: http://127.0.0.1:8181/catalog
+          ICEBERG_REST_URI: http://127.0.0.1:8181/api/catalog
           ICEBERG_REST_WAREHOUSE: demo
+          ICEBERG_REST_CREDENTIAL: root:s3cr3t
+          ICEBERG_REST_SCOPE: PRINCIPAL_ROLE:ALL
           ICEBERG_S3_ENDPOINT: http://127.0.0.1:9000
           ICEBERG_S3_KEY_ID: minio
           ICEBERG_S3_SECRET: minio12345
@@ -81,9 +83,9 @@ jobs:
           python tests/iceberg_feature_tests.py
         continue-on-error: true
 
-      - name: Tear down Lakekeeper REST catalog
+      - name: Tear down Polaris REST catalog
         if: always()
-        run: ./tests/docker/stop-lakekeeper.sh
+        run: ./tests/docker/stop-polaris.sh
 
       - name: Upload test report
         if: always()

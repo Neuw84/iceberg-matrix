@@ -96,10 +96,10 @@
       "caveats": []
     },
     "daft:nanosecond-timestamps:v3": {
-      "level": "none",
-      "notes": "Daft has not announced Iceberg V3 support; nanosecond timestamps is a V3 feature",
+      "level": "partial",
+      "notes": "Measured (Daft 0.7.24 + PyIceberg 0.11.1): Daft reads a V3 timestamp_ns column (written by DuckDB) as Timestamp[ns] with full precision, but cannot write one -- its Iceberg layer (PyIceberg) rejects the append with a schema mismatch.",
       "caveats": [
-        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+        "Read side only; writing timestamp_ns fails in PyIceberg's V3 write path"
       ]
     },
     "daft:hidden-partitioning:v2": {
@@ -184,10 +184,10 @@
       "caveats": []
     },
     "daft:read-support:v3": {
-      "level": "unknown",
-      "notes": "Daft has not announced Iceberg V3 support",
+      "level": "full",
+      "notes": "Measured (Daft 0.7.24 + PyIceberg 0.11.1): daft.read_iceberg() reads a Spark-created format-version 3 table (3 rows) through the REST catalog.",
       "caveats": [
-        "No Iceberg V3 support announced; track progress at github.com/Eventual-Inc/Daft/issues/2458"
+        "Plain V3 data files only: tables carrying V3 deletion vectors cannot be read (see Deletion Vectors)"
       ]
     },
     "daft:write-insert:v2": {
@@ -360,10 +360,10 @@
       "links": []
     },
     "daft:type-promotion:v2": {
-      "level": "none",
-      "notes": "Daft is a DataFrame engine focused on reads and writes via PyIceberg. It does not provide DDL operations for type promotion; type changes must be performed using PyIceberg's update_schema() API or another engine.",
+      "level": "partial",
+      "notes": "Measured (Daft 0.7.24): after PyIceberg promotes int->long and float->double, Daft reads the pre-promotion rows as the widened type alongside new wide values. Daft itself has no DDL, so the promotion must be performed with PyIceberg's update_schema() or another engine.",
       "caveats": [
-        "Daft can read Iceberg tables that have been type-promoted by other engines",
+        "Read side only: Daft can read type-promoted tables but cannot promote a column itself",
         "No ALTER TABLE or schema DDL support in Daft"
       ],
       "links": [
@@ -407,10 +407,11 @@
       "links": []
     },
     "daft:deletion-vectors:v3": {
-      "level": "unknown",
-      "notes": "Daft has not announced Iceberg V3 support; deletion vector support is undocumented.",
+      "level": "none",
+      "notes": "Measured (Daft 0.7.24): Daft has no DML, so it cannot write deletion vectors, and it cannot read a table that contains one -- the Puffin delete file is opened as Parquet and fails with DaftError::CorruptFile.",
       "caveats": [
-        "No Iceberg V3 support announced"
+        "Puffin deletion vectors are parsed as Parquet (CorruptFile), so any V3 table with a DV is unreadable",
+        "No DELETE/UPDATE/MERGE surface in Daft"
       ],
       "links": []
     },
@@ -420,8 +421,8 @@
       "caveats": []
     },
     "daft:unknown-type:v3": {
-      "level": "none",
-      "notes": "Daft has not announced Iceberg V3 support; the unknown type is a V3 feature.",
+      "level": "full",
+      "notes": "Measured (Daft 0.7.24): a V3 table with a Spark-written VOID (unknown) column is read by daft.read_iceberg() with the column null, as the type requires.",
       "caveats": []
     },
     "daft:google-lakehouse:v2": {

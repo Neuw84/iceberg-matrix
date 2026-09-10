@@ -1,0 +1,180 @@
+# Shared Apache Polaris (Iceberg REST catalog) + MinIO stack used by every
+# catalog-backed engine feature-test suite under tests/.
+#
+# Modeled on the Polaris MinIO guide shipped with the 1.7.0 release
+# (site/content/guides/minio/docker-compose.yml in apache/polaris).
+#
+# Topology:
+#   db             - Postgres. Not used by Polaris (in-memory metastore is fine
+#                    for a throwaway test stack); published so the Flink suite
+#                    can exercise the JDBC catalog and the jdbc maintenance lock.
+#   minio          - S3-compatible object storage holding the table data files
+#   minio-init     - creates the warehouse bucket
+#   polaris        - serves the Iceberg REST API on :8181/api/catalog and the
+#                    management API on :8181/api/management
+#   polaris-setup  - one-shot: obtains a root token and creates the "demo"
+#                    catalog backed by MinIO, then grants CATALOG_MANAGE_CONTENT
+#
+# Bring it up with tests/docker/start-polaris.sh, which waits for the setup job
+# and verifies the catalog answers from the host.
+#
+# Authentication: Polaris requires OAuth2 client credentials. The root
+# principal is bootstrapped from POLARIS_BOOTSTRAP_CREDENTIALS below as
+# root:s3cr3t in realm POLARIS; engines pass credential=root:s3cr3t and
+# scope=PRINCIPAL_ROLE:ALL (see tests/*_feature_tests.py).
+#
+# Storage endpoint: Polaris' S3 storage config distinguishes the endpoint the
+# server itself uses ("endpointInternal", the compose-internal http://minio:9000)
+# from the one it hands to clients ("endpoint"). Engines run on the host, and
+# the Flink cluster runs in a separate compose project, so the client endpoint
+# must be an address both can reach: the host's own IP, which
+# start-polaris.sh detects and exports as POLARIS_S3_HOST.
+#
+# Changing the storage config of an existing catalog is not supported here:
+# run stop-polaris.sh first (it drops the volumes) so the catalog is recreated.
+
+name: iceberg-promise-polaris
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 2s
+      timeout: 10s
+      retries: 20
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - iceberg_net
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${POLARIS_S3_KEY_ID:-minio}
+      MINIO_ROOT_PASSWORD: ${POLARIS_S3_SECRET:-minio12345}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 2s
+      timeout: 10s
+      retries: 20
+    volumes:
+      - minio_data:/data
+    networks:
+      - iceberg_net
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${POLARIS_S3_KEY_ID:-minio} ${POLARIS_S3_SECRET:-minio12345} &&
+      mc mb -p local/${POLARIS_BUCKET:-warehouse}
+      "
+    networks:
+      - iceberg_net
+
+  polaris:
+    image: apache/polaris:${POLARIS_VERSION:-1.7.0}
+    ports:
+      - "8181:8181"
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      # Static S3 credentials Polaris uses to reach MinIO and, with access
+      # delegation, hands to engines that request vended credentials.
+      AWS_REGION: ${POLARIS_S3_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${POLARIS_S3_KEY_ID:-minio}
+      AWS_SECRET_ACCESS_KEY: ${POLARIS_S3_SECRET:-minio12345}
+      POLARIS_BOOTSTRAP_CREDENTIALS: "${POLARIS_REALM:-POLARIS},${POLARIS_CLIENT_ID:-root},${POLARIS_CLIENT_SECRET:-s3cr3t}"
+      polaris.realm-context.realms: ${POLARIS_REALM:-POLARIS}
+      # Flink's Iceberg connector (and DROP TABLE ... PURGE elsewhere) asks the
+      # catalog to purge data on drop; Polaris refuses that by default with
+      # "Unable to purge entity". Every suite creates and drops throwaway
+      # tables, so purge has to be allowed on this test stack.
+      polaris.features."DROP_WITH_PURGE_ENABLED": "true"
+      quarkus.otel.sdk.disabled: "true"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8182/q/health"]
+      interval: 2s
+      timeout: 10s
+      retries: 30
+      start_period: 10s
+    networks:
+      - iceberg_net
+
+  # Idempotent: on an existing metastore the catalog is already there, which the
+  # management API reports as 409 ALREADY_EXISTS. That is a success here.
+  polaris-setup:
+    image: alpine/curl:latest
+    depends_on:
+      polaris:
+        condition: service_healthy
+    environment:
+      CLIENT_ID: ${POLARIS_CLIENT_ID:-root}
+      CLIENT_SECRET: ${POLARIS_CLIENT_SECRET:-s3cr3t}
+      REALM: ${POLARIS_REALM:-POLARIS}
+      CATALOG: ${POLARIS_CATALOG:-demo}
+      BUCKET: ${POLARIS_BUCKET:-warehouse}
+      S3_HOST: ${POLARIS_S3_HOST:-localhost}
+      S3_REGION: ${POLARIS_S3_REGION:-us-east-1}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        apk add --no-cache jq >/dev/null
+        TOKEN=$$(curl -sS --fail-with-body http://polaris:8181/api/catalog/v1/oauth/tokens \
+          --user "$${CLIENT_ID}:$${CLIENT_SECRET}" -H "Polaris-Realm: $${REALM}" \
+          -d grant_type=client_credentials -d scope=PRINCIPAL_ROLE:ALL | jq -r .access_token)
+        [ -n "$${TOKEN}" ] && [ "$${TOKEN}" != "null" ] || { echo "[polaris-setup] no token" >&2; exit 1; }
+        echo "[polaris-setup] creating catalog $${CATALOG} on s3://$${BUCKET} (client endpoint http://$${S3_HOST}:9000)"
+        code=$$(curl -sS -o /tmp/out -w '%{http_code}' \
+          -H "Authorization: Bearer $${TOKEN}" -H "Polaris-Realm: $${REALM}" \
+          -H 'Content-Type: application/json' -H 'Accept: application/json' \
+          -X POST http://polaris:8181/api/management/v1/catalogs \
+          -d '{"catalog":{"name":"'"$${CATALOG}"'","type":"INTERNAL","readOnly":false,
+                "properties":{"default-base-location":"s3://'"$${BUCKET}"'"},
+                "storageConfigInfo":{"storageType":"S3",
+                  "allowedLocations":["s3://'"$${BUCKET}"'"],
+                  "endpoint":"http://'"$${S3_HOST}"':9000",
+                  "endpointInternal":"http://minio:9000",
+                  "pathStyleAccess":true,
+                  "region":"'"$${S3_REGION}"'"}}}')
+        cat /tmp/out; echo
+        case "$$code" in
+          2*) echo "[polaris-setup] catalog created ($$code)" ;;
+          409) echo "[polaris-setup] catalog already present, continuing" ;;
+          *) echo "[polaris-setup] create catalog failed ($$code)" >&2; exit 1 ;;
+        esac
+        # catalog_admin is bound to the root principal's service_admin role by
+        # default; give it content privileges so root can create tables.
+        curl -sS --fail-with-body -o /dev/null \
+          -H "Authorization: Bearer $${TOKEN}" -H "Polaris-Realm: $${REALM}" \
+          -H 'Content-Type: application/json' -X PUT \
+          "http://polaris:8181/api/management/v1/catalogs/$${CATALOG}/catalog-roles/catalog_admin/grants" \
+          -d '{"type":"catalog","privilege":"CATALOG_MANAGE_CONTENT"}'
+        echo "[polaris-setup] granted CATALOG_MANAGE_CONTENT"
+    networks:
+      - iceberg_net
+
+volumes:
+  postgres_data:
+  minio_data:
+
+networks:
+  iceberg_net:
+    driver: bridge
