@@ -45,13 +45,13 @@ jobs:
         with:
           python-version: "3.11"
 
-      # pyarrow lets the suite open the Parquet files Flink wrote (via MinIO)
+      # pyarrow lets the suite open the Parquet files Flink wrote (via RustFS)
       # and check their footers for bloom filters / variant shredding, which no
       # Flink SQL surface reports. Without it those two cells report skip.
       - name: Install pyarrow (Parquet footer inspection)
         run: pip install 'pyarrow>=21'
 
-      - name: Start Polaris REST catalog + MinIO
+      - name: Start Polaris REST catalog + RustFS
         run: ./tests/docker/start-polaris.sh
 
       # Flink runs in Docker rather than as a runner-local tarball so that the
@@ -65,8 +65,8 @@ jobs:
           ICEBERG_REST_WAREHOUSE: demo
           ICEBERG_REST_CREDENTIAL: root:s3cr3t
           ICEBERG_REST_SCOPE: PRINCIPAL_ROLE:ALL
-          ICEBERG_S3_KEY_ID: minio
-          ICEBERG_S3_SECRET: minio12345
+          ICEBERG_S3_KEY_ID: rustfs
+          ICEBERG_S3_SECRET: rustfs12345
         run: |
           export REPO_ROOT="${GITHUB_WORKSPACE}"
           export REPORT_DIR="${GITHUB_WORKSPACE}/test-reports"

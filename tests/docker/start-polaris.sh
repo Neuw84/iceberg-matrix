@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Bring up the shared Apache Polaris + MinIO stack used by the engine
+# Bring up the shared Apache Polaris + RustFS stack used by the engine
 # feature-test suites and wait until the Iceberg REST catalog is usable from
 # the host.
 #
@@ -10,15 +10,15 @@
 # Environment overrides (all optional; defaults match the suites' defaults):
 #   POLARIS_VERSION        apache/polaris image tag               (default: 1.7.0)
 #   POLARIS_CATALOG        catalog (warehouse) name to create      (default: demo)
-#   POLARIS_BUCKET         MinIO bucket backing the catalog        (default: warehouse)
-#   POLARIS_S3_KEY_ID      MinIO access key                        (default: minio)
-#   POLARIS_S3_SECRET      MinIO secret key                        (default: minio12345)
+#   POLARIS_BUCKET         RustFS bucket backing the catalog        (default: warehouse)
+#   POLARIS_S3_KEY_ID      RustFS access key                        (default: rustfs)
+#   POLARIS_S3_SECRET      RustFS secret key                        (default: rustfs12345)
 #   POLARIS_S3_REGION      region reported to clients              (default: us-east-1)
 #   POLARIS_REALM          Polaris realm                           (default: POLARIS)
 #   POLARIS_CLIENT_ID      root principal client id                (default: root)
 #   POLARIS_CLIENT_SECRET  root principal client secret            (default: s3cr3t)
 #   POLARIS_URI            host-visible Polaris base URI           (default: http://127.0.0.1:8181)
-#   POLARIS_S3_HOST        host address the catalog advertises for MinIO
+#   POLARIS_S3_HOST        host address the catalog advertises for RustFS
 #                          (default: this host's detected IP)
 
 set -euo pipefail
@@ -31,8 +31,8 @@ source "${SCRIPT_DIR}/host-ip.sh"
 export POLARIS_VERSION="${POLARIS_VERSION:-1.7.0}"
 export POLARIS_CATALOG="${POLARIS_CATALOG:-demo}"
 export POLARIS_BUCKET="${POLARIS_BUCKET:-warehouse}"
-export POLARIS_S3_KEY_ID="${POLARIS_S3_KEY_ID:-minio}"
-export POLARIS_S3_SECRET="${POLARIS_S3_SECRET:-minio12345}"
+export POLARIS_S3_KEY_ID="${POLARIS_S3_KEY_ID:-rustfs}"
+export POLARIS_S3_SECRET="${POLARIS_S3_SECRET:-rustfs12345}"
 export POLARIS_S3_REGION="${POLARIS_S3_REGION:-us-east-1}"
 export POLARIS_REALM="${POLARIS_REALM:-POLARIS}"
 export POLARIS_CLIENT_ID="${POLARIS_CLIENT_ID:-root}"

@@ -32,7 +32,7 @@ RUN set -eux; \
     fi
 
 # Iceberg Flink runtime plus the AWS bundle that provides S3FileIO, so Iceberg
-# reads/writes data files on S3 (MinIO). Iceberg's Flink catalog loader
+# reads/writes data files on S3 (RustFS). Iceberg's Flink catalog loader
 # instantiates org.apache.hadoop.conf.Configuration regardless of catalog type,
 # so Hadoop classes must also be on the classpath. The Postgres driver backs the
 # JDBC catalog test against the stack's Postgres instance.

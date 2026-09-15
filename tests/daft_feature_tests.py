@@ -3,7 +3,7 @@
 Daft-based Iceberg Feature Test Suite.
 
 Measures Daft's ``read_iceberg()`` / ``write_iceberg()`` against tables managed
-by a real Iceberg REST catalog (Apache Polaris backed by MinIO, see
+by a real Iceberg REST catalog (Apache Polaris backed by RustFS, see
 tests/docker) and compares with the Daft entries in
 ``src/data/platforms/oss/daft/daft.json``.
 
