@@ -87,7 +87,10 @@ def build_bundle(dest: Path) -> Path:
     extend this. The whole thing is tens of KiB.
     """
     dest.parent.mkdir(parents=True, exist_ok=True)
+    # spark_fixture.py is a sibling module the suite imports (equality-delete
+    # writer through the Iceberg Java API); it has to travel with the suite.
     includes = [REPO_ROOT / "tests" / "iceberg_feature_tests.py",
+                REPO_ROOT / "tests" / "spark_fixture.py",
                 REPO_ROOT / "src" / "data" / "features.json"]
     for engine in BUNDLED_ENGINES:
         for mode in STORAGE_MODES:

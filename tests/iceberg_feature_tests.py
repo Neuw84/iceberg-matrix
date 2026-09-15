@@ -1105,11 +1105,22 @@ def test_branching_tagging(version: str) -> TestResult:
 
         tag_cnt = spark.sql(f"SELECT count(*) FROM {tbl}.tag_v1_release").collect()[0][0]
         assert tag_cnt == 1
+        # The reads above could be served from the session's cached Table
+        # object. Refs only count if the *catalog* persisted them: drop the
+        # cache, reload the metadata the catalog points at, and read the refs
+        # metadata table. A catalog that strips or rejects non-main refs on
+        # commit (a concern with managed services such as S3 Tables) fails here.
+        spark.sql(f"REFRESH TABLE {tbl}")
+        refs = {row[0]: row[1] for row in
+                spark.sql(f"SELECT name, type FROM {tbl}.refs").collect()}
+        assert refs.get("test_branch") == "BRANCH" and refs.get("v1_release") == "TAG", \
+            f"refs not persisted by the catalog after refresh: {refs}"
 
         _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         r.result = "pass"
-        r.details = "CREATE BRANCH, CREATE TAG, write to branch, and read from tag all work"
+        r.details = ("CREATE BRANCH, CREATE TAG, write to branch, and read from tag all work; "
+                     f"refs persisted by the catalog (after REFRESH TABLE: {sorted(refs)})")
     except Exception as e:
         r.result = "error"
         r.details = str(e)
