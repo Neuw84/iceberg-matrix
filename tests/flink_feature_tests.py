@@ -35,7 +35,7 @@ Environment variables:
     FLINK_HOME              - Flink install path (local mode)
     ICEBERG_REST_URI        - Iceberg REST catalog URI
     ICEBERG_REST_WAREHOUSE  - warehouse name (default: demo)
-    ICEBERG_S3_ENDPOINT     - S3/MinIO endpoint
+    ICEBERG_S3_ENDPOINT     - S3/RustFS endpoint
     ICEBERG_S3_KEY_ID / ICEBERG_S3_SECRET
     ICEBERG_JDBC_URI        - Postgres URI for the JDBC catalog test
 """
@@ -63,7 +63,7 @@ FLINK_HOME = os.environ.get("FLINK_HOME", "")
 FLINK_VERSION = os.environ.get("FLINK_VERSION", "2.3.0")
 FLINK_ICEBERG_VERSION = os.environ.get("FLINK_ICEBERG_VERSION", "1.11.0")
 
-# Host address the cluster uses to reach the catalog and MinIO. Both must be
+# Host address the cluster uses to reach the catalog and RustFS. Both must be
 # reachable from inside the Flink container as well as from the host: Polaris
 # hands every client the S3 endpoint recorded on the catalog (the host's IP,
 # see docker-compose.polaris.yml), and the Flink container itself must resolve
@@ -88,8 +88,8 @@ REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "demo")
 REST_CREDENTIAL = os.environ.get("ICEBERG_REST_CREDENTIAL", "root:s3cr3t")
 REST_SCOPE = os.environ.get("ICEBERG_REST_SCOPE", "PRINCIPAL_ROLE:ALL")
 S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", f"http://{_HOST}:9000")
-S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "minio")
-S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "minio12345")
+S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "rustfs")
+S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "rustfs12345")
 JDBC_URI = os.environ.get(
     "ICEBERG_JDBC_URI", f"jdbc:postgresql://{_HOST}:5432/postgres"
 )
@@ -472,7 +472,7 @@ def _parquet_footers(table: str, namespace: str = "test_db"):
     Flink SQL exposes nothing about the physical layout of the files it wrote
     (bloom filters, variant shredding), so the suite looks at the Parquet
     footers itself: the table location comes from the REST catalog, the files
-    from MinIO through pyarrow's S3 filesystem. pyarrow is optional -- when it
+    from RustFS through pyarrow's S3 filesystem. pyarrow is optional -- when it
     is missing the callers report the cell as not exercised rather than guessing.
     """
     try:

@@ -19,7 +19,7 @@ whose own SQL surface cannot see delete-file content types (DuckDB, PyIceberg).
 Both Spark and the target engine must point at the *same* Iceberg REST
 catalog for this to mean anything: they are two different SQL dialects
 addressing one physical table, not two independent copies. That catalog is
-the Apache Polaris + MinIO stack in tests/docker (see start-polaris.sh),
+the Apache Polaris + RustFS stack in tests/docker (see start-polaris.sh),
 which every catalog-backed suite in this directory already targets.
 
 Environment variables (matching tests/duckdb_feature_tests.py, so one running
@@ -31,8 +31,8 @@ Polaris instance serves every suite without separate configuration):
                               (default: "root:s3cr3t", Polaris' bootstrap root)
     ICEBERG_REST_SCOPE      - OAuth2 scope (default: "PRINCIPAL_ROLE:ALL")
     ICEBERG_S3_ENDPOINT     - S3 endpoint for data files (default: "127.0.0.1:9000")
-    ICEBERG_S3_KEY_ID       - S3 access key id (default: "minio")
-    ICEBERG_S3_SECRET       - S3 secret access key (default: "minio12345")
+    ICEBERG_S3_KEY_ID       - S3 access key id (default: "rustfs")
+    ICEBERG_S3_SECRET       - S3 secret access key (default: "rustfs12345")
     ICEBERG_S3_REGION       - S3 region (default: "us-east-1")
     SPARK_VERSION           - Iceberg Spark runtime artifact suffix (default: "4.1")
     ICEBERG_VERSION         - Iceberg version (default: "1.11.0")
@@ -62,8 +62,8 @@ REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "demo")
 REST_CREDENTIAL = os.environ.get("ICEBERG_REST_CREDENTIAL", "root:s3cr3t")
 REST_SCOPE = os.environ.get("ICEBERG_REST_SCOPE", "PRINCIPAL_ROLE:ALL")
 S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", "127.0.0.1:9000")
-S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "minio")
-S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "minio12345")
+S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "rustfs")
+S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "rustfs12345")
 S3_REGION = os.environ.get("ICEBERG_S3_REGION", "us-east-1")
 SPARK_VERSION_SHORT = os.environ.get("SPARK_VERSION", "4.1")
 ICEBERG_VERSION = os.environ.get("ICEBERG_VERSION", "1.11.0")
@@ -384,7 +384,7 @@ def table_location(ns: str, name: str) -> str:
 
 
 def s3_http_location(ns: str, name: str) -> str:
-    """table_location() rewritten as the path-style HTTP URL MinIO serves it at.
+    """table_location() rewritten as the path-style HTTP URL RustFS serves it at.
 
     ``s3://bucket/key`` becomes ``http://<S3_ENDPOINT>/bucket/key/``, which is
     the form ClickHouse's icebergS3() / IcebergS3 engine and DuckDB's

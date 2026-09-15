@@ -4,7 +4,7 @@
 # tests/flink_feature_tests.py, then wait until a TaskManager has registered so
 # the SQL client can actually run jobs.
 #
-# Requires the Polaris + MinIO stack to be up first:
+# Requires the Polaris + RustFS stack to be up first:
 #   tests/docker/start-polaris.sh
 #   tests/docker/start-flink.sh
 #   python tests/flink_feature_tests.py
@@ -14,7 +14,7 @@
 #   FLINK_VERSION          Flink engine version    (default: 2.3.0)
 #   ICEBERG_VERSION        Iceberg version         (default: 1.11.0)
 #   ICEBERG_FLINK_MAJOR    Iceberg runtime's Flink minor (default: 2.1)
-#   FLINK_HOST_IP          host address containers use to reach the catalog/MinIO
+#   FLINK_HOST_IP          host address containers use to reach the catalog/RustFS
 
 set -euo pipefail
 

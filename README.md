@@ -126,18 +126,18 @@ curl -fSL -o "iceberg-spark-runtime-4.1_2.13-${ICEBERG_VERSION}.jar" \
 uv run python tests/iceberg_feature_tests.py
 ```
 
-### Shared Iceberg REST catalog (Apache Polaris + MinIO)
+### Shared Iceberg REST catalog (Apache Polaris + RustFS)
 
 All the open-source engine suites (`iceberg_feature_tests.py` for Spark,
 `duckdb_feature_tests.py`, `pyiceberg_feature_tests.py`, `daft_feature_tests.py`,
 `clickhouse_feature_tests.py`, `flink_feature_tests.py`) run against one shared
 Iceberg REST catalog so that a table created by one engine can be inspected or
 mutated by another. The catalog is [Apache Polaris](https://polaris.apache.org)
-1.7 backed by MinIO, defined in `tests/docker/docker-compose.polaris.yml`:
+1.7 backed by RustFS, defined in `tests/docker/docker-compose.polaris.yml`:
 
 ```bash
-./tests/docker/start-polaris.sh   # Polaris on :8181, MinIO on :9000, catalog "demo"
-source tests/docker/env.sh        # ICEBERG_REST_URI / _CREDENTIAL / _SCOPE, MinIO creds
+./tests/docker/start-polaris.sh   # Polaris on :8181, RustFS on :9000, catalog "demo"
+source tests/docker/env.sh        # ICEBERG_REST_URI / _CREDENTIAL / _SCOPE, RustFS creds
 uv run python tests/duckdb_feature_tests.py
 ./tests/docker/stop-polaris.sh    # tears down and wipes the volumes
 ```

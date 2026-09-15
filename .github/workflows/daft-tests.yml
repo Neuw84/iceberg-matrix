@@ -64,7 +64,7 @@ jobs:
             "${BASE}/iceberg-aws-bundle/${ICEBERG_VERSION}/${AWS_JAR}"
           echo "ICEBERG_JAR=$(pwd)/${RUNTIME_JAR},$(pwd)/${AWS_JAR}" >> $GITHUB_ENV
 
-      - name: Start Polaris REST catalog + MinIO
+      - name: Start Polaris REST catalog + RustFS
         run: ./tests/docker/start-polaris.sh
 
       - name: Run Daft feature tests
@@ -74,8 +74,8 @@ jobs:
           ICEBERG_REST_CREDENTIAL: root:s3cr3t
           ICEBERG_REST_SCOPE: PRINCIPAL_ROLE:ALL
           ICEBERG_S3_ENDPOINT: 127.0.0.1:9000
-          ICEBERG_S3_KEY_ID: minio
-          ICEBERG_S3_SECRET: minio12345
+          ICEBERG_S3_KEY_ID: rustfs
+          ICEBERG_S3_SECRET: rustfs12345
           ICEBERG_S3_REGION: us-east-1
         run: |
           export REPO_ROOT="${GITHUB_WORKSPACE}"

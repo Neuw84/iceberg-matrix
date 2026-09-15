@@ -12,7 +12,7 @@ agree with the support level recorded in the matrix data. Any disagreement is
 reported as a "discrepancy".
 
 The primary catalog ("local") is an Iceberg REST catalog by default: Apache
-Polaris backed by MinIO, which both CI and tests/docker/start-polaris.sh stand up.
+Polaris backed by RustFS, which both CI and tests/docker/start-polaris.sh stand up.
 The suite looks for one at http://127.0.0.1:8181/api/catalog unless ICEBERG_REST_URI
 points elsewhere. If no catalog answers there and none was explicitly requested, the
 suite falls back to a local Hadoop catalog so it still runs standalone; when
@@ -27,7 +27,7 @@ Requirements:
     - Java 17
     - PySpark 4.1.x
     - iceberg-spark-runtime JAR on classpath (or downloaded automatically)
-    - iceberg-aws-bundle JAR when using the REST catalog with S3/MinIO
+    - iceberg-aws-bundle JAR when using the REST catalog with S3/RustFS
 """
 
 import json
@@ -50,7 +50,7 @@ import spark_fixture  # noqa: E402 - sibling module; only write_equality_delete 
 SPARK_VERSION_SHORT = os.environ.get("SPARK_VERSION", "4.1")
 ICEBERG_VERSION = os.environ.get("ICEBERG_VERSION", "1.11.0")
 # ICEBERG_JAR may be a comma-separated list of local JARs (e.g. the Spark
-# runtime plus the AWS bundle needed for S3FileIO against MinIO).
+# runtime plus the AWS bundle needed for S3FileIO against RustFS).
 ICEBERG_JAR = os.environ.get(
     "ICEBERG_JAR",
     f"iceberg-spark-runtime-{SPARK_VERSION_SHORT}_2.13-{ICEBERG_VERSION}.jar",
@@ -125,7 +125,7 @@ NS_PREFIX = os.environ.get("MATRIX_NS_PREFIX", "ns_")
 # REST catalog configuration. An Iceberg REST catalog is the default: the suite
 # targets DEFAULT_REST_URI unless ICEBERG_REST_URI says otherwise. Setting
 # ICEBERG_REST_URI to an empty string opts out and uses the Hadoop catalog.
-# The defaults match the Apache Polaris + MinIO stack in tests/docker (Polaris
+# The defaults match the Apache Polaris + RustFS stack in tests/docker (Polaris
 # serves the Iceberg REST API under /api/catalog, addresses catalogs by name and
 # authenticates with OAuth2 client credentials; blank ICEBERG_REST_CREDENTIAL
 # disables auth for catalogs that run without it).
@@ -136,8 +136,8 @@ REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "demo")
 REST_CREDENTIAL = os.environ.get("ICEBERG_REST_CREDENTIAL", "root:s3cr3t")
 REST_SCOPE = os.environ.get("ICEBERG_REST_SCOPE", "PRINCIPAL_ROLE:ALL")
 S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", "http://127.0.0.1:9000")
-S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "minio")
-S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "minio12345")
+S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "rustfs")
+S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "rustfs12345")
 S3_REGION = os.environ.get("ICEBERG_S3_REGION", "us-east-1")
 WAREHOUSE_DIR = os.path.abspath(
     os.environ.get(
@@ -1545,7 +1545,7 @@ def test_shredded_variant(version: str) -> TestResult:
         # configured io-impl, e.g. S3FileIO with vended or configured
         # credentials). The Hadoop filesystem route is NOT wired for s3://
         # paths in this suite, so going through table.io() is what works in
-        # every environment (local FS, MinIO, EMR/Glue S3). The Parquet footer
+        # every environment (local FS, RustFS, EMR/Glue S3). The Parquet footer
         # stores schema element names as plain UTF-8 strings, so a shredded
         # file contains the literal bytes "typed_value" in its tail and an
         # unshredded one does not.

@@ -2,7 +2,7 @@
 DuckDB-based Iceberg Feature Test Suite.
 
 Tests Iceberg features using DuckDB's built-in Iceberg extension against a real,
-open-source Iceberg REST catalog (Apache Polaris backed by MinIO S3 storage, see
+open-source Iceberg REST catalog (Apache Polaris backed by RustFS S3 storage, see
 tests/docker), then compares results with the DuckDB entries from
 ``src/data/platforms/oss/duckdb/duckdb.json``.
 
@@ -15,7 +15,7 @@ real; when no catalog answers the catalog-dependent tests are reported as
 
 Usage:
     # A REST catalog at http://127.0.0.1:8181/api/catalog is the default; start
-    # the Polaris + MinIO stack first:
+    # the Polaris + RustFS stack first:
     ./tests/docker/start-polaris.sh
     python tests/duckdb_feature_tests.py
 
@@ -29,8 +29,8 @@ Environment variables:
                               (default: "root:s3cr3t"); blank attaches without auth
     ICEBERG_REST_SCOPE      - OAuth2 scope (default: "PRINCIPAL_ROLE:ALL")
     ICEBERG_S3_ENDPOINT     - S3 endpoint for data files (default: "127.0.0.1:9000")
-    ICEBERG_S3_KEY_ID       - S3 access key id (default: "minio")
-    ICEBERG_S3_SECRET       - S3 secret access key (default: "minio12345")
+    ICEBERG_S3_KEY_ID       - S3 access key id (default: "rustfs")
+    ICEBERG_S3_SECRET       - S3 secret access key (default: "rustfs12345")
     ICEBERG_S3_REGION       - S3 region (default: "us-east-1")
     DUCKDB_VERSION          - Override reported DuckDB version (default: auto-detected)
 
@@ -77,7 +77,7 @@ DUCKDB_VERSION = os.environ.get("DUCKDB_VERSION", duckdb.__version__)
 # so one is the default: the suite targets DEFAULT_REST_URI unless
 # ICEBERG_REST_URI says otherwise. If nothing answers there and no catalog was
 # requested explicitly, the catalog-dependent tests are skipped rather than
-# reported as failures. The defaults match the Apache Polaris + MinIO stack in
+# reported as failures. The defaults match the Apache Polaris + RustFS stack in
 # tests/docker (Polaris serves the Iceberg REST API under /api/catalog,
 # addresses catalogs by name, and authenticates with OAuth2 client credentials).
 DEFAULT_REST_URI = "http://127.0.0.1:8181/api/catalog"
@@ -87,8 +87,8 @@ REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "demo")
 REST_CREDENTIAL = os.environ.get("ICEBERG_REST_CREDENTIAL", "root:s3cr3t")
 REST_SCOPE = os.environ.get("ICEBERG_REST_SCOPE", "PRINCIPAL_ROLE:ALL")
 S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", "127.0.0.1:9000")
-S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "minio")
-S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "minio12345")
+S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "rustfs")
+S3_SECRET = os.environ.get("ICEBERG_S3_SECRET", "rustfs12345")
 S3_REGION = os.environ.get("ICEBERG_S3_REGION", "us-east-1")
 
 NO_CATALOG_DETAIL = (

@@ -1,19 +1,22 @@
-# Shared Apache Polaris (Iceberg REST catalog) + MinIO stack used by every
+# Shared Apache Polaris (Iceberg REST catalog) + RustFS stack used by every
 # catalog-backed engine feature-test suite under tests/.
 #
 # Modeled on the Polaris MinIO guide shipped with the 1.7.0 release
-# (site/content/guides/minio/docker-compose.yml in apache/polaris).
+# (site/content/guides/minio/docker-compose.yml in apache/polaris), with the
+# object store swapped for RustFS (S3-compatible, Rust) the way
+# github.com/sanderdw/iceberg-data-platform wires it: same ports, S3FileIO with
+# path-style access, Polaris pointed at http://rustfs:9000 internally.
 #
 # Topology:
 #   db             - Postgres. Not used by Polaris (in-memory metastore is fine
 #                    for a throwaway test stack); published so the Flink suite
 #                    can exercise the JDBC catalog and the jdbc maintenance lock.
-#   minio          - S3-compatible object storage holding the table data files
-#   minio-init     - creates the warehouse bucket
+#   rustfs         - S3-compatible object storage holding the table data files
+#   rustfs-init    - creates the warehouse bucket (rc, the RustFS CLI)
 #   polaris        - serves the Iceberg REST API on :8181/api/catalog and the
 #                    management API on :8181/api/management
 #   polaris-setup  - one-shot: obtains a root token and creates the "demo"
-#                    catalog backed by MinIO, then grants CATALOG_MANAGE_CONTENT
+#                    catalog backed by RustFS, then grants CATALOG_MANAGE_CONTENT
 #
 # Bring it up with tests/docker/start-polaris.sh, which waits for the setup job
 # and verifies the catalog answers from the host.
@@ -24,7 +27,7 @@
 # scope=PRINCIPAL_ROLE:ALL (see tests/*_feature_tests.py).
 #
 # Storage endpoint: Polaris' S3 storage config distinguishes the endpoint the
-# server itself uses ("endpointInternal", the compose-internal http://minio:9000)
+# server itself uses ("endpointInternal", the compose-internal http://rustfs:9000)
 # from the one it hands to clients ("endpoint"). Engines run on the host, and
 # the Flink cluster runs in a separate compose project, so the client endpoint
 # must be an address both can reach: the host's own IP, which
@@ -54,35 +57,52 @@ services:
     networks:
       - iceberg_net
 
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
+  rustfs:
+    image: rustfs/rustfs:${RUSTFS_VERSION:-1.0.0-rc.6}
     environment:
-      MINIO_ROOT_USER: ${POLARIS_S3_KEY_ID:-minio}
-      MINIO_ROOT_PASSWORD: ${POLARIS_S3_SECRET:-minio12345}
+      RUSTFS_ACCESS_KEY: ${POLARIS_S3_KEY_ID:-rustfs}
+      RUSTFS_SECRET_KEY: ${POLARIS_S3_SECRET:-rustfs12345}
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_OBS_LOGGER_LEVEL: error
     ports:
       - "9000:9000"
       - "9001:9001"
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/health"]
       interval: 2s
-      timeout: 10s
-      retries: 20
+      timeout: 5s
+      retries: 30
+      start_period: 10s
     volumes:
-      - minio_data:/data
+      # Named volume: the container runs as the non-root user 10001, which a
+      # bind-mounted host directory would have to be chown'ed for.
+      - rustfs_data:/data
     networks:
       - iceberg_net
 
-  minio-init:
-    image: minio/mc:latest
+  # rc is RustFS' mc-compatible command-line client; creates the warehouse bucket
+  # once the server answers. Idempotent: an existing bucket is left alone.
+  rustfs-init:
+    image: rustfs/rc:latest
     depends_on:
-      minio:
+      rustfs:
         condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      mc alias set local http://minio:9000 ${POLARIS_S3_KEY_ID:-minio} ${POLARIS_S3_SECRET:-minio12345} &&
-      mc mb -p local/${POLARIS_BUCKET:-warehouse}
-      "
+    environment:
+      KEY_ID: ${POLARIS_S3_KEY_ID:-rustfs}
+      SECRET: ${POLARIS_S3_SECRET:-rustfs12345}
+      BUCKET: ${POLARIS_BUCKET:-warehouse}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until /usr/bin/rc alias set local http://rustfs:9000 "$${KEY_ID}" "$${SECRET}"; do
+          echo "[rustfs-init] waiting for RustFS..."; sleep 2
+        done
+        /usr/bin/rc ls "local/$${BUCKET}" >/dev/null 2>&1 || /usr/bin/rc mb "local/$${BUCKET}"
+        echo "[rustfs-init] bucket $${BUCKET} ready"
     networks:
       - iceberg_net
 
@@ -91,14 +111,14 @@ services:
     ports:
       - "8181:8181"
     depends_on:
-      minio-init:
+      rustfs-init:
         condition: service_completed_successfully
     environment:
-      # Static S3 credentials Polaris uses to reach MinIO and, with access
+      # Static S3 credentials Polaris uses to reach RustFS and, with access
       # delegation, hands to engines that request vended credentials.
       AWS_REGION: ${POLARIS_S3_REGION:-us-east-1}
-      AWS_ACCESS_KEY_ID: ${POLARIS_S3_KEY_ID:-minio}
-      AWS_SECRET_ACCESS_KEY: ${POLARIS_S3_SECRET:-minio12345}
+      AWS_ACCESS_KEY_ID: ${POLARIS_S3_KEY_ID:-rustfs}
+      AWS_SECRET_ACCESS_KEY: ${POLARIS_S3_SECRET:-rustfs12345}
       POLARIS_BOOTSTRAP_CREDENTIALS: "${POLARIS_REALM:-POLARIS},${POLARIS_CLIENT_ID:-root},${POLARIS_CLIENT_SECRET:-s3cr3t}"
       polaris.realm-context.realms: ${POLARIS_REALM:-POLARIS}
       # Flink's Iceberg connector (and DROP TABLE ... PURGE elsewhere) asks the
@@ -151,7 +171,7 @@ services:
                 "storageConfigInfo":{"storageType":"S3",
                   "allowedLocations":["s3://'"$${BUCKET}"'"],
                   "endpoint":"http://'"$${S3_HOST}"':9000",
-                  "endpointInternal":"http://minio:9000",
+                  "endpointInternal":"http://rustfs:9000",
                   "pathStyleAccess":true,
                   "region":"'"$${S3_REGION}"'"}}}')
         cat /tmp/out; echo
@@ -173,7 +193,7 @@ services:
 
 volumes:
   postgres_data:
-  minio_data:
+  rustfs_data:
 
 networks:
   iceberg_net:

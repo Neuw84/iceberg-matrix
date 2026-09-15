@@ -72,7 +72,7 @@ A React single-page application that displays an interactive compatibility matri
 │   ├── duckdb_feature_tests.py, pyiceberg_feature_tests.py, daft_feature_tests.py,
 │   ├── clickhouse_feature_tests.py, flink_feature_tests.py   # other OSS engines
 │   ├── databricks_/snowflake_/redshift_feature_tests.py     # cloud engines (need creds)
-│   └── docker/                       # Polaris + MinIO stack (docker-compose.polaris.yml,
+│   └── docker/                       # Polaris + RustFS stack (docker-compose.polaris.yml,
 │                                     # start/stop-polaris.sh, env.sh) and Flink cluster
 ├── index.html                # Vite HTML entry
 ├── vite.config.ts            # Vite + Vitest config
@@ -238,7 +238,7 @@ The catalogs view has its own dataset under `src/data/catalogs/`, independent fr
 
 ### Engine Feature Tests (`tests/`)
 
-- Every OSS suite runs against one shared Iceberg REST catalog: Apache Polaris 1.7 + MinIO from `tests/docker/docker-compose.polaris.yml` (`./tests/docker/start-polaris.sh` / `stop-polaris.sh`; `source tests/docker/env.sh` for the env vars). Catalog `demo`, REST base `http://127.0.0.1:8181/api/catalog`, OAuth2 client credentials `root:s3cr3t` with scope `PRINCIPAL_ROLE:ALL`, MinIO `minio:minio12345` on `:9000`. Polaris (unlike the old Lakekeeper stack) accepts V3 GEOMETRY schemas; `DROP_WITH_PURGE_ENABLED` is on because Flink's DROP TABLE purges.
+- Every OSS suite runs against one shared Iceberg REST catalog: Apache Polaris 1.7 + RustFS from `tests/docker/docker-compose.polaris.yml` (`./tests/docker/start-polaris.sh` / `stop-polaris.sh`; `source tests/docker/env.sh` for the env vars). Catalog `demo`, REST base `http://127.0.0.1:8181/api/catalog`, OAuth2 client credentials `root:s3cr3t` with scope `PRINCIPAL_ROLE:ALL`, RustFS `rustfs:rustfs12345` on `:9000`. Polaris (unlike the old Lakekeeper stack) accepts V3 GEOMETRY schemas; `DROP_WITH_PURGE_ENABLED` is on because Flink's DROP TABLE purges.
 - `tests/spark_fixture.py` is the shared producer: a cached local PySpark session on that catalog (`create_fixture` for merge-on-read / copy-on-write tables, `write_equality_delete` / `create_equality_delete_fixture` using the Iceberg Java API through the Spark JVM, `create_column_default_fixture`, storage-level inspectors) plus DuckDB-backed producers (`create_geometry_fixture`, `create_timestamp_ns_fixture`) for the V3 columns Spark's connector cannot write. Suites measure the half they can exercise (e.g. an engine without DML measures whether it *reads* an equality delete) instead of hardcoding `skip`/`fail`; a test may only report `skip` when the dependency is genuinely absent (no Spark, no AWS creds).
 - Run suites one at a time; Spark + Flink Docker concurrently OOM-kills the Flink containers (exit 137) and produces an invalid run. Compile with Python 3.11 (`uv run --python 3.11 python -m py_compile tests/<suite>.py`) — 3.11 rejects backslashes in f-string expressions.
 - Each suite exits non-zero on `discrepancies > 0 || errors > 0`. A discrepancy is a measured result that disagrees with the matrix JSON; treat it as a proposed matrix edit to confirm with the user, never as a test bug to silence.

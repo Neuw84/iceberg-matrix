@@ -6,7 +6,7 @@
 # Why this exists: Iceberg's Java REST client lets the storage config the
 # catalog returns on loadTable override the client's own, so every engine ends
 # up using whatever S3 endpoint the warehouse advertises. A compose-internal
-# name like http://minio:9000 is therefore unusable, because host-side engines
+# name like http://rustfs:9000 is therefore unusable, because host-side engines
 # cannot resolve it. The host's own IP works from both sides -- containers reach
 # it through the published port, and the host reaches itself -- with no
 # /etc/hosts entry and no root access.

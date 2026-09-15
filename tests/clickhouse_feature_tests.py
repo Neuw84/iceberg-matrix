@@ -3,7 +3,7 @@
 ClickHouse Iceberg Feature Test Suite.
 
 Measures what ClickHouse's Iceberg integration actually does against tables
-managed by a real Iceberg REST catalog (Apache Polaris backed by MinIO, see
+managed by a real Iceberg REST catalog (Apache Polaris backed by RustFS, see
 tests/docker), then compares with the ClickHouse entries in
 ``src/data/platforms/oss/clickhouse/clickhouse.json``.
 
@@ -82,7 +82,7 @@ def _detect_ch_version() -> str:
 
 CLICKHOUSE_VERSION = os.environ.get("CLICKHOUSE_VERSION", _detect_ch_version())
 
-# S3 credentials ClickHouse uses to reach MinIO directly (same as the fixture's).
+# S3 credentials ClickHouse uses to reach RustFS directly (same as the fixture's).
 S3_CREDS = f"'{spark_fixture.S3_KEY_ID}', '{spark_fixture.S3_SECRET}'"
 # Settings every ClickHouse write path needs.
 WRITE_SETTINGS = "SET allow_insert_into_iceberg = 1;"
@@ -1004,7 +1004,7 @@ def test_rest_catalog() -> TestResult:
                         "table listing and loadTable all succeed against Polaris. Reading table "
                         "DATA through the catalog handle fails on this stack because ClickHouse "
                         "builds the object key from the catalog's metadata-location as "
-                        f"<endpoint>/<bucket>/<key>/<bucket>/<key> against path-style MinIO ({_err(out_r, 60)}); "
+                        f"<endpoint>/<bucket>/<key>/<bucket>/<key> against path-style RustFS ({_err(out_r, 60)}); "
                         "the same table reads fine via icebergS3() at its location. Partial, not none")
         else:
             r.result = "fail"
