@@ -1,0 +1,731 @@
+{
+  "platforms": [
+    {
+      "id": "oracle-26ai",
+      "name": "Oracle (26ai)",
+      "vendor": "Oracle",
+      "category": "cloud",
+      "group": "3rd Party",
+      "docUrl": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+    }
+  ],
+  "support": {
+    "oracle-26ai:position-deletes:v2": {
+      "level": "none",
+      "notes": "Oracle Autonomous AI Database does not support reading or writing Iceberg position delete files; queries on Merge-on-Read tables fail when position delete files are encountered, requiring Iceberg tables to use copy-on-write",
+      "caveats": [
+        "Oracle query engine requires copy-on-write tables; queries fail on Iceberg tables containing position delete files"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:position-deletes:v3": {
+      "level": "none",
+      "notes": "Oracle requires copy-on-write tables; legacy position delete files on V3 tables are not processed by the query engine, and V3 primarily uses Deletion Vectors",
+      "caveats": [
+        "Position delete files are not supported; copy-on-write required"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Equality deletes are not supported as a read or write operation. Oracle Database requires copy-on-write and does not process equality delete files",
+      "caveats": [
+        "Equality delete files are not processed by Oracle's Iceberg reader"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 replaces equality deletes with Puffin Deletion Vectors; Oracle does not support equality deletes",
+      "caveats": [
+        "V3 replaces equality-delete semantics with Deletion Vectors"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:merge-on-read:v2": {
+      "level": "none",
+      "notes": "Oracle Autonomous AI Database does not support Merge-on-Read for Iceberg tables; the query engine cannot reconcile delete files at read time and requires copy-on-write tables",
+      "caveats": [
+        "Merge-on-Read tables with delete files cannot be queried in Oracle Autonomous Database"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Merge-on-Read is not supported on V3 Iceberg tables in Oracle Autonomous Database; copy-on-write is required",
+      "caveats": [
+        "Merge-on-Read is unsupported; copy-on-write required"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Oracle Autonomous AI Database natively uses copy-on-write for Iceberg tables; DML modifications (UPDATE, DELETE, MERGE INTO) rewrite affected Parquet data files rather than emitting delete files, preserving query read performance",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:copy-on-write:v3": {
+      "level": "full",
+      "notes": "Oracle supports copy-on-write on V3 Iceberg tables, rewriting data files on DML updates and deletes",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "External tables defined against Iceberg data in Oracle Database have fixed schemas at creation time; schema changes in the underlying Iceberg catalog require refreshing or recreating the external table definition. Direct in-place ALTER TABLE schema evolution on mounted Iceberg tables has limited DDL support",
+      "caveats": [
+        "External table definitions in Oracle require recreation or refresh when underlying Iceberg schema evolutions occur"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:schema-evolution:v3": {
+      "level": "partial",
+      "notes": "Schema evolution on V3 Iceberg tables requires external table refresh or recreation in Oracle Autonomous Database",
+      "caveats": [
+        "Fixed external table schemas require manual or automated refresh upon schema evolution"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:type-promotion:v2": {
+      "level": "partial",
+      "notes": "Oracle's Parquet reader supports widening compatible primitive types at query scan time, but changes to external table column types require updating or recreating the external table schema in Oracle",
+      "caveats": [
+        "Type widening requires updating the external table schema definition in Oracle to match the evolved catalog type"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:type-promotion:v3": {
+      "level": "partial",
+      "notes": "Type promotion on V3 tables is supported via Parquet reader type widening, subject to Oracle external table schema definitions",
+      "caveats": [
+        "External table schema definitions must be refreshed to reflect widened types"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "oracle-26ai:column-default-values:v3": {
+      "level": "unknown",
+      "notes": "Support for Iceberg V3 metadata column default values in Oracle's Iceberg reader has not been documented",
+      "caveats": [
+        "V3-only feature; Oracle support not documented"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:table-creation:v2": {
+      "level": "full",
+      "notes": "Oracle 26ai supports CREATE ICEBERG TABLE ... WITHIN CATALOG ... STORAGE LOCATION ... to create Iceberg tables directly in a mounted catalog, as well as DBMS_CLOUD.CREATE_EXTERNAL_TABLE with protocol_type iceberg",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - CREATE ICEBERG TABLE",
+          "url": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+        }
+      ]
+    },
+    "oracle-26ai:table-creation:v3": {
+      "level": "partial",
+      "notes": "Oracle CREATE ICEBERG TABLE creates standard Iceberg tables; explicit table creation with format-version 3 properties is not formally documented",
+      "caveats": [
+        "Explicit format-version 3 table creation properties are not documented"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - CREATE ICEBERG TABLE",
+          "url": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+        }
+      ]
+    },
+    "oracle-26ai:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Oracle supports Iceberg partition transforms (such as YEAR, MONTH, DAY) in the PARTITION BY clause of CREATE ICEBERG TABLE and leverages partition transform metadata for partition pruning during query execution",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Oracle supports standard Iceberg partition transforms on V3 tables and applies partition pruning during query scans",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:partition-evolution:v2": {
+      "level": "partial",
+      "notes": "Oracle reads Iceberg tables that have undergone partition evolution through supported catalogs, but Oracle SQL does not support DDL statements to alter or evolve the partition spec of an existing Iceberg table",
+      "caveats": [
+        "Partition evolution cannot be initiated via Oracle DDL; Oracle can only query tables whose partition spec was evolved externally"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:partition-evolution:v3": {
+      "level": "partial",
+      "notes": "Oracle reads V3 tables with evolved partition specs; altering partition specs via Oracle DDL is not supported",
+      "caveats": [
+        "Partition evolution must be managed externally via an Iceberg catalog or compute engine"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "oracle-26ai:multi-arg-transforms:v3": {
+      "level": "unknown",
+      "notes": "Multi-argument partition transform support on V3 Iceberg tables is not documented for Oracle 26ai",
+      "caveats": [
+        "V3-only feature; Oracle support not documented"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:time-travel:v2": {
+      "level": "full",
+      "notes": "Oracle supports time travel queries on Iceberg tables using Oracle SQL AS OF TIMESTAMP flashback syntax, resolving historical Iceberg snapshots by matching the requested timestamp",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Use Time Travel with Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:time-travel:v3": {
+      "level": "full",
+      "notes": "Oracle supports AS OF TIMESTAMP flashback time-travel queries on V3 Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Use Time Travel with Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Oracle Autonomous AI Database does not provide built-in table maintenance procedures such as compaction (rewrite_data_files), snapshot expiration, or orphan file cleanup; maintenance must be run via external compute engines such as Apache Spark or Trino",
+      "caveats": [
+        "Table maintenance operations must be performed using an external engine such as Apache Spark"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Table maintenance operations on V3 Iceberg tables are not built into Oracle Autonomous AI Database and must be executed by external engines",
+      "caveats": [
+        "Table maintenance requires an external engine"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Oracle does not support creating, managing, or querying Iceberg branches and tags; time-based queries are limited to AS OF TIMESTAMP",
+      "caveats": [
+        "Branch and tag DDL and syntax like AS OF TAG are not supported in Oracle SQL"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Branching and tagging management is not supported for V3 Iceberg tables in Oracle",
+      "caveats": [
+        "Branch and tag DDL is not supported"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:read-support:v2": {
+      "level": "full",
+      "notes": "Oracle 26ai provides high-performance native read support for Iceberg V2 tables using Data Lake Accelerator, supporting column projection, predicate pushdown, and partition pruning across OCI Object Storage, S3, ADLS, and GCS",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:read-support:v3": {
+      "level": "partial",
+      "notes": "Oracle 26ai reads V3 Iceberg tables that use standard Parquet data files; V3 tables utilizing deletion vectors or new binary types require format compatibility",
+      "caveats": [
+        "Queries fail if unsupported V3 features such as deletion vectors are encountered"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:write-insert:v2": {
+      "level": "full",
+      "notes": "Oracle 26ai supports INSERT INTO statements against Iceberg tables mounted via DBMS_CATALOG (e.g. INSERT INTO schema.table@catalog SELECT ...) and batch ingestion via OCI Data Transforms",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - DBMS_CATALOG",
+          "url": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+        }
+      ]
+    },
+    "oracle-26ai:write-insert:v3": {
+      "level": "full",
+      "notes": "Oracle 26ai supports INSERT INTO operations targeting V3 Iceberg tables managed through mounted catalogs",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - DBMS_CATALOG",
+          "url": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+        }
+      ]
+    },
+    "oracle-26ai:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "Oracle supports UPDATE, DELETE, and MERGE INTO on mounted Iceberg tables using copy-on-write semantics by rewriting affected Parquet data files; operations require an active catalog mount via DBMS_CATALOG",
+      "caveats": [
+        "DML operations use copy-on-write rewriting data files; merge-on-read DML emitting delete files is not supported"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - DBMS_CATALOG",
+          "url": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+        }
+      ]
+    },
+    "oracle-26ai:write-merge-update-delete:v3": {
+      "level": "partial",
+      "notes": "Oracle supports copy-on-write UPDATE, DELETE, and MERGE INTO on V3 Iceberg tables; emitting V3 Puffin Deletion Vectors is not supported",
+      "caveats": [
+        "Row mutations rewrite data files (copy-on-write) rather than writing deletion vectors"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - DBMS_CATALOG",
+          "url": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+        }
+      ]
+    },
+    "oracle-26ai:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Oracle Autonomous AI Database integrates with Iceberg catalogs via DBMS_CATALOG and DBMS_DCAT, supporting Iceberg REST catalogs, AWS Glue Data Catalog, and Hadoop catalog implementations on OCI",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - DBMS_CATALOG",
+          "url": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+        }
+      ]
+    },
+    "oracle-26ai:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Oracle supports the same catalog integrations (REST, AWS Glue, Hadoop) for V3 Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - DBMS_CATALOG",
+          "url": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+        }
+      ]
+    },
+    "oracle-26ai:statistics:v2": {
+      "level": "full",
+      "notes": "Oracle's cost-based optimizer and Data Lake Accelerator read Iceberg manifest column metrics (min/max values, null counts) to perform file skipping and predicate pushdown",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:statistics:v3": {
+      "level": "full",
+      "notes": "Oracle reads Iceberg manifest column statistics for V3 tables to optimize query planning and file pruning",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:bloom-filters:v2": {
+      "level": "unknown",
+      "notes": "Support for Puffin bloom filter sidecars is not documented for Oracle's Iceberg reader",
+      "caveats": [
+        "Puffin bloom-filter sidecar support is not documented for Oracle"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:bloom-filters:v3": {
+      "level": "unknown",
+      "notes": "Puffin bloom filter sidecar support on V3 Iceberg tables is not documented for Oracle",
+      "caveats": [
+        "Puffin bloom-filter sidecar support is not documented for Oracle"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Oracle Autonomous AI Database provides native integration with AWS Glue Data Catalog via DBMS_CLOUD (iceberg_catalog_type: aws_glue) and DBMS_CATALOG for querying Iceberg tables stored in S3",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "Oracle supports AWS Glue Data Catalog integration for V3 Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:rest-catalog:v2": {
+      "level": "full",
+      "notes": "Oracle supports the Iceberg REST Catalog specification via DBMS_CATALOG.MOUNT_ICEBERG, enabling connection to any compliant REST catalog endpoint with bearer token authentication",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - DBMS_CATALOG",
+          "url": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+        }
+      ]
+    },
+    "oracle-26ai:rest-catalog:v3": {
+      "level": "full",
+      "notes": "Oracle supports the Iceberg REST Catalog specification for V3 tables via DBMS_CATALOG.MOUNT_ICEBERG",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - DBMS_CATALOG",
+          "url": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+        }
+      ]
+    },
+    "oracle-26ai:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Oracle Autonomous Database connects to Databricks Unity Catalog via its Iceberg REST API endpoint using DBMS_DCAT and DBMS_CATALOG; there is no proprietary direct Unity connector",
+      "caveats": [
+        "Access is via Databricks Unity Catalog's Iceberg REST endpoint rather than a native proprietary connector"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:unity-catalog:v3": {
+      "level": "partial",
+      "notes": "Oracle accesses Unity Catalog for V3 Iceberg tables through the standard REST catalog interface",
+      "caveats": [
+        "Access is via Unity Catalog's Iceberg REST endpoint"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Oracle connects to Snowflake Horizon Catalog / Apache Polaris via the Iceberg REST Catalog protocol using DBMS_CATALOG.MOUNT_ICEBERG with OAuth/bearer authentication",
+      "caveats": [
+        "Access is via generic Iceberg REST Catalog protocol; no specialized Horizon-specific connector"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - DBMS_CATALOG",
+          "url": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+        }
+      ]
+    },
+    "oracle-26ai:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "Oracle connects to Snowflake Horizon Catalog for V3 Iceberg tables through the generic REST catalog protocol",
+      "caveats": [
+        "Access is via generic Iceberg REST Catalog protocol"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - DBMS_CATALOG",
+          "url": "https://docs.oracle.com/en/database/oracle/oracle-database/"
+        }
+      ]
+    },
+    "oracle-26ai:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog endpoint, and Oracle connects to compliant REST catalogs via DBMS_CATALOG.MOUNT_ICEBERG. Rated partial because this specific pairing has not been measured end-to-end and Google credential vending specifics may vary",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "oracle-26ai:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and Oracle speaks the REST catalog protocol. Rated partial because this pairing has not been measured end-to-end",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "oracle-26ai:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "oracle-26ai:variant-type:v3": {
+      "level": "unknown",
+      "notes": "Support for Iceberg V3 binary Variant type is not documented for Oracle 26ai's Iceberg reader, though Oracle has native JSON and JSON Duality types",
+      "caveats": [
+        "V3-only feature; Oracle Iceberg reader support not documented"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "oracle-26ai:shredded-variant:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 shredded variant support is not documented for Oracle 26ai",
+      "caveats": [
+        "V3-only feature; Oracle support not documented"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "oracle-26ai:geometry-type:v3": {
+      "level": "unknown",
+      "notes": "Support for Iceberg V3 native Geo/Geometry types is not documented for Oracle's Iceberg reader, though Oracle natively supports spatial data via SDO_GEOMETRY",
+      "caveats": [
+        "V3-only feature; Iceberg Geometry type mapping to Oracle Spatial is not documented"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "oracle-26ai:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Oracle Database TIMESTAMP supports nanoseconds internally, but Oracle's Iceberg reader maps timestamp columns to microsecond precision (precision 6); native Iceberg V3 nanosecond timestamp columns are not supported",
+      "caveats": [
+        "Oracle Iceberg external table reader maps timestamps to microsecond precision only"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not available in format version 2",
+      "caveats": []
+    },
+    "oracle-26ai:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Oracle publishes no documentation or type mapping for the Iceberg V3 unknown column type",
+      "caveats": []
+    },
+    "oracle-26ai:lineage:v2": {
+      "level": "none",
+      "notes": "Row Lineage is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "oracle-26ai:lineage:v3": {
+      "level": "unknown",
+      "notes": "Iceberg V3 row lineage tracking metadata support is not documented for Oracle 26ai",
+      "caveats": [
+        "V3-only feature; Oracle support not documented"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    },
+    "oracle-26ai:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "oracle-26ai:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Oracle Autonomous AI Database relies on copy-on-write and does not support Puffin-format Deletion Vectors for merge-on-read row deletion; queries fail on V3 tables with deletion vectors",
+      "caveats": [
+        "Deletion vectors are not supported by Oracle's query engine; copy-on-write required"
+      ],
+      "links": [
+        {
+          "label": "Oracle Autonomous AI Database - Query Apache Iceberg Tables",
+          "url": "https://docs.oracle.com/en/cloud/paas/autonomous-database/"
+        }
+      ]
+    }
+  }
+}
