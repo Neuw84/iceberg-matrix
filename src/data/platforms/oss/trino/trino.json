@@ -1,0 +1,684 @@
+{
+  "platforms": [
+    {
+      "id": "trino",
+      "name": "Trino",
+      "vendor": "Trino",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://trino.io/docs/current/connector/iceberg.html"
+    }
+  ],
+  "support": {
+    "trino:position-deletes:v2": {
+      "level": "full",
+      "notes": "Trino reads and writes position delete files for row-level DELETE, UPDATE, and MERGE operations when configured for merge-on-read mode",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:position-deletes:v3": {
+      "level": "full",
+      "notes": "Trino reads legacy position delete files on V3 tables and generates deletion vectors or positional delete files depending on configuration",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Not supported as a write operation. Trino never produces equality delete files for DELETE/MERGE, writing positional deletes instead. Trino fully supports reading equality delete files written by other engines (such as Apache Flink) at query time",
+      "caveats": [
+        "Write capability only: Trino does not produce equality delete files, but can read them"
+      ],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Equality deletes are replaced by deletion vectors in Iceberg V3; Trino does not write equality deletes",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Trino supports merge-on-read for DELETE, UPDATE, and MERGE, creating position delete files at write time and merging them on read",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:merge-on-read:v3": {
+      "level": "full",
+      "notes": "Trino supports merge-on-read on V3 tables using Puffin deletion vectors",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Trino supports copy-on-write row mutations (rewriting affected data files) via table properties or session configurations",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:copy-on-write:v3": {
+      "level": "full",
+      "notes": "Copy-on-write write strategy is supported for V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Full schema evolution support via SQL: ADD COLUMN, DROP COLUMN, RENAME COLUMN, and altering column types without rewriting existing data files",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector schema evolution",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:schema-evolution:v3": {
+      "level": "full",
+      "notes": "Full schema evolution supported on V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector schema evolution",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:type-promotion:v2": {
+      "level": "full",
+      "notes": "Trino supports Iceberg type widening via ALTER TABLE ... ALTER COLUMN ... SET DATA TYPE (e.g., INT to BIGINT, FLOAT to DOUBLE, DECIMAL precision widening)",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:type-promotion:v3": {
+      "level": "full",
+      "notes": "Type promotion and widening supported on V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are an Iceberg V3 metadata feature; not supported in format version 2",
+      "caveats": []
+    },
+    "trino:column-default-values:v3": {
+      "level": "none",
+      "notes": "Iceberg V3 spec introduces initial-default and write-default at the metadata level; Trino SQL DDL does not currently support declaring Iceberg column-level default values in CREATE TABLE or ALTER TABLE",
+      "caveats": [
+        "Iceberg column defaults cannot be declared via Trino SQL DDL"
+      ],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:table-creation:v2": {
+      "level": "full",
+      "notes": "Full DDL support: CREATE TABLE, CREATE TABLE AS SELECT (CTAS), with table properties for format_version, partitioning, location, and format (Parquet, ORC, Avro)",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:table-creation:v3": {
+      "level": "full",
+      "notes": "Supported via CREATE TABLE with format_version = 3",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Full support for Iceberg partition transforms (year, month, day, hour, bucket, truncate) specified via the partitioning table property (e.g., partitioning = ARRAY['year(order_date)', 'bucket(account_id, 16)']); transparent partition pruning at query time",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg partitioning",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Hidden partitioning with single-source transforms supported on V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg partitioning",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Partition spec evolution supported via ALTER TABLE ... SET PROPERTIES partitioning = ARRAY[...] without rewriting existing data; Trino queries prune partitions correctly across spec transitions",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Partition evolution supported on V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "trino:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Trino's partitioning table property only supports single-column transforms (bucket, truncate, year, month, day, hour); multi-argument partition transforms cannot be declared in Trino DDL",
+      "caveats": [
+        "Cannot be declared in Trino DDL; read path untested"
+      ],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:time-travel:v2": {
+      "level": "full",
+      "notes": "Full SQL time-travel support via FOR TIMESTAMP AS OF and FOR VERSION AS OF clauses",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg time travel",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:time-travel:v3": {
+      "level": "full",
+      "notes": "Full time-travel support on V3 tables via FOR TIMESTAMP AS OF and FOR VERSION AS OF",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg time travel",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:table-maintenance:v2": {
+      "level": "full",
+      "notes": "Comprehensive table maintenance procedures: ALTER TABLE ... EXECUTE optimize for file compaction, system.expire_snapshots for snapshot cleanup, and system.remove_orphan_files for deleting unreferenced files",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg table procedures",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:table-maintenance:v3": {
+      "level": "full",
+      "notes": "Table maintenance procedures (compaction, snapshot expiration, orphan file removal) operate on V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg table procedures",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:branching-tagging:v2": {
+      "level": "full",
+      "notes": "Full support for managing and querying branches and tags via ALTER TABLE ... CREATE BRANCH / CREATE TAG, writing to branches, and querying via FOR VERSION AS OF 'branch_or_tag_name'",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg branching and tagging",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:branching-tagging:v3": {
+      "level": "full",
+      "notes": "Branching and tagging operations supported on V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg branching and tagging",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:read-support:v2": {
+      "level": "full",
+      "notes": "High-performance vectorized read support across Parquet, ORC, and Avro data files with column projection, dynamic partition pruning, and predicate pushdown",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:read-support:v3": {
+      "level": "full",
+      "notes": "Full read support for Iceberg V3 tables including deletion vector resolution",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:write-insert:v2": {
+      "level": "full",
+      "notes": "Full support for INSERT INTO and CTAS append and overwrite operations into Iceberg tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:write-insert:v3": {
+      "level": "full",
+      "notes": "Full write support for V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "Full row-level mutation support via SQL MERGE INTO, UPDATE, and DELETE statements supporting both copy-on-write and merge-on-read modes",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector DML",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:write-merge-update-delete:v3": {
+      "level": "full",
+      "notes": "Row-level mutations supported on V3 tables using deletion vectors",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector DML",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Extensive native catalog integrations including Iceberg REST catalog (Polaris, Unity, Lakekeeper), AWS Glue, Hive Metastore, Nessie, and JDBC catalogs",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg catalogs",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Catalog integrations work with V3 tables where the catalog supports Iceberg format version 3",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg catalogs",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:statistics:v2": {
+      "level": "full",
+      "notes": "Trino reads and collects Iceberg column metrics (null counts, min/max values, NaN counts) from manifest files and Puffin files for cost-based optimization and scan pruning",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:statistics:v3": {
+      "level": "full",
+      "notes": "Column statistics and Puffin metrics supported for V3 tables",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:bloom-filters:v2": {
+      "level": "partial",
+      "notes": "Trino supports file-level bloom filter generation and evaluation for ORC format via table properties (orc_bloom_filter_columns), and consumes statistics from Puffin files. Generic Parquet/Puffin table-level bloom filter indexing is in active development",
+      "caveats": [
+        "Configured primarily for ORC files via orc_bloom_filter_columns"
+      ],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:bloom-filters:v3": {
+      "level": "partial",
+      "notes": "Puffin blob support is utilized for statistics; native table-level Puffin bloom filters remain partially implemented",
+      "caveats": [
+        "Full table-level Puffin bloom filters still evolving"
+      ],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Native first-class AWS Glue Data Catalog integration configured via iceberg.catalog.type=glue with IAM role authentication and credential management",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg Glue Catalog",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "AWS Glue catalog integration supports V3 tables when enabled in catalog settings",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg Glue Catalog",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:rest-catalog:v2": {
+      "level": "full",
+      "notes": "First-class native Iceberg REST Catalog support configured via iceberg.catalog.type=rest with OAuth2 client credentials authentication, bearer tokens, and storage credential vending",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg REST Catalog",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:rest-catalog:v3": {
+      "level": "full",
+      "notes": "REST catalog client supports V3 tables and endpoint capabilities as supported by the backing REST catalog server",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg REST Catalog",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Trino connects to Unity Catalog's Iceberg REST Catalog endpoint using OAuth2 authentication and vended storage credentials, or via the dedicated Trino Unity Catalog connector",
+      "caveats": [
+        "Access via Iceberg REST endpoint requires Unity Catalog's Iceberg REST compatibility layer"
+      ],
+      "links": [
+        {
+          "label": "Trino Iceberg REST Catalog",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:unity-catalog:v3": {
+      "level": "partial",
+      "notes": "Trino connects to Unity Catalog for V3 tables through the standard REST catalog protocol",
+      "caveats": [
+        "Access is via Unity Catalog's Iceberg REST endpoint"
+      ],
+      "links": [
+        {
+          "label": "Trino Iceberg REST Catalog",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Trino connects to Snowflake Horizon Catalog (built on Apache Polaris) via the Iceberg REST Catalog protocol with OAuth2 authentication and credential vending",
+      "caveats": [
+        "Access is via generic Iceberg REST Catalog protocol"
+      ],
+      "links": [
+        {
+          "label": "Trino Iceberg REST Catalog",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "Trino connects to Snowflake Horizon Catalog for V3 tables through the generic REST catalog protocol",
+      "caveats": [
+        "Access is via generic Iceberg REST Catalog protocol"
+      ],
+      "links": [
+        {
+          "label": "Trino Iceberg REST Catalog",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse runtime catalog exposes a standard Iceberg REST catalog endpoint; Trino connects via the REST catalog client. Rated partial because this specific cloud pairing has not been measured end-to-end and Google credential vending specifics may vary",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "trino:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes an Iceberg REST catalog, and Trino speaks the REST catalog protocol. Rated partial because this pairing has not been measured end-to-end",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+      ],
+      "links": [
+        {
+          "label": "Google Lakehouse runtime catalog",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "trino:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "trino:variant-type:v3": {
+      "level": "full",
+      "notes": "Trino maps native JSON / semi-structured types to Iceberg V3 binary Variant type, enabling predicate pushdown and efficient storage without schema flattening",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded Variant is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "trino:shredded-variant:v3": {
+      "level": "partial",
+      "notes": "While basic Iceberg V3 Variant support is implemented in Trino, full query optimization and writing of shredded variant sub-columns is still evolving",
+      "caveats": [
+        "Sub-column shredding write optimization is evolving in the Trino connector"
+      ],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "trino:geometry-type:v3": {
+      "level": "full",
+      "notes": "Trino provides first-class geospatial support (GEOMETRY and SPHERICAL_GEOGRAPHY) with spatial functions (ST_*) that map natively to Iceberg V3 Geo/Geometry types",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "trino:nanosecond-timestamps:v3": {
+      "level": "full",
+      "notes": "Trino natively supports TIMESTAMP(9) and TIMESTAMP(9) WITH TIME ZONE, mapping directly to Iceberg V3 nanosecond precision timestamp and timestamptz columns",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature; not available in format version 2",
+      "caveats": []
+    },
+    "trino:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Support for declaring or querying the Iceberg V3 unknown column type is not documented in Trino",
+      "caveats": [
+        "V3-only feature; Trino support not documented"
+      ]
+    },
+    "trino:lineage:v2": {
+      "level": "none",
+      "notes": "Row Lineage is a V3 feature; not applicable to V2",
+      "caveats": []
+    },
+    "trino:lineage:v3": {
+      "level": "full",
+      "notes": "Trino supports Iceberg V3 row lineage metadata tracking for data provenance, auditability, and change tracking",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    },
+    "trino:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": []
+    },
+    "trino:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "Trino supports Iceberg V3 Puffin-format Deletion Vectors for efficient row-level deletion and merge-on-read operations without creating separate positional delete files for every commit",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
+        }
+      ]
+    }
+  }
+}

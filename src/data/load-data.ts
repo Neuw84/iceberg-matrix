@@ -40,6 +40,7 @@ import flink from "./platforms/oss/flink/flink.json";
 import pyiceberg from "./platforms/oss/pyiceberg/pyiceberg.json";
 import doris from "./platforms/oss/doris/doris.json";
 import databend from "./platforms/oss/databend/databend.json";
+import trino from "./platforms/oss/trino/trino.json";
 // kafka-connect intentionally NOT imported (staged, excluded from app)
 
 export interface EngineFile {
@@ -64,6 +65,7 @@ const postSnowflakeEngines: EngineFile[] = [
   sparkGluten,
   sparkComet,
   flink,
+  trino,
   pyiceberg,
   doris,
   databend,
