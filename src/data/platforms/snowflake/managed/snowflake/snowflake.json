@@ -54,24 +54,40 @@
     },
     "snowflake:equality-deletes:v2": {
       "level": "none",
-      "notes": "Row-level equality deletes are not supported. Snowflake uses copy-on-write for all DELETE operations on managed tables.",
+      "notes": "Row-level equality deletes are not supported. Snowflake's own DML never writes equality delete files (it uses copy-on-write or positional deletes, controlled by ICEBERG_MERGE_ON_READ_BEHAVIOR), and Snowflake cannot read equality delete files written by another engine.",
       "caveats": [
-        "Row-level equality deletes not supported; Snowflake uses copy-on-write for DELETE operations"
+        "Snowflake never writes equality delete files",
+        "Equality delete files written by other engines (e.g. Flink upsert sinks) are not readable",
+        "Row-level DELETE/UPDATE/MERGE use copy-on-write or positional deletes instead"
       ],
       "links": [
         {
           "label": "Row-level deletes",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage#use-row-level-deletes"
+        },
+        {
+          "label": "Iceberg tables: considerations and limitations",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
         }
       ]
     },
     "snowflake:equality-deletes:v3": {
       "level": "none",
-      "notes": "Equality deletes replaced by deletion vectors in V3. Snowflake uses deletion vectors instead.",
+      "notes": "Equality deletes remain part of the Iceberg V3 spec (deletion vectors replace position delete files, not equality deletes). Snowflake supports neither writing nor reading equality delete files on V3 tables; its row-level DML uses deletion vectors or copy-on-write.",
       "caveats": [
-        "V3 uses deletion vectors instead of equality delete files"
+        "Deletion vectors replace V2 position delete files; equality deletes are still valid in V3",
+        "Snowflake never writes equality delete files",
+        "Equality delete files written by other engines are not readable"
       ],
       "links": [
+        {
+          "label": "Iceberg tables: considerations and limitations",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+        },
+        {
+          "label": "Iceberg spec: row-level deletes",
+          "url": "https://iceberg.apache.org/spec/#row-level-deletes"
+        },
         {
           "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
@@ -83,12 +99,12 @@
       ]
     },
     "snowflake:merge-on-read:v2": {
-      "level": "partial",
-      "notes": "Merge-on-read is supported for all Iceberg v2 tables in Snowflake, controlled by the ICEBERG_MERGE_ON_READ_BEHAVIOR parameter. The default value 'AUTO' enables MoR for all externally managed tables and uses copy-on-write for Snowflake-managed v2 tables. Set to 'ENABLED' to force MoR for Snowflake-managed v2 tables. Uses positional delete files for v2. Write support for externally managed tables is generally available as of October 2025. ENABLE_ICEBERG_MERGE_ON_READ is deprecated in favour of ICEBERG_MERGE_ON_READ_BEHAVIOR.",
+      "level": "full",
+      "notes": "Merge-on-read with positional delete files is supported for Iceberg v2 tables, controlled by the ICEBERG_MERGE_ON_READ_BEHAVIOR parameter. The default 'AUTO' uses merge-on-read for externally managed tables and copy-on-write for Snowflake-managed v2 tables; set it to 'ENABLED' to use merge-on-read for Snowflake-managed v2 tables too. ENABLE_ICEBERG_MERGE_ON_READ is deprecated in favour of ICEBERG_MERGE_ON_READ_BEHAVIOR.",
       "caveats": [
-        "ICEBERG_MERGE_ON_READ_BEHAVIOR='AUTO' (default): MoR for all externally managed tables; CoW for Snowflake-managed v2 tables",
-        "Set ICEBERG_MERGE_ON_READ_BEHAVIOR='ENABLED' to force MoR for Snowflake-managed v2 tables",
-        "ENABLE_ICEBERG_MERGE_ON_READ session parameter is deprecated \u2014 use ICEBERG_MERGE_ON_READ_BEHAVIOR instead",
+        "ICEBERG_MERGE_ON_READ_BEHAVIOR='AUTO' (default): MoR for externally managed tables; CoW for Snowflake-managed v2 tables",
+        "Set ICEBERG_MERGE_ON_READ_BEHAVIOR='ENABLED' (table, schema, database, or account) to use MoR for Snowflake-managed v2 tables",
+        "ENABLE_ICEBERG_MERGE_ON_READ parameter is deprecated \u2014 use ICEBERG_MERGE_ON_READ_BEHAVIOR instead",
         "Snowflake uses heuristics (row %, file size) to decide per-file whether to use MoR or CoW even when MoR is active"
       ],
       "links": [
@@ -287,17 +303,23 @@
       ]
     },
     "snowflake:partition-evolution:v2": {
-      "level": "partial",
-      "notes": "No SQL surface evolves the partition spec of a Snowflake-managed Iceberg table in place: ALTER ICEBERG TABLE ... SET PARTITION BY, ADD PARTITION FIELD and DROP PARTITION FIELD are all rejected (measured on Snowflake 10.30.102, Aug 2026). Partitioned writes (GA October 2025) still conform to a table's current spec, so specs evolved by an external catalog are honoured on write.",
+      "level": "full",
+      "notes": "Partition evolution for Snowflake-managed Iceberg tables is generally available (Sep 18, 2026): ALTER ICEBERG TABLE ... ADD | DROP | REPLACE PARTITION BY changes the partition spec without rewriting existing data. All Iceberg v2 partition transforms are supported.",
       "caveats": [
-        "Measured: no ALTER ICEBERG TABLE syntax changes the partition spec of a Snowflake-managed table",
-        "Partitioned writes (GA October 2025) follow the table's current spec",
-        "External catalog tables: partition evolution is controlled by the external catalog; Snowflake writes follow the current spec"
+        "Snowflake-managed tables only; for externally managed tables the partition spec is evolved by the external catalog and Snowflake writes follow the current spec",
+        "One partition field per ALTER statement",
+        "Existing data is not rewritten; new writes use the updated spec",
+        "Columns in the current or any historical partition spec can't be dropped",
+        "Clustering can't be enabled on a table that is or ever was partitioned"
       ],
       "links": [
         {
-          "label": "Manage Iceberg tables",
-          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-manage"
+          "label": "ALTER ICEBERG TABLE ... ADD | DROP | REPLACE PARTITION BY",
+          "url": "https://docs.snowflake.com/en/sql-reference/sql/alter-iceberg-table-partition-evolution"
+        },
+        {
+          "label": "Partition evolution (GA Sep 18, 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-09-18-iceberg-partition-evolution-ga"
         },
         {
           "label": "Partitioned writes (GA Oct 2025)",
@@ -306,13 +328,26 @@
       ]
     },
     "snowflake:partition-evolution:v3": {
-      "level": "partial",
-      "notes": "Partition evolution support via Snowflake clustering mechanisms for V3 tables. Generally available (as of May 7, 2026).",
+      "level": "full",
+      "notes": "Partition evolution via ALTER ICEBERG TABLE ... ADD | DROP | REPLACE PARTITION BY applies to Snowflake-managed V3 tables as well (GA Sep 18, 2026). Multi-argument transforms are not supported (see multi-arg-transforms).",
       "caveats": [
-        "Generally available (as of May 7, 2026)",
-        "Partition evolution managed through Snowflake clustering"
+        "Snowflake-managed tables only; for externally managed tables the partition spec is evolved by the external catalog and Snowflake writes follow the current spec",
+        "One partition field per ALTER statement",
+        "Existing data is not rewritten; new writes use the updated spec",
+        "Columns in the current or any historical partition spec can't be dropped",
+        "Clustering can't be enabled on a table that is or ever was partitioned",
+        "Multi-argument (V3) transforms are not supported",
+        "The partition evolution docs and GA announcement don't distinguish format versions, and the V3 support page doesn't list it as unsupported; not separately measured on a V3 table"
       ],
       "links": [
+        {
+          "label": "ALTER ICEBERG TABLE ... ADD | DROP | REPLACE PARTITION BY",
+          "url": "https://docs.snowflake.com/en/sql-reference/sql/alter-iceberg-table-partition-evolution"
+        },
+        {
+          "label": "Partition evolution (GA Sep 18, 2026)",
+          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-09-18-iceberg-partition-evolution-ga"
+        },
         {
           "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
@@ -621,10 +656,12 @@
     },
     "snowflake:aws-glue-catalog:v2": {
       "level": "full",
-      "notes": "Snowflake supports AWS Glue as an external catalog for Iceberg tables. Read access via external tables and write support via REST catalog integration.",
+      "notes": "Snowflake reads Iceberg tables in the AWS Glue Data Catalog through a catalog integration, either the Glue Iceberg REST endpoint or the legacy GLUE catalog integration. Writes, and catalog-linked databases, require a REST catalog integration for the Glue Iceberg REST endpoint.",
       "caveats": [
-        "Read access to Iceberg tables registered in AWS Glue Catalog",
-        "Write support available via REST catalog integration"
+        "Read via catalog integration (Glue Iceberg REST endpoint or legacy GLUE integration)",
+        "Write and catalog-linked databases require a REST catalog integration for the Glue Iceberg REST endpoint",
+        "CREATE ICEBERG TABLE ... AS SELECT is not supported in a catalog-linked database linked to Glue",
+        "Dropping a table through Snowflake doesn't delete the underlying files in Glue (PURGE is not honoured)"
       ],
       "links": [
         {
@@ -983,14 +1020,16 @@
     },
     "snowflake:snowflake-horizon-catalog:v2": {
       "level": "full",
-      "notes": "Snowflake Horizon Catalog is Snowflake's managed Iceberg REST Catalog built on Apache Polaris. External query engines (Spark, Trino, DuckDB, PyIceberg, Flink, etc.) can connect via a single REST endpoint. Read support GA Feb 6, 2026. Write support for external engines GA May 26, 2026. Masking policies and row access policies defined in Snowflake are enforced when Spark queries tables through Horizon Catalog (Jan 2026). Works with both tables on external volumes and Snowflake-managed storage (GA Jun 1, 2026). Available on commercial AWS and Azure regions.",
+      "notes": "Snowflake Horizon Catalog is Snowflake's managed Iceberg REST Catalog built on Apache Polaris. External query engines (Spark, Trino, DuckDB, PyIceberg, Flink, etc.) can connect via a single REST endpoint. Read support GA Feb 6, 2026. Write support for external engines GA May 26, 2026. Masking policies and row access policies defined in Snowflake are enforced when Spark queries tables through Horizon Catalog (Jan 2026). Works with both tables on external volumes and Snowflake-managed storage (GA Jun 1, 2026). External engine access is supported in all commercial regions for tables on Amazon S3, Google Cloud Storage, and Azure; Snowflake storage is available only for accounts on AWS or Azure (not government regions or China). Externally managed tables in a catalog-linked database can also be read and written through the Horizon IRC endpoint.",
       "caveats": [
         "External engine READ via Horizon Catalog: GA since Feb 6, 2026",
         "External engine WRITE via Horizon Catalog: GA since May 26, 2026",
         "Security policy enforcement (masking + row access policies) via Spark: GA Jan 27, 2026",
         "Snowflake storage for Iceberg tables (no external volume needed) accessible via Horizon Catalog: GA Jun 1, 2026",
-        "Available in commercial AWS and Azure regions; GCP not yet supported for Snowflake storage",
-        "API requests billed at 0.5 credit per million calls (billing starts second half of 2026)"
+        "API requests billed at 0.5 credit per million calls (billing starts second half of 2026)",
+        "Snowflake storage (EXTERNAL_VOLUME = SNOWFLAKE_MANAGED): accounts on AWS or Azure only; not available in government regions or China",
+        "External engine access: all commercial regions on S3, GCS, and Azure (S3-compatible non-AWS storage not yet supported)",
+        "Externally managed tables: only those in a catalog-linked database; Horizon credential vending for them is off by default (ENABLE_HORIZON_IRC_UNMANAGED_CREDENTIAL_VENDING)"
       ],
       "links": [
         {
@@ -1008,6 +1047,10 @@
         {
           "label": "Snowflake storage for Iceberg tables (GA Jun 2026)",
           "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-06-01-iceberg-snowflake-storage-ga"
+        },
+        {
+          "label": "Horizon Catalog access to catalog-linked database tables",
+          "url": "https://docs.snowflake.com/en/user-guide/externally-managed-iceberg-tables-access-horizon-irc"
         }
       ]
     },
