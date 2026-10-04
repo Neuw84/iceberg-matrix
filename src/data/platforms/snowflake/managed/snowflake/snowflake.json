@@ -509,10 +509,10 @@
     },
     "snowflake:read-support:v3": {
       "level": "partial",
-      "notes": "Read support for Iceberg V3 tables, both Snowflake-managed and externally managed, but the same equality-delete gap as V2 applies to tables that still carry legacy V2 equality delete files (V3 deletion vectors are read fine). Generally available (as of May 7, 2026).",
+      "notes": "Read support for Iceberg V3 tables, both Snowflake-managed and externally managed, but the same equality-delete gap as V2 applies: equality deletes remain valid in V3, and Snowflake cannot read V3 tables that contain equality delete files written by another engine (for example a Flink upsert sink, or files carried over from V2). V3 deletion vectors are read fine. Generally available (as of May 7, 2026).",
       "caveats": [
         "Generally available (as of May 7, 2026)",
-        "Cannot read legacy V2 equality delete files carried over into a V3 table"
+        "Cannot read equality delete files written by another engine (equality deletes remain valid in V3)"
       ],
       "links": [
         {
@@ -656,9 +656,9 @@
     },
     "snowflake:aws-glue-catalog:v2": {
       "level": "full",
-      "notes": "Snowflake reads Iceberg tables in the AWS Glue Data Catalog through a catalog integration, either the Glue Iceberg REST endpoint or the legacy GLUE catalog integration. Writes, and catalog-linked databases, require a REST catalog integration for the Glue Iceberg REST endpoint.",
+      "notes": "Snowflake reads Iceberg tables in the AWS Glue Data Catalog through a catalog integration, either the Glue Iceberg REST endpoint or a GLUE catalog integration (CATALOG_SOURCE = GLUE). Writes, and catalog-linked databases, require a REST catalog integration for the Glue Iceberg REST endpoint.",
       "caveats": [
-        "Read via catalog integration (Glue Iceberg REST endpoint or legacy GLUE integration)",
+        "Read via catalog integration (Glue Iceberg REST endpoint, or CATALOG_SOURCE = GLUE)",
         "Write and catalog-linked databases require a REST catalog integration for the Glue Iceberg REST endpoint",
         "CREATE ICEBERG TABLE ... AS SELECT is not supported in a catalog-linked database linked to Glue",
         "Dropping a table through Snowflake doesn't delete the underlying files in Glue (PURGE is not honoured)"
