@@ -54,7 +54,7 @@ A React single-page application that displays an interactive compatibility matri
 │   │       │   └── external/snowflake/snowflake.json  # external volume (customer S3)
 │   │       └── oss/                  # duckdb/, clickhouse/, daft/, spark/,
 │   │                                 # spark-gluten/, spark-comet/, flink/,
-│   │                                 # pyiceberg/, doris/, databend/,
+│   │                                 # trino/, pyiceberg/, doris/, databend/,
 │   │                                 # kafka-connect/ (staged, NOT imported)
 │   ├── utils/                # Pure utility functions
 │   │   ├── comparison.ts             # Comparison logic between platforms
