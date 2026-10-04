@@ -2,11 +2,11 @@
   "platforms": [
     {
       "id": "trino",
-      "name": "Trino",
+      "name": "Trino (483)",
       "vendor": "Trino",
       "category": "open-source",
       "group": "3rd Party",
-      "docUrl": "https://trino.io/docs/current/connector/iceberg.html"
+      "docUrl": "https://trino.io/docs/483/connector/iceberg.html"
     }
   ],
   "support": {
@@ -17,7 +17,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -28,7 +28,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -41,7 +41,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -52,7 +52,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -63,7 +63,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -74,7 +74,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -85,7 +85,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -96,7 +96,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -107,7 +107,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector schema evolution",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -118,7 +118,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector schema evolution",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -129,7 +129,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -140,7 +140,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -158,7 +158,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -169,7 +169,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -180,7 +180,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -191,7 +191,7 @@
       "links": [
         {
           "label": "Trino Iceberg partitioning",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -202,7 +202,7 @@
       "links": [
         {
           "label": "Trino Iceberg partitioning",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -213,7 +213,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -224,7 +224,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -242,7 +242,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -253,7 +253,7 @@
       "links": [
         {
           "label": "Trino Iceberg time travel",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -264,7 +264,7 @@
       "links": [
         {
           "label": "Trino Iceberg time travel",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -275,7 +275,7 @@
       "links": [
         {
           "label": "Trino Iceberg table procedures",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -286,7 +286,7 @@
       "links": [
         {
           "label": "Trino Iceberg table procedures",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -297,7 +297,7 @@
       "links": [
         {
           "label": "Trino Iceberg branching and tagging",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -308,7 +308,7 @@
       "links": [
         {
           "label": "Trino Iceberg branching and tagging",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -319,7 +319,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -330,7 +330,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -341,7 +341,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -352,7 +352,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -363,7 +363,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector DML",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -374,7 +374,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector DML",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -385,7 +385,7 @@
       "links": [
         {
           "label": "Trino Iceberg catalogs",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -396,7 +396,7 @@
       "links": [
         {
           "label": "Trino Iceberg catalogs",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -407,7 +407,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -418,7 +418,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -431,7 +431,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -444,7 +444,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -455,7 +455,7 @@
       "links": [
         {
           "label": "Trino Iceberg Glue Catalog",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -466,7 +466,7 @@
       "links": [
         {
           "label": "Trino Iceberg Glue Catalog",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -477,7 +477,7 @@
       "links": [
         {
           "label": "Trino Iceberg REST Catalog",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -488,7 +488,7 @@
       "links": [
         {
           "label": "Trino Iceberg REST Catalog",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -501,7 +501,7 @@
       "links": [
         {
           "label": "Trino Iceberg REST Catalog",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -514,7 +514,7 @@
       "links": [
         {
           "label": "Trino Iceberg REST Catalog",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -527,7 +527,7 @@
       "links": [
         {
           "label": "Trino Iceberg REST Catalog",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -540,7 +540,7 @@
       "links": [
         {
           "label": "Trino Iceberg REST Catalog",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -582,7 +582,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -600,7 +600,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -616,7 +616,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -632,7 +632,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -660,7 +660,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     },
@@ -676,7 +676,7 @@
       "links": [
         {
           "label": "Trino Iceberg connector",
-          "url": "https://trino.io/docs/current/connector/iceberg.html"
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
         }
       ]
     }
