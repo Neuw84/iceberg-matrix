@@ -1,0 +1,147 @@
+name: Trino Iceberg Feature Tests
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  SPARK_VERSION: "4.1"
+  ICEBERG_VERSION: "1.11.0"
+
+jobs:
+  trino-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+
+      # trino drives the coordinator over HTTP; PySpark + the Iceberg runtime
+      # drive tests/spark_fixture.py (merge-on-read / equality-delete /
+      # deletion-vector / V3-type fixtures in the shared Polaris catalog that
+      # Trino then reads); duckdb produces the V3 GEOMETRY / timestamp_ns
+      # fixtures Spark's connector cannot write.
+      - name: Install Python dependencies
+        run: uv pip install --system trino pyspark==4.1.2 'pyiceberg[sql-sqlite,pyarrow]==0.11.1' duckdb==1.5.5
+
+      - name: Download Iceberg Spark runtime + AWS bundle JARs
+        run: |
+          BASE="https://repo1.maven.org/maven2/org/apache/iceberg"
+          RUNTIME_JAR="iceberg-spark-runtime-${SPARK_VERSION}_2.13-${ICEBERG_VERSION}.jar"
+          AWS_JAR="iceberg-aws-bundle-${ICEBERG_VERSION}.jar"
+          curl -fSL -o "${RUNTIME_JAR}" \
+            "${BASE}/iceberg-spark-runtime-${SPARK_VERSION}_2.13/${ICEBERG_VERSION}/${RUNTIME_JAR}"
+          curl -fSL -o "${AWS_JAR}" \
+            "${BASE}/iceberg-aws-bundle/${ICEBERG_VERSION}/${AWS_JAR}"
+          echo "ICEBERG_JAR=$(pwd)/${RUNTIME_JAR},$(pwd)/${AWS_JAR}" >> $GITHUB_ENV
+
+      - name: Start Polaris REST catalog + RustFS
+        run: ./tests/docker/start-polaris.sh
+
+      - name: Start Trino coordinator
+        run: ./tests/docker/start-trino.sh
+
+      - name: Run Trino Iceberg feature tests
+        env:
+          TRINO_HOST: 127.0.0.1
+          TRINO_PORT: "8080"
+          ICEBERG_REST_URI: http://127.0.0.1:8181/api/catalog
+          ICEBERG_REST_WAREHOUSE: demo
+          ICEBERG_REST_CREDENTIAL: root:s3cr3t
+          ICEBERG_REST_SCOPE: PRINCIPAL_ROLE:ALL
+          ICEBERG_S3_ENDPOINT: 127.0.0.1:9000
+          ICEBERG_S3_KEY_ID: rustfs
+          ICEBERG_S3_SECRET: rustfs12345
+          ICEBERG_S3_REGION: us-east-1
+        run: |
+          export REPO_ROOT="${GITHUB_WORKSPACE}"
+          export REPORT_DIR="${GITHUB_WORKSPACE}/test-reports"
+          export ICEBERG_JAR="${ICEBERG_JAR}"
+          python tests/trino_feature_tests.py
+        continue-on-error: true
+
+      - name: Dump Trino logs on failure
+        if: failure()
+        run: docker compose -f tests/docker/docker-compose.trino.yml logs --tail 200 || true
+
+      - name: Tear down Trino
+        if: always()
+        run: ./tests/docker/stop-trino.sh
+
+      - name: Tear down Polaris REST catalog
+        if: always()
+        run: ./tests/docker/stop-polaris.sh
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: trino-iceberg-test-report
+          path: test-reports/
+          retention-days: 30
+
+      - name: Post PR comment with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'test-reports/trino-iceberg-test-report.md';
+            if (!fs.existsSync(reportPath)) {
+              console.log('No report found, skipping comment');
+              return;
+            }
+            const body = fs.readFileSync(reportPath, 'utf8');
+            const truncated = body.length > 60000 ? body.substring(0, 60000) + '\n\n... (truncated)' : body;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const marker = '<!-- trino-iceberg-test-report -->';
+            const existing = comments.find(c => c.body.includes(marker));
+            const commentBody = `${marker}\n${truncated}`;
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: commentBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody,
+              });
+            }

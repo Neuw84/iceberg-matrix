@@ -1,0 +1,63 @@
+# Single-node Trino coordinator used by tests/trino_feature_tests.py.
+#
+# Trino's Iceberg connector talks to the shared Polaris REST catalog the same
+# way every other suite does. Trino runs in its own compose project (like the
+# Flink cluster), so it reaches Polaris and RustFS at the host's IP, which
+# start-trino.sh detects and substitutes into the catalog properties below.
+# The catalog is named "iceberg" (etc/catalog/iceberg.properties), with
+# iceberg.catalog.type=rest pointed at http://<host>:8181/api/catalog.
+#
+#   TRINO_IMAGE   base Trino image     (default: trinodb/trino:<pinned>)
+#   TRINO_HOST_IP host address the container uses for the catalog + S3
+
+name: iceberg-promise-trino
+
+services:
+  trino:
+    image: ${TRINO_IMAGE:-trinodb/trino:483}
+    ports:
+      - "8080:8080"
+    environment:
+      # Substituted into etc/catalog/iceberg.properties by the entrypoint so the
+      # connector reaches the host-side Polaris + RustFS. OAuth2 client creds and
+      # the warehouse come from the same POLARIS_* defaults the other stacks use.
+      TRINO_HOST_IP: ${TRINO_HOST_IP:-host.docker.internal}
+      REST_URI: ${ICEBERG_REST_URI:-http://${TRINO_HOST_IP:-host.docker.internal}:8181/api/catalog}
+      REST_WAREHOUSE: ${POLARIS_CATALOG:-demo}
+      REST_CREDENTIAL: ${POLARIS_CLIENT_ID:-root}:${POLARIS_CLIENT_SECRET:-s3cr3t}
+      REST_SCOPE: ${POLARIS_SCOPE:-PRINCIPAL_ROLE:ALL}
+      S3_ENDPOINT: ${ICEBERG_S3_ENDPOINT:-http://${TRINO_HOST_IP:-host.docker.internal}:9000}
+      S3_KEY_ID: ${POLARIS_S3_KEY_ID:-rustfs}
+      S3_SECRET: ${POLARIS_S3_SECRET:-rustfs12345}
+      S3_REGION: ${POLARIS_S3_REGION:-us-east-1}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        cat > /etc/trino/catalog/iceberg.properties <<PROPS
+        connector.name=iceberg
+        iceberg.catalog.type=rest
+        iceberg.rest-catalog.uri=$${REST_URI}
+        iceberg.rest-catalog.warehouse=$${REST_WAREHOUSE}
+        iceberg.rest-catalog.security=OAUTH2
+        iceberg.rest-catalog.oauth2.credential=$${REST_CREDENTIAL}
+        iceberg.rest-catalog.oauth2.scope=$${REST_SCOPE}
+        iceberg.rest-catalog.oauth2.server-uri=$${REST_URI}/v1/oauth/tokens
+        iceberg.rest-catalog.vended-credentials-enabled=false
+        fs.native-s3.enabled=true
+        s3.endpoint=$${S3_ENDPOINT}
+        s3.region=$${S3_REGION}
+        s3.path-style-access=true
+        s3.aws-access-key=$${S3_KEY_ID}
+        s3.aws-secret-key=$${S3_SECRET}
+        PROPS
+        exec /usr/lib/trino/bin/run-trino
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/v1/info"]
+      interval: 3s
+      timeout: 10s
+      retries: 40
+      start_period: 15s
