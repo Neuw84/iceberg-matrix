@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "aws-emr",
-      "name": "EMR (8.0 Spark)",
+      "name": "EMR (8.1 Spark)",
       "vendor": "AWS",
       "category": "cloud",
       "group": "AWS",
@@ -182,20 +182,29 @@
       "caveats": []
     },
     "aws-emr:type-promotion:v3": {
-      "level": "full",
-      "notes": "V3 type promotion supported via Spark on EMR with S3 Tables",
-      "caveats": []
-    },
-    "aws-emr:column-default-values:v3": {
-      "level": "none",
-      "notes": "Measured on emr-spark-8.0.0 (Spark 4.0.2-amzn-0, Iceberg 1.10.1-amzn-0) against S3 Tables through the federated s3tablescatalog: a DEFAULT clause is rejected with UNSUPPORTED_FEATURE.TABLE_OPERATION, 'does not support column default value'. Measured with spark.sql.defaultColumn.enabled set, which matters: with the prerequisite on, the refusal comes from the Iceberg Spark connector rather than from Spark's own gate, so this is the connector in Iceberg 1.10.1 not declaring the capability. Glue 6.0 accepts the same clause on Iceberg 1.11.0.",
+      "level": "partial",
+      "notes": "emr-spark-8.1.0 ships the same engine build as Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0). The three carry-over promotions (int to long, float to double, decimal precision widening) are accepted on a V3 table, but the v3-only date to timestamp promotion is rejected by Iceberg (Cannot change column type: date -> timestamp). Type promotion is an engine/library behavior independent of storage mode, so the S3 Tables result matches the S3-buckets measurement.",
       "caveats": [
-        "Measured with the prerequisite flag enabled, so this is not our configuration refusing it."
+        "date to timestamp (and date to timestamp_ns), valid v3 promotions per the spec, are rejected by Iceberg 1.11.0."
       ],
       "links": [
         {
-          "label": "Introducing AWS Glue 6.0",
-          "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+          "label": "Spark DDL \u2013 ALTER TABLE",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
+        }
+      ]
+    },
+    "aws-emr:column-default-values:v3": {
+      "level": "full",
+      "notes": "emr-spark-8.1.0 ships the same engine build as Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0), which clears the gap recorded on emr-spark-8.0.0 (Spark 4.0.2, Iceberg 1.10.1). Against S3 Tables through the federated s3tablescatalog, a DEFAULT clause on a V3 table is accepted and the default is applied to a row inserted without that column. Requires spark.sql.defaultColumn.enabled=true, which is off by default; without it the clause is refused during analysis, which is what the 8.0 'none' recorded.",
+      "caveats": [
+        "Needs spark.sql.defaultColumn.enabled=true in the job's Spark configuration; the feature is unavailable with the defaults.",
+        "AWS-specific: open-source Spark 4.1 with Iceberg 1.11.0 still rejects a DEFAULT clause with UNSUPPORTED_FEATURE.TABLE_OPERATION."
+      ],
+      "links": [
+        {
+          "label": "AWS runtime for Apache Spark (emr-spark-8.1.0)",
+          "url": "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark810-release.html"
         }
       ]
     },
@@ -296,36 +305,42 @@
       ]
     },
     "aws-emr:shredded-variant:v3": {
-      "level": "none",
-      "notes": "Not supported on EMR 8.0 / Spark 4.0.x. Spark 4.0 introduces the VARIANT data type, but its writer does not produce shredded variants (the Parquet typed/shredded variant encoding that stores common nested fields as real columns for pruning and predicate pushdown); VARIANT values are written as unshredded binary. Shredded-variant writing arrives with newer Spark and Parquet releases, not the Spark 4.0.2 bundled in EMR 8.0.",
+      "level": "full",
+      "notes": "emr-spark-8.1.0 ships the same engine build as Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0). A V3 table with write.parquet.variant-shredding.enabled=true accepts and writes VARIANT data with the shredded layout, clearing the 8.0 gap where the Spark 4.0.2 writer produced only unshredded binary. The amzn build differs here from OSS Spark 4.1.2 + Iceberg 1.11.0, which accepts the property but writes only unshredded metadata/value binary.",
       "caveats": [
-        "VARIANT columns themselves work (see variant-type); only the shredded storage layout is missing",
-        "Engine-side limitation: applies regardless of catalog, including S3 Tables"
-      ]
-    },
-    "aws-emr:geometry-type:v3": {
-      "level": "none",
-      "notes": "Measured on emr-spark-8.0.0 (Spark 4.0.2-amzn-0, Iceberg 1.10.1-amzn-0) against S3 Tables through the federated s3tablescatalog: CREATE TABLE with GEOMETRY(4326) and GEOGRAPHY(4326) columns is rejected with UNSUPPORTED_DATATYPE. Measured with spark.sql.geospatial.enabled set, so this is the runtime lacking the types rather than the session gating them. Glue 6.0 accepts the same DDL, which again puts the difference in the Spark build rather than in Iceberg.",
-      "caveats": [
-        "Measured with the geospatial flag enabled, so it is not the session gate that refused."
+        "VARIANT columns themselves already worked on 8.0 (see variant-type); 8.1 adds the shredded storage layout."
       ],
       "links": [
         {
-          "label": "Introducing AWS Glue 6.0",
-          "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+          "label": "AWS runtime for Apache Spark (emr-spark-8.1.0)",
+          "url": "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark810-release.html"
+        }
+      ]
+    },
+    "aws-emr:geometry-type:v3": {
+      "level": "full",
+      "notes": "emr-spark-8.1.0 ships the same engine build as Glue 6.0 (Spark 4.1.1-amzn-0, Iceberg 1.11.0-amzn-0), which clears the gap recorded on emr-spark-8.0.0 (Spark 4.0.2, Iceberg 1.10.1). Against S3 Tables through the federated s3tablescatalog, CREATE TABLE with GEOMETRY(4326) and GEOGRAPHY(4326) columns on a V3 table is accepted. This is an AWS addition rather than upstream behaviour -- AWS states neither type is supported in open-source Spark 4.1, and the same DDL is rejected there.",
+      "caveats": [
+        "AWS-specific: does not transfer to open-source Spark, where the same DDL fails."
+      ],
+      "links": [
+        {
+          "label": "AWS runtime for Apache Spark (emr-spark-8.1.0)",
+          "url": "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark810-release.html"
         }
       ]
     },
     "aws-emr:nanosecond-timestamps:v3": {
-      "level": "none",
-      "notes": "Measured on emr-spark-8.0.0 (Spark 4.0.2-amzn-0, Iceberg 1.10.1-amzn-0) against S3 Tables through the federated s3tablescatalog: both spellings are rejected with UNSUPPORTED_DATATYPE -- the Iceberg spec name TIMESTAMP_NS and Spark's parameterised TIMESTAMP_NTZ(9). The level is unchanged, but it is now measured rather than inferred from open-source Spark. Worth contrasting with Glue 6.0, where TIMESTAMP_NTZ(9) works: AWS added parameterised timestamp precision in the Spark 4.1.1 build Glue 6.0 ships, and EMR's Spark 4.0.2 build does not have it. So this is a runtime-version gap, not an Iceberg one.",
+      "level": "full",
+      "notes": "emr-spark-8.1.0 ships Spark 4.1.1-amzn-0 and Iceberg 1.11.0-amzn-0 -- the same build as Glue 6.0 -- which closes the runtime-version gap the 8.0 note predicted. Against S3 Tables through the federated s3tablescatalog, TIMESTAMP_NTZ(9) and TIMESTAMP_LTZ(9) map to Iceberg timestamp_ns and timestamptz_ns and are accepted on a V3 table. AWS added parameterised timestamp precision in this Spark 4.1.1 build; the Spark 4.0.2 that emr-spark-8.0.0 shipped did not have it, which is why that release read 'none'.",
       "caveats": [
-        "Expected to change if an EMR release ships the Spark build that Glue 6.0 uses."
+        "Spark's parameterised spelling (TIMESTAMP_NTZ(9)) is required; the Iceberg spec name TIMESTAMP_NS is rejected with UNSUPPORTED_DATATYPE.",
+        "AWS-specific: does not transfer to open-source Spark 4.1."
       ],
       "links": [
         {
-          "label": "Introducing AWS Glue 6.0",
-          "url": "https://aws.amazon.com/blogs/big-data/introducing-aws-glue-6-0-for-apache-spark/"
+          "label": "AWS runtime for Apache Spark (emr-spark-8.1.0)",
+          "url": "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark810-release.html"
         }
       ]
     },
