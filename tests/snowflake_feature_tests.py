@@ -623,27 +623,72 @@ def test_hidden_partitioning() -> TestResult:
     return _run(r, body)
 
 
+def _partition_specs(ns: str, table: str) -> tuple:
+    """(current_partition_spec_id, partition_specs JSON text) from SHOW ICEBERG
+    TABLES -- the catalog's own view of the spec history, independent of what a
+    query happens to return."""
+    rows = sql(f"SHOW ICEBERG TABLES LIKE '{table.upper()}' IN SCHEMA {DATABASE}.{ns} "
+               "->> SELECT \"current_partition_spec_id\", \"partition_specs\" FROM $1")
+    assert rows, f"SHOW ICEBERG TABLES returned nothing for {ns}.{table}"
+    spec_id, specs = rows[0][0], rows[0][1]
+    return (int(spec_id) if spec_id is not None else None,
+            specs if isinstance(specs, str) else json.dumps(specs))
+
+
+def _partition_evolution_body(version: str):
+    """Shared body for the v2 and v3 cells.
+
+    Partition evolution is GA for Snowflake-managed tables (Sep 18, 2026) via
+    ALTER ICEBERG TABLE ... ADD | DROP | REPLACE PARTITION BY. A row count after
+    REPLACE would also hold if the statement were a silent no-op, so the spec
+    change is verified through the catalog: current_partition_spec_id must
+    advance and the new transform must appear in partition_specs. Then a row is
+    written under the new spec and both rows must read back, including with a
+    predicate on the (ex-)partition column, which is the point of evolving the
+    spec without rewriting data.
+    """
+    def body(ns, r):
+        q = _create_iceberg(ns, "t", "id INT, ts TIMESTAMP_NTZ, region STRING", version,
+                            extra_props="PARTITION BY (DAY(ts))")
+        sql(f"INSERT INTO {q} VALUES (1, '2026-01-01 10:00:00', 'eu')")
+        spec0, specs0 = _partition_specs(ns, "t")
+
+        sql(f"ALTER ICEBERG TABLE {q} REPLACE PARTITION BY (DAY(ts)) WITH (MONTH(ts))")
+        spec1, specs1 = _partition_specs(ns, "t")
+        assert spec1 != spec0, f"REPLACE did not advance the spec id ({spec0} -> {spec1}): {specs1}"
+        assert "month" in specs1.lower(), f"MONTH(ts) not in partition_specs after REPLACE: {specs1}"
+        sql(f"INSERT INTO {q} VALUES (2, '2026-02-01 10:00:00', 'us')")
+
+        sql(f"ALTER ICEBERG TABLE {q} ADD PARTITION BY (region)")
+        spec2, specs2 = _partition_specs(ns, "t")
+        assert spec2 != spec1, f"ADD did not advance the spec id ({spec1} -> {spec2}): {specs2}"
+        sql(f"INSERT INTO {q} VALUES (3, '2026-03-01 10:00:00', 'apac')")
+
+        sql(f"ALTER ICEBERG TABLE {q} DROP PARTITION BY (region)")
+        spec3, _ = _partition_specs(ns, "t")
+        assert spec3 != spec2, f"DROP did not advance the spec id ({spec2} -> {spec3})"
+
+        n = sql(f"SELECT count(*) FROM {q}")[0][0]
+        assert n == 3, f"expected 3 rows across the specs, got {n}"
+        jan = sql(f"SELECT count(*) FROM {q} WHERE ts >= '2026-01-01' AND ts < '2026-02-01'")[0][0]
+        assert jan == 1, f"predicate on the evolved partition column returned {jan} rows, expected 1"
+        r.result = "pass"
+        r.details = (f"v{version} managed table: REPLACE DAY(ts)->MONTH(ts), ADD region, DROP region "
+                     f"each advanced current_partition_spec_id ({spec0}->{spec1}->{spec2}->{spec3}); "
+                     "rows written under three specs read back, predicate on ts pruned correctly")
+    return body
+
+
 def test_partition_evolution() -> TestResult:
     r = TestResult("partition-evolution", "Partition Evolution", "v2")
+    return _run(r, _partition_evolution_body("2"))
 
-    def body(ns, r):
-        q = _qualified(ns, "t")
-        sql(f"CREATE ICEBERG TABLE {q} (id INT, ts TIMESTAMP_NTZ) "
-            "CATALOG = 'SNOWFLAKE' ICEBERG_VERSION = 2 "
-            + " ".join(_storage_clause(ns, "t"))
-            + " PARTITION BY (DAY(ts))")
-        sql(f"INSERT INTO {q} VALUES (1, '2026-01-01 10:00:00')")
-        # Partition evolution is GA for Snowflake-managed tables (Sep 18, 2026)
-        # via ALTER ICEBERG TABLE ... ADD | DROP | REPLACE PARTITION BY.
-        sql(f"ALTER ICEBERG TABLE {q} REPLACE PARTITION BY (DAY(ts)) WITH (MONTH(ts))")
-        sql(f"INSERT INTO {q} VALUES (2, '2026-02-01 10:00:00')")
-        n = sql(f"SELECT count(*) FROM {q} WHERE ts >= '2026-01-01'")[0][0]
-        assert n == 2, f"expected 2 rows across both specs, got {n}"
-        r.result = "pass"
-        r.details = ("Partition spec evolved in place (DAY -> MONTH) on a managed "
-                     "table; rows written under both specs read back")
 
-    return _run(r, body)
+def test_partition_evolution_v3() -> TestResult:
+    # Separate cell: the matrix rates v3 on the strength of docs that do not
+    # distinguish format versions, so it is measured on a V3 table of its own.
+    r = TestResult("partition-evolution", "Partition Evolution", "v3")
+    return _run(r, _partition_evolution_body("3"))
 
 
 def test_multi_arg_transforms() -> TestResult:
@@ -859,6 +904,7 @@ ALL_TESTS = [
     test_branching_tagging,
     test_hidden_partitioning,
     test_partition_evolution,
+    test_partition_evolution_v3,
     test_multi_arg_transforms,
     test_variant_type,
     test_shredded_variant,
