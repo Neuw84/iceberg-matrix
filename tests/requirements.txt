@@ -3,3 +3,4 @@ getdaft
 pyiceberg[sql-sqlite,pyarrow]==0.11.1
 duckdb
 clickhouse-connect
+trino

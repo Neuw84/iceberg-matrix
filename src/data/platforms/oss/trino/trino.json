@@ -79,9 +79,11 @@
       ]
     },
     "trino:copy-on-write:v2": {
-      "level": "full",
-      "notes": "Trino supports copy-on-write row mutations (rewriting affected data files) via table properties or session configurations",
-      "caveats": [],
+      "level": "none",
+      "notes": "Measured against Trino 483: the connector has no copy-on-write mode. The delete_mode / update_mode table properties are rejected (INVALID_TABLE_PROPERTY) and all row-level mutations (DELETE, UPDATE, MERGE) are merge-on-read, writing positional delete files rather than rewriting data files",
+      "caveats": [
+        "No copy-on-write write strategy; row-level mutations are always merge-on-read"
+      ],
       "links": [
         {
           "label": "Trino Iceberg connector",
@@ -90,9 +92,11 @@
       ]
     },
     "trino:copy-on-write:v3": {
-      "level": "full",
-      "notes": "Copy-on-write write strategy is supported for V3 tables",
-      "caveats": [],
+      "level": "none",
+      "notes": "Measured against Trino 483: no copy-on-write mode on V3 tables either; row-level mutations are merge-on-read (deletion vectors)",
+      "caveats": [
+        "No copy-on-write write strategy; row-level mutations are always merge-on-read"
+      ],
       "links": [
         {
           "label": "Trino Iceberg connector",
@@ -291,24 +295,28 @@
       ]
     },
     "trino:branching-tagging:v2": {
-      "level": "full",
-      "notes": "Full support for managing and querying branches and tags via ALTER TABLE ... CREATE BRANCH / CREATE TAG, writing to branches, and querying via FOR VERSION AS OF 'branch_or_tag_name'",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Read-only. Measured against Trino 483: branches and tags created by another engine are listed in the $refs metadata table and can be queried with FOR VERSION AS OF '<branch_or_tag>'. Trino cannot create them: there is no CREATE BRANCH / CREATE TAG DDL and no create_branch / create_tag table procedure (PROCEDURE_NOT_FOUND)",
+      "caveats": [
+        "Trino reads/queries branches and tags but cannot create them"
+      ],
       "links": [
         {
           "label": "Trino Iceberg branching and tagging",
-          "url": "https://trino.io/docs/483/connector/iceberg.html"
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
         }
       ]
     },
     "trino:branching-tagging:v3": {
-      "level": "full",
-      "notes": "Branching and tagging operations supported on V3 tables",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Read-only on V3 tables as well: Trino queries existing branches and tags via FOR VERSION AS OF but provides no DDL or procedure to create them",
+      "caveats": [
+        "Trino reads/queries branches and tags but cannot create them"
+      ],
       "links": [
         {
           "label": "Trino Iceberg branching and tagging",
-          "url": "https://trino.io/docs/483/connector/iceberg.html"
+          "url": "https://trino.io/docs/current/connector/iceberg.html"
         }
       ]
     },
@@ -642,10 +650,16 @@
       "caveats": []
     },
     "trino:unknown-type:v3": {
-      "level": "unknown",
-      "notes": "Support for declaring or querying the Iceberg V3 unknown column type is not documented in Trino",
+      "level": "none",
+      "notes": "Measured against Trino 483: reading a V3 table that has an Iceberg unknown-type column fails with NOT_SUPPORTED (\"Cannot convert from Iceberg type 'unknown' (UNKNOWN) to Trino type\"). Trino cannot declare or query the unknown type",
       "caveats": [
-        "V3-only feature; Trino support not documented"
+        "V3-only feature; Trino cannot map the Iceberg unknown type"
+      ],
+      "links": [
+        {
+          "label": "Trino Iceberg connector",
+          "url": "https://trino.io/docs/483/connector/iceberg.html"
+        }
       ]
     },
     "trino:lineage:v2": {

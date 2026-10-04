@@ -130,9 +130,9 @@ uv run python tests/iceberg_feature_tests.py
 
 All the open-source engine suites (`iceberg_feature_tests.py` for Spark,
 `duckdb_feature_tests.py`, `pyiceberg_feature_tests.py`, `daft_feature_tests.py`,
-`clickhouse_feature_tests.py`, `flink_feature_tests.py`) run against one shared
-Iceberg REST catalog so that a table created by one engine can be inspected or
-mutated by another. The catalog is [Apache Polaris](https://polaris.apache.org)
+`clickhouse_feature_tests.py`, `flink_feature_tests.py`, `trino_feature_tests.py`)
+run against one shared Iceberg REST catalog so that a table created by one engine
+can be inspected or mutated by another. The catalog is [Apache Polaris](https://polaris.apache.org)
 1.7 backed by RustFS, defined in `tests/docker/docker-compose.polaris.yml`:
 
 ```bash
@@ -149,9 +149,12 @@ columns that Spark cannot write, DuckDB) create fixture tables in that catalog:
 merge-on-read vs copy-on-write tables, equality-delete files written through
 the Iceberg Java API, deletion vectors, column defaults. Each engine suite then
 measures the read/write half it can actually exercise instead of asserting the
-matrix value. Flink runs in Docker (`tests/docker/start-flink.sh`) against the
-same catalog; run the suites one at a time, concurrent Spark + Flink runs can
-exhaust Docker memory.
+matrix value. Flink and Trino run in Docker (`tests/docker/start-flink.sh`,
+`tests/docker/start-trino.sh`) against the same catalog; Trino's Iceberg
+connector speaks the REST protocol natively (`iceberg.catalog.type=rest`), so
+it drives most cells in Trino SQL and only leans on the Spark/DuckDB fixtures
+for the V3 columns and equality deletes it cannot write. Run the suites one at a
+time, concurrent Spark + Flink runs can exhaust Docker memory.
 
 The suite also enforces **matrix coverage**: every feature defined in
 `src/data/features.json` must have a corresponding `test_*` function registered
