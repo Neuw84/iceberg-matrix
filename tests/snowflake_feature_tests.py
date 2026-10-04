@@ -633,21 +633,15 @@ def test_partition_evolution() -> TestResult:
             + " ".join(_storage_clause(ns, "t"))
             + " PARTITION BY (DAY(ts))")
         sql(f"INSERT INTO {q} VALUES (1, '2026-01-01 10:00:00')")
-        _expect_rejection(
-            r,
-            lambda: sql(f"ALTER ICEBERG TABLE {q} SET PARTITION BY (MONTH(ts))"),
-            accepted_details="Partition spec changed in place on an existing table",
-            rejected_details="In-place partition spec change rejected",
-        )
-        if r.result == "fail":
-            # The matrix cell is partial on the strength of the half this probe
-            # cannot measure: writes conforming to a spec evolved by an external
-            # catalog. A single-engine probe can only measure the SQL surface,
-            # so a rejection here is recorded but does not adjudicate the cell.
-            r.details = ("No SQL surface to evolve the spec of a managed table "
-                         f"(measured); the partial rating rests on writes to "
-                         f"externally-evolved specs, unmeasurable here. {r.details}")
-            r.result = "skip"
+        # Partition evolution is GA for Snowflake-managed tables (Sep 18, 2026)
+        # via ALTER ICEBERG TABLE ... ADD | DROP | REPLACE PARTITION BY.
+        sql(f"ALTER ICEBERG TABLE {q} REPLACE PARTITION BY (DAY(ts)) WITH (MONTH(ts))")
+        sql(f"INSERT INTO {q} VALUES (2, '2026-02-01 10:00:00')")
+        n = sql(f"SELECT count(*) FROM {q} WHERE ts >= '2026-01-01'")[0][0]
+        assert n == 2, f"expected 2 rows across both specs, got {n}"
+        r.result = "pass"
+        r.details = ("Partition spec evolved in place (DAY -> MONTH) on a managed "
+                     "table; rows written under both specs read back")
 
     return _run(r, body)
 
