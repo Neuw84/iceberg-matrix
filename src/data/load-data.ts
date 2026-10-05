@@ -7,6 +7,7 @@ import bEmr from "./platforms/aws/s3buckets/emr/emr.json";
 import bGlue from "./platforms/aws/s3buckets/glue/glue.json";
 import bManagedFlink from "./platforms/aws/s3buckets/managed-flink/managed-flink.json";
 import bRedshift from "./platforms/aws/s3buckets/redshift-s3/redshift-s3.json";
+import bAurora from "./platforms/aws/s3buckets/aurora/aurora.json";
 // firehose intentionally NOT imported (staged, excluded from app)
 
 // --- AWS S3 tables engines (same order) ---
@@ -15,6 +16,7 @@ import tEmr from "./platforms/aws/s3tables/emr/emr.json";
 import tGlue from "./platforms/aws/s3tables/glue/glue.json";
 import tManagedFlink from "./platforms/aws/s3tables/managed-flink/managed-flink.json";
 import tRedshift from "./platforms/aws/s3tables/redshift-s3/redshift-s3.json";
+import tAurora from "./platforms/aws/s3tables/aurora/aurora.json";
 // firehose intentionally NOT imported (staged, excluded from app)
 
 // --- Non-AWS vendors (order: gcp, azure, databricks, snowflake, oss) ---
@@ -73,8 +75,8 @@ const postSnowflakeEngines: EngineFile[] = [
   oracle26ai,
 ];
 
-const awsBucketsEngines: EngineFile[] = [bAthena, bEmr, bGlue, bManagedFlink, bRedshift];
-const awsTablesEngines: EngineFile[] = [tAthena, tEmr, tGlue, tManagedFlink, tRedshift];
+const awsBucketsEngines: EngineFile[] = [bAthena, bEmr, bGlue, bManagedFlink, bRedshift, bAurora];
+const awsTablesEngines: EngineFile[] = [tAthena, tEmr, tGlue, tManagedFlink, tRedshift, tAurora];
 
 // Pure merge: concatenate platforms in input order (AWS engines first, then
 // non-AWS with the mode-selected Snowflake file in its fixed slot between

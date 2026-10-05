@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Amazon Aurora">
+  <defs>
+    <linearGradient id="auroraG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2E27AD"/>
+      <stop offset="1" stop-color="#527FFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="8" fill="url(#auroraG)"/>
+  <path fill="#FFFFFF" d="M24 9c-6.6 0-12 3.1-12 7v16c0 3.9 5.4 7 12 7s12-3.1 12-7V16c0-3.9-5.4-7-12-7zm0 2.4c5.6 0 9.6 2.5 9.6 4.6S29.6 20.6 24 20.6 14.4 18.1 14.4 16s4-4.6 9.6-4.6zM14.4 19.3c2 1.6 5.5 2.7 9.6 2.7s7.6-1.1 9.6-2.7V24c0 2.1-4 4.6-9.6 4.6S14.4 26.1 14.4 24v-4.7zm0 8c2 1.6 5.5 2.7 9.6 2.7s7.6-1.1 9.6-2.7V32c0 2.1-4 4.6-9.6 4.6S14.4 34.1 14.4 32v-4.7z"/>
+</svg>

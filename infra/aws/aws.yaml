@@ -119,6 +119,15 @@ Parameters:
       Security groups for the workgroup. Leave empty to use the VPC default.
       Nothing needs inbound access: the tests reach Redshift over the Data API,
       which is an AWS API call rather than a database connection.
+  AuroraVpcId:
+    Type: String
+    Default: vpc-05d79215deea05be6
+    Description: >
+      VPC the Aurora platform stack (infra/aws/aurora/aurora.yaml) is deployed
+      into. The CI role's EC2 create/modify/delete grants for the bastion,
+      security groups and VPC endpoints are conditioned on this VPC, so the role
+      can only touch networking in this one VPC. Defaults to the account's
+      default VPC; change it if the Aurora stack is deployed elsewhere.
 
 Conditions:
   CreateDatabricksRole: !Not [!Equals [!Ref DatabricksAccountId, '']]
@@ -869,6 +878,231 @@ Resources:
                 Resource:
                   - !Ref TableBucketArn
                   - !Sub '${TableBucketArn}/*'
+
+        # Aurora is driven through a standing cluster + SSM bastion that this
+        # role provisions from infra/aws/aurora/aurora.yaml and tears down after.
+        # Every grant is scoped to the icebergmatrix-aurora* names, the one VPC
+        # the stack lives in (AuroraVpcId), or the SSM/Secrets paths a run
+        # actually touches.
+        - PolicyName: drive-aurora
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # CloudFormation stack lifecycle for the Aurora stack only.
+              - Effect: Allow
+                Action:
+                  - cloudformation:CreateStack
+                  - cloudformation:UpdateStack
+                  - cloudformation:DeleteStack
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:DescribeStackResources
+                  - cloudformation:GetTemplate
+                  - cloudformation:CreateChangeSet
+                  - cloudformation:DescribeChangeSet
+                  - cloudformation:ExecuteChangeSet
+                  - cloudformation:DeleteChangeSet
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/icebergmatrix-aurora/*'
+
+              # RDS cluster/instance/subnet/parameter group, scoped by identifier.
+              # Describe* and CreateDBSubnetGroup take no resource qualifier RDS
+              # can enforce, so they stay on '*'.
+              - Effect: Allow
+                Action:
+                  - rds:CreateDBCluster
+                  - rds:DeleteDBCluster
+                  - rds:ModifyDBCluster
+                  - rds:CreateDBInstance
+                  - rds:DeleteDBInstance
+                  - rds:ModifyDBInstance
+                  - rds:CreateDBSubnetGroup
+                  - rds:DeleteDBSubnetGroup
+                  - rds:CreateDBClusterParameterGroup
+                  - rds:DeleteDBClusterParameterGroup
+                  - rds:ModifyDBClusterParameterGroup
+                  - rds:AddTagsToResource
+                  - rds:RemoveTagsFromResource
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:rds:${AWS::Region}:${AWS::AccountId}:cluster:icebergmatrix-aurora*'
+                  - !Sub 'arn:${AWS::Partition}:rds:${AWS::Region}:${AWS::AccountId}:db:icebergmatrix-aurora*'
+                  - !Sub 'arn:${AWS::Partition}:rds:${AWS::Region}:${AWS::AccountId}:subgrp:icebergmatrix-aurora*'
+                  - !Sub 'arn:${AWS::Partition}:rds:${AWS::Region}:${AWS::AccountId}:cluster-pg:icebergmatrix-aurora*'
+              - Effect: Allow
+                Action:
+                  - rds:DescribeDBClusters
+                  - rds:DescribeDBInstances
+                  - rds:DescribeDBSubnetGroups
+                  - rds:DescribeDBClusterParameterGroups
+                  - rds:DescribeDBClusterParameters
+                Resource: '*'
+
+              # EC2 create actions cannot name a resource that does not exist
+              # yet, so they authorise on '*' but are fenced to AuroraVpcId: the
+              # role can only make security groups, endpoints and instances in
+              # that one VPC. RunInstances is additionally pinned to t3.micro.
+              - Effect: Allow
+                Action:
+                  - ec2:CreateSecurityGroup
+                  - ec2:CreateVpcEndpoint
+                  - ec2:ModifyVpcEndpoint
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    'ec2:Vpc': !Sub 'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:vpc/${AuroraVpcId}'
+              - Effect: Allow
+                Action:
+                  - ec2:AuthorizeSecurityGroupIngress
+                  - ec2:AuthorizeSecurityGroupEgress
+                  - ec2:RevokeSecurityGroupIngress
+                  - ec2:RevokeSecurityGroupEgress
+                  - ec2:DeleteSecurityGroup
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    'ec2:Vpc': !Sub 'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:vpc/${AuroraVpcId}'
+              - Effect: Allow
+                Action:
+                  - ec2:RunInstances
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    'ec2:Vpc': !Sub 'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:vpc/${AuroraVpcId}'
+                  'ForAnyValue:StringEqualsIfExists':
+                    'ec2:InstanceType':
+                      - t3.micro
+              - Effect: Allow
+                Action:
+                  - ec2:DeleteVpcEndpoints
+                  - ec2:TerminateInstances
+                  - ec2:CreateTags
+                  - ec2:DeleteTags
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    'ec2:ResourceTag/aws:cloudformation:stack-name': icebergmatrix-aurora
+              # Describe* is read-only and takes no resource qualifier.
+              - Effect: Allow
+                Action:
+                  - ec2:Describe*
+                Resource: '*'
+
+              # Run SQL on the bastion only: scoped to the AWS-RunShellScript
+              # document and to instances tagged with the Aurora stack, so this
+              # cannot command any other managed instance in the account.
+              - Effect: Allow
+                Action: ssm:SendCommand
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}::document/AWS-RunShellScript'
+              - Effect: Allow
+                Action: ssm:SendCommand
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
+                Condition:
+                  StringEquals:
+                    'ssm:resourceTag/aws:cloudformation:stack-name': icebergmatrix-aurora
+              - Effect: Allow
+                Action:
+                  - ssm:GetCommandInvocation
+                  - ssm:DescribeInstanceInformation
+                Resource: '*'
+
+              # Read the managed master-user secret. Service-created, so it
+              # carries the reserved "rds!" prefix and this cannot widen to one
+              # of ours.
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                Resource: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rds!*'
+
+              # Create the AuroraAnalytics + bastion roles the stack defines and
+              # the bastion instance profile, scoped to the stack's names.
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:DeleteRole
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:GetRole
+                  - iam:GetRolePolicy
+                  - iam:ListRolePolicies
+                  - iam:ListAttachedRolePolicies
+                  - iam:CreateInstanceProfile
+                  - iam:DeleteInstanceProfile
+                  - iam:AddRoleToInstanceProfile
+                  - iam:RemoveRoleFromInstanceProfile
+                  - iam:TagRole
+                  - iam:UntagRole
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/icebergmatrix-aurora*'
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:instance-profile/icebergmatrix-aurora*'
+
+              # Hand the AuroraAnalytics role to RDS and the bastion role to EC2,
+              # and nothing else.
+              - Effect: Allow
+                Action: iam:PassRole
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/icebergmatrix-aurora*'
+                Condition:
+                  StringEquals:
+                    'iam:PassedToService':
+                      - rds.amazonaws.com
+                      - ec2.amazonaws.com
+
+              # RDS creates its service-linked role on the first cluster create,
+              # the same pattern as EMR Serverless above. The condition means
+              # this can only ever create that one role, for that one service.
+              - Effect: Allow
+                Action: iam:CreateServiceLinkedRole
+                Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS'
+                Condition:
+                  StringEquals:
+                    'iam:AWSServiceName': rds.amazonaws.com
+
+        # Build the V2 Iceberg fixtures the Aurora suite reads (Athena engine v3
+        # writes them into a Glue database under the resource prefix). Scoped to
+        # the icebergmatrix* Glue names and the aurora/ prefix of the data
+        # bucket; Athena's own actions take no resource qualifier here.
+        - PolicyName: aurora-fixtures
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - athena:StartQueryExecution
+                  - athena:GetQueryExecution
+                  - athena:GetQueryResults
+                  - athena:StopQueryExecution
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:athena:${AWS::Region}:${AWS::AccountId}:workgroup/*'
+              - Effect: Allow
+                Action:
+                  - glue:CreateTable
+                  - glue:UpdateTable
+                  - glue:CreateDatabase
+                  - glue:BatchCreatePartition
+                  - glue:CreatePartition
+                  - glue:UpdatePartition
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:catalog'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:database/${ResourcePrefix}*'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:table/${ResourcePrefix}*/*'
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${DataBucket}/aurora/*'
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${DataBucket}'
+                Condition:
+                  StringLike:
+                    's3:prefix': aurora/*
 
   # ---------------------------------------------------------------------------
   # Cost guard. Not a limit, only an alarm: AWS budgets cannot stop spend.

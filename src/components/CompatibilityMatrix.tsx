@@ -65,6 +65,7 @@ const PLATFORM_LOGOS: Record<string, string> = {
   "aws-glue": "/logos/aws-glue.svg",
   "aws-managed-flink": "/logos/flink.svg",
   "aws-redshift-s3": "/logos/aws-redshift.svg",
+  "aws-aurora": "/logos/aurora.svg",
   databricks: "/logos/databricks.svg",
   snowflake: "/logos/snowflake.svg",
   duckdb: "/logos/duckdb.svg",

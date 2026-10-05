@@ -1,0 +1,764 @@
+{
+  "platforms": [
+    {
+      "id": "aws-aurora",
+      "name": "Aurora PostgreSQL (17.11)",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/query-iceberg-and-parquet-data.html"
+    }
+  ],
+  "support": {
+    "aws-aurora:read-support:v2": {
+      "level": "full",
+      "notes": "Measured on Aurora PostgreSQL 17.11 (aurora_analytics 1.0.0, us-east-1). The aurora_analytics extension embeds DuckDB and reads Iceberg V2 tables through read-only foreign tables: CREATE FOREIGN TABLE () SERVER aurora_analytics_server OPTIONS (location '<glue-arn | s3-uri>'). Verified end to end — a Glue-catalog table read back 13 rows with schema auto-inferred from Iceberg metadata (bigint->bigint, string->text, date->date, boolean->boolean), predicate filters and GROUP BY aggregation ran, and an Iceberg foreign table joined a Parquet foreign table in one query. S3-URI locations also work when they carry a version-hint.text or point at a metadata.json directly.",
+      "caveats": [
+        "Read-only: foreign tables cannot be written. INSERT/UPDATE/DELETE/TRUNCATE/COPY are rejected with 'Aurora Analytics foreign tables are read-only'",
+        "A bare s3:// directory URI needs version-hint.text; otherwise give the explicit metadata.json path"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:read-support:v3": {
+      "level": "partial",
+      "notes": "Measured on Aurora 17.11: Aurora reads the Iceberg V3 table format and returns rows (a format-version 3 table read back 4 rows), but the embedded DuckDB build rejects V3-specific data types. A VARIANT column fails with 'data type of column \"data\" is not supported'; with aurora_analytics.skip_unsupported_columns=true the column is dropped and the remaining V2-compatible columns read fine. So V3 tables are readable only to the extent their columns use V2-compatible types.",
+      "caveats": [
+        "V3 data types (VARIANT measured; GEOMETRY, nanosecond timestamp, unknown type inferred) are not readable",
+        "Read-only, as with V2"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:write-insert:v2": {
+      "level": "none",
+      "notes": "Aurora Analytics foreign tables are strictly read-only. Measured: INSERT INTO a foreign table is rejected with 'cannot insert into foreign table ... Aurora Analytics foreign tables are read-only'. To land data in Aurora you materialize it into a native PostgreSQL table (CREATE TABLE AS SELECT / INSERT INTO ... SELECT), which does not write back to Iceberg.",
+      "caveats": [
+        "No write path to Iceberg; materialization targets native Aurora tables only"
+      ],
+      "links": [
+        {
+          "label": "Limitations (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-limitations.html"
+        }
+      ]
+    },
+    "aws-aurora:write-insert:v3": {
+      "level": "none",
+      "notes": "No Iceberg write path on any format version; foreign tables are read-only.",
+      "caveats": [
+        "No write path to Iceberg"
+      ],
+      "links": [
+        {
+          "label": "Limitations (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-limitations.html"
+        }
+      ]
+    },
+    "aws-aurora:write-merge-update-delete:v2": {
+      "level": "none",
+      "notes": "Measured: UPDATE and DELETE against a foreign table are both rejected ('cannot update/delete ... Aurora Analytics foreign tables are read-only'); MERGE INTO a foreign table is likewise unsupported. Aurora never performs row-level mutations on Iceberg data.",
+      "caveats": [
+        "UPDATE/DELETE/MERGE on foreign tables rejected as read-only"
+      ],
+      "links": [
+        {
+          "label": "Limitations (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-limitations.html"
+        }
+      ]
+    },
+    "aws-aurora:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "No row-level mutation path on any format version; foreign tables are read-only.",
+      "caveats": [
+        "UPDATE/DELETE/MERGE unsupported"
+      ],
+      "links": [
+        {
+          "label": "Limitations (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-limitations.html"
+        }
+      ]
+    },
+    "aws-aurora:position-deletes:v2": {
+      "level": "full",
+      "notes": "Rated by read capability. Measured: Aurora correctly applies V2 merge-on-read position deletes at read time. A V2 table seeded with 5 rows and then DELETE'd down to 3 (via Athena, which writes positional delete files) read back exactly 3 rows (ids 1,3,5) through an Aurora foreign table.",
+      "caveats": [
+        "Read-only: Aurora reads and merges position deletes but never writes delete files itself"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:position-deletes:v3": {
+      "level": "full",
+      "notes": "Aurora reads the V3 table format and applies merge-on-read deletes recorded against it for V2-compatible columns. Rated by read capability, consistent with the V2 measurement.",
+      "caveats": [
+        "Read-only: never writes delete files",
+        "Only V2-compatible column types are readable on V3 tables"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Aurora writes no delete files (read-only), so it never produces equality deletes. Reading a table that already contains equality-delete files was not exercised in this probe, so no read capability is claimed.",
+      "caveats": [
+        "Read-only; equality-delete read path unmeasured"
+      ],
+      "links": [
+        {
+          "label": "Limitations (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-limitations.html"
+        }
+      ]
+    },
+    "aws-aurora:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Equality deletes are replaced by deletion vectors in V3; Aurora writes neither and its V3 read path is limited to V2-compatible types.",
+      "caveats": [
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Limitations (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-limitations.html"
+        }
+      ]
+    },
+    "aws-aurora:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Rated by read capability. Aurora resolves V2 merge-on-read tables correctly at query time (see position-deletes: a DELETE'd table read back the right surviving rows). It merges delete files on read but, being read-only, never chooses or writes a merge-on-read strategy itself.",
+      "caveats": [
+        "Read-only: merges delete files at read time; does not write them"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:merge-on-read:v3": {
+      "level": "none",
+      "notes": "V3 merge-on-read uses Puffin deletion vectors. Aurora's embedded DuckDB build does not read V3 deletion vectors / V3 types (VARIANT measured unsupported), so a V3 merge-on-read table is not reliably resolvable; not exercised against a real deletion-vector fixture.",
+      "caveats": [
+        "V3 deletion-vector read path unsupported/unmeasured",
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:copy-on-write:v2": {
+      "level": "none",
+      "notes": "Copy-on-write is a write strategy (rewriting data files on mutation). Aurora performs no Iceberg writes, so it has no copy-on-write capability. It can of course read a table that another engine wrote copy-on-write, but that is covered by read-support.",
+      "caveats": [
+        "Read-only; write strategy not applicable"
+      ],
+      "links": [
+        {
+          "label": "Limitations (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-limitations.html"
+        }
+      ]
+    },
+    "aws-aurora:copy-on-write:v3": {
+      "level": "none",
+      "notes": "No write path on any format version; copy-on-write not applicable.",
+      "caveats": [
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Limitations (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-limitations.html"
+        }
+      ]
+    },
+    "aws-aurora:schema-evolution:v2": {
+      "level": "none",
+      "notes": "Schema evolution is a write/DDL operation on the Iceberg table (ADD/DROP/RENAME column, change type) and Aurora performs no Iceberg writes. ALTER FOREIGN TABLE exists but changes only PostgreSQL catalog metadata (how Aurora interprets the external data); it does not evolve the Iceberg schema. Aurora does transparently read a table whose schema was evolved by another engine.",
+      "caveats": [
+        "ALTER FOREIGN TABLE is metadata-only; it does not write Iceberg schema changes",
+        "Reads schema-evolved tables fine (that is read-support)"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:schema-evolution:v3": {
+      "level": "none",
+      "notes": "No Iceberg DDL on any format version; ALTER FOREIGN TABLE is PostgreSQL-metadata-only.",
+      "caveats": [
+        "Read-only; no Iceberg schema writes"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:type-promotion:v2": {
+      "level": "none",
+      "notes": "Type promotion is a schema-write operation; Aurora does not write Iceberg schemas. ALTER FOREIGN TABLE ... ALTER COLUMN TYPE changes only the PostgreSQL foreign-table definition, not the Iceberg table.",
+      "caveats": [
+        "Read-only; no Iceberg schema writes"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:type-promotion:v3": {
+      "level": "none",
+      "notes": "No Iceberg schema writes on any format version.",
+      "caveats": [
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 metadata feature and in any case require writing table metadata, which Aurora does not do.",
+      "caveats": [
+        "Read-only; V3 feature"
+      ]
+    },
+    "aws-aurora:column-default-values:v3": {
+      "level": "none",
+      "notes": "Aurora writes no Iceberg metadata, so it cannot declare column default values. A DEFAULT clause on a foreign table is stored in PostgreSQL metadata only and not enforced against the external data.",
+      "caveats": [
+        "Read-only; foreign-table DEFAULT is documentation-only, not enforced"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:table-creation:v2": {
+      "level": "none",
+      "notes": "Aurora cannot create Iceberg tables. CREATE FOREIGN TABLE registers a read-only pointer to data another engine created; it does not create an Iceberg table. There is no CREATE TABLE path to Iceberg.",
+      "caveats": [
+        "Read-only; CREATE FOREIGN TABLE only registers existing external data"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:table-creation:v3": {
+      "level": "none",
+      "notes": "No Iceberg table creation on any format version.",
+      "caveats": [
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Rated by read capability. Measured: Aurora reads a hidden-partitioned table (PARTITIONED BY day(ts), bucket(4, cat)) transparently — 3 rows total, and a predicate on ts returned the expected 2 rows, so partition pruning/filtering works without exposing partition columns.",
+      "caveats": [
+        "Read-only: cannot define or change partitioning"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Reads hidden-partitioned V3 tables for V2-compatible columns, same read path as V2.",
+      "caveats": [
+        "Read-only",
+        "Only V2-compatible column types readable on V3 tables"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:partition-evolution:v2": {
+      "level": "full",
+      "notes": "Rated by read capability. Aurora reads tables whose partition spec was evolved, returning rows written under different specs in a single scan (measured: a table carrying rows under an evolved spec read back all rows). Partition evolution itself is a producer-side DDL operation Aurora does not perform.",
+      "caveats": [
+        "Read-only: reads across evolved specs but cannot evolve partitioning"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Not exercised on a V3 evolved-spec table; V3 read support is limited to V2-compatible types and the deletion-vector/evolved-spec combination was not measured.",
+      "caveats": [
+        "Read-only; V3 evolved-spec read unmeasured"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 partitioning feature and are a producer-side declaration Aurora cannot make (read-only).",
+      "caveats": [
+        "Read-only; V3 feature"
+      ]
+    },
+    "aws-aurora:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Aurora declares no partitioning (read-only) and its V3 support does not cover advanced partition transforms; not measured.",
+      "caveats": [
+        "Read-only; unmeasured on V3"
+      ]
+    },
+    "aws-aurora:time-travel:v2": {
+      "level": "full",
+      "notes": "Measured first-class. A foreign table carries OPTIONS (snapshot '<id>') or OPTIONS (timestamp '<ts>'), resolved at table-creation time. Verified: the oldest snapshot of a 5-snapshot table read back 4 rows versus 13 at the latest, and a timestamp before any data returned 0 rows. snapshot and timestamp are mutually exclusive.",
+      "caveats": [
+        "Snapshot/timestamp is fixed at foreign-table creation; re-create or ALTER OPTIONS to move it"
+      ],
+      "links": [
+        {
+          "label": "Querying a specific Iceberg snapshot / timestamp (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:time-travel:v3": {
+      "level": "full",
+      "notes": "The snapshot/timestamp OPTIONS apply regardless of format version; time travel works on V3 tables for V2-compatible columns.",
+      "caveats": [
+        "Only V2-compatible column types readable on V3 tables"
+      ],
+      "links": [
+        {
+          "label": "Querying a specific Iceberg snapshot / timestamp (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Aurora provides no Iceberg maintenance operations (compaction, expire snapshots, orphan-file removal, manifest rewrite). These are writes to the table and Aurora is read-only.",
+      "caveats": [
+        "Read-only; no maintenance procedures"
+      ],
+      "links": [
+        {
+          "label": "Limitations (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-limitations.html"
+        }
+      ]
+    },
+    "aws-aurora:table-maintenance:v3": {
+      "level": "none",
+      "notes": "No Iceberg maintenance operations on any format version.",
+      "caveats": [
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Limitations (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-limitations.html"
+        }
+      ]
+    },
+    "aws-aurora:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Aurora cannot create or move branches/tags (write operations). The foreign-table OPTIONS expose snapshot and timestamp for time travel but no branch/tag reference.",
+      "caveats": [
+        "Read-only; no branch/tag management",
+        "Foreign-table OPTIONS address snapshots by id/timestamp, not by ref name"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:branching-tagging:v3": {
+      "level": "none",
+      "notes": "No branch/tag management on any format version.",
+      "caveats": [
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Measured. Aurora resolves tables through the AWS Glue Data Catalog by ARN and bulk-registers them with IMPORT FOREIGN SCHEMA ... FROM SERVER aurora_analytics_server (which enumerated and created every table in a Glue database in one transaction). It also reads directly from S3/S3 Tables locations.",
+      "caveats": [
+        "Catalog is used for discovery/metadata resolution only; Aurora never writes catalog entries"
+      ],
+      "links": [
+        {
+          "label": "Bulk table creation / IMPORT FOREIGN SCHEMA (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Catalog resolution works for V3 tables as well; only the V3-specific column types then limit what is readable.",
+      "caveats": [
+        "Metadata resolution only (read-only)",
+        "V3 type limits apply to the data read"
+      ],
+      "links": [
+        {
+          "label": "Bulk table creation / IMPORT FOREIGN SCHEMA (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:statistics:v2": {
+      "level": "full",
+      "notes": "The embedded DuckDB engine uses Iceberg manifest and Parquet column statistics for scan planning, predicate pushdown and column pruning (observed: predicate filters and projections prune the scan). PostgreSQL planner statistics have no effect on foreign tables; planning is driven by the external metadata.",
+      "caveats": [
+        "Read-side only: Aurora consumes statistics for planning but writes none"
+      ],
+      "links": [
+        {
+          "label": "Benefits / How it works (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/query-iceberg-and-parquet-data.html"
+        }
+      ]
+    },
+    "aws-aurora:statistics:v3": {
+      "level": "full",
+      "notes": "Same metadata-driven planning on V3 tables for the columns Aurora can read.",
+      "caveats": [
+        "Read-side only"
+      ],
+      "links": [
+        {
+          "label": "Benefits / How it works (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/query-iceberg-and-parquet-data.html"
+        }
+      ]
+    },
+    "aws-aurora:bloom-filters:v2": {
+      "level": "none",
+      "notes": "Aurora's embedded DuckDB Iceberg reader does not consume Iceberg Parquet bloom filters or Puffin bloom-filter blobs, consistent with upstream DuckDB. Not exercised; no write path either (read-only).",
+      "caveats": [
+        "Read-only; Iceberg bloom filters not used"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:bloom-filters:v3": {
+      "level": "none",
+      "notes": "No Iceberg bloom-filter support on any format version.",
+      "caveats": [
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Measured as the primary access path. Foreign tables point at a Glue table ARN (arn:aws:glue:region:account:table/database/table) with the format auto-detected from catalog metadata, and IMPORT FOREIGN SCHEMA enumerates a whole Glue database. The attached AuroraAnalytics IAM role authorizes Glue GetTable/GetDatabase and S3 reads.",
+      "caveats": [
+        "Read-only; requires the AuroraAnalytics IAM feature role with Glue + S3 read access"
+      ],
+      "links": [
+        {
+          "label": "Prerequisites (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-prerequisites.html"
+        }
+      ]
+    },
+    "aws-aurora:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "Glue catalog resolution works for V3 tables; the V3 column-type limits then apply to what is readable.",
+      "caveats": [
+        "Read-only",
+        "V3 type limits apply"
+      ],
+      "links": [
+        {
+          "label": "Prerequisites (Aurora Analytics)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-prerequisites.html"
+        }
+      ]
+    },
+    "aws-aurora:rest-catalog:v2": {
+      "level": "partial",
+      "notes": "Aurora has no native Iceberg REST catalog client. It reaches IRC-compatible catalogs only through AWS Glue Data Catalog federation: you register the external catalog with Glue and query the federated tables by Glue ARN. There is no direct ATTACH/endpoint configuration for a REST catalog.",
+      "caveats": [
+        "No native REST client; access is via AWS Glue IRC federation only",
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Direct querying of Iceberg and Parquet (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/query-iceberg-and-parquet-data.html"
+        }
+      ]
+    },
+    "aws-aurora:rest-catalog:v3": {
+      "level": "partial",
+      "notes": "Same Glue-federation path for V3 tables, subject to the V3 column-type read limits.",
+      "caveats": [
+        "Via Glue IRC federation only",
+        "Read-only; V3 type limits apply"
+      ],
+      "links": [
+        {
+          "label": "Direct querying of Iceberg and Parquet (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/query-iceberg-and-parquet-data.html"
+        }
+      ]
+    },
+    "aws-aurora:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Reachable only indirectly: Aurora can query a Unity Catalog Iceberg table if it is federated into AWS Glue Data Catalog (Unity exposing the Iceberg REST API, registered as a federated Glue catalog). Not measured against a live Unity endpoint.",
+      "caveats": [
+        "Via AWS Glue IRC federation only; not measured",
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Direct querying of Iceberg and Parquet (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/query-iceberg-and-parquet-data.html"
+        }
+      ]
+    },
+    "aws-aurora:unity-catalog:v3": {
+      "level": "unknown",
+      "notes": "Unity Catalog V3 tables via Glue federation were not measured, and Aurora's V3 type limits would further constrain readability.",
+      "caveats": [
+        "Unmeasured; V3 type limits apply"
+      ]
+    },
+    "aws-aurora:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Reachable only via AWS Glue Data Catalog federation to Snowflake Horizon's Iceberg REST endpoint. No native Horizon connection; not measured against a live endpoint.",
+      "caveats": [
+        "Via AWS Glue IRC federation only; not measured",
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Direct querying of Iceberg and Parquet (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/query-iceberg-and-parquet-data.html"
+        }
+      ]
+    },
+    "aws-aurora:snowflake-horizon-catalog:v3": {
+      "level": "unknown",
+      "notes": "Horizon V3 tables via Glue federation were not measured; V3 type limits also apply.",
+      "caveats": [
+        "Unmeasured; V3 type limits apply"
+      ]
+    },
+    "aws-aurora:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Reachable only via AWS Glue Data Catalog federation to the Google Lakehouse Iceberg REST endpoint. No native connection; not measured.",
+      "caveats": [
+        "Via AWS Glue IRC federation only; not measured",
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Direct querying of Iceberg and Parquet (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/query-iceberg-and-parquet-data.html"
+        }
+      ]
+    },
+    "aws-aurora:google-lakehouse:v3": {
+      "level": "unknown",
+      "notes": "Google Lakehouse V3 tables via Glue federation were not measured; V3 type limits also apply.",
+      "caveats": [
+        "Unmeasured; V3 type limits apply"
+      ]
+    },
+    "aws-aurora:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant is a V3 type; not applicable to V2.",
+      "caveats": []
+    },
+    "aws-aurora:variant-type:v3": {
+      "level": "none",
+      "notes": "Measured unsupported. A foreign table over a V3 table with a VARIANT column fails: 'data type of column \"data\" is not supported'. With aurora_analytics.skip_unsupported_columns=true the VARIANT column is dropped and only the other columns read. Aurora's embedded DuckDB build predates V3 VARIANT read support.",
+      "caveats": [
+        "VARIANT columns are rejected or skipped; not readable"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 type; not applicable to V2.",
+      "caveats": []
+    },
+    "aws-aurora:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Follows from variant-type: Aurora cannot read V3 VARIANT at all (measured), so the shredded-variant optimization is not readable either. Not separately exercised.",
+      "caveats": [
+        "VARIANT unsupported, so shredded variant is moot"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry is a V3 type; not applicable to V2.",
+      "caveats": []
+    },
+    "aws-aurora:geometry-type:v3": {
+      "level": "none",
+      "notes": "Inferred from the measured V3-type behavior: Aurora's embedded DuckDB build rejects V3-specific types (VARIANT confirmed), and upstream DuckDB had not shipped Iceberg GEOGRAPHY support in this timeframe. A GEOMETRY/GEOGRAPHY fixture could not be produced (Athena v3 and pyiceberg 0.11.1 cannot write V3), so this is not directly measured.",
+      "caveats": [
+        "Inferred, not directly measured; V3 types are unsupported by the embedded reader"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 type; not applicable to V2.",
+      "caveats": []
+    },
+    "aws-aurora:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Inferred: Aurora's embedded DuckDB build rejects V3-specific types (VARIANT confirmed). A V3 timestamp_ns fixture could not be created (Athena v3 rejects format_version=3; pyiceberg 0.11.1 cannot write V3), so this is not directly measured.",
+      "caveats": [
+        "Inferred, not directly measured"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 type; not applicable to V2.",
+      "caveats": []
+    },
+    "aws-aurora:unknown-type:v3": {
+      "level": "unknown",
+      "notes": "Not measured. The V3 unknown type could not be produced as a fixture, and Aurora's embedded reader rejects other V3 types, but no direct observation was made for this one.",
+      "caveats": [
+        "Unmeasured"
+      ]
+    },
+    "aws-aurora:lineage:v2": {
+      "level": "none",
+      "notes": "Row lineage is a V3 feature; not applicable to V2.",
+      "caveats": []
+    },
+    "aws-aurora:lineage:v3": {
+      "level": "none",
+      "notes": "Inferred: Aurora reads V3 tables only to the extent their columns use V2-compatible types and exposes no row-lineage metadata columns. V3 row-lineage reads were not measured (no V3 fixture could be produced).",
+      "caveats": [
+        "Inferred, not directly measured",
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    },
+    "aws-aurora:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to V2 (V2 uses position delete files, which Aurora does read — see position-deletes).",
+      "caveats": []
+    },
+    "aws-aurora:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Inferred: Aurora's embedded DuckDB build does not read V3 deletion vectors / V3 types (VARIANT confirmed unsupported). A V3 deletion-vector fixture could not be produced (Athena v3 and pyiceberg 0.11.1 cannot write V3), so this is not directly measured.",
+      "caveats": [
+        "Inferred, not directly measured",
+        "Read-only"
+      ],
+      "links": [
+        {
+          "label": "Working with foreign tables (Aurora)",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-analytics-foreign-tables.html"
+        }
+      ]
+    }
+  }
+}
