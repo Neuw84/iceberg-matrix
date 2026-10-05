@@ -1,0 +1,165 @@
+name: Aurora Platform Tests
+
+# Runs the Iceberg feature suite against Amazon Aurora PostgreSQL's
+# aurora_analytics feature and compares the results with the aws-aurora matrix
+# cells. Like the other AWS platform workflows this spends real money and
+# assumes an IAM role, so it is dispatch-only and gated by the aws-live
+# environment (required reviewer); the OIDC trust is scoped to that environment.
+#
+# Unlike the EMR/Glue/Redshift suites, Aurora needs a standing cluster reached
+# through an SSM bastion (the cluster is private, no public access). This
+# workflow provisions infra/aws/aurora/aurora.yaml, waits for it, builds the
+# Athena V2 fixtures, runs the suite via the bastion, and tears the stack down
+# under always(). A full run is ~20 min, most of it cluster provisioning.
+
+on:
+  workflow_dispatch:
+    inputs:
+      modes:
+        description: Storage mode(s)
+        type: choice
+        default: s3buckets
+        options: [s3buckets, s3tables]
+      engine-version:
+        description: Aurora PostgreSQL engine version (>=17.11 or >=18.6)
+        type: string
+        default: '17.11'
+      keep-stack:
+        description: Skip teardown (leave the cluster running for debugging)
+        type: boolean
+        default: false
+      dry-run:
+        description: Assume the role and stop (proves OIDC without spending)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aws-live
+  cancel-in-progress: false
+
+jobs:
+  aurora-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: aws-live
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_DATA_BUCKET: ${{ secrets.AWS_DATA_BUCKET }}
+      STACK_NAME: icebergmatrix-aurora
+      RESOURCE_PREFIX: icebergmatrix-aurora
+      # Networking for the cluster + bastion. These are account-specific, so
+      # they come from environment secrets rather than being hard-coded.
+      AURORA_VPC_ID: ${{ secrets.AURORA_VPC_ID }}
+      AURORA_SUBNET_IDS: ${{ secrets.AURORA_SUBNET_IDS }}
+      AURORA_BASTION_SUBNET: ${{ secrets.AURORA_BASTION_SUBNET }}
+      AURORA_GLUE_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
+      MATRIX_STORAGE_MODE: ${{ inputs.modes }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: ${{ github.run_id }}
+
+      - name: Verify assumed identity
+        run: aws sts get-caller-identity
+
+      - name: Stop here on dry run
+        if: inputs.dry-run
+        run: 'echo "Dry run complete: OIDC trust and environment gate verified, nothing provisioned."'
+
+      - name: Provision the Aurora stack
+        if: '!inputs.dry-run'
+        run: |
+          FAMILY="aurora-postgresql$(echo '${{ inputs.engine-version }}' | cut -d. -f1)"
+          aws cloudformation deploy \
+            --stack-name "$STACK_NAME" \
+            --template-file infra/aws/aurora/aurora.yaml \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --parameter-overrides \
+              VpcId="$AURORA_VPC_ID" \
+              SubnetIds="$AURORA_SUBNET_IDS" \
+              BastionSubnetId="$AURORA_BASTION_SUBNET" \
+              EngineVersion='${{ inputs.engine-version }}' \
+              ParameterGroupFamily="$FAMILY"
+
+      - name: Read stack outputs
+        if: '!inputs.dry-run'
+        id: outputs
+        run: |
+          get() { aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" --output text; }
+          echo "endpoint=$(get ClusterEndpoint)" >> "$GITHUB_OUTPUT"
+          echo "secret=$(get MasterSecretArn)"   >> "$GITHUB_OUTPUT"
+          echo "bastion=$(get BastionInstanceId)" >> "$GITHUB_OUTPUT"
+          # The bastion registers with SSM and finishes its psql install a short
+          # while after the stack completes; wait for it to be reachable.
+          for _ in $(seq 1 30); do
+            ping=$(aws ssm describe-instance-information \
+              --filters "Key=InstanceIds,Values=$(get BastionInstanceId)" \
+              --query 'InstanceInformationList[0].PingStatus' --output text 2>/dev/null)
+            [ "$ping" = "Online" ] && break
+            sleep 10
+          done
+
+      - name: Build Athena fixtures (V2 Iceberg with deletes/partitions)
+        if: '!inputs.dry-run'
+        env:
+          AURORA_FIXTURE_DB: aurora_ci_${{ github.run_id }}
+          AURORA_FIXTURE_LOCATION: s3://${{ secrets.AWS_DATA_BUCKET }}/aurora/${{ github.run_id }}/fixtures
+          AURORA_ATHENA_WORKGROUP: ${{ secrets.AURORA_ATHENA_WORKGROUP }}
+          AURORA_ATHENA_OUTPUT: s3://${{ secrets.AWS_DATA_BUCKET }}/aurora/${{ github.run_id }}/athena/
+        run: uv run --with boto3 python tests/aws/aurora_fixtures.py create
+        continue-on-error: true
+
+      - name: Run the Aurora feature suite
+        if: '!inputs.dry-run'
+        env:
+          AURORA_BASTION: ${{ steps.outputs.outputs.bastion }}
+          AURORA_ENDPOINT: ${{ steps.outputs.outputs.endpoint }}
+          AURORA_SECRET: ${{ steps.outputs.outputs.secret }}
+          AURORA_VERSION: ${{ inputs.engine-version }}
+          AURORA_FIXTURE_DB: aurora_ci_${{ github.run_id }}
+          AURORA_BASIC_TABLE: ${{ secrets.AURORA_BASIC_TABLE }}
+          AURORA_VARIANT_TABLE: ${{ secrets.AURORA_VARIANT_TABLE }}
+          MATRIX_DATA_PATH: src/data/platforms/aws/${{ inputs.modes }}/aurora/aurora.json
+        run: uv run --with boto3 python tests/aurora_feature_tests.py
+
+      - name: Drop Athena fixtures
+        if: always() && !inputs.dry-run
+        env:
+          AURORA_FIXTURE_DB: aurora_ci_${{ github.run_id }}
+          AURORA_ATHENA_WORKGROUP: ${{ secrets.AURORA_ATHENA_WORKGROUP }}
+          AURORA_ATHENA_OUTPUT: s3://${{ secrets.AWS_DATA_BUCKET }}/aurora/${{ github.run_id }}/athena/
+        run: uv run --with boto3 python tests/aws/aurora_fixtures.py drop
+        continue-on-error: true
+
+      - name: Tear down the Aurora stack
+        if: always() && !inputs.dry-run && !inputs.keep-stack
+        run: |
+          aws cloudformation delete-stack --stack-name "$STACK_NAME"
+          aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME" || \
+            echo "::warning::stack delete did not confirm; check $STACK_NAME by hand"
+
+      - name: Upload reports
+        if: always() && !inputs.dry-run
+        uses: actions/upload-artifact@v7
+        with:
+          name: aurora-platform-test-report
+          path: test-reports/
+          if-no-files-found: warn

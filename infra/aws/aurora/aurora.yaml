@@ -1,0 +1,289 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Live-probe / CI infrastructure for the Aurora PostgreSQL Iceberg platform
+  test. Creates a PRIVATE Aurora PostgreSQL cluster (no public access) with the
+  AuroraAnalytics feature IAM role attached, plus an SSM-managed bastion EC2 the
+  probe reaches it through (no inbound from the internet, no SSH key). Everything
+  is in one stack so teardown is a single delete-stack.
+
+  Deploy with: --capabilities CAPABILITY_NAMED_IAM
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC to place the cluster and bastion in (the default VPC is fine)
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Two or more subnets in different AZs for the DB subnet group
+  BastionSubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: One subnet (from SubnetIds) to launch the bastion in
+  EngineVersion:
+    Type: String
+    Default: '17.11'
+    Description: Aurora PostgreSQL engine version (>=17.11 or >=18.6 for aurora_analytics)
+  DBInstanceClass:
+    Type: String
+    Default: db.r6g.large
+    Description: Writer instance class (smallest that supports aurora_analytics)
+  MasterUsername:
+    Type: String
+    Default: icebergadmin
+  ResourcePrefix:
+    Type: String
+    Default: icebergmatrix-aurora
+  LatestAl2023Ami:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+  ParameterGroupFamily:
+    Type: String
+    Default: aurora-postgresql17
+    Description: >
+      DB cluster parameter group family, must match the major of EngineVersion
+      (aurora-postgresql17 for 17.x, aurora-postgresql18 for 18.x).
+  VpcCidr:
+    Type: String
+    Default: 172.31.0.0/16
+    Description: >
+      VPC CIDR allowed to reach the Glue/STS interface endpoints on 443. The
+      default VPC uses 172.31.0.0/16. A plain SG self-reference is not enough:
+      the cluster's same-AZ traffic to the interface-endpoint ENI is only
+      admitted by a CIDR rule (measured), so this is required.
+
+Resources:
+
+  # ---------------------------------------------------------------------------
+  # Cluster parameter group: the analytics feature is off until
+  # aurora_analytics.enabled is set true here. It is a dynamic parameter, so no
+  # reboot is needed; the extension can be created once the cluster picks it up.
+  # ---------------------------------------------------------------------------
+  ClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: !Sub '${ResourcePrefix} aurora_analytics enabled'
+      Family: !Ref ParameterGroupFamily
+      Parameters:
+        aurora_analytics.enabled: 'true'
+
+  # ---------------------------------------------------------------------------
+  # AuroraAnalytics feature role: lets Aurora read S3 data files and the Glue
+  # Data Catalog, and vend credentials through Lake Formation for federated /
+  # S3 Tables catalogs. Attached to the cluster with FeatureName=AuroraAnalytics.
+  # ---------------------------------------------------------------------------
+  AnalyticsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ResourcePrefix}-analytics'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: analytics-datalake-read
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: S3Read
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource: '*'
+              - Sid: GlueRead
+                Effect: Allow
+                Action:
+                  - glue:GetCatalog
+                  - glue:GetDatabase
+                  - glue:GetDatabases
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:GetPartition
+                  - glue:GetPartitions
+                Resource: '*'
+              - Sid: LakeFormationVend
+                Effect: Allow
+                Action:
+                  - lakeformation:GetDataAccess
+                Resource: '*'
+
+  # ---------------------------------------------------------------------------
+  # Networking: a security group for the bastion (egress only) and one for the
+  # cluster that only admits PostgreSQL from the bastion SG. No ingress from the
+  # internet anywhere.
+  # ---------------------------------------------------------------------------
+  BastionSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub '${ResourcePrefix} bastion (SSM only, egress all)'
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - IpProtocol: '-1'
+          CidrIp: 0.0.0.0/0
+          Description: Allow all egress (SSM endpoints, Aurora)
+
+  AuroraSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub '${ResourcePrefix} Aurora (PostgreSQL from bastion only)'
+      VpcId: !Ref VpcId
+
+  AuroraIngressFromBastion:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref AuroraSG
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref BastionSG
+      Description: PostgreSQL from the bastion
+
+  # ---------------------------------------------------------------------------
+  # VPC endpoints. The analytics engine runs inside the (private) cluster and
+  # reaches the AWS APIs with no NAT: an S3 gateway endpoint for data files, and
+  # Glue + STS interface endpoints for catalog resolution and assuming the
+  # AuroraAnalytics role. Without these every Glue/STS call times out
+  # (curlCode 28), which is the failure mode a private cluster hits by default.
+  # ---------------------------------------------------------------------------
+  EndpointSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub '${ResourcePrefix} interface endpoints (443)'
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        # SG self-reference admits the Aurora SG, but same-AZ hairpin to the
+        # endpoint ENI also needs the CIDR rule below (measured).
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !Ref AuroraSG
+          Description: HTTPS from Aurora
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref VpcCidr
+          Description: HTTPS from within the VPC (required for same-AZ endpoint ENI)
+
+  GlueEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VpcId
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.glue'
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SubnetIds: !Ref SubnetIds
+      SecurityGroupIds:
+        - !Ref EndpointSG
+
+  StsEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VpcId
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sts'
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SubnetIds: !Ref SubnetIds
+      SecurityGroupIds:
+        - !Ref EndpointSG
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Sub '${ResourcePrefix} subnet group'
+      SubnetIds: !Ref SubnetIds
+
+  # ---------------------------------------------------------------------------
+  # Aurora PostgreSQL cluster + single writer. Private (no PubliclyAccessible),
+  # master password managed by Secrets Manager, AuroraAnalytics role attached.
+  # ---------------------------------------------------------------------------
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-postgresql
+      EngineVersion: !Ref EngineVersion
+      DBClusterIdentifier: !Sub '${ResourcePrefix}-cluster'
+      MasterUsername: !Ref MasterUsername
+      ManageMasterUserPassword: true
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      DBClusterParameterGroupName: !Ref ClusterParameterGroup
+      VpcSecurityGroupIds:
+        - !Ref AuroraSG
+      AssociatedRoles:
+        - FeatureName: AuroraAnalytics
+          RoleArn: !GetAtt AnalyticsRole.Arn
+      StorageEncrypted: true
+
+  DBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceClass: !Ref DBInstanceClass
+      DBInstanceIdentifier: !Sub '${ResourcePrefix}-writer'
+      PubliclyAccessible: false
+
+  # ---------------------------------------------------------------------------
+  # SSM bastion: an EC2 with the SSM core policy and psql installed, used to run
+  # the probe SQL inside the VPC. No key pair, no inbound rules.
+  # ---------------------------------------------------------------------------
+  BastionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ResourcePrefix}-bastion'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: read-db-secret
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !GetAtt DBCluster.MasterUserSecret.SecretArn
+
+  BastionProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref BastionRole
+
+  Bastion:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LatestAl2023Ami
+      InstanceType: t3.micro
+      IamInstanceProfile: !Ref BastionProfile
+      SubnetId: !Ref BastionSubnetId
+      SecurityGroupIds:
+        - !Ref BastionSG
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          dnf install -y postgresql15 jq >/tmp/userdata.log 2>&1 || \
+            dnf install -y postgresql16 jq >>/tmp/userdata.log 2>&1
+          echo done > /tmp/userdata-ready
+      Tags:
+        - Key: Name
+          Value: !Sub '${ResourcePrefix}-bastion'
+
+Outputs:
+  ClusterEndpoint:
+    Value: !GetAtt DBCluster.Endpoint.Address
+  ClusterPort:
+    Value: !GetAtt DBCluster.Endpoint.Port
+  MasterSecretArn:
+    Value: !GetAtt DBCluster.MasterUserSecret.SecretArn
+  BastionInstanceId:
+    Value: !Ref Bastion
+  AnalyticsRoleArn:
+    Value: !GetAtt AnalyticsRole.Arn
