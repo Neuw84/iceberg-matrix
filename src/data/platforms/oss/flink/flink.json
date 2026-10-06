@@ -588,8 +588,8 @@
       "caveats": []
     },
     "flink:lineage:v3": {
-      "level": "partial",
-      "notes": "Flink maintains V3 row lineage on write -- table metadata carries next-row-id and snapshots record first-row-id and added-rows, and Iceberg 1.11 preserves lineage through RewriteDataFiles compaction -- but none of it is readable from Flink SQL: _row_id and _last_updated_sequence_number are not projectable, computed/metadata columns are rejected, and $snapshots exposes no lineage column.",
+      "level": "full",
+      "notes": "Flink maintains V3 row lineage on write -- table metadata carries next-row-id and snapshots record first-row-id and added-rows, and Iceberg 1.11 preserves lineage through RewriteDataFiles compaction. Rated full per the feature definition (lineage is maintained on write); SQL exposure is covered in the caveats.",
       "caveats": [
         "Row lineage is written but cannot be read from Flink SQL",
         "_row_id and _last_updated_sequence_number are not projectable; computed/metadata columns are unsupported"

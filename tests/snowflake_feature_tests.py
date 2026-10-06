@@ -780,18 +780,19 @@ def test_unknown_type() -> TestResult:
     r = TestResult("unknown-type", "Unknown Type", "v3")
 
     def body(ns, r):
-        # No Snowflake SQL type maps to the Iceberg v3 unknown type; record the
-        # rejection rather than letting _run log it as a harness error.
+        # Snowflake exposes the Iceberg v3 unknown type as the UNKNOWN keyword.
+        # A conforming column has no physical storage and always reads NULL.
+        def round_trip():
+            q = _create_iceberg(ns, "t", "id INT, u UNKNOWN", version="3")
+            sql(f"INSERT INTO {q} (id) VALUES (1)")
+            u = sql(f"SELECT u FROM {q}")[0][0]
+            assert u is None, f"UNKNOWN column read back {u!r}, expected NULL"
+
         _expect_rejection(
-            r,
-            lambda: _create_iceberg(ns, "t", "id INT, u VARIANT", version="3"),
-            accepted_details="A column stood in for the unknown type (inconclusive)",
-            rejected_details="Unknown type has no Snowflake SQL surface",
+            r, round_trip,
+            accepted_details="UNKNOWN column created on a v3 table and reads back NULL",
+            rejected_details="UNKNOWN column rejected in a v3 Iceberg table",
         )
-        # The create above always succeeds (VARIANT is valid), so this probe is
-        # inconclusive by construction; force skip so it never reads as support.
-        r.result = "skip"
-        r.details = "Iceberg v3 unknown type has no dedicated Snowflake SQL type to exercise"
 
     return _run(r, body)
 
@@ -801,25 +802,31 @@ def test_lineage() -> TestResult:
 
     def body(ns, r):
         # Iceberg v3 row lineage (_row_id / _last_updated_sequence_number) is
-        # metadata Snowflake maintains; there is no guaranteed session column to
-        # read it back, so probe for the metadata surface and record honestly.
+        # written by Snowflake per its docs; the cell rates maintenance, and this
+        # probe additionally records whether a session can read the columns.
         q = _create_iceberg(ns, "t", "id INT", version="3")
         sql(f"INSERT INTO {q} VALUES (1), (2)")
-        # Snowflake spells metadata columns METADATA$<name>; probe that surface
-        # rather than the Spark-style _row_id.
+        # Probe the spec column names first -- the same surface measured on
+        # Redshift, ClickHouse and Spark -- then Snowflake's METADATA$ spelling.
         _expect_rejection(
             r,
-            lambda: sql(f"SELECT METADATA$ROW_ID FROM {q}"),
-            accepted_details="v3 row lineage exposed via METADATA$ROW_ID",
-            rejected_details="Row-lineage columns not selectable from a session",
+            lambda: sql(f"SELECT _row_id, _last_updated_sequence_number FROM {q}"),
+            accepted_details="v3 row lineage selectable as _row_id / _last_updated_sequence_number",
+            rejected_details="Spec row-lineage columns not selectable",
         )
         if r.result == "fail":
-            # The cell is partial: Snowflake writes v3 lineage metadata for
-            # external readers (CDC interop) but exposes no session surface.
-            # This probe measures only the session surface, so its rejection is
-            # recorded without adjudicating the cell.
-            r.details = ("Lineage metadata written for interop is unmeasurable "
-                         f"from a session; SQL surface measured absent. {r.details}")
+            _expect_rejection(
+                r,
+                lambda: sql(f"SELECT METADATA$ROW_ID FROM {q}"),
+                accepted_details="v3 row lineage exposed via METADATA$ROW_ID",
+                rejected_details="Row-lineage columns not selectable from a session",
+            )
+        if r.result == "fail":
+            # The cell rates whether lineage is maintained on write, which a
+            # session cannot observe; a missing SQL surface is a caveat, so
+            # record the rejection without adjudicating the cell.
+            r.details = ("Lineage maintenance is unmeasurable from a session; "
+                         f"SQL surface measured absent. {r.details}")
             r.result = "skip"
 
     return _run(r, body)

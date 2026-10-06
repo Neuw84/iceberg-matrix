@@ -840,6 +840,10 @@
         {
           "label": "Release Notes",
           "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
+        },
+        {
+          "label": "Snowflake Iceberg V3: Variant Performance (blog, Jun 2026)",
+          "url": "https://www.snowflake.com/en/blog/engineering/snowflake-iceberg-v3-variant-performance/"
         }
       ]
     },
@@ -850,20 +854,27 @@
       "links": []
     },
     "snowflake:shredded-variant:v3": {
-      "level": "unknown",
-      "notes": "Shredded variant support not explicitly mentioned in the V3 GA announcement. Variant type is supported. Generally available (as of May 7, 2026).",
+      "level": "full",
+      "notes": "Snowflake shreds VARIANT columns in Iceberg v3 tables automatically at write time, following the open Parquet Variant Shredding spec: each shredded leaf becomes a real Parquet typed_value column with its own statistics, so projections and predicates push down to per-leaf columns. The files use the spec layout with no proprietary sidecars, so other v3 engines can read the same shredded data.",
       "caveats": [
-        "Generally available (as of May 7, 2026)",
-        "Not explicitly mentioned in announcement"
+        "Shredding is automatic; there is no user-facing setting to choose which fields are shredded"
       ],
       "links": [
+        {
+          "label": "Iceberg data types: variant (Shredding)",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-data-types"
+        },
         {
           "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
         },
         {
-          "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
+          "label": "Snowflake Iceberg V3: Variant Performance (blog, Jun 2026)",
+          "url": "https://www.snowflake.com/en/blog/engineering/snowflake-iceberg-v3-variant-performance/"
+        },
+        {
+          "label": "Parquet Variant Shredding spec",
+          "url": "https://github.com/apache/parquet-format/blob/master/VariantShredding.md"
         }
       ]
     },
@@ -897,11 +908,12 @@
       "links": []
     },
     "snowflake:lineage:v3": {
-      "level": "partial",
-      "notes": "Snowflake writes Iceberg v3 row-lineage metadata for engine interoperability, but no session surface exposes it: METADATA$ROW_ID is an invalid identifier on a v3 managed Iceberg table, with or without change tracking (measured on Snowflake 10.30.102, Aug 2026).",
+      "level": "full",
+      "notes": "Snowflake automatically writes the Iceberg v3 row-lineage fields _row_id and _last_updated_sequence_number on Snowflake-managed and externally managed v3 tables, so other engines can match rows across snapshots and detect row-level changes. Snowflake streams on v3 tables consume this lineage for change tracking. Rated full per the feature definition (lineage is maintained on write); SQL exposure is covered in the caveats.",
       "caveats": [
-        "Measured: lineage columns are not selectable from a Snowflake session",
-        "v3 lineage metadata is maintained for external readers (CDC interop)"
+        "Requires ICEBERG_VERSION = 3; not available in the People's Republic of China",
+        "METADATA$ROW_ID is not selectable from a session (measured Aug 2026); whether _row_id / _last_updated_sequence_number are projectable is pending a re-run of the updated probe",
+        "Standard streams on externally managed v3 tables depend on the external writer following the spec (new rows _row_id = NULL, copy-on-write preserves _row_id)"
       ],
       "links": [
         {
@@ -911,10 +923,6 @@
         {
           "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
-        },
-        {
-          "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
@@ -1090,17 +1098,39 @@
       "caveats": []
     },
     "snowflake:unknown-type:v3": {
-      "level": "unknown",
-      "notes": "Not yet measured; recorded as unknown rather than inferred. Snowflake has not published a statement on the Iceberg V3 unknown type.",
-      "caveats": []
-    },
-    "snowflake:google-lakehouse:v2": {
-      "level": "partial",
-      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "level": "full",
+      "notes": "Snowflake supports the Iceberg v3 UNKNOWN primitive type on Snowflake-managed and externally managed v3 Iceberg tables. Declare a column as UNKNOWN in CREATE ICEBERG TABLE; it has no physical storage in Parquet and always reads as NULL.",
       "caveats": [
-        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+        "Only on Iceberg tables with ICEBERG_VERSION = 3; not available on standard Snowflake tables",
+        "Always nullable (NOT NULL is rejected) and no value can be written to it"
       ],
       "links": [
+        {
+          "label": "UNKNOWN data type",
+          "url": "https://docs.snowflake.com/en/sql-reference/data-types-unknown"
+        },
+        {
+          "label": "Iceberg V3 Support (GA)",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
+        }
+      ]
+    },
+    "snowflake:google-lakehouse:v2": {
+      "level": "full",
+      "notes": "Snowflake has a documented Iceberg REST catalog integration for the Google Lakehouse runtime catalog (formerly BigLake metastore), using workload identity federation token exchange instead of service-account keys. A catalog-linked database then discovers and queries its Iceberg tables.",
+      "caveats": [
+        "Requires a Google Cloud workload identity pool and OIDC provider trusting the Snowflake issuer URL",
+        "Google enforces a per-minute BigLake REST read-request quota; raise it for heavy workloads"
+      ],
+      "links": [
+        {
+          "label": "Configure a catalog integration for Google Cloud BigLake Metastore",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration-rest-biglake"
+        },
+        {
+          "label": "Catalog-linked databases",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-catalog-linked-database"
+        },
         {
           "label": "Google Lakehouse runtime catalog (Iceberg REST)",
           "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
@@ -1109,11 +1139,19 @@
     },
     "snowflake:google-lakehouse:v3": {
       "level": "partial",
-      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "notes": "The Snowflake side is the same documented BigLake REST catalog integration as v2, and Snowflake supports Iceberg v3 on externally managed tables. Rated partial because Iceberg v3 on the Google Lakehouse REST catalog is itself in Preview on the Google side, the same ceiling applied to BigQuery and Dataproc.",
       "caveats": [
-        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+        "Google Lakehouse v3 support is Preview (Pre-GA terms), not GA"
       ],
       "links": [
+        {
+          "label": "Configure a catalog integration for Google Cloud BigLake Metastore",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-catalog-integration-rest-biglake"
+        },
+        {
+          "label": "Iceberg V3 Support (GA)",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
+        },
         {
           "label": "Google Lakehouse runtime catalog (Iceberg REST)",
           "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"

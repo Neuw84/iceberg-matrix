@@ -215,7 +215,7 @@
       "name": "Lineage Tracking",
       "category": "v3-advanced",
       "introducedIn": "v3",
-      "description": "Metadata-level tracking of data provenance and transformations, enabling end-to-end data lineage across Iceberg tables. Rated on whether the engine can write lineage information (V3 row lineage) when it writes to a table; being able to read it does not count"
+      "description": "Iceberg V3 row lineage: the engine assigns and preserves _row_id and _last_updated_sequence_number on write, so any reader can match rows across snapshots and detect row-level changes. Rated full when the engine maintains spec-correct lineage; whether the columns can also be selected from the engine's SQL is noted as a caveat."
     },
     {
       "id": "deletion-vectors",
