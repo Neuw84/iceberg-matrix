@@ -100,10 +100,20 @@ export const SupportCell = memo(function SupportCell({
   // Common case: one version, or every selected version agrees — a solid cell.
   if (entries.length === 1 || allSame) {
     const { version, entry } = entries[0];
+    // Several versions agree on the level but may carry different notes; the
+    // hover text then lists each version's note instead of only the first's.
+    const distinctNotes = new Set(entries.map((e) => e.entry.notes));
+    const notes =
+      entries.length > 1 && distinctNotes.size > 1
+        ? entries
+            .filter((e) => e.entry.notes)
+            .map((e) => `${e.version.toUpperCase()}: ${e.entry.notes}`)
+            .join("\n")
+        : entry.notes;
     return (
       <SolidCell
         level={entry.level}
-        notes={entry.notes}
+        notes={notes}
         onClick={onClick ? () => onClick(version) : undefined}
       />
     );

@@ -12,7 +12,7 @@
   "support": {
     "aws-aurora:read-support:v2": {
       "level": "full",
-      "notes": "Measured on Aurora PostgreSQL 17.11 (aurora_analytics 1.0.0, us-east-1). The aurora_analytics extension embeds DuckDB and reads Iceberg data in Amazon S3 Tables through read-only foreign tables, addressing the table either by its S3 Tables ARN (arn:aws:s3tables:region:account:bucket/<bucket>/table/<namespace>/<table>) or by the Glue federated-catalog ARN over s3tablescatalog (arn:aws:glue:region:account:table/s3tablescatalog/<bucket>/<namespace>/<table>); format is auto-detected. The same engine and read semantics verified against standard S3 Iceberg apply \u2014 schema is auto-inferred, predicate pushdown and aggregation run, and foreign tables join local and other foreign tables.",
+      "notes": "Measured on Aurora PostgreSQL 17.11 (aurora_analytics 1.0.0, us-east-1). The aurora_analytics extension embeds DuckDB and reads Iceberg data in Amazon S3 Tables through read-only foreign tables, addressing the table either by its S3 Tables ARN (arn:aws:s3tables:region:account:bucket/<bucket>/table/<namespace>/<table>) or by the Glue federated-catalog ARN over s3tablescatalog (arn:aws:glue:region:account:table/s3tablescatalog/<bucket>/<namespace>/<table>); format is auto-detected. The same engine and read semantics verified against standard S3 Iceberg apply — schema is auto-inferred, predicate pushdown and aggregation run, and foreign tables join local and other foreign tables.",
       "caveats": [
         "Read-only: foreign tables cannot be written. INSERT/UPDATE/DELETE/TRUNCATE/COPY are rejected",
         "Address S3 Tables by its s3tables ARN or the Glue s3tablescatalog federated ARN"
@@ -91,10 +91,10 @@
       ]
     },
     "aws-aurora:position-deletes:v2": {
-      "level": "full",
-      "notes": "Rated by read capability. Measured: Aurora correctly applies V2 merge-on-read position deletes at read time. A V2 table seeded with 5 rows and then DELETE'd down to 3 (via Athena, which writes positional delete files) read back exactly 3 rows (ids 1,3,5) through an Aurora foreign table.",
+      "level": "none",
+      "notes": "Not supported as a write operation. Aurora's analytics tables are read-only foreign tables, so a DELETE is rejected and it never writes position delete files. Measured: it does apply position delete files written by another engine when reading (a V2 table seeded with 5 rows and DELETE'd to 3 via Athena read back exactly 3 rows), but that is a read capability, not this operation.",
       "caveats": [
-        "Read-only: Aurora reads and merges position deletes but never writes delete files itself"
+        "Read capability: applies position delete files written by another engine at read time"
       ],
       "links": [
         {
@@ -104,11 +104,10 @@
       ]
     },
     "aws-aurora:position-deletes:v3": {
-      "level": "full",
-      "notes": "Aurora reads the V3 table format and applies merge-on-read deletes recorded against it for V2-compatible columns. Rated by read capability, consistent with the V2 measurement.",
+      "level": "none",
+      "notes": "Not supported as a write operation. Aurora is read-only, so it writes neither position delete files nor deletion vectors. It reads V3 tables only for V2-compatible column types and applies merge-on-read deletes recorded against them, but that is a read capability, not this operation.",
       "caveats": [
-        "Read-only: never writes delete files",
-        "Only V2-compatible column types are readable on V3 tables"
+        "Read capability: applies merge-on-read deletes on V3 tables for V2-compatible column types only"
       ],
       "links": [
         {
@@ -297,7 +296,7 @@
     },
     "aws-aurora:hidden-partitioning:v2": {
       "level": "full",
-      "notes": "Rated by read capability. Measured: Aurora reads a hidden-partitioned table (PARTITIONED BY day(ts), bucket(4, cat)) transparently \u2014 3 rows total, and a predicate on ts returned the expected 2 rows, so partition pruning/filtering works without exposing partition columns.",
+      "notes": "Rated by read capability. Measured: Aurora reads a hidden-partitioned table (PARTITIONED BY day(ts), bucket(4, cat)) transparently — 3 rows total, and a predicate on ts returned the expected 2 rows, so partition pruning/filtering works without exposing partition columns.",
       "caveats": [
         "Read-only: cannot define or change partitioning"
       ],
@@ -743,7 +742,7 @@
     },
     "aws-aurora:deletion-vectors:v2": {
       "level": "none",
-      "notes": "Deletion vectors are a V3 feature; not applicable to V2 (V2 uses position delete files, which Aurora does read \u2014 see position-deletes).",
+      "notes": "Deletion vectors are a V3 feature; not applicable to V2 (V2 uses position delete files, which Aurora does read — see position-deletes).",
       "caveats": []
     },
     "aws-aurora:deletion-vectors:v3": {

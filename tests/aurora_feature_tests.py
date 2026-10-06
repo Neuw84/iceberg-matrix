@@ -323,23 +323,13 @@ def _read_count(location: str, extra_opts: str = "") -> tuple:
 
 def test_position_deletes() -> TestResult:
     r = TestResult("position-deletes", "Position Deletes", "v2")
-    if _prereqs():
-        return _skip(r, f"Prerequisites missing: {_prereqs()}")
-    # Fixture 'posdel': a V2 table seeded with 5 rows then DELETE'd to 3 (Athena
-    # writes positional delete files). Rated by read capability: Aurora applies
-    # the position deletes at read time.
-    ok, n, out = _read_count(_fixture_arn("posdel"))
-    if not ok:
-        return _skip(r, f"position-delete fixture 'posdel' not readable (create it with "
-                        f"tests/aws/aurora_fixtures.py): {_err_line(out)}")
-    if n == "3":
-        r.result = "pass"
-        r.details = ("Correctly applies V2 position deletes at read time: a 5-row table "
-                     "DELETE'd to 3 reads back 3. Read-only: never writes delete files.")
-    else:
-        r.result = "fail"
-        r.details = f"expected 3 surviving rows after position deletes, read {n}"
-    return r
+    # The row is rated by WRITE capability (can the engine write position delete
+    # files). Aurora's foreign tables are read-only, so a DELETE is rejected and
+    # the matrix rates it none, which a write-rejection measurement agrees with.
+    # That it still APPLIES position deletes written by another engine when
+    # reading (fixture 'posdel') is a read capability, recorded as a caveat and
+    # exercised by the merge-on-read test, not by this row.
+    return _write_rejected(r, lambda ft, col: f"DELETE FROM {ft}")
 
 
 def test_merge_on_read() -> TestResult:
