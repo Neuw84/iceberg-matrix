@@ -5,14 +5,14 @@
       "name": "Position Deletes",
       "category": "row-level-operations",
       "introducedIn": "v2",
-      "description": "Delete rows by tracking their file and position offsets, enabling efficient row-level deletes without rewriting entire data files"
+      "description": "Delete rows by tracking their file and position offsets, enabling efficient row-level deletes without rewriting entire data files. Rated on whether the engine can write position delete files; being able to read tables that already contain them does not count"
     },
     {
       "id": "equality-deletes",
       "name": "Equality Deletes",
       "category": "row-level-operations",
       "introducedIn": "v2",
-      "description": "Delete rows matching equality predicates without rewriting data files, using delete files that specify column values to match"
+      "description": "Delete rows matching equality predicates without rewriting data files, using delete files that specify column values to match. Rated on whether the engine can write equality delete files; being able to read tables that already contain them does not count"
     },
     {
       "id": "merge-on-read",
@@ -215,14 +215,14 @@
       "name": "Lineage Tracking",
       "category": "v3-advanced",
       "introducedIn": "v3",
-      "description": "Metadata-level tracking of data provenance and transformations, enabling end-to-end data lineage across Iceberg tables"
+      "description": "Metadata-level tracking of data provenance and transformations, enabling end-to-end data lineage across Iceberg tables. Rated on whether the engine can write lineage information (V3 row lineage) when it writes to a table; being able to read it does not count"
     },
     {
       "id": "deletion-vectors",
       "name": "Deletion Vectors",
       "category": "v3-advanced",
       "introducedIn": "v3",
-      "description": "Puffin-based binary deletion vectors that replace V2 position delete files, enabling efficient row-level deletes in merge-on-read tables without rewriting data files"
+      "description": "Puffin-based binary deletion vectors that replace V2 position delete files, enabling efficient row-level deletes in merge-on-read tables without rewriting data files. Rated on whether the engine can write deletion vectors; being able to read tables that already contain them does not count"
     }
   ],
   "versions": [
