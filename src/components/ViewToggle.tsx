@@ -29,10 +29,10 @@ export function ViewToggle({ mode, onChange }: ViewToggleProps) {
           role="tab"
           aria-selected={mode === opt.mode}
           onClick={() => onChange(opt.mode)}
-          className={`px-3 py-1 rounded-md text-xs font-semibold cursor-pointer transition-colors ${
+          className={`px-4 py-1.5 rounded-md text-sm font-semibold cursor-pointer transition-colors ${
             mode === opt.mode
-              ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
+              ? "bg-blue-600 text-white shadow-sm"
+              : "text-gray-700 hover:text-gray-900 hover:bg-gray-200"
           }`}
         >
           {opt.label}
