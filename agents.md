@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A React single-page application that displays an interactive compatibility matrix for Apache Iceberg features across cloud platforms and open-source engines. A top-level Engines/Catalogs toggle switches between two datasets: the engines matrix (default, with V2/V3 tabs, AWS S3-mode toggle, and compare mode) and a catalogs openness-rubric matrix (10 Iceberg catalogs scored against 6 openness criteria). Built with Vite, TypeScript, React 19.2, and Tailwind CSS. Deployed to GitHub Pages via GitHub Actions.
+A React single-page application that displays an interactive compatibility matrix for Apache Iceberg features across cloud platforms and open-source engines. A top-level Engines/Catalogs toggle switches between two datasets: the engines matrix (default, one column per engine with V2/V3 version chips, transition cells where versions differ, an AWS S3-mode toggle, and a Compare differences table) and a catalogs openness-rubric matrix (10 Iceberg catalogs scored against 6 openness criteria). Built with Vite, TypeScript, React 19.2, and Tailwind CSS. Deployed to GitHub Pages via GitHub Actions.
 
 ## Project Structure
 
@@ -15,12 +15,11 @@ A React single-page application that displays an interactive compatibility matri
 ├── src/
 │   ├── components/           # React UI components
 │   │   ├── CompatibilityMatrix.tsx   # Main matrix grid
-│   │   ├── ComparisonSummary.tsx     # Side-by-side comparison view
+│   │   ├── ComparisonSummary.tsx     # Compare mode: version differences-only table
 │   │   ├── DetailPopover.tsx         # Popover with support details
 │   │   ├── FeatureRow.tsx            # Single feature row in the matrix
 │   │   ├── FilterPanel.tsx           # Sidebar filters (version, platform, category, etc.)
 │   │   ├── SupportCell.tsx           # Individual cell showing support level
-│   │   ├── VersionTabs.tsx           # V2/V3 version tab switcher (engines view only)
 │   │   └── ViewToggle.tsx            # Top-level Engines/Catalogs view switcher
 │   ├── data/                 # JSON data files
 │   │   ├── features.json             # Engine feature definitions and categories
@@ -115,7 +114,7 @@ Engine platforms are grouped by: AWS, GCP, Azure, Databricks, Snowflake, 3rd Par
 
 Engine features are categorized into: row-level-operations, schema-management, partitioning, table-management, read-write, catalog-support, v3-data-types, v3-advanced. Catalog features all use the single category: openness-rubric.
 
-Versions: engine support entries use `v2`/`v3`. The catalogs dataset has no version dimension, so all its entries use the single synthetic version `current` (e.g. `snowflake-horizon:managed-offering:current`). The UI hides version chrome when the version is `current` (no V2/V3 tabs, no version line in the popover).
+Versions: engine support entries use `v2`/`v3`. The catalogs dataset has no version dimension, so all its entries use the single synthetic version `current` (e.g. `snowflake-horizon:managed-offering:current`). The UI hides version chrome when the version is `current` (no V2/V3 version chips, no per-row version badge, no version line in the popover).
 
 ## Data Architecture
 
@@ -177,7 +176,13 @@ The catalogs view has its own dataset under `src/data/catalogs/`, independent fr
 
 ### View wiring
 
-`App.tsx` holds a `viewMode` state (`"engines" | "catalogs"`, default engines) switched by `ViewToggle` in the header. Each view keeps its own independent `FilterState` (engines starts at `selectedVersions: ["v2"]`, catalogs at `["current"]`), so filters survive toggling and never leak across views. The catalogs view reuses `CompatibilityMatrix`, `FilterPanel` (with `entityLabel="Catalogs"`), and `DetailPopover`, but renders no AWS S3-mode toggle. The V2/V3/Compare tabs stay visible in the header (separated from `ViewToggle` by a divider) but are grayed out and disabled (`disabled` prop on `VersionTabs`) while the catalogs view is active; they remain wired to the engines' filter state so the selection is preserved when switching back.
+`App.tsx` holds a `viewMode` state (`"engines" | "catalogs"`, default engines) switched by `ViewToggle` in the header (the only control in the header now). Each view keeps its own independent `FilterState` (engines starts at `selectedVersions: ["v2","v3"]`, catalogs at `["current"]`), so filters survive toggling and never leak across views. The catalogs view reuses `CompatibilityMatrix`, `FilterPanel` (with `entityLabel="Catalogs"`), and `DetailPopover`, but renders no AWS S3-mode toggle. The Iceberg version is a **multi-select chip group inside `FilterPanel`** ("VERSION", styled like the Platform/Category/Support chips), not a header switcher. By default **both V2 and V3 are selected** (`initialEngineFilters.selectedVersions: ["v2","v3"]`). The last selected version cannot be deselected, so the grid never loses its version dimension, and the chips are hidden in the catalogs view (whose single synthetic `current` version has no v2/v3 choice).
+
+**One column per engine (not per version).** The grid renders a single column per platform; the version dimension lives *inside* each cell. `FeatureRow` restricts a cell's versions to `selectedVersions ∩ applicableVersions(feature, allVersions)` (via `src/utils/versions.ts`), then hands that version→entry list to `SupportCell`. `SupportCell` renders a **solid** cell when every version agrees (the common case) and a **transition cell** only when they differ: one segment per version laid out left to right (`V2 ✓ Full → V3 ✗ None`), each tinted with its own status and labelled with its version, with an arrow badge on every boundary and a purple frame. Segments share the cell width equally and use short labels (`Part.`, `Unk.`; full words stay in the aria-label/tooltip) so a transition cell is exactly as wide as a solid one. **All engine columns have the same fixed width**: the table uses `table-layout: fixed` with widths from `src/components/matrixLayout.ts` (`NAME_COL_WIDTH` 176, `ENGINE_COL_WIDTH` 110, the minimum that fits a two-segment cell), so a difference never widens its column. Because of the `applicableVersions` intersection, a V3-only feature (Deletion Vectors, Lineage Tracking, Variant Type) shows a single solid V3 cell even with both versions selected, never a bogus "V2 None / V3 Full" split. The frame, arrow and per-segment labels mean a difference is identifiable without relying on colour, and the row extends to 3+ segments when V4 lands.
+
+Comparison is a **separate opt-in**, decoupled from version selection: a `compareMode` boolean on `FilterState` (default `false`) toggled by a **Compare** button next to the version chips. When on, `ComparisonSummary` renders a **differences-only table** (columns `Feature | Engine | <each selected version> | Change`) listing every (feature, engine) whose support level is not identical across the versions the feature applies to; agreeing pairs and single-version (e.g. V3-only) features are omitted. The rows come from `computeDifferences` in `src/utils/comparison.ts`, which intersects each feature with `applicableVersions`, marks non-applicable version columns `null` (rendered "—"), and classifies the move as Gained / Lost / Changed — a transition touching `unknown` is neutral "Changed", not an over-claimed gain/loss. It renders only when `compareMode && selectedVersions.length > 1`; the Compare button is disabled+greyed below two versions, and `compareMode` is cleared automatically when the selection drops to one. So "both versions selected" shows the single-column grid (with split cells) and no table until Compare is pressed.
+
+Each feature row also shows a version badge next to its name ("Positional Deletes V2/V3", "Deletion Vectors V3") computed by `src/utils/versions.ts` from the feature's `introducedIn` plus the optional `availableVersions`/`removedIn` bounds — so a future v4 (e.g. equality deletes being V2/V3-only) is a data-only change.
 
 ## Best Practices
 

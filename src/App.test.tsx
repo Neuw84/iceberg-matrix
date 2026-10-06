@@ -21,11 +21,21 @@ describe('App', () => {
 describe('Engines/Catalogs view toggle', () => {
   it('defaults to the Engines view', () => {
     render(<App />)
-    // An engine column is visible; catalog columns are not.
-    expect(screen.getByText(/PyIceberg/)).toBeInTheDocument()
+    // An engine column is visible (both versions selected by default, so a
+    // header per version); catalog columns are not.
+    expect(screen.getAllByText(/PyIceberg/).length).toBeGreaterThan(0)
     expect(screen.queryByText('Apache Polaris')).not.toBeInTheDocument()
-    // Engines mode carries the V2/V3 version tabs.
-    expect(screen.getByRole('tab', { name: 'V2' })).toBeInTheDocument()
+    // Engines mode carries the V2/V3 version filter chips; both selected by
+    // default, with the comparison summary off (Compare enabled, not pressed).
+    expect(
+      screen.getByRole('button', { name: 'Show Iceberg V2 features' })
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      screen.getByRole('button', { name: 'Show Iceberg V3 features' })
+    ).toHaveAttribute('aria-pressed', 'true')
+    const compare = screen.getByRole('button', { name: 'Compare versions' })
+    expect(compare).toBeEnabled()
+    expect(compare).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByRole('tab', { name: 'Engines' })).toHaveAttribute('aria-selected', 'true')
   })
 
@@ -41,29 +51,34 @@ describe('Engines/Catalogs view toggle', () => {
     expect(screen.getByText('Managed Offering')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('tab', { name: 'Engines' }))
-    expect(screen.getByText(/PyIceberg/)).toBeInTheDocument()
+    expect(screen.getAllByText(/PyIceberg/).length).toBeGreaterThan(0)
     expect(screen.queryByText('Apache Polaris')).not.toBeInTheDocument()
   })
 
-  it('disables the version tabs and compare control in the Catalogs view', () => {
+  it('hides the version filter in the Catalogs view and keeps the engines selection', () => {
     render(<App />)
+    // Engines view offers the version chips.
+    expect(
+      screen.getByRole('button', { name: 'Show Iceberg V2 features' })
+    ).toBeInTheDocument()
+
     fireEvent.click(screen.getByRole('tab', { name: 'Catalogs' }))
+    // The rubric has no v2/v3 dimension, so the version chips are not rendered.
+    expect(
+      screen.queryByRole('button', { name: 'Show Iceberg V2 features' })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Show Iceberg V3 features' })
+    ).not.toBeInTheDocument()
 
-    // The rubric has no v2/v3 dimension; the version selector stays in the
-    // header for layout consistency but is grayed out and inert.
-    const v2 = screen.getByRole('tab', { name: 'V2' })
-    const v3 = screen.getByRole('tab', { name: 'V3' })
-    expect(v2).toBeDisabled()
-    expect(v3).toBeDisabled()
-    expect(v2).toHaveAttribute('aria-selected', 'false')
-    expect(screen.getByRole('button', { name: 'Compare versions' })).toBeDisabled()
-
-    // Clicking a disabled tab changes nothing: back in the engines view the
-    // selection is still V2.
-    fireEvent.click(v3)
+    // Back in the engines view the selection is still both versions (default).
     fireEvent.click(screen.getByRole('tab', { name: 'Engines' }))
-    expect(screen.getByRole('tab', { name: 'V2' })).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByRole('tab', { name: 'V3' })).toHaveAttribute('aria-selected', 'false')
+    expect(
+      screen.getByRole('button', { name: 'Show Iceberg V2 features' })
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      screen.getByRole('button', { name: 'Show Iceberg V3 features' })
+    ).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('shows both catalog groups as column group headers', () => {
@@ -136,9 +151,10 @@ describe('Engines/Catalogs view toggle', () => {
     expect(within(grid()).queryByText('Snowflake Horizon')).not.toBeInTheDocument()
 
     // The engines view is unaffected by the catalog-side platform filter...
+    // (both versions are selected by default, so one header per version).
     fireEvent.click(screen.getByRole('tab', { name: 'Engines' }))
-    expect(within(grid()).getByText(/PyIceberg/)).toBeInTheDocument()
-    expect(within(grid()).getByText(/Athena/)).toBeInTheDocument()
+    expect(within(grid()).getAllByText(/PyIceberg/).length).toBeGreaterThan(0)
+    expect(within(grid()).getAllByText(/Athena/).length).toBeGreaterThan(0)
 
     // ...and the catalog filter survives the round trip.
     fireEvent.click(screen.getByRole('tab', { name: 'Catalogs' }))
@@ -179,6 +195,9 @@ describe('Matrix filters', () => {
   it('narrows rows by support level', () => {
     render(<App />)
     const grid = () => screen.getByRole('grid')
+    // Operate on the V2 dimension only (deselect V3), so the row's V3 unknown
+    // cells don't keep it alive under the unknown filter.
+    fireEvent.click(screen.getByRole('button', { name: 'Show Iceberg V3 features' }))
     // Every "Snowflake Horizon Catalog" v2 cell is rated, so the row drops out
     // when filtering for unknown cells; "Bloom Filters & Puffin" keeps several
     // unknown cells and stays.
@@ -220,14 +239,46 @@ describe('Matrix filters', () => {
     )
   })
 
-  it('reveals V3-only features on the V3 tab', () => {
+  it('shows V3-only features by default and hides them when V3 is deselected', () => {
     render(<App />)
     const grid = () => screen.getByRole('grid')
-    // V3-only rows are hidden under the default V2 tab.
-    expect(within(grid()).queryByText('Lineage Tracking')).not.toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('tab', { name: 'V3' }))
+    // Both versions are selected by default, so V3-only rows are visible.
     expect(within(grid()).getByText('Lineage Tracking')).toBeInTheDocument()
+
+    // Deselecting V3 (leaving only V2) hides the V3-only rows.
+    fireEvent.click(screen.getByRole('button', { name: 'Show Iceberg V3 features' }))
+    expect(within(grid()).queryByText('Lineage Tracking')).not.toBeInTheDocument()
+  })
+
+  it('toggles the comparison summary with the Compare button, independent of version selection', async () => {
+    render(<App />)
+    // Both versions selected by default, but comparison is off: no summary.
+    expect(screen.queryByText('Comparison: V2 → V3')).not.toBeInTheDocument()
+
+    // Turning Compare on shows the summary (lazy-loaded, so await it).
+    fireEvent.click(screen.getByRole('button', { name: 'Compare versions' }))
+    expect(await screen.findByText('Comparison: V2 → V3')).toBeInTheDocument()
+
+    // Clicking again hides it.
+    fireEvent.click(screen.getByRole('button', { name: 'Hide version comparison' }))
+    await waitFor(() =>
+      expect(screen.queryByText('Comparison: V2 → V3')).not.toBeInTheDocument()
+    )
+  })
+
+  it('disables Compare and clears comparison when a single version is selected', async () => {
+    render(<App />)
+    // Turn comparison on first.
+    fireEvent.click(screen.getByRole('button', { name: 'Compare versions' }))
+    expect(await screen.findByText('Comparison: V2 → V3')).toBeInTheDocument()
+
+    // Selecting a single version (deselect V3) clears comparison and disables
+    // the Compare button.
+    fireEvent.click(screen.getByRole('button', { name: 'Show Iceberg V3 features' }))
+    await waitFor(() =>
+      expect(screen.queryByText('Comparison: V2 → V3')).not.toBeInTheDocument()
+    )
+    expect(screen.getByRole('button', { name: 'Compare versions' })).toBeDisabled()
   })
 
   it('clears all filters at once', () => {

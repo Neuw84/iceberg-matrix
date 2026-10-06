@@ -5,6 +5,7 @@ import type {
   Platform,
 } from "../types";
 import { getSupportEntry } from "./support";
+import { applicableVersions } from "./versions";
 
 export function applyFilters(
   data: CompatibilityData,
@@ -19,11 +20,15 @@ export function applyFilters(
     platforms = platforms.filter((p) => ids.has(p.id));
   }
 
-  // Hide V3-only features when V3 is not among selected versions
-  const hasV3 = filters.selectedVersions.includes("v3");
-  if (!hasV3) {
-    features = features.filter((f) => f.introducedIn !== "v3");
-  }
+  // Keep a feature only when it applies to at least one selected version. This
+  // honours the full version model (introducedIn, plus the optional
+  // availableVersions / removedIn bounds), so a feature that does not exist in
+  // any selected version is hidden — e.g. a v3-only feature with only v2
+  // selected, or (once v4 lands) a V2/V3-only feature with only v4 selected.
+  const selected = new Set(filters.selectedVersions);
+  features = features.filter((f) =>
+    applicableVersions(f, data.versions).some((v) => selected.has(v)),
+  );
 
   // Filter features by selected categories
   if (filters.selectedCategories.length > 0) {

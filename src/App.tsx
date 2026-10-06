@@ -1,9 +1,8 @@
 import { useState, useMemo, lazy, Suspense } from "react";
 import type { AwsS3Mode, FilterState, SnowflakeStorageMode, ViewMode } from "./types";
-import { data, getEngineData } from "./data/load-data";
+import { getEngineData } from "./data/load-data";
 import { dataCatalogs } from "./data/load-catalogs";
 import { FilterPanel } from "./components/FilterPanel";
-import { VersionTabs } from "./components/VersionTabs";
 import { ViewToggle } from "./components/ViewToggle";
 import { CompatibilityMatrix } from "./components/CompatibilityMatrix";
 import { applyFilters } from "./utils/filters";
@@ -17,7 +16,10 @@ const ComparisonSummary = lazy(() =>
 );
 
 const initialEngineFilters: FilterState = {
-  selectedVersions: ["v2"],
+  // Both spec versions are shown by default (a column per version per
+  // platform); the comparison summary stays off until Compare is toggled on.
+  selectedVersions: ["v2", "v3"],
+  compareMode: false,
   selectedPlatforms: [],
   selectedCategories: [],
   selectedSupportLevels: [],
@@ -29,6 +31,7 @@ const initialEngineFilters: FilterState = {
 // changes and no version tabs are rendered for it.
 const initialCatalogFilters: FilterState = {
   selectedVersions: ["current"],
+  compareMode: false,
   selectedPlatforms: [],
   selectedCategories: [],
   selectedSupportLevels: [],
@@ -55,15 +58,15 @@ export default function App() {
   const filters = isCatalogsView ? catalogFilters : engineFilters;
   const setFilters = isCatalogsView ? setCatalogFilters : setEngineFilters;
 
-  const handleVersionChange = (versions: typeof filters.selectedVersions) => {
-    setEngineFilters((prev) => ({ ...prev, selectedVersions: versions }));
-  };
-
-  const { platforms } = useMemo(
+  const { platforms, features } = useMemo(
     () => applyFilters(activeData, filters),
     [activeData, filters],
   );
-  const isCompareMode = !isCatalogsView && filters.selectedVersions.length > 1;
+  // The comparison summary is an explicit opt-in (the Compare toggle), not an
+  // automatic consequence of selecting both versions. It still requires two
+  // versions to compare, and never applies to the catalogs view.
+  const isCompareMode =
+    !isCatalogsView && filters.compareMode && filters.selectedVersions.length > 1;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,18 +89,9 @@ export default function App() {
               </div>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
+              {/* Version selection moved into the FilterPanel (multi-select
+                  chips). The header keeps only the Engines/Catalogs toggle. */}
               <ViewToggle mode={viewMode} onChange={setViewMode} />
-              <div className="w-px h-5 bg-gray-300" />
-              {/* Always rendered for a consistent header; grayed out in the
-                  catalogs view, where the rubric has no v2/v3 dimension. It is
-                  driven by the engines data/filters so the selection survives
-                  the toggle. */}
-              <VersionTabs
-                versions={data.versions}
-                selected={engineFilters.selectedVersions}
-                onChange={handleVersionChange}
-                disabled={isCatalogsView}
-              />
             </div>
           </div>
         </div>
@@ -173,6 +167,7 @@ export default function App() {
             <ComparisonSummary
               data={activeData}
               platforms={platforms}
+              features={features}
               versions={filters.selectedVersions}
             />
           </Suspense>

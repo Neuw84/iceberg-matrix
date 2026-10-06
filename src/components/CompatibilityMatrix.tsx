@@ -14,6 +14,7 @@ import type {
 import { applyFilters } from "../utils/filters";
 import { getSupportEntry } from "../utils/support";
 import { FeatureRow } from "./FeatureRow";
+import { ENGINE_COL_WIDTH, NAME_COL_WIDTH } from "./matrixLayout";
 
 // DetailPopover is only mounted when a cell is clicked; code-split it.
 const DetailPopover = lazy(() =>
@@ -186,7 +187,10 @@ export function CompatibilityMatrix({
     () => displayColumns.map((dc) => dc.active),
     [displayColumns],
   );
-  const colCount = displayColumns.length * versions.length;
+  // One column per engine now; the version dimension lives inside each cell
+  // (a split cell when a platform's levels differ across the selected
+  // versions), not as separate per-version columns.
+  const colCount = displayColumns.length;
 
   // Group display columns by their platform group for the group header row.
   const platformGroups = useMemo(() => {
@@ -258,25 +262,37 @@ export function CompatibilityMatrix({
       <div className="overflow-x-auto matrix-wrapper">
         <table
           className="border-separate border-spacing-0 text-sm"
-          style={{ minWidth: 110 + colCount * 88, width: '100%' }}
+          // Fixed layout + an identical <col> per engine gives every engine
+          // column exactly the same width, regardless of cell content.
+          style={{
+            minWidth: NAME_COL_WIDTH + colCount * ENGINE_COL_WIDTH,
+            width: '100%',
+            tableLayout: 'fixed',
+          }}
           role="grid"
           aria-label="Iceberg compatibility matrix"
         >
+          <colgroup>
+            <col style={{ width: NAME_COL_WIDTH }} />
+            {displayColumns.map((dc) => (
+              <col key={dc.key} style={{ minWidth: ENGINE_COL_WIDTH }} />
+            ))}
+          </colgroup>
           <thead>
             {/* Group header row */}
             <tr>
               <th
                 className="sticky left-0 bg-white z-30 border-b border-gray-200"
                 rowSpan={2}
-                style={{ width: 110, minWidth: 110 }}
+                style={{ width: NAME_COL_WIDTH, minWidth: NAME_COL_WIDTH }}
               />
               {platformGroups.map((pg) => (
                 <th
                   key={pg.group}
-                  colSpan={pg.columns.length * versions.length}
+                  colSpan={pg.columns.length}
                   className={`px-2 py-1.5 text-center text-[10px] font-bold uppercase tracking-wider border-b border-x ${GROUP_COLORS[pg.group]}`}
                 >
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
                     <span>{pg.group}</span>
                     {pg.group === "AWS" && hasAwsPlatforms && awsS3Mode && onAwsS3ModeChange && (
                       <button
@@ -314,74 +330,66 @@ export function CompatibilityMatrix({
                 </th>
               ))}
             </tr>
-            {/* Platform header row */}
+            {/* Platform header row — one column per engine. */}
             <tr className="border-b border-gray-300">
-              {displayColumns.map((dc) =>
-                versions.map((v) => {
-                  const p = dc.active;
-                  const isVariant = dc.variants.length > 1;
-                  return (
-                    <th
-                      key={`${dc.key}:${v}`}
-                      className="px-1 py-1.5 text-center border-x border-gray-100 bg-gray-50/80"
-                      scope="col"
-                    >
-                      <div className="flex flex-col items-center gap-0.5">
-                        {PLATFORM_LOGOS[p.id] && (
-                          <img
-                            src={PLATFORM_LOGOS[p.id]}
-                            alt=""
-                            className="w-4 h-4 opacity-60"
-                          />
-                        )}
-                        <span className="text-[10px] font-semibold text-gray-700 leading-tight">
-                          {p.name}
-                        </span>
-                        {isVariant && (
-                          <div
-                            className="inline-flex items-center gap-0.5 mt-0.5 px-1 py-0.5 rounded-full border border-gray-300 bg-white"
-                            role="group"
-                            aria-label={`${p.name} engine variant`}
-                          >
-                            {dc.variants.map((vp, i) => {
-                              const isActive = vp.id === dc.active.id;
-                              return (
-                                <Fragment key={vp.id}>
-                                  {i > 0 && <span className="text-gray-300 text-[9px]">/</span>}
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setActiveVariants((prev) => ({
-                                        ...prev,
-                                        [dc.key]: vp.id,
-                                      }));
-                                    }}
-                                    className={`px-1 rounded-full text-[9px] leading-tight cursor-pointer transition-colors normal-case tracking-normal ${
-                                      isActive
-                                        ? "font-bold text-gray-800"
-                                        : "font-normal text-gray-400 hover:text-gray-600"
-                                    }`}
-                                    aria-pressed={isActive}
-                                    title={`Show ${vp.variantLabel ?? vp.name} data`}
-                                  >
-                                    {vp.variantLabel ?? vp.name}
-                                  </button>
-                                </Fragment>
-                              );
-                            })}
-                          </div>
-                        )}
-                        {versions.length > 1 && (
-                          <span className="text-[9px] text-gray-400 font-normal">
-                            {v.toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  );
-                }),
-              )}
+              {displayColumns.map((dc) => {
+                const p = dc.active;
+                const isVariant = dc.variants.length > 1;
+                return (
+                  <th
+                    key={dc.key}
+                    className="px-1 py-1.5 text-center border-x border-gray-100 bg-gray-50/80"
+                    scope="col"
+                  >
+                    <div className="flex flex-col items-center gap-0.5">
+                      {PLATFORM_LOGOS[p.id] && (
+                        <img
+                          src={PLATFORM_LOGOS[p.id]}
+                          alt=""
+                          className="w-4 h-4 opacity-60"
+                        />
+                      )}
+                      <span className="text-[10px] font-semibold text-gray-700 leading-tight">
+                        {p.name}
+                      </span>
+                      {isVariant && (
+                        <div
+                          className="inline-flex max-w-full flex-wrap items-center justify-center gap-0.5 mt-0.5 px-1 py-0.5 rounded-xl border border-gray-300 bg-white"
+                          role="group"
+                          aria-label={`${p.name} engine variant`}
+                        >
+                          {dc.variants.map((vp) => {
+                            const isActive = vp.id === dc.active.id;
+                            return (
+                              <Fragment key={vp.id}>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveVariants((prev) => ({
+                                      ...prev,
+                                      [dc.key]: vp.id,
+                                    }));
+                                  }}
+                                  className={`px-1.5 rounded-full text-[9px] leading-tight cursor-pointer transition-colors normal-case tracking-normal ${
+                                    isActive
+                                      ? "font-bold text-gray-800 bg-gray-200"
+                                      : "font-normal text-gray-400 hover:text-gray-600"
+                                  }`}
+                                  aria-pressed={isActive}
+                                  title={`Show ${vp.variantLabel ?? vp.name} data`}
+                                >
+                                  {vp.variantLabel ?? vp.name}
+                                </button>
+                              </Fragment>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -395,7 +403,7 @@ export function CompatibilityMatrix({
                   >
                     <td
                       className={`sticky left-0 z-20 px-3 py-1.5 text-[10px] font-bold text-gray-600 uppercase tracking-wider border-l-4 ${CATEGORY_COLORS[group.category]}`}
-                      style={{ minWidth: 110 }}
+                      style={{ minWidth: NAME_COL_WIDTH }}
                     >
                       <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                         <svg
@@ -425,6 +433,7 @@ export function CompatibilityMatrix({
                         feature={feature}
                         platforms={effectivePlatforms}
                         versions={versions}
+                        allVersions={data.versions}
                         getSupportEntry={getEntry}
                         onCellClick={handleCellClick}
                       />
