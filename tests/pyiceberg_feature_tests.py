@@ -13,7 +13,7 @@ Environment variables for version selection:
     PYICEBERG_VERSION  - Override reported PyIceberg version (default: auto-detected)
 
 Requirements:
-    - pyiceberg[sql-sqlite,pyarrow] == 0.11.1
+    - pyiceberg[sql-sqlite,pyarrow] == 0.12.0
 """
 
 import json
@@ -1010,81 +1010,95 @@ def test_unknown_type() -> TestResult:
                                 check=lambda v: (v is None, "null, as the unknown type requires"))
 
 
+def _probe_v3_write(prefix: str):
+    """Try to create a V3 table and append rows to it.
+
+    Returns ``(table, note)``: ``table`` is the loaded table after the append,
+    or None when PyIceberg cannot write V3, in which case ``note`` says why.
+    """
+    cat = _get_catalog()
+    name = f"default.{_unique(prefix)}"
+    try:
+        tbl = cat.create_table(
+            name, schema=BASIC_SCHEMA, properties={"format-version": "3"},
+        )
+    except NotImplementedError as e:
+        return None, (f"creating a V3 table raises NotImplementedError "
+                      f"({str(e).splitlines()[0][:90]})")
+    except Exception as e:  # noqa: BLE001
+        return None, (f"creating a V3 table failed "
+                      f"({type(e).__name__}: {str(e).splitlines()[0][:90]})")
+    df = pa.table({
+        "id": pa.array([1, 2], type=pa.int64()),
+        "name": pa.array(["x", "y"]),
+        "value": pa.array([10.0, 20.0]),
+        "ts": pa.array([
+            datetime(2024, 6, 1, tzinfo=timezone.utc),
+            datetime(2024, 6, 2, tzinfo=timezone.utc),
+        ], type=pa.timestamp("us", tz="UTC")),
+    })
+    tbl.append(df.cast(tbl.schema().as_arrow()))
+    return cat.load_table(name), ""
+
+
 def test_lineage() -> TestResult:
     r = TestResult("lineage", "Lineage Tracking")
     r.version_tested = "v3"
-    if spark_fixture.available():
-        # Real measurement: Spark writes a V3 table (row lineage is mandatory in
-        # V3); PyIceberg loads it through the shared REST catalog. Does it read
-        # the lineage metadata, and does its scan expose _row_id?
-        ns = None
-        try:
-            ns = spark_fixture.new_namespace()
-            spark_fixture.create_fixture(ns, "t", "v3", "merge-on-read")
-            tbl = _get_rest_catalog().load_table(f"{ns}.t")
-            next_row_id = getattr(tbl.metadata, "next_row_id", None)
-            snap = tbl.current_snapshot()
-            first_row_id = getattr(snap, "first_row_id", None)
-            try:
-                cols = tbl.scan().to_arrow().column_names
-                exposes = "_row_id" in cols
-                scan_note = (f"scan exposes _row_id" if exposes
-                             else f"scan does not expose _row_id (columns {cols})")
-            except Exception as e:  # noqa: BLE001
-                exposes = False
-                scan_note = f"scan of the V3 table failed ({str(e).splitlines()[0][:100]})"
-            reads_meta = next_row_id is not None and first_row_id is not None
-            r.result = "pass" if reads_meta else "fail"
-            r.details = (f"PyIceberg reads V3 row-lineage metadata from a Spark-written table "
-                         f"(next-row-id={next_row_id}, snapshot first-row-id={first_row_id}); "
-                         f"{scan_note}; assigning row IDs on write is pending V3 write support")
-        except Exception as e:  # noqa: BLE001
-            r.result = "error"
-            r.details = f"{type(e).__name__}: {str(e).splitlines()[0][:200]}"
-        finally:
-            if ns:
-                spark_fixture.drop_fixture(ns, "t")
-        return r
-    # Fallback without Spark: parse a hand-written V3 metadata document.
+    # Rated by WRITE: does the engine assign row IDs when it commits? Reading
+    # V3 row-lineage metadata written by another engine does not count.
     try:
-        from pyiceberg.table.metadata import TableMetadataUtil
+        tbl, note = _probe_v3_write("lineage")
+        if tbl is None:
+            r.result = "fail"
+            r.details = (f"Not supported as a write operation: {note}, so no row IDs "
+                         f"are assigned on commit. Reading V3 lineage metadata written by "
+                         f"another engine is a read capability, not this operation.")
+            return r
+        snap = tbl.current_snapshot()
+        first_row_id = getattr(snap, "first_row_id", None)
+        added_rows = getattr(snap, "added_rows", None)
+        if first_row_id is not None and added_rows:
+            r.result = "pass"
+            r.details = (f"Assigned row IDs on commit (snapshot first-row-id={first_row_id}, "
+                         f"added-rows={added_rows}, next-row-id={getattr(tbl.metadata, 'next_row_id', None)})")
+        else:
+            r.result = "fail"
+            r.details = (f"V3 table written but the commit assigned no row IDs "
+                         f"(first-row-id={first_row_id}, added-rows={added_rows})")
+    except Exception as e:  # noqa: BLE001
+        r.result = "error"
+        r.details = f"{type(e).__name__}: {str(e).splitlines()[0][:200]}"
+    return r
 
-        v3_meta = {
-            "format-version": 3,
-            "table-uuid": "9c912b62-6bcd-4def-9dd2-c9ec9c4bec37",
-            "location": "s3://bucket/tbl",
-            "last-sequence-number": 1,
-            "last-updated-ms": 1700000000000,
-            "last-column-id": 1,
-            "schemas": [{"schema-id": 0, "type": "struct", "fields": [
-                {"id": 1, "name": "c", "type": "string", "required": False}]}],
-            "current-schema-id": 0,
-            "partition-specs": [{"spec-id": 0, "fields": []}],
-            "default-spec-id": 0,
-            "last-partition-id": 999,
-            "sort-orders": [{"order-id": 0, "fields": []}],
-            "default-sort-order-id": 0,
-            "properties": {},
-            "next-row-id": 100,
-            "snapshots": [{
-                "snapshot-id": 1, "sequence-number": 1,
-                "timestamp-ms": 1700000000000,
-                "manifest-list": "s3://bucket/ml.avro",
-                "summary": {"operation": "append"},
-                "schema-id": 0, "first-row-id": 0, "added-rows": 100,
-            }],
-        }
-        md = TableMetadataUtil.parse_obj(v3_meta)
-        assert md.next_row_id == 100
-        assert md.snapshots[0].first_row_id == 0
-        r.result = "pass"
-        r.details = (
-            "Reads V3 row lineage metadata (next-row-id, snapshot first-row-id); "
-            "assigning row IDs on write is pending V3 write support"
-        )
-    except Exception as e:
-        r.result = "fail"
-        r.details = f"V3 row lineage metadata not readable: {str(e).splitlines()[0][:120]}"
+
+def test_deletion_vectors() -> TestResult:
+    r = TestResult("deletion-vectors", "Deletion Vectors")
+    r.version_tested = "v3"
+    # Rated by WRITE: does a DELETE on a V3 table commit a deletion vector?
+    # Reading deletion vectors written by another engine does not count.
+    try:
+        tbl, note = _probe_v3_write("dv")
+        if tbl is None:
+            r.result = "fail"
+            r.details = (f"Not supported as a write operation: {note}, so it cannot write "
+                         f"deletion vectors. Reading deletion vectors written by another "
+                         f"engine (0.10.0+) is a read capability, not this operation.")
+            return r
+        from pyiceberg.expressions import EqualTo
+        tbl.delete(EqualTo("id", 1))
+        tbl.refresh()
+        summary = tbl.current_snapshot().summary
+        dvs = int(summary.get("added-dvs", 0)) if summary is not None else 0
+        if dvs > 0:
+            r.result = "pass"
+            r.details = f"DELETE on a V3 table committed {dvs} deletion vector(s)"
+        else:
+            r.result = "fail"
+            r.details = ("DELETE on a V3 table did not commit a deletion vector "
+                         "(copy-on-write rewrite, no added-dvs in the snapshot summary)")
+    except Exception as e:  # noqa: BLE001
+        r.result = "error"
+        r.details = f"{type(e).__name__}: {str(e).splitlines()[0][:200]}"
     return r
 
 
@@ -1122,6 +1136,7 @@ ALL_TESTS = [
     test_nanosecond_timestamps,
     test_unknown_type,
     test_lineage,
+    test_deletion_vectors,
 ]
 
 
