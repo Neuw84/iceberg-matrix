@@ -215,7 +215,7 @@
       "name": "Lineage Tracking",
       "category": "v3-advanced",
       "introducedIn": "v3",
-      "description": "Iceberg V3 row lineage: the engine assigns and preserves _row_id and _last_updated_sequence_number on write, so any reader can match rows across snapshots and detect row-level changes. Rated full when the engine maintains spec-correct lineage; whether the columns can also be selected from the engine's SQL is noted as a caveat."
+      "description": "Iceberg V3 row lineage: the engine assigns and preserves _row_id and _last_updated_sequence_number on write, so any reader can match rows across snapshots and detect row-level changes. Rated full when the engine maintains correct lineage at write time."
     },
     {
       "id": "deletion-vectors",
