@@ -26,8 +26,8 @@
       ]
     },
     "duckdb:position-deletes:v3": {
-      "level": "partial",
-      "notes": "V3 tables with position deletes can be read if only V2-compatible data types are used",
+      "level": "full",
+      "notes": "Since v1.5.3 DuckDB's own UPDATE/DELETE/MERGE on a V3 table write their position deletes as Puffin deletion vectors, the V3 encoding of a position delete, rather than Parquet position-delete files. Verified by the suite: a DELETE on a V3 table commits a Puffin file and the deleted row disappears from reads. It also applies deletion vectors written by other engines.",
       "caveats": [
         "V3 reads supported only with V2-compatible data types"
       ],
@@ -35,6 +35,10 @@
         {
           "label": "Iceberg Extension Overview",
           "url": "https://duckdb.org/docs/stable/core_extensions/iceberg/overview"
+        },
+        {
+          "label": "New DuckDB-Iceberg Features in v1.5.3 (V3 deletion vectors)",
+          "url": "https://duckdb.org/2026/05/29/new-iceberg-features"
         }
       ]
     },
