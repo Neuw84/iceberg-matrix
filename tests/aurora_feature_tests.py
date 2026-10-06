@@ -334,19 +334,14 @@ def test_position_deletes() -> TestResult:
 
 def test_merge_on_read() -> TestResult:
     r = TestResult("merge-on-read", "Merge-on-Read", "v2")
-    if _prereqs():
-        return _skip(r, f"Prerequisites missing: {_prereqs()}")
-    ok, n, out = _read_count(_fixture_arn("posdel"))
-    if not ok:
-        return _skip(r, f"merge-on-read fixture 'posdel' not readable: {_err_line(out)}")
-    if n == "3":
-        r.result = "pass"
-        r.details = ("Resolves V2 merge-on-read tables at query time (delete files merged "
-                     "on read). Read-only: merges but never writes delete files.")
-    else:
-        r.result = "fail"
-        r.details = f"merge-on-read table did not resolve to 3 rows, read {n}"
-    return r
+    # Merge-on-read is a write strategy (changes recorded as delete files merged
+    # at read time). Aurora's foreign tables are read-only, so it never chooses
+    # or writes one: a DELETE is rejected and the matrix rates it none, which a
+    # write-rejection measurement agrees with. That it still MERGES delete files
+    # written by another engine when reading (fixture 'posdel': a 5-row table
+    # DELETE'd to 3 via Athena reads back 3) is a read capability, kept as a
+    # caveat rather than used as the rating.
+    return _write_rejected(r, lambda ft, col: f"DELETE FROM {ft}")
 
 
 def test_equality_deletes() -> TestResult:
@@ -651,7 +646,7 @@ def test_shredded_variant() -> TestResult:
 def test_geometry_type() -> TestResult:
     r = TestResult("geometry-type", "Geometry / Geo Types", "v3")
     return _skip(r, "No V3 GEOMETRY fixture could be produced (Athena v3 and pyiceberg "
-                    "0.11.1 cannot write V3); V3 types are unsupported by the embedded "
+                    "0.12.0 cannot write V3); V3 types are unsupported by the embedded "
                     "reader (VARIANT measured), but this is not directly measured")
 
 
@@ -675,7 +670,7 @@ def test_lineage() -> TestResult:
 def test_deletion_vectors() -> TestResult:
     r = TestResult("deletion-vectors", "Deletion Vectors", "v3")
     return _skip(r, "No V3 deletion-vector fixture could be produced (Athena v3 and "
-                    "pyiceberg 0.11.1 cannot write V3); the embedded reader does not read "
+                    "pyiceberg 0.12.0 cannot write V3); the embedded reader does not read "
                     "V3 types, but this is not directly measured")
 
 

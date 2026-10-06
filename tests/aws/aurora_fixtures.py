@@ -9,7 +9,7 @@ measures by read: position deletes / merge-on-read (``posdel``), hidden
 partitioning (``hidpart``), and partition evolution (``partevo``).
 
 V3 fixtures (deletion vectors, nanosecond timestamps, geometry, lineage) are NOT
-built here: Athena engine v3 rejects ``format_version=3`` and pyiceberg 0.11.1
+built here: Athena engine v3 rejects ``format_version=3`` and pyiceberg 0.12.0
 cannot write V3, so those cells are left as honest "skip" in the suite rather
 than measured against a fabricated fixture. Producing them would need Spark with
 Iceberg 1.11 writing into Glue (future work).

@@ -93,7 +93,7 @@ uv run --with boto3 python tests/aws/aurora_fixtures.py create   # ... drop when
 ```
 
 V3 fixtures (deletion vectors, nanosecond timestamps, geometry, lineage) are
-**not** built: Athena v3 rejects `format_version=3` and pyiceberg 0.11.1 cannot
+**not** built: Athena v3 rejects `format_version=3` and pyiceberg 0.12.0 cannot
 write V3. Those cells stay honest `skip`s in the report; producing them would
 need Spark + Iceberg 1.11 writing into Glue (future work). The embedded DuckDB
 build does reject the one V3 type that was reachable (VARIANT), which is the

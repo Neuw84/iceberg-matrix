@@ -143,10 +143,10 @@
       ]
     },
     "aws-aurora:merge-on-read:v2": {
-      "level": "full",
-      "notes": "Rated by read capability. Aurora resolves V2 merge-on-read tables correctly at query time (see position-deletes: a DELETE'd table read back the right surviving rows). It merges delete files on read but, being read-only, never chooses or writes a merge-on-read strategy itself.",
+      "level": "none",
+      "notes": "Not supported as a write operation. Aurora's analytics tables are read-only foreign tables, so it never chooses or writes a merge-on-read strategy. Measured: it does merge position delete files written by another engine when reading (a V2 table DELETE'd via Athena read back the right surviving rows), but that is a read capability, not this operation.",
       "caveats": [
-        "Read-only: merges delete files at read time; does not write them"
+        "Read capability: merges delete files written by another engine at read time"
       ],
       "links": [
         {
@@ -157,7 +157,7 @@
     },
     "aws-aurora:merge-on-read:v3": {
       "level": "none",
-      "notes": "V3 merge-on-read uses Puffin deletion vectors. Aurora's embedded DuckDB build does not read V3 deletion vectors / V3 types (VARIANT measured unsupported), so a V3 merge-on-read table is not reliably resolvable; not exercised against a real deletion-vector fixture.",
+      "notes": "Not supported as a write operation. Aurora is read-only, so it never writes deletion vectors or chooses a merge-on-read strategy. Its embedded DuckDB build also does not read V3 deletion vectors / V3 types (VARIANT measured unsupported), so V3 merge-on-read tables are not reliably readable either; not exercised against a real deletion-vector fixture.",
       "caveats": [
         "V3 deletion-vector read path unsupported/unmeasured",
         "Read-only"
@@ -680,7 +680,7 @@
     },
     "aws-aurora:geometry-type:v3": {
       "level": "none",
-      "notes": "Inferred from the measured V3-type behavior: Aurora's embedded DuckDB build rejects V3-specific types (VARIANT confirmed), and upstream DuckDB had not shipped Iceberg GEOGRAPHY support in this timeframe. A GEOMETRY/GEOGRAPHY fixture could not be produced (Athena v3 and pyiceberg 0.11.1 cannot write V3), so this is not directly measured.",
+      "notes": "Inferred from the measured V3-type behavior: Aurora's embedded DuckDB build rejects V3-specific types (VARIANT confirmed), and upstream DuckDB had not shipped Iceberg GEOGRAPHY support in this timeframe. A GEOMETRY/GEOGRAPHY fixture could not be produced (Athena v3 and pyiceberg 0.12.0 cannot write V3), so this is not directly measured.",
       "caveats": [
         "Inferred, not directly measured; V3 types are unsupported by the embedded reader"
       ],
@@ -698,7 +698,7 @@
     },
     "aws-aurora:nanosecond-timestamps:v3": {
       "level": "none",
-      "notes": "Inferred: Aurora's embedded DuckDB build rejects V3-specific types (VARIANT confirmed). A V3 timestamp_ns fixture could not be created (Athena v3 rejects format_version=3; pyiceberg 0.11.1 cannot write V3), so this is not directly measured.",
+      "notes": "Inferred: Aurora's embedded DuckDB build rejects V3-specific types (VARIANT confirmed). A V3 timestamp_ns fixture could not be created (Athena v3 rejects format_version=3; pyiceberg 0.12.0 cannot write V3), so this is not directly measured.",
       "caveats": [
         "Inferred, not directly measured"
       ],
@@ -747,7 +747,7 @@
     },
     "aws-aurora:deletion-vectors:v3": {
       "level": "none",
-      "notes": "Inferred: Aurora's embedded DuckDB build does not read V3 deletion vectors / V3 types (VARIANT confirmed unsupported). A V3 deletion-vector fixture could not be produced (Athena v3 and pyiceberg 0.11.1 cannot write V3), so this is not directly measured.",
+      "notes": "Inferred: Aurora's embedded DuckDB build does not read V3 deletion vectors / V3 types (VARIANT confirmed unsupported). A V3 deletion-vector fixture could not be produced (Athena v3 and pyiceberg 0.12.0 cannot write V3), so this is not directly measured.",
       "caveats": [
         "Inferred, not directly measured",
         "Read-only"

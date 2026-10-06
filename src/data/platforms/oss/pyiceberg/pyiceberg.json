@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "pyiceberg",
-      "name": "PyIceberg (0.11.1)",
+      "name": "PyIceberg (0.12.0)",
       "vendor": "Apache",
       "category": "open-source",
       "group": "3rd Party",
@@ -353,15 +353,20 @@
       "caveats": []
     },
     "pyiceberg:lineage:v3": {
-      "level": "partial",
-      "notes": "PyIceberg reads V3 row lineage metadata: next-row-id on table metadata and first-row-id on snapshots and manifests are parsed and exposed. Assigning row IDs on write is pending V3 write support.",
+      "level": "none",
+      "notes": "Not supported as a write operation. Measured on PyIceberg 0.12.0 (the current release): creating a V3 table raises NotImplementedError (\"Writing V3 is not yet supported\"), so it cannot assign row IDs on commit. It parses V3 row-lineage metadata (next-row-id, snapshot first-row-id) from tables written by other engines, but that is a read capability, not this operation.",
       "caveats": [
-        "Metadata read support only; PyIceberg cannot yet write V3 tables, so row IDs are not assigned on commit"
+        "Read capability: parses V3 row-lineage metadata written by other engines",
+        "Writing V3 is not yet supported (NotImplementedError on table creation, 0.12.0)"
       ],
       "links": [
         {
           "label": "Row-level lineage issue (apache/iceberg-python#1821)",
           "url": "https://github.com/apache/iceberg-python/issues/1821"
+        },
+        {
+          "label": "Write support for V3 (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
         }
       ]
     },
@@ -465,12 +470,18 @@
       "links": []
     },
     "pyiceberg:deletion-vectors:v3": {
-      "level": "partial",
-      "notes": "PyIceberg can read V3 deletion vectors (added in v0.10.0) but does not write deletion vectors.",
+      "level": "none",
+      "notes": "Not supported as a write operation. Measured on PyIceberg 0.12.0 (the current release): creating a V3 table raises NotImplementedError (\"Writing V3 is not yet supported\"), so it cannot write deletion vectors. It can read V3 deletion vectors (added in 0.10.0) written by other engines, but that is a read capability, not this operation.",
       "caveats": [
-        "Read-only; cannot write deletion vectors"
+        "Read capability: reads V3 deletion vectors (0.10.0+)",
+        "Writing V3 is not yet supported (NotImplementedError on table creation, 0.12.0)"
       ],
-      "links": []
+      "links": [
+        {
+          "label": "Write support for V3 (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
     },
     "pyiceberg:unknown-type:v2": {
       "level": "none",
