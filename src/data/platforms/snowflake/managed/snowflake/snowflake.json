@@ -897,11 +897,12 @@
       "links": []
     },
     "snowflake:lineage:v3": {
-      "level": "partial",
-      "notes": "Snowflake writes Iceberg v3 row-lineage metadata for engine interoperability, but no session surface exposes it: METADATA$ROW_ID is an invalid identifier on a v3 managed Iceberg table, with or without change tracking (measured on Snowflake 10.30.102, Aug 2026).",
+      "level": "full",
+      "notes": "Snowflake automatically writes the Iceberg v3 row-lineage fields _row_id and _last_updated_sequence_number on Snowflake-managed and externally managed v3 tables, so other engines can match rows across snapshots and detect row-level changes. Snowflake streams on v3 tables consume this lineage for change tracking. Rated full per the feature definition (lineage is maintained on write); SQL exposure is covered in the caveats.",
       "caveats": [
-        "Measured: lineage columns are not selectable from a Snowflake session",
-        "v3 lineage metadata is maintained for external readers (CDC interop)"
+        "Requires ICEBERG_VERSION = 3; not available in the People's Republic of China",
+        "METADATA$ROW_ID is not selectable from a session (measured Aug 2026); whether _row_id / _last_updated_sequence_number are projectable is pending a re-run of the updated probe",
+        "Standard streams on externally managed v3 tables depend on the external writer following the spec (new rows _row_id = NULL, copy-on-write preserves _row_id)"
       ],
       "links": [
         {
@@ -911,10 +912,6 @@
         {
           "label": "Iceberg V3 Support (GA)",
           "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
-        },
-        {
-          "label": "Release Notes",
-          "url": "https://docs.snowflake.com/en/release-notes/2026/other/2026-05-07-iceberg-v3-ga"
         }
       ]
     },
