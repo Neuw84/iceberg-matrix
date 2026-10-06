@@ -8,12 +8,12 @@ import type {
   FilterState,
   Platform,
   PlatformGroup,
-  SupportEntry,
   Version,
 } from "../types";
 import { applyFilters } from "../utils/filters";
 import { getSupportEntry } from "../utils/support";
 import { FeatureRow } from "./FeatureRow";
+import type { VersionEntry } from "./DetailPopover";
 import { ENGINE_COL_WIDTH, NAME_COL_WIDTH } from "./matrixLayout";
 
 // DetailPopover is only mounted when a cell is clicked; code-split it.
@@ -97,8 +97,7 @@ const PLATFORM_LOGOS: Record<string, string> = {
 interface PopoverState {
   platform: Platform;
   feature: Feature;
-  version: Version;
-  entry: SupportEntry;
+  entries: VersionEntry[];
 }
 
 interface DisplayColumn {
@@ -213,8 +212,8 @@ export function CompatibilityMatrix({
   // Stable callbacks so memoized FeatureRow instances don't re-render when only
   // the popover (matrix-level state) changes.
   const handleCellClick = useCallback(
-    (platform: Platform, feature: Feature, version: Version, entry: SupportEntry) => {
-      setPopover({ platform, feature, version, entry });
+    (platform: Platform, feature: Feature, entries: VersionEntry[]) => {
+      setPopover({ platform, feature, entries });
     },
     [],
   );
@@ -449,10 +448,9 @@ export function CompatibilityMatrix({
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/20">
           <Suspense fallback={null}>
             <DetailPopover
-              entry={popover.entry}
+              entries={popover.entries}
               feature={popover.feature}
               platform={popover.platform}
-              version={popover.version}
               onClose={() => setPopover(null)}
             />
           </Suspense>

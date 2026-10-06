@@ -1,5 +1,6 @@
 import { memo, useRef, useState } from "react";
 import type { Feature, Platform, SupportEntry, Version } from "../types";
+import type { VersionEntry } from "./DetailPopover";
 import { createPortal } from "react-dom";
 import { SupportCell } from "./SupportCell";
 import { applicableVersions, versionBadge } from "../utils/versions";
@@ -15,7 +16,9 @@ interface FeatureRowProps {
    *  from `versions`, which is the user's current selection). */
   allVersions: Version[];
   getSupportEntry: (platformId: string, featureId: string, version: Version) => SupportEntry;
-  onCellClick: (platform: Platform, feature: Feature, version: Version, entry: SupportEntry) => void;
+  /** Receives every version the clicked cell covers, so the detail popover can
+   *  show V3 as well as V2 when the two agree and render as one solid cell. */
+  onCellClick: (platform: Platform, feature: Feature, entries: VersionEntry[]) => void;
 }
 
 function FeatureRowImpl({
@@ -89,10 +92,7 @@ function FeatureRowImpl({
           >
             <SupportCell
               entries={entries}
-              onClick={(version) => {
-                const hit = entries.find((e) => e.version === version) ?? entries[0];
-                onCellClick(platform, feature, hit.version, hit.entry);
-              }}
+              onClick={() => onCellClick(platform, feature, entries)}
             />
           </td>
         );
