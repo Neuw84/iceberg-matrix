@@ -5,6 +5,7 @@ import type {
   FilterState,
   PlatformGroup,
   SupportLevel,
+  Version,
 } from "../types";
 
 const CATEGORY_LABELS: Record<FeatureCategory, string> = {
@@ -195,6 +196,40 @@ export function FilterPanel({
     onFilterChange({ ...filters, selectedCategories: selected });
   };
 
+  // Multi-select version filter: a column per selected version in the grid.
+  // The last selected version cannot be removed (the grid would have no
+  // columns). Comparison is a separate opt-in (toggleCompare) and is cleared
+  // automatically here whenever the selection drops below two versions, since
+  // there is then nothing to compare.
+  const toggleVersion = (v: Version) => {
+    const isSelected = filters.selectedVersions.includes(v);
+    if (isSelected && filters.selectedVersions.length <= 1) return;
+    const selected = isSelected
+      ? filters.selectedVersions.filter((x) => x !== v)
+      : // Keep the selection in the dataset's canonical version order.
+        data.versions.filter(
+          (x) => x === v || filters.selectedVersions.includes(x),
+        );
+    onFilterChange({
+      ...filters,
+      selectedVersions: selected,
+      compareMode: selected.length > 1 ? filters.compareMode : false,
+    });
+  };
+
+  // Comparison summary toggle. Only meaningful with two or more versions
+  // selected; a no-op (and rendered disabled) otherwise.
+  const toggleCompare = () => {
+    if (filters.selectedVersions.length <= 1) return;
+    onFilterChange({ ...filters, compareMode: !filters.compareMode });
+  };
+
+  // The version filter applies only to the engines view: the catalogs rubric
+  // has the single synthetic version "current", which carries no v2/v3 choice.
+  const versionOptions = data.versions.filter((v) => v !== "current");
+  const showVersionFilter = versionOptions.length > 1;
+  const canCompare = filters.selectedVersions.length > 1;
+
   const toggleSupportLevel = (level: SupportLevel) => {
     const selected = filters.selectedSupportLevels.includes(level)
       ? filters.selectedSupportLevels.filter((l) => l !== level)
@@ -205,6 +240,7 @@ export function FilterPanel({
   const clearAll = () => {
     onFilterChange({
       selectedVersions: filters.selectedVersions,
+      compareMode: filters.compareMode,
       selectedPlatforms: [],
       selectedCategories: [],
       selectedSupportLevels: [],
@@ -344,6 +380,61 @@ export function FilterPanel({
             </div>
           )}
         </div>
+
+        {/* Iceberg spec version(s). Multi-select: both selected shows a column
+            per version (compare). Hidden in the catalogs view. */}
+        {showVersionFilter && (
+          <div>
+            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Version</p>
+            <div className="flex flex-wrap gap-1">
+              {versionOptions.map((v) => {
+                const isActive = filters.selectedVersions.includes(v);
+                const isLast = isActive && filters.selectedVersions.length <= 1;
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => toggleVersion(v)}
+                    disabled={isLast}
+                    className={`filter-chip ${
+                      isActive
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+                    } ${isLast ? "cursor-not-allowed opacity-90" : ""}`}
+                    aria-pressed={isActive}
+                    aria-label={`Show Iceberg ${v.toUpperCase()} features`}
+                    title={isLast ? "At least one version must stay selected" : undefined}
+                  >
+                    {v.toUpperCase()}
+                  </button>
+                );
+              })}
+              {/* Comparison summary toggle, separate from version selection.
+                  Needs two versions to be meaningful; disabled+greyed otherwise. */}
+              <button
+                type="button"
+                onClick={toggleCompare}
+                disabled={!canCompare}
+                className={`filter-chip ${
+                  !canCompare
+                    ? "bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed"
+                    : filters.compareMode
+                      ? "bg-purple-600 text-white border-purple-600"
+                      : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+                }`}
+                aria-pressed={canCompare && filters.compareMode}
+                aria-label={filters.compareMode ? "Hide version comparison" : "Compare versions"}
+                title={
+                  canCompare
+                    ? undefined
+                    : "Select both versions to compare"
+                }
+              >
+                Compare
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Categories */}
         <div>
