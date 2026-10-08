@@ -535,7 +535,7 @@
       ]
     },
     "doris:unity-catalog:v2": {
-      "level": "unknown",
+      "level": "partial",
       "notes": "Doris 4.2 supports the generic Iceberg REST Catalog protocol, but this specific Unity Catalog pairing has not been tested end to end for Iceberg V2.",
       "caveats": [
         "Generic REST support does not establish this provider-specific authentication, credential vending, and read/write behavior."
@@ -548,7 +548,7 @@
       ]
     },
     "doris:unity-catalog:v3": {
-      "level": "unknown",
+      "level": "partial",
       "notes": "Doris 4.2 supports the generic Iceberg REST Catalog protocol, but this specific Unity Catalog pairing has not been tested end to end for Iceberg V3.",
       "caveats": [
         "Generic REST support does not establish this provider-specific authentication, credential vending, and read/write behavior."
@@ -561,7 +561,7 @@
       ]
     },
     "doris:snowflake-horizon-catalog:v2": {
-      "level": "unknown",
+      "level": "partial",
       "notes": "Doris 4.2 supports the generic Iceberg REST Catalog protocol, but this specific Snowflake Horizon pairing has not been tested end to end for Iceberg V2.",
       "caveats": [
         "Generic REST support does not establish this provider-specific authentication, credential vending, and read/write behavior."
@@ -574,7 +574,7 @@
       ]
     },
     "doris:snowflake-horizon-catalog:v3": {
-      "level": "unknown",
+      "level": "partial",
       "notes": "Doris 4.2 supports the generic Iceberg REST Catalog protocol, but this specific Snowflake Horizon pairing has not been tested end to end for Iceberg V3.",
       "caveats": [
         "Generic REST support does not establish this provider-specific authentication, credential vending, and read/write behavior."
@@ -725,7 +725,7 @@
       ]
     },
     "doris:google-lakehouse:v2": {
-      "level": "unknown",
+      "level": "partial",
       "notes": "Doris 4.2 supports the generic Iceberg REST Catalog protocol, but this specific Google Lakehouse pairing has not been tested end to end for Iceberg V2.",
       "caveats": [
         "Generic REST support does not establish this provider-specific authentication, credential vending, and read/write behavior."
@@ -738,7 +738,7 @@
       ]
     },
     "doris:google-lakehouse:v3": {
-      "level": "unknown",
+      "level": "partial",
       "notes": "Doris 4.2 supports the generic Iceberg REST Catalog protocol, but this specific Google Lakehouse pairing has not been tested end to end for Iceberg V3.",
       "caveats": [
         "Generic REST support does not establish this provider-specific authentication, credential vending, and read/write behavior."
