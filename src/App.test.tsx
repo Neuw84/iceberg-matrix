@@ -195,12 +195,7 @@ describe('Matrix filters', () => {
   it('narrows rows by support level', () => {
     render(<App />)
     const grid = () => screen.getByRole('grid')
-    // Operate on the V2 dimension only (deselect V3), so the row's V3 unknown
-    // cells don't keep it alive under the unknown filter.
-    fireEvent.click(screen.getByRole('button', { name: 'Show Iceberg V3 features' }))
-    // Every "Snowflake Horizon Catalog" v2 cell is rated, so the row drops out
-    // when filtering for unknown cells; "Bloom Filters & Puffin" keeps several
-    // unknown cells and stays.
+    fireEvent.click(screen.getByRole('button', { name: 'Filter by Azure' }))
     expect(within(grid()).getByText('Snowflake Horizon Catalog')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Filter by unknown support' }))
@@ -248,6 +243,18 @@ describe('Matrix filters', () => {
     // Deselecting V3 (leaving only V2) hides the V3-only rows.
     fireEvent.click(screen.getByRole('button', { name: 'Show Iceberg V3 features' }))
     expect(within(grid()).queryByText('Lineage Tracking')).not.toBeInTheDocument()
+  })
+
+  it('shows write-rated position deletes only for Iceberg V2', () => {
+    render(<App />)
+    const grid = () => screen.getByRole('grid')
+    const row = within(grid()).getByText('Position Deletes').closest('tr')
+    expect(row).not.toBeNull()
+    expect(within(row!).getByLabelText('Applies to Iceberg V2')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show Iceberg V2 features' }))
+    expect(within(grid()).queryByText('Position Deletes')).not.toBeInTheDocument()
+    expect(within(grid()).getByText('Deletion Vectors')).toBeInTheDocument()
   })
 
   it('toggles the comparison summary with the Compare button, independent of version selection', async () => {

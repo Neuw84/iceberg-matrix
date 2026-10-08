@@ -50,7 +50,8 @@ export function applyFilters(
     const keptPlatforms = platforms;
     features = features.filter((f) =>
       keptPlatforms.some((p) =>
-        filters.selectedVersions.some((v) =>
+        applicableVersions(f, data.versions).some((v) =>
+          selected.has(v) &&
           levels.has(getSupportEntry(data, p.id, f.id, v).level)
         )
       )

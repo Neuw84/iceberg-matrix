@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "doris",
-      "name": "Doris (4.1)",
+      "name": "Doris (4.2)",
       "vendor": "Apache",
       "category": "open-source",
       "group": "3rd Party",
@@ -12,8 +12,10 @@
   "support": {
     "doris:position-deletes:v2": {
       "level": "full",
-      "notes": "Doris 4.x reads V2 tables with Position Delete files via its Iceberg catalog; position deletes are applied at scan time",
-      "caveats": [],
+      "notes": "Doris 4.2 writes Iceberg V2 position delete files for DELETE, UPDATE, and MERGE INTO; it also reads existing position deletes.",
+      "caveats": [
+        "Row-level DML is documented as experimental in Doris 4.x."
+      ],
       "links": [
         {
           "label": "Doris 4.x Iceberg Catalog",
@@ -22,19 +24,15 @@
       ]
     },
     "doris:position-deletes:v3": {
-      "level": "full",
-      "notes": "Doris 4.1 reads V3 tables; V3 uses Puffin Deletion Vectors as the primary row-level delete mechanism, and Doris can still read legacy position deletes if present",
+      "level": "none",
+      "notes": "Not applicable to new V3 writes: Iceberg V3 prohibits adding position delete files. Doris writes deletion vectors instead and can still read position deletes inherited from V2.",
       "caveats": [
-        "V3 tables primarily use Deletion Vectors rather than position delete files"
+        "This write-rated feature is displayed only for V2."
       ],
       "links": [
         {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
-        },
-        {
-          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
-          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
+          "label": "Iceberg format specification",
+          "url": "https://iceberg.apache.org/spec/"
         }
       ]
     },
@@ -51,14 +49,14 @@
     },
     "doris:equality-deletes:v3": {
       "level": "none",
-      "notes": "Iceberg V3 uses Puffin Deletion Vectors instead of equality deletes; Doris follows the V3 spec by not emitting or relying on equality deletes for V3 tables",
+      "notes": "Doris 4.2 does not write equality delete files to V3 tables; its row-level DML writes deletion vectors. Existing V3 equality delete files remain valid and readable.",
       "caveats": [
-        "V3 replaces equality-delete semantics with Deletion Vectors"
+        "Iceberg V3 permits existing and newly written equality delete files; the absence here is a Doris write-path limitation."
       ],
       "links": [
         {
-          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
-          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
+          "label": "Iceberg format specification",
+          "url": "https://iceberg.apache.org/spec/"
         }
       ]
     },
@@ -75,7 +73,7 @@
     },
     "doris:merge-on-read:v3": {
       "level": "full",
-      "notes": "Doris 4.1 supports merge-on-read for V3 tables using Puffin-format Deletion Vectors; V3 DML writes Deletion Vectors rather than position delete files",
+      "notes": "Doris 4.2 supports merge-on-read for V3 tables using Puffin-format Deletion Vectors; V3 DML writes Deletion Vectors rather than position delete files",
       "caveats": [],
       "links": [
         {
@@ -127,7 +125,7 @@
     },
     "doris:schema-evolution:v3": {
       "level": "full",
-      "notes": "Doris 4.1 supports ALTER TABLE schema changes on V3 Iceberg tables",
+      "notes": "Doris 4.2 supports ALTER TABLE schema changes on V3 Iceberg tables",
       "caveats": [],
       "links": [
         {
@@ -149,7 +147,7 @@
     },
     "doris:type-promotion:v3": {
       "level": "full",
-      "notes": "Doris 4.1 supports safe type promotions on V3 Iceberg tables",
+      "notes": "Doris 4.2 supports safe type promotions on V3 Iceberg tables",
       "caveats": [],
       "links": [
         {
@@ -164,15 +162,19 @@
       "caveats": []
     },
     "doris:column-default-values:v3": {
-      "level": "partial",
-      "notes": "Doris supports default values in ADD COLUMN DDL on V3 Iceberg tables",
+      "level": "full",
+      "notes": "Doris 4.2 reads Iceberg V3 initial-default values for older files, applies write-default values to omitted INSERT columns, and resolves explicit DEFAULT expressions in INSERT, UPDATE, and MERGE.",
       "caveats": [
-        "V3-specific default-value read semantics are not explicitly documented in Doris 4.x"
+        "Complex-type and Variant defaults have type-specific restrictions."
       ],
       "links": [
         {
           "label": "Doris 4.x Iceberg Catalog",
           "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        },
+        {
+          "label": "Doris initial and write default regression test",
+          "url": "https://github.com/apache/doris/blob/7e4909b904ff49fc799e5a4efa02f03fe4a8638d/regression-test/suites/external_table_p0/iceberg/test_iceberg_initial_defaults.groovy"
         }
       ]
     },
@@ -189,7 +191,7 @@
     },
     "doris:table-creation:v3": {
       "level": "full",
-      "notes": "Doris 4.1 can create V3 Iceberg tables via CREATE TABLE with the 'format-version' = '3' table property",
+      "notes": "Doris 4.2 can create V3 Iceberg tables via CREATE TABLE with the 'format-version' = '3' table property",
       "caveats": [],
       "links": [
         {
@@ -215,7 +217,7 @@
     },
     "doris:time-travel:v3": {
       "level": "full",
-      "notes": "Doris 4.1 supports FOR TIME AS OF and FOR VERSION AS OF on V3 Iceberg tables",
+      "notes": "Doris 4.2 supports FOR TIME AS OF and FOR VERSION AS OF on V3 Iceberg tables",
       "caveats": [],
       "links": [
         {
@@ -237,7 +239,7 @@
     },
     "doris:table-maintenance:v3": {
       "level": "full",
-      "notes": "Doris 4.1 supports table maintenance actions on V3 Iceberg tables via ALTER TABLE ... EXECUTE",
+      "notes": "Doris 4.2 supports table maintenance actions on V3 Iceberg tables via ALTER TABLE ... EXECUTE",
       "caveats": [],
       "links": [
         {
@@ -259,7 +261,7 @@
     },
     "doris:branching-tagging:v3": {
       "level": "full",
-      "notes": "Doris 4.1 supports branch and tag management on V3 Iceberg tables",
+      "notes": "Doris 4.2 supports branch and tag management on V3 Iceberg tables",
       "caveats": [],
       "links": [
         {
@@ -281,7 +283,7 @@
     },
     "doris:hidden-partitioning:v3": {
       "level": "full",
-      "notes": "Doris 4.1 supports the full set of Iceberg partition transforms on V3 tables: year, month, day, hour, bucket, truncate, and identity",
+      "notes": "Doris 4.2 supports the full set of Iceberg partition transforms on V3 tables: year, month, day, hour, bucket, truncate, and identity",
       "caveats": [],
       "links": [
         {
@@ -303,7 +305,7 @@
     },
     "doris:partition-evolution:v3": {
       "level": "full",
-      "notes": "Doris 4.1 supports partition evolution on V3 Iceberg tables",
+      "notes": "Doris 4.2 supports partition evolution on V3 Iceberg tables",
       "caveats": [],
       "links": [
         {
@@ -319,14 +321,14 @@
     },
     "doris:multi-arg-transforms:v3": {
       "level": "unknown",
-      "notes": "Multi-argument transform support on V3 tables is not documented in Doris 4.x",
+      "notes": "Doris 4.2 partition DDL handles single-source transforms; reading a table with a multi-argument transform has not been measured.",
       "caveats": [
-        "V3-only feature; Doris support not yet documented"
+        "The current partition builder has no multi-source transform case; read compatibility needs an external fixture."
       ],
       "links": [
         {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+          "label": "Doris Iceberg partition builder",
+          "url": "https://github.com/apache/doris/blob/7e4909b904ff49fc799e5a4efa02f03fe4a8638d/fe/fe-core/src/main/java/org/apache/doris/datasource/iceberg/IcebergUtils.java"
         }
       ]
     },
@@ -343,8 +345,10 @@
     },
     "doris:read-support:v3": {
       "level": "full",
-      "notes": "Doris 4.1.0 adds full V3 read support including Puffin Deletion Vectors and Row Lineage hidden columns",
-      "caveats": [],
+      "notes": "Doris 4.2 reads V3 tables with supported column types, including tables with deletion vectors, row lineage, and Variant columns.",
+      "caveats": [
+        "Iceberg V3 Geometry, Geography, Unknown, and nanosecond timestamp types are not mapped as readable Doris columns."
+      ],
       "links": [
         {
           "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
@@ -369,7 +373,7 @@
     },
     "doris:write-insert:v3": {
       "level": "full",
-      "notes": "Doris 4.1 supports INSERT INTO, INSERT OVERWRITE, and CTAS against V3 Iceberg tables",
+      "notes": "Doris 4.2 supports INSERT INTO, INSERT OVERWRITE, and CTAS against V3 Iceberg tables",
       "caveats": [],
       "links": [
         {
@@ -384,9 +388,9 @@
     },
     "doris:write-merge-update-delete:v2": {
       "level": "partial",
-      "notes": "Doris 4.1.0 adds UPDATE, DELETE, and MERGE INTO against V2 Iceberg tables, writing Position Delete files",
+      "notes": "Doris 4.2 supports UPDATE, DELETE, and MERGE INTO against V2 Iceberg tables, writing Position Delete files",
       "caveats": [
-        "UPDATE, DELETE, and MERGE INTO are experimental in Doris 4.1.0"
+        "UPDATE, DELETE, and MERGE INTO are documented as experimental in Doris 4.x."
       ],
       "links": [
         {
@@ -397,9 +401,9 @@
     },
     "doris:write-merge-update-delete:v3": {
       "level": "partial",
-      "notes": "Doris 4.1 UPDATE, DELETE, and MERGE INTO on V3 Iceberg tables write Puffin Deletion Vectors",
+      "notes": "Doris 4.2 UPDATE, DELETE, and MERGE INTO on V3 Iceberg tables write Puffin Deletion Vectors",
       "caveats": [
-        "UPDATE, DELETE, and MERGE INTO on V3 are experimental in Doris 4.1.0"
+        "UPDATE, DELETE, and MERGE INTO are documented as experimental in Doris 4.x."
       ],
       "links": [
         {
@@ -425,7 +429,7 @@
     },
     "doris:catalog-integration:v3": {
       "level": "full",
-      "notes": "Doris 4.1 supports the same catalog types (hms, rest, hadoop, glue, dlf, jdbc, s3tables) for V3 Iceberg tables",
+      "notes": "Doris 4.2 supports the same catalog types (hms, rest, hadoop, glue, dlf, jdbc, s3tables) for V3 Iceberg tables",
       "caveats": [],
       "links": [
         {
@@ -447,7 +451,7 @@
     },
     "doris:statistics:v3": {
       "level": "full",
-      "notes": "Doris 4.1 uses manifest column metrics for V3 Iceberg query planning and predicate pushdown",
+      "notes": "Doris 4.2 uses manifest column metrics for V3 Iceberg query planning and predicate pushdown",
       "caveats": [],
       "links": [
         {
@@ -497,7 +501,7 @@
     },
     "doris:aws-glue-catalog:v3": {
       "level": "partial",
-      "notes": "Doris 4.1 supports AWS Glue for V3 Iceberg tables via the glue catalog type",
+      "notes": "Doris 4.2 supports AWS Glue for V3 Iceberg tables via the glue catalog type",
       "caveats": [
         "AWS Glue integration is read-only; DDL and data write-back are not supported"
       ],
@@ -521,7 +525,7 @@
     },
     "doris:rest-catalog:v3": {
       "level": "full",
-      "notes": "Doris 4.1 supports the Iceberg REST Catalog for V3 tables",
+      "notes": "Doris 4.2 supports the Iceberg REST Catalog for V3 tables",
       "caveats": [],
       "links": [
         {
@@ -532,9 +536,9 @@
     },
     "doris:unity-catalog:v2": {
       "level": "partial",
-      "notes": "Doris can access Unity Catalog through the generic REST Catalog configuration; there is no dedicated Unity Catalog integration",
+      "notes": "Doris 4.2 supports the generic Iceberg REST Catalog protocol, but this specific Unity Catalog pairing has not been tested end to end for Iceberg V2.",
       "caveats": [
-        "No dedicated Unity Catalog connector; access is via the generic Iceberg REST Catalog"
+        "Generic REST support does not establish this provider-specific authentication, credential vending, and read/write behavior."
       ],
       "links": [
         {
@@ -545,9 +549,9 @@
     },
     "doris:unity-catalog:v3": {
       "level": "partial",
-      "notes": "Doris 4.1 can access Unity Catalog for V3 Iceberg tables through the generic REST Catalog configuration",
+      "notes": "Doris 4.2 supports the generic Iceberg REST Catalog protocol, but this specific Unity Catalog pairing has not been tested end to end for Iceberg V3.",
       "caveats": [
-        "No dedicated Unity Catalog connector; access is via the generic Iceberg REST Catalog"
+        "Generic REST support does not establish this provider-specific authentication, credential vending, and read/write behavior."
       ],
       "links": [
         {
@@ -558,9 +562,9 @@
     },
     "doris:snowflake-horizon-catalog:v2": {
       "level": "partial",
-      "notes": "Doris can access Snowflake Horizon Catalog through the generic REST Catalog configuration",
+      "notes": "Doris 4.2 supports the generic Iceberg REST Catalog protocol, but this specific Snowflake Horizon pairing has not been tested end to end for Iceberg V2.",
       "caveats": [
-        "No dedicated Horizon connector; access is via the generic Iceberg REST Catalog"
+        "Generic REST support does not establish this provider-specific authentication, credential vending, and read/write behavior."
       ],
       "links": [
         {
@@ -571,9 +575,9 @@
     },
     "doris:snowflake-horizon-catalog:v3": {
       "level": "partial",
-      "notes": "Doris 4.1 can access Snowflake Horizon Catalog for V3 Iceberg tables through the generic REST Catalog configuration",
+      "notes": "Doris 4.2 supports the generic Iceberg REST Catalog protocol, but this specific Snowflake Horizon pairing has not been tested end to end for Iceberg V3.",
       "caveats": [
-        "No dedicated Horizon connector; access is via the generic Iceberg REST Catalog"
+        "Generic REST support does not establish this provider-specific authentication, credential vending, and read/write behavior."
       ],
       "links": [
         {
@@ -588,15 +592,20 @@
       "caveats": []
     },
     "doris:variant-type:v3": {
-      "level": "unknown",
-      "notes": "Iceberg Variant type support is not documented in Doris 4.x",
+      "level": "partial",
+      "notes": "Doris 4.2 reads V3 Variant values, including nested and shredded Parquet data, and writes unshredded Variant values to V3 Parquet tables.",
       "caveats": [
-        "V3-only feature; Doris support not documented"
+        "Iceberg VARIANT DDL supports only top-level columns.",
+        "Variant writes require Parquet and reject write.parquet.shred-variants=true; ORC Variant writes are unsupported."
       ],
       "links": [
         {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+          "label": "Doris Variant read and write regression test",
+          "url": "https://github.com/apache/doris/blob/7e4909b904ff49fc799e5a4efa02f03fe4a8638d/regression-test/suites/external_table_p0/iceberg/test_iceberg_variant_read.groovy"
+        },
+        {
+          "label": "Doris Variant write validation",
+          "url": "https://github.com/apache/doris/blob/7e4909b904ff49fc799e5a4efa02f03fe4a8638d/fe/fe-core/src/main/java/org/apache/doris/datasource/iceberg/IcebergUtils.java"
         }
       ]
     },
@@ -606,15 +615,15 @@
       "caveats": []
     },
     "doris:shredded-variant:v3": {
-      "level": "unknown",
-      "notes": "Shredded Variant support is not documented in Doris 4.x",
+      "level": "partial",
+      "notes": "Doris 4.2 reads standards-compliant shredded Variant Parquet files and can query them alongside unshredded Variant files.",
       "caveats": [
-        "V3-only feature; Doris support not documented"
+        "Doris rejects writes when write.parquet.shred-variants=true; it writes only unshredded Variant."
       ],
       "links": [
         {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+          "label": "Doris shredded Variant regression test",
+          "url": "https://github.com/apache/doris/blob/7e4909b904ff49fc799e5a4efa02f03fe4a8638d/regression-test/suites/external_table_p0/iceberg/test_iceberg_variant_read.groovy"
         }
       ]
     },
@@ -624,15 +633,15 @@
       "caveats": []
     },
     "doris:geometry-type:v3": {
-      "level": "unknown",
-      "notes": "Iceberg Geometry type support is not documented in Doris 4.x",
+      "level": "none",
+      "notes": "Doris 4.2 does not map Iceberg V3 Geometry/Geography columns to a Doris column type; the schema conversion falls through to an unsupported-type error.",
       "caveats": [
-        "V3-only feature; Doris support not documented"
+        "Based on the current FE schema mapper; no end-to-end fixture was run for this audit."
       ],
       "links": [
         {
-          "label": "Doris 4.x Iceberg Catalog",
-          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+          "label": "Doris Iceberg schema type mapping",
+          "url": "https://github.com/apache/doris/blob/7e4909b904ff49fc799e5a4efa02f03fe4a8638d/fe/fe-core/src/main/java/org/apache/doris/datasource/iceberg/IcebergUtils.java"
         }
       ]
     },
@@ -661,18 +670,18 @@
     },
     "doris:lineage:v3": {
       "level": "partial",
-      "notes": "Doris 4.1.0 exposes experimental Row Lineage hidden columns _row_id and _last_updated_sequence_number on V3 Iceberg tables",
+      "notes": "Doris 4.2 generates and exposes _row_id and _last_updated_sequence_number for V3 tables; regression tests cover INSERT, UPDATE, MERGE, and data-file rewrite.",
       "caveats": [
-        "Row Lineage is experimental in Doris 4.1"
+        "Row Lineage is documented as experimental; this audit did not execute the regression suite."
       ],
       "links": [
         {
-          "label": "Apache Doris 4.1 Iceberg V3 Lakehouse",
-          "url": "https://morningman.github.io/posts/apache-doris-41-iceberg-v3-lakehouse/"
-        },
-        {
           "label": "Doris 4.x Iceberg Catalog",
           "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        },
+        {
+          "label": "Doris V3 lineage DML regression test",
+          "url": "https://github.com/apache/doris/blob/7e4909b904ff49fc799e5a4efa02f03fe4a8638d/regression-test/suites/external_table_p0/iceberg/test_iceberg_v3_row_lineage_update_delete_merge.groovy"
         }
       ]
     },
@@ -684,9 +693,18 @@
     },
     "doris:deletion-vectors:v3": {
       "level": "full",
-      "notes": "Doris 4.1 reads V3 tables that use Puffin deletion vectors as the primary row-level delete mechanism.",
+      "notes": "Doris 4.2 writes Puffin deletion vectors for DELETE, UPDATE, and MERGE INTO on V3 tables and reads them during scans.",
       "caveats": [],
-      "links": []
+      "links": [
+        {
+          "label": "Doris 4.x Iceberg Catalog",
+          "url": "https://doris.apache.org/docs/4.x/lakehouse/catalogs/iceberg-catalog"
+        },
+        {
+          "label": "Doris V3 deletion-vector writer",
+          "url": "https://github.com/apache/doris/blob/7e4909b904ff49fc799e5a4efa02f03fe4a8638d/be/src/exec/sink/viceberg_delete_sink.cpp"
+        }
+      ]
     },
     "doris:unknown-type:v2": {
       "level": "none",
@@ -694,15 +712,23 @@
       "caveats": []
     },
     "doris:unknown-type:v3": {
-      "level": "unknown",
-      "notes": "Not yet measured; recorded as unknown rather than inferred. Doris publishes no Iceberg V3 unknown-type mapping.",
-      "caveats": []
+      "level": "none",
+      "notes": "Doris 4.2 does not map Iceberg V3 Unknown columns to a Doris column type; the schema conversion falls through to an unsupported-type error.",
+      "caveats": [
+        "Based on the current FE schema mapper; no end-to-end fixture was run for this audit."
+      ],
+      "links": [
+        {
+          "label": "Doris Iceberg schema type mapping",
+          "url": "https://github.com/apache/doris/blob/7e4909b904ff49fc799e5a4efa02f03fe4a8638d/fe/fe-core/src/main/java/org/apache/doris/datasource/iceberg/IcebergUtils.java"
+        }
+      ]
     },
     "doris:google-lakehouse:v2": {
       "level": "partial",
-      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "notes": "Doris 4.2 supports the generic Iceberg REST Catalog protocol, but this specific Google Lakehouse pairing has not been tested end to end for Iceberg V2.",
       "caveats": [
-        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+        "Generic REST support does not establish this provider-specific authentication, credential vending, and read/write behavior."
       ],
       "links": [
         {
@@ -713,9 +739,9 @@
     },
     "doris:google-lakehouse:v3": {
       "level": "partial",
-      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog, and this engine speaks the Iceberg REST Catalog protocol, so it can attach to the Google Lakehouse runtime catalog and read/write its tables like any other IRC endpoint. Rated partial because this specific pairing has not been measured end to end and Google-side specifics (credential vending, v3 preview) may vary.",
+      "notes": "Doris 4.2 supports the generic Iceberg REST Catalog protocol, but this specific Google Lakehouse pairing has not been tested end to end for Iceberg V3.",
       "caveats": [
-        "Inferred from generic Iceberg REST catalog support; not measured against Google Lakehouse specifically"
+        "Generic REST support does not establish this provider-specific authentication, credential vending, and read/write behavior."
       ],
       "links": [
         {
