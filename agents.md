@@ -112,7 +112,7 @@ Each entry has:
 
 Engine platforms are grouped by: AWS, GCP, Azure, Databricks, Snowflake, 3rd Party. Catalogs are grouped by: Proprietary, Open Source.
 
-Engine features are categorized into: row-level-operations, schema-management, partitioning, table-management, read-write, catalog-support, v3-data-types, v3-advanced. Catalog features all use the single category: openness-rubric.
+Engine features are categorized into: row-level-operations, schema-management, partitioning, table-management, read-write, catalog-support, v3-data-types. Deletion Vectors and Lineage Tracking (V3-only) live under row-level-operations. Catalog features all use the single category: openness-rubric.
 
 Versions: engine support entries use `v2`/`v3`. The catalogs dataset has no version dimension, so all its entries use the single synthetic version `current` (e.g. `snowflake-horizon:managed-offering:current`). The UI hides version chrome when the version is `current` (no V2/V3 version chips, no per-row version badge, no version line in the popover).
 

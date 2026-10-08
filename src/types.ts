@@ -71,7 +71,6 @@ export type FeatureCategory =
   | "read-write"
   | "catalog-support"
   | "v3-data-types"
-  | "v3-advanced"
   // Catalogs view categories: spec-compliance facts (REST spec, format v2/v3)
   // and the openness rubric from "Iceberg: The State of Catalogs".
   | "spec-support"

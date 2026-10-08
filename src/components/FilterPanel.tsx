@@ -15,7 +15,6 @@ const CATEGORY_LABELS: Record<FeatureCategory, string> = {
   "read-write": "Read / Write",
   "catalog-support": "Catalogs",
   "v3-data-types": "V3 Types",
-  "v3-advanced": "V3 Advanced",
   "spec-support": "Spec Support",
   "openness-rubric": "Openness Rubric",
 };
