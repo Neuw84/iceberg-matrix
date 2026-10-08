@@ -5,7 +5,8 @@
       "name": "Position Deletes",
       "category": "row-level-operations",
       "introducedIn": "v2",
-      "description": "Delete rows by tracking their file and position offsets, enabling efficient row-level deletes without rewriting entire data files. Rated on whether the engine can write position delete files; being able to read tables that already contain them does not count"
+      "removedIn": "v3",
+      "description": "Delete rows by tracking their file and position offsets, enabling efficient row-level deletes without rewriting entire data files. Rated on whether the engine can write position delete files in V2; V3 writers must use deletion vectors instead. Reading existing position delete files after a V2-to-V3 upgrade does not count"
     },
     {
       "id": "equality-deletes",
@@ -47,7 +48,7 @@
       "name": "Column Default Values",
       "category": "table-management",
       "introducedIn": "v3",
-      "description": "Define default values for columns that apply when new data is written without specifying a value for that column"
+      "description": "Read initial defaults for older files written before a column was added, and apply write defaults when new rows omit that column"
     },
     {
       "id": "table-creation",
