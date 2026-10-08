@@ -9,6 +9,8 @@ import type {
 } from "../types";
 
 const CATEGORY_LABELS: Record<FeatureCategory, string> = {
+  // Ingestion view; listed first so its chip leads, like its table section.
+  "ingestion-write": "Write Path",
   "row-level-operations": "Row-Level Ops",
   partitioning: "Partitioning",
   "table-management": "Table Mgmt",

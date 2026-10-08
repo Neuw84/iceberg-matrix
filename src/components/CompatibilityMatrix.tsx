@@ -14,7 +14,7 @@ import { applyFilters } from "../utils/filters";
 import { getSupportEntry } from "../utils/support";
 import { FeatureRow } from "./FeatureRow";
 import type { VersionEntry } from "./DetailPopover";
-import { ENGINE_COL_WIDTH, NAME_COL_WIDTH } from "./matrixLayout";
+import { ENGINE_COL_MAX_WIDTH, ENGINE_COL_WIDTH, NAME_COL_WIDTH } from "./matrixLayout";
 
 // DetailPopover is only mounted when a cell is clicked; code-split it.
 const DetailPopover = lazy(() =>
@@ -30,12 +30,16 @@ const CATEGORY_LABELS: Record<FeatureCategory, string> = {
   "v3-data-types": "V3 Data Types",
   "spec-support": "Spec Support",
   "openness-rubric": "Openness Rubric",
+  "ingestion-write": "Write Path",
 };
 
 const CATEGORY_ORDER: FeatureCategory[] = [
   // Catalogs view (its datasets contain only these two categories).
   "spec-support",
   "openness-rubric",
+  // Ingestion view (its write-path category comes first; the rest are shared
+  // with the engines view).
+  "ingestion-write",
   // Engines view.
   "row-level-operations",
   "partitioning",
@@ -54,6 +58,7 @@ const CATEGORY_COLORS: Record<FeatureCategory, string> = {
   "v3-data-types": "border-l-pink-400 bg-pink-50",
   "spec-support": "border-l-sky-400 bg-sky-50",
   "openness-rubric": "border-l-indigo-400 bg-indigo-50",
+  "ingestion-write": "border-l-teal-400 bg-teal-50",
 };
 
 /** Map platform IDs to logo filenames in /logos/ — only correct matches */
@@ -249,8 +254,14 @@ export function CompatibilityMatrix({
     });
   };
 
+  // A matrix with few columns would otherwise stretch each one across the page.
+  const maxTableWidth = NAME_COL_WIDTH + colCount * ENGINE_COL_MAX_WIDTH;
+
   return (
-    <div className="relative bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div
+      className="relative bg-white rounded-lg border border-gray-200 shadow-sm"
+      style={{ maxWidth: maxTableWidth }}
+    >
       {/* Scroll hint for narrow viewports */}
       <div className="sm:hidden text-center text-[10px] text-gray-400 py-1 bg-gray-50 border-b border-gray-100">
         ← Scroll horizontally to see all platforms →
@@ -262,6 +273,7 @@ export function CompatibilityMatrix({
           // column exactly the same width, regardless of cell content.
           style={{
             minWidth: NAME_COL_WIDTH + colCount * ENGINE_COL_WIDTH,
+            maxWidth: maxTableWidth,
             width: '100%',
             tableLayout: 'fixed',
           }}

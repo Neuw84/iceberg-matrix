@@ -8,7 +8,6 @@ import bGlue from "./platforms/aws/s3buckets/glue/glue.json";
 import bManagedFlink from "./platforms/aws/s3buckets/managed-flink/managed-flink.json";
 import bRedshift from "./platforms/aws/s3buckets/redshift-s3/redshift-s3.json";
 import bAurora from "./platforms/aws/s3buckets/aurora/aurora.json";
-// firehose intentionally NOT imported (staged, excluded from app)
 
 // --- AWS S3 tables engines (same order) ---
 import tAthena from "./platforms/aws/s3tables/athena/athena.json";
@@ -17,7 +16,6 @@ import tGlue from "./platforms/aws/s3tables/glue/glue.json";
 import tManagedFlink from "./platforms/aws/s3tables/managed-flink/managed-flink.json";
 import tRedshift from "./platforms/aws/s3tables/redshift-s3/redshift-s3.json";
 import tAurora from "./platforms/aws/s3tables/aurora/aurora.json";
-// firehose intentionally NOT imported (staged, excluded from app)
 
 // --- Non-AWS vendors (order: gcp, azure, databricks, snowflake, oss) ---
 import bigquery from "./platforms/gcp/bigquery/bigquery.json";
@@ -44,7 +42,6 @@ import doris from "./platforms/oss/doris/doris.json";
 import databend from "./platforms/oss/databend/databend.json";
 import trino from "./platforms/oss/trino/trino.json";
 import oracle26ai from "./platforms/oracle/oracle-26ai/oracle-26ai.json";
-// kafka-connect intentionally NOT imported (staged, excluded from app)
 
 export interface EngineFile {
   platforms: unknown[];

@@ -1,0 +1,456 @@
+{
+  "platforms": [
+    {
+      "id": "kafka-connect",
+      "name": "Kafka Connect (1.12.0)",
+      "vendor": "Apache",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+    }
+  ],
+  "support": {
+    "kafka-connect:write-insert:v2": {
+      "level": "full",
+      "notes": "Appends Kafka records to Iceberg tables with exactly-once delivery: workers write data files and a coordinator commits them atomically over a control topic.",
+      "caveats": [
+        "Commits happen on an interval (default 5 minutes), so data lands in batches rather than per record",
+        "Exactly-once needs Kafka 2.5+ (KIP-447)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        },
+        {
+          "label": "Sink source: RecordUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/RecordUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:write-merge-update-delete:v2": {
+      "level": "none",
+      "notes": "Not supported. The sink only appends. Its task writers (UnpartitionedWriter and PartitionedAppendWriter) expose only write(record), the sink has no CDC or upsert setting, and nothing in it issues a delete. The experimental DebeziumTransform and DmsTransform only add _cdc.* metadata columns to records.",
+      "caveats": [
+        "CDC records arrive as new rows carrying _cdc.op metadata; a downstream engine has to apply them",
+        "id-columns configure the writer factory but the append writers do not emit deletes"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        },
+        {
+          "label": "Sink source: RecordUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/RecordUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:merge-on-read:v2": {
+      "level": "none",
+      "notes": "Not applicable: the sink never writes delete files, so it has no merge-on-read mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Sink source: RecordUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/RecordUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Not supported as a write operation. RecordUtils configures an equality-delete writer factory when id-columns are set, but the task writers built from it are append-only, so no equality delete file is produced.",
+      "caveats": [
+        "id-columns / default-id-columns do not result in deletes"
+      ],
+      "links": [
+        {
+          "label": "Sink source: RecordUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/RecordUtils.java"
+        },
+        {
+          "label": "Sink source: PartitionedAppendWriter.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/PartitionedAppendWriter.java"
+        }
+      ]
+    },
+    "kafka-connect:position-deletes:v2": {
+      "level": "none",
+      "notes": "The sink writes no position delete files.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Sink source: RecordUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/RecordUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:table-creation:v2": {
+      "level": "full",
+      "notes": "iceberg.tables.auto-create-enabled=true creates missing destination tables (and namespaces) from the record schema; iceberg.tables.auto-create-props.* sets properties on the new table and partition-by sets its partitioning.",
+      "caveats": [
+        "Off by default"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:schema-evolution:v2": {
+      "level": "full",
+      "notes": "iceberg.tables.evolve-schema-enabled=true adds record fields the table is missing as new columns, widens types, and (with schema-force-optional) relaxes columns to optional before writing.",
+      "caveats": [
+        "Adds columns and widens int to long and float to double only; no drops or renames",
+        "Off by default"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        },
+        {
+          "label": "Sink source: SchemaUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/SchemaUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:type-promotion:v2": {
+      "level": "partial",
+      "notes": "Only two promotions are applied: int to long and float to double (SchemaUtils.needsDataTypeUpdate). Other type changes are not handled.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Sink source: SchemaUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/SchemaUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:table-maintenance:v2": {
+      "level": "none",
+      "notes": "The sink does not compact files, expire snapshots or remove orphan files. It writes new files each commit interval, so small-file maintenance has to run elsewhere (Spark, Trino, or the catalog's own optimisation).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:branching-tagging:v2": {
+      "level": "partial",
+      "notes": "iceberg.tables.default-commit-branch and iceberg.table.<name>.commit-branch commit to a named branch instead of main, which supports write-audit-publish. The sink does not manage branches or tags beyond choosing the commit target.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "partition-by accepts year, month, day, hour, bucket and truncate transforms (or identity) when the sink creates a table, and PartitionedAppendWriter applies the table's partition spec, transforms included, to every record it writes.",
+      "caveats": [
+        "Transforms are configured only at auto-create; existing tables keep their own spec"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        },
+        {
+          "label": "Sink source: SchemaUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/SchemaUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Any Iceberg catalog through iceberg.catalog.*: REST, Glue, DynamoDB, Hadoop and Nessie are bundled, Hive needs the Hive distribution, and other catalogs load through catalog-impl (a BigQuery Metastore example is documented).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "A Glue example is documented: set iceberg.catalog.catalog-impl to org.apache.iceberg.aws.glue.GlueCatalog with S3FileIO.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:rest-catalog:v2": {
+      "level": "full",
+      "notes": "A REST catalog example is documented (iceberg.catalog.type=rest with uri, credential and warehouse), including ADLS and GCS warehouses.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:write-insert:v3": {
+      "level": "full",
+      "notes": "Appends Kafka records to Iceberg tables with exactly-once delivery: workers write data files and a coordinator commits them atomically over a control topic. The same append path writes V3 tables (the sink writes V3-only types such as variant).",
+      "caveats": [
+        "Commits happen on an interval (default 5 minutes), so data lands in batches rather than per record",
+        "Exactly-once needs Kafka 2.5+ (KIP-447)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        },
+        {
+          "label": "Sink source: RecordUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/RecordUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Not supported. The sink only appends. Its task writers (UnpartitionedWriter and PartitionedAppendWriter) expose only write(record), the sink has no CDC or upsert setting, and nothing in it issues a delete. The experimental DebeziumTransform and DmsTransform only add _cdc.* metadata columns to records.",
+      "caveats": [
+        "CDC records arrive as new rows carrying _cdc.op metadata; a downstream engine has to apply them",
+        "id-columns configure the writer factory but the append writers do not emit deletes"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        },
+        {
+          "label": "Sink source: RecordUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/RecordUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Not applicable: the sink never writes delete files, so it has no merge-on-read mode.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Sink source: RecordUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/RecordUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Not supported as a write operation. RecordUtils configures an equality-delete writer factory when id-columns are set, but the task writers built from it are append-only, so no equality delete file is produced.",
+      "caveats": [
+        "id-columns / default-id-columns do not result in deletes"
+      ],
+      "links": [
+        {
+          "label": "Sink source: RecordUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/RecordUtils.java"
+        },
+        {
+          "label": "Sink source: PartitionedAppendWriter.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/PartitionedAppendWriter.java"
+        }
+      ]
+    },
+    "kafka-connect:position-deletes:v3": {
+      "level": "none",
+      "notes": "The sink writes no position delete files.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Sink source: RecordUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/RecordUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:table-creation:v3": {
+      "level": "full",
+      "notes": "iceberg.tables.auto-create-enabled=true creates missing destination tables (and namespaces) from the record schema; iceberg.tables.auto-create-props.* sets properties on the new table and partition-by sets its partitioning. Inferred: format-version is a table property, so it can be passed through auto-create-props to create a V3 table; the sink docs do not show this.",
+      "caveats": [
+        "Off by default"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:schema-evolution:v3": {
+      "level": "full",
+      "notes": "iceberg.tables.evolve-schema-enabled=true adds record fields the table is missing as new columns, widens types, and (with schema-force-optional) relaxes columns to optional before writing.",
+      "caveats": [
+        "Adds columns and widens int to long and float to double only; no drops or renames",
+        "Off by default"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        },
+        {
+          "label": "Sink source: SchemaUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/SchemaUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:type-promotion:v3": {
+      "level": "partial",
+      "notes": "Only two promotions are applied: int to long and float to double (SchemaUtils.needsDataTypeUpdate). Other type changes are not handled.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Sink source: SchemaUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/SchemaUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:table-maintenance:v3": {
+      "level": "none",
+      "notes": "The sink does not compact files, expire snapshots or remove orphan files. It writes new files each commit interval, so small-file maintenance has to run elsewhere (Spark, Trino, or the catalog's own optimisation).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:branching-tagging:v3": {
+      "level": "partial",
+      "notes": "iceberg.tables.default-commit-branch and iceberg.table.<name>.commit-branch commit to a named branch instead of main, which supports write-audit-publish. The sink does not manage branches or tags beyond choosing the commit target.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "partition-by accepts year, month, day, hour, bucket and truncate transforms (or identity) when the sink creates a table, and PartitionedAppendWriter applies the table's partition spec, transforms included, to every record it writes.",
+      "caveats": [
+        "Transforms are configured only at auto-create; existing tables keep their own spec"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        },
+        {
+          "label": "Sink source: SchemaUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/SchemaUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:catalog-integration:v3": {
+      "level": "full",
+      "notes": "Any Iceberg catalog through iceberg.catalog.*: REST, Glue, DynamoDB, Hadoop and Nessie are bundled, Hive needs the Hive distribution, and other catalogs load through catalog-impl (a BigQuery Metastore example is documented).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "A Glue example is documented: set iceberg.catalog.catalog-impl to org.apache.iceberg.aws.glue.GlueCatalog with S3FileIO.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:rest-catalog:v3": {
+      "level": "full",
+      "notes": "A REST catalog example is documented (iceberg.catalog.type=rest with uri, credential and warehouse), including ADLS and GCS warehouses.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        }
+      ]
+    },
+    "kafka-connect:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "V3 feature; not applicable to V2.",
+      "caveats": []
+    },
+    "kafka-connect:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "The sink writes no deletion vectors; it never deletes rows.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Sink source: RecordUtils.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/RecordUtils.java"
+        }
+      ]
+    },
+    "kafka-connect:variant-type:v2": {
+      "level": "none",
+      "notes": "V3 feature; not applicable to V2.",
+      "caveats": []
+    },
+    "kafka-connect:variant-type:v3": {
+      "level": "full",
+      "notes": "RecordConverter converts Kafka Connect values, including maps and structs, into the Iceberg VARIANT type for columns declared as variant.",
+      "caveats": [
+        "Writing variant needs a V3 table"
+      ],
+      "links": [
+        {
+          "label": "Sink source: RecordConverter.java",
+          "url": "https://github.com/apache/iceberg/blob/main/kafka-connect/kafka-connect/src/main/java/org/apache/iceberg/connect/data/RecordConverter.java"
+        },
+        {
+          "label": "Kafka Connect variant shredding (apache/iceberg#17520)",
+          "url": "https://github.com/apache/iceberg/pull/17520"
+        }
+      ]
+    },
+    "kafka-connect:shredded-variant:v2": {
+      "level": "none",
+      "notes": "V3 feature; not applicable to V2.",
+      "caveats": []
+    },
+    "kafka-connect:shredded-variant:v3": {
+      "level": "full",
+      "notes": "Added in Iceberg 1.12.0: set write.parquet.shred-variants on the table and the sink writes variant data as shredded Parquet columns.",
+      "caveats": [
+        "Parquet only"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Kafka Connect sink docs",
+          "url": "https://iceberg.apache.org/docs/latest/kafka-connect/"
+        },
+        {
+          "label": "Kafka Connect variant shredding (apache/iceberg#17520)",
+          "url": "https://github.com/apache/iceberg/pull/17520"
+        },
+        {
+          "label": "Apache Iceberg 1.12.0 release notes",
+          "url": "https://github.com/apache/iceberg/releases/tag/apache-iceberg-1.12.0"
+        }
+      ]
+    }
+  }
+}

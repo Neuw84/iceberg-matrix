@@ -71,6 +71,8 @@ export type FeatureCategory =
   | "read-write"
   | "catalog-support"
   | "v3-data-types"
+  // Ingestion view category: how a write-only tool applies records to a table.
+  | "ingestion-write"
   // Catalogs view categories: spec-compliance facts (REST spec, format v2/v3)
   // and the openness rubric from "Iceberg: The State of Catalogs".
   | "spec-support"
@@ -105,9 +107,10 @@ export interface CompatibilityData {
 
 /**
  * Which matrix the app is showing: query engines against Iceberg features
- * (the default), or Iceberg catalogs against the openness rubric.
+ * (the default), ingestion tools (Kafka Connect, Firehose) against a reduced
+ * write-oriented feature set, or Iceberg catalogs against the openness rubric.
  */
-export type ViewMode = "engines" | "catalogs";
+export type ViewMode = "engines" | "ingestion" | "catalogs";
 
 export interface FilterState {
   selectedVersions: Version[];

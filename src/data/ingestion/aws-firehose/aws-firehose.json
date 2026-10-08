@@ -1,0 +1,451 @@
+{
+  "platforms": [
+    {
+      "id": "aws-firehose",
+      "name": "Data Firehose",
+      "vendor": "AWS",
+      "category": "cloud",
+      "group": "AWS",
+      "docUrl": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-destination.html"
+    }
+  ],
+  "support": {
+    "aws-firehose:write-insert:v2": {
+      "level": "full",
+      "notes": "Delivers streaming records (Direct PUT, Kinesis Data Streams or MSK) to Iceberg tables in Amazon S3 or S3 Tables. Insert is the default operation, and an AppendOnly flag lifts the throughput cap when no updates or deletes are needed.",
+      "caveats": [
+        "JSON records only, one object per Firehose record",
+        "Column names and types must match the table exactly; mismatches go to the S3 error bucket",
+        "Data is written as Parquet"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg destination",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-destination.html"
+        },
+        {
+          "label": "Firehose Iceberg considerations and limitations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-considerations.html"
+        }
+      ]
+    },
+    "aws-firehose:write-insert:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "Each record can carry an insert, update or delete operation, set through a JSONQuery expression or a Lambda transform. Updates and deletes need UniqueKeys on the stream or identifier-field-ids on the table; an update is a delete file followed by an insert.",
+      "caveats": [
+        "Records are not delivered in order",
+        "Global deletes (unpartitioned delete files on a partitioned table) are not supported",
+        "Each update writes a delete file, which incurs S3 PUT charges"
+      ],
+      "links": [
+        {
+          "label": "Firehose routing and operations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-format-input-record-different.html"
+        },
+        {
+          "label": "Firehose Iceberg considerations and limitations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-considerations.html"
+        }
+      ]
+    },
+    "aws-firehose:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:merge-on-read:v2": {
+      "level": "full",
+      "notes": "AWS states that Firehose supports the Merge-on-Read mode of writing to Iceberg tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:equality-deletes:v2": {
+      "level": "full",
+      "notes": "Firehose writes equality delete files for updates and deletes, keyed on the stream's UniqueKeys or the table's identifier-field-ids. AWS describes an update as a delete file followed by an insert.",
+      "caveats": [
+        "Needs UniqueKeys on the stream or identifier-field-ids on the table; without them update and delete records go to the S3 error bucket",
+        "Delete files are partition-scoped; global deletes (unpartitioned delete files on a partitioned table) are not supported",
+        "Each update writes a delete file, which incurs S3 PUT charges"
+      ],
+      "links": [
+        {
+          "label": "Firehose routing and operations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-format-input-record-different.html"
+        },
+        {
+          "label": "Firehose Iceberg considerations and limitations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-considerations.html"
+        }
+      ]
+    },
+    "aws-firehose:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:position-deletes:v2": {
+      "level": "none",
+      "notes": "Firehose's deletes are key-based equality deletes; it has no position-delete path.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Firehose routing and operations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-format-input-record-different.html"
+        }
+      ]
+    },
+    "aws-firehose:position-deletes:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to V2.",
+      "caveats": []
+    },
+    "aws-firehose:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:table-creation:v2": {
+      "level": "none",
+      "notes": "Firehose does not create tables. They must already exist and be created through Iceberg's GlueCatalog API; tables created with the Glue SDK are not supported.",
+      "caveats": [
+        "With UniqueKeys configured, Firehose validates that the table exists when the stream is created"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        },
+        {
+          "label": "Firehose Iceberg considerations and limitations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-considerations.html"
+        }
+      ]
+    },
+    "aws-firehose:table-creation:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:schema-evolution:v2": {
+      "level": "none",
+      "notes": "Column names and data types must exactly match the target table, otherwise records go to the S3 error bucket. Fields the table lacks are skipped, not added.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Firehose Iceberg considerations and limitations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-considerations.html"
+        }
+      ]
+    },
+    "aws-firehose:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:type-promotion:v2": {
+      "level": "none",
+      "notes": "No automatic type change: values whose type does not match the table column are rejected to the S3 error bucket.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Firehose Iceberg considerations and limitations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-considerations.html"
+        }
+      ]
+    },
+    "aws-firehose:type-promotion:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Firehose does not compact or expire snapshots. AWS recommends Glue Data Catalog automatic compaction, or Athena OPTIMIZE and VACUUM, and notes every write adds snapshots, data files and delete files.",
+      "caveats": [
+        "S3 Tables performs its own automatic maintenance, outside Firehose"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg considerations and limitations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-considerations.html"
+        }
+      ]
+    },
+    "aws-firehose:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:branching-tagging:v2": {
+      "level": "none",
+      "notes": "AWS documents no branch or tag option in the Iceberg destination configuration.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Firehose Iceberg destination",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-destination.html"
+        }
+      ]
+    },
+    "aws-firehose:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "Firehose delivers to partitioned Iceberg tables, writing each record into the partition the table's spec assigns it, including partition-scoped delete files. The partition spec itself comes from the table, not from Firehose.",
+      "caveats": [
+        "The table, with its partitioning, must be created before the Firehose stream: Firehose does not create tables or define partition specs",
+        "Global deletes (unpartitioned delete files on a partitioned table) are not supported",
+        "The number of partitions that can be written actively falls as ingest throughput rises (about 3,000 up to 20 MB/s, down to 1 at 750 MB/s to 1.5 GB/s)"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg considerations and limitations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-considerations.html"
+        }
+      ]
+    },
+    "aws-firehose:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:catalog-integration:v2": {
+      "level": "partial",
+      "notes": "Glue Data Catalog only, including S3 Tables through its Glue integration. No REST, Hive or other catalogs.",
+      "caveats": [
+        "Tables must be created through Iceberg's GlueCatalog API; hyphens are not allowed in database or table names",
+        "S3 Tables column names must be lowercase"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        },
+        {
+          "label": "Firehose Iceberg considerations and limitations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-considerations.html"
+        }
+      ]
+    },
+    "aws-firehose:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "Delivers to Iceberg tables in the AWS Glue Data Catalog, in self-managed S3 or in S3 Tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Firehose Iceberg destination",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-destination.html"
+        },
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:rest-catalog:v2": {
+      "level": "none",
+      "notes": "Only the Glue Data Catalog is supported as the table catalog; no Iceberg REST catalog option.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:variant-type:v2": {
+      "level": "none",
+      "notes": "V3 feature; not applicable to V2.",
+      "caveats": []
+    },
+    "aws-firehose:variant-type:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    },
+    "aws-firehose:shredded-variant:v2": {
+      "level": "none",
+      "notes": "V3 feature; not applicable to V2.",
+      "caveats": []
+    },
+    "aws-firehose:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Firehose only supports Iceberg V2 tables (AWS prerequisites page; Iceberg library 1.5.2), so V3 tables cannot be delivered to.",
+      "caveats": [
+        "Firehose supports Iceberg V2 only"
+      ],
+      "links": [
+        {
+          "label": "Firehose Iceberg prerequisites",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/apache-iceberg-prereq.html"
+        }
+      ]
+    }
+  }
+}
