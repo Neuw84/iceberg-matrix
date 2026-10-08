@@ -7,12 +7,13 @@ interface ViewToggleProps {
 
 const OPTIONS: { mode: ViewMode; label: string }[] = [
   { mode: "engines", label: "Engines" },
+  { mode: "ingestion", label: "Ingestion" },
   { mode: "catalogs", label: "Catalogs" },
 ];
 
 /**
- * The top-level view switcher: engines × Iceberg features (default) versus
- * catalogs × the openness rubric. A contained segmented control so it reads as
+ * The top-level view switcher: engines × Iceberg features (default), ingestion
+ * tools × a reduced write-oriented feature set, or catalogs × the openness rubric. A contained segmented control so it reads as
  * a view change, distinct from the flat filter pills next to it.
  */
 export function ViewToggle({ mode, onChange }: ViewToggleProps) {

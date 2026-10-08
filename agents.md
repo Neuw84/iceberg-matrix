@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A React single-page application that displays an interactive compatibility matrix for Apache Iceberg features across cloud platforms and open-source engines. A top-level Engines/Catalogs toggle switches between two datasets: the engines matrix (default, one column per engine with V2/V3 version chips, transition cells where versions differ, an AWS S3-mode toggle, and a Compare differences table) and a catalogs openness-rubric matrix (10 Iceberg catalogs scored against 6 openness criteria). Built with Vite, TypeScript, React 19.2, and Tailwind CSS. Deployed to GitHub Pages via GitHub Actions.
+A React single-page application that displays an interactive compatibility matrix for Apache Iceberg features across cloud platforms and open-source engines. A top-level Engines / Ingestion / Catalogs toggle (in that order) switches between three datasets: the engines matrix (default, one column per engine with V2/V3 version chips, transition cells where versions differ, an AWS S3-mode toggle, and a Compare differences table) an ingestion matrix (tools that write Iceberg data from a source but are not built for reading it: Kafka Connect and Data Firehose, scored on a reduced write-oriented feature set), and a catalogs openness-rubric matrix (10 Iceberg catalogs scored against 6 openness criteria). Built with Vite, TypeScript, React 19.2, and Tailwind CSS. Deployed to GitHub Pages via GitHub Actions.
 
 ## Project Structure
 
@@ -20,12 +20,17 @@ A React single-page application that displays an interactive compatibility matri
 │   │   ├── FeatureRow.tsx            # Single feature row in the matrix
 │   │   ├── FilterPanel.tsx           # Sidebar filters (version, platform, category, etc.)
 │   │   ├── SupportCell.tsx           # Individual cell showing support level
-│   │   └── ViewToggle.tsx            # Top-level Engines/Catalogs view switcher
+│   │   └── ViewToggle.tsx            # Top-level Engines/Ingestion/Catalogs view switcher
 │   ├── data/                 # JSON data files
 │   │   ├── features.json             # Engine feature definitions and categories
 │   │   ├── load-data.ts              # Merges nested per-engine files into CompatibilityData at import time
 │   │   ├── load-catalogs.ts          # Merges per-catalog files into the catalogs CompatibilityData
 │   │   ├── catalogs.test.ts          # Structural tests for the catalogs dataset (extension point: EXPECTED_CATALOG_IDS)
+│   │   ├── load-ingestion.ts         # Merges per-tool files into the ingestion CompatibilityData
+│   │   ├── ingestion.test.ts         # Structural tests for the ingestion dataset (extension point: EXPECTED_INGESTION_IDS)
+│   │   ├── ingestion/                # Ingestion-tool dataset (write-oriented, reduced feature set)
+│   │   │   ├── features.json         # 17 write-oriented features, versions v2/v3
+│   │   │   └── <tool-id>/<tool-id>.json   # One folder+file per tool (aws-firehose, kafka-connect)
 │   │   ├── catalogs/                 # Catalogs openness-rubric dataset
 │   │   │   ├── features.json         # 3 spec-support features + 6 rubric criteria
 │   │   │   └── <catalog-id>/<catalog-id>.json   # One folder+file per catalog (10 today)
@@ -36,15 +41,13 @@ A React single-page application that displays an interactive compatibility matri
 │   │       │   │   ├── emr/emr.json
 │   │       │   │   ├── glue/glue.json
 │   │       │   │   ├── managed-flink/managed-flink.json
-│   │       │   │   ├── redshift-s3/redshift-s3.json
-│   │       │   │   └── firehose/firehose.json        # staged, NOT imported
+│   │       │   │   └── redshift-s3/redshift-s3.json
 │   │       │   └── s3tables/         # AWS in S3-Tables mode (exported as `dataS3Tables`)
 │   │       │       ├── athena/athena.json
 │   │       │       ├── emr/emr.json
 │   │       │       ├── glue/glue.json
 │   │       │       ├── managed-flink/managed-flink.json
-│   │       │       ├── redshift-s3/redshift-s3.json
-│   │       │       └── firehose/firehose.json        # staged, NOT imported
+│   │       │       └── redshift-s3/redshift-s3.json
 │   │       ├── gcp/                  # bigquery/, dataproc/
 │   │       ├── azure/                # fabric/ (synapse removed: Microsoft directs Synapse Spark to Fabric)
 │   │       ├── databricks/           # databricks/
@@ -53,8 +56,7 @@ A React single-page application that displays an interactive compatibility matri
 │   │       │   └── external/snowflake/snowflake.json  # external volume (customer S3)
 │   │       └── oss/                  # duckdb/, clickhouse/, daft/, spark/,
 │   │                                 # spark-gluten/, spark-comet/, flink/,
-│   │                                 # trino/, pyiceberg/, doris/, databend/,
-│   │                                 # kafka-connect/ (staged, NOT imported)
+│   │                                 # trino/, pyiceberg/, doris/, databend/
 │   ├── utils/                # Pure utility functions
 │   │   ├── comparison.ts             # Comparison logic between platforms
 │   │   ├── filters.ts                # Filter/search logic
@@ -142,7 +144,7 @@ Two engines within the same vendor must never derive to the same subfolder name.
 
 ### AWS dual-mode layout
 
-AWS is split first by S3 mode and then by engine. `aws/s3buckets/` and `aws/s3tables/` each contain the same per-engine subfolders — `athena`, `emr`, `glue`, `managed-flink`, `redshift-s3` (plus the staged `firehose`). The two modes hold separate compatibility data for S3 buckets vs S3 Tables.
+AWS is split first by S3 mode and then by engine. `aws/s3buckets/` and `aws/s3tables/` each contain the same per-engine subfolders — `athena`, `emr`, `glue`, `managed-flink`, `redshift-s3`. The two modes hold separate compatibility data for S3 buckets vs S3 Tables.
 
 ### How the loader merges the data
 
@@ -157,9 +159,17 @@ It exports four `CompatibilityData` datasets, one per (AWS mode × Snowflake mod
 
 Snowflake mirrors the AWS dual-mode pattern, split by Iceberg storage option rather than by engine: `snowflake/managed/snowflake/snowflake.json` (Snowflake-provided storage, `EXTERNAL_VOLUME = SNOWFLAKE_MANAGED`) and `snowflake/external/snowflake/snowflake.json` (customer cloud storage through an external volume). Both files carry the same platform id `snowflake`, so filters and the matrix column survive the toggle; the mode is expressed by which file the merge includes in the Snowflake slot (between `databricks` and the OSS block). The UI switch is a pill in the Snowflake group header (Snowflake / External), state owned by `App.tsx` as `snowflakeMode` (default `"snowflake"`), gated exactly like the AWS toggle (engines view only, hidden when Snowflake platforms are filtered out).
 
-### Staged-but-excluded engines
+### Ingestion dataset
 
-Firehose (`aws/s3buckets/firehose` and `aws/s3tables/firehose`) and Kafka Connect (`oss/kafka-connect`) are stored in the structure but deliberately excluded from both datasets — the loader simply does not import their files. As a result, neither `aws-firehose` nor `kafka-connect` appears in `data` or `dataS3Tables`, and neither is rendered by the app.
+The Ingestion view covers tools whose job is to **write** Iceberg data from a source (a Kafka topic, a Kinesis stream) and which are not built for reading it. Today: Apache Iceberg **Kafka Connect** sink and Amazon **Data Firehose**. They are deliberately not in the engines dataset (a regression guard in `load-data.test.ts` keeps them out).
+
+- Data lives in `src/data/ingestion/`, independent from the engines data. `features.json` is a **reduced, write-oriented feature set** (17 features, versions `v2`/`v3`): append, upsert/delete (CDC), merge-on-read, equality/position deletes, deletion vectors, auto table creation, auto schema evolution, type promotion, table maintenance, branching, hidden partitioning, catalog integration (Glue, REST), and V3 variant / shredded variant. Read-oriented features (read support, time travel, statistics, bloom filters, query-time catalogs) are intentionally absent; `ingestion.test.ts` fails if one is added. Ids are reused from the engines set where the meaning matches, but descriptions are rewritten for a write-only tool, and a new `ingestion-write` category ("Write Path") holds append, upsert and merge-on-read.
+- Each tool lives in `ingestion/<tool-id>/<tool-id>.json` with one platform object and a support entry for every feature × version. Groups: `AWS` (Firehose), `3rd Party` (Kafka Connect).
+- `src/data/load-ingestion.ts` mirrors the other loaders: explicit static imports in a fixed order, exporting `dataIngestion`. `src/data/ingestion.test.ts` validates structure, full coverage, link shape, group contiguity, and that the merged dataset matches the files on disk. Its `EXPECTED_INGESTION_IDS` array is the extension point.
+- **Rate on writes, not reads**, like the engines view's delete/DV/lineage rows. Both ratings were checked against primary sources, not the previous placeholder files:
+  - **Kafka Connect** ships *inside Apache Iceberg* (no separate version line; the legacy Tabular connector stopped at 0.6.19). Current release **Iceberg 1.12.0** (2026-09-30) added variant shredding for Kafka Connect (apache/iceberg#17520), and the sink converts values to the `VARIANT` type, so writing V3 tables is supported. It is **append-only**: its task writers (`UnpartitionedWriter`, `PartitionedAppendWriter`) only append, there is no CDC/upsert setting, and the experimental `DebeziumTransform` / `DmsTransform` only add `_cdc.*` metadata columns. So upserts, equality/position deletes, deletion vectors and merge-on-read are `none`.
+  - **Data Firehose** supports **V2 tables only** (AWS prerequisites page; Iceberg library 1.5.2), Parquet, and merge-on-read. It applies per-record insert/update/delete keyed on `UniqueKeys` or `identifier-field-ids` (an update is a delete file plus an insert), needs pre-existing tables created through Iceberg's `GlueCatalog` API, and does no schema evolution. **Every V3 cell is `none`** (guarded by a test). Its deletes are equality deletes (keyed on `UniqueKeys` / `identifier-field-ids`); AWS's docs only say "delete file", so the delete type is stated from the maintainer, not from the docs.
+- The AWS S3-mode and Snowflake storage toggles are engines-only. Firehose delivers to both S3 and S3 Tables, noted in the cell text rather than split into two datasets.
 
 > Note: the original flat per-vendor files (`aws.json`, `aws-tables.json`, `gcp.json`, etc.) have been removed. The nested structure is the only source of truth that `load-data.ts` reads from.
 
@@ -176,7 +186,7 @@ The catalogs view has its own dataset under `src/data/catalogs/`, independent fr
 
 ### View wiring
 
-`App.tsx` holds a `viewMode` state (`"engines" | "catalogs"`, default engines) switched by `ViewToggle` in the header (the only control in the header now). Each view keeps its own independent `FilterState` (engines starts at `selectedVersions: ["v2","v3"]`, catalogs at `["current"]`), so filters survive toggling and never leak across views. The catalogs view reuses `CompatibilityMatrix`, `FilterPanel` (with `entityLabel="Catalogs"`), and `DetailPopover`, but renders no AWS S3-mode toggle. The Iceberg version is a **multi-select chip group inside `FilterPanel`** ("VERSION", styled like the Platform/Category/Support chips), not a header switcher. By default **both V2 and V3 are selected** (`initialEngineFilters.selectedVersions: ["v2","v3"]`). The last selected version cannot be deselected, so the grid never loses its version dimension, and the chips are hidden in the catalogs view (whose single synthetic `current` version has no v2/v3 choice).
+`App.tsx` holds a `viewMode` state (`"engines" | "ingestion" | "catalogs"`, default engines) switched by `ViewToggle` in the header (the only control in the header now). Each view keeps its own independent `FilterState` (engines and ingestion start at `selectedVersions: ["v2","v3"]`, catalogs at `["current"]`), so filters survive toggling and never leak across views. The catalogs view reuses `CompatibilityMatrix`, `FilterPanel` (with `entityLabel="Catalogs"`), and `DetailPopover`, but renders no AWS S3-mode toggle. The Iceberg version is a **multi-select chip group inside `FilterPanel`** ("VERSION", styled like the Platform/Category/Support chips), not a header switcher. By default **both V2 and V3 are selected** (`initialEngineFilters.selectedVersions: ["v2","v3"]`). The last selected version cannot be deselected, so the grid never loses its version dimension, and the chips are hidden in the catalogs view (whose single synthetic `current` version has no v2/v3 choice). The ingestion view reuses the same matrix, filter panel (entity label "Tools"), version chips, Compare button and detail popover as engines, since it has the same v2/v3 dimension; only the dataset, the reduced feature list and the intro text differ. The AWS S3-mode and Snowflake storage toggles are gated on `isEnginesView`, so they never show in the other views. Because the ingestion view has only two columns, the matrix caps column width (`ENGINE_COL_MAX_WIDTH` in `matrixLayout.ts`) so it does not stretch each across half the screen; the 21-column engines view and 10-column catalogs view are unaffected.
 
 **One column per engine (not per version).** The grid renders a single column per platform; the version dimension lives *inside* each cell. `FeatureRow` restricts a cell's versions to `selectedVersions ∩ applicableVersions(feature, allVersions)` (via `src/utils/versions.ts`), then hands that version→entry list to `SupportCell`. `SupportCell` renders a **solid** cell when every version agrees (the common case) and a **transition cell** only when they differ: one segment per version laid out left to right (`V2 ✓ Full → V3 ✗ None`), each tinted with its own status and labelled with its version, with an arrow badge on every boundary and a purple frame. Segments share the cell width equally and use short labels (`Part.`, `Unk.`; full words stay in the aria-label/tooltip) so a transition cell is exactly as wide as a solid one. **All engine columns have the same fixed width**: the table uses `table-layout: fixed` with widths from `src/components/matrixLayout.ts` (`NAME_COL_WIDTH` 176, `ENGINE_COL_WIDTH` 110, the minimum that fits a two-segment cell), so a difference never widens its column. Because of the `applicableVersions` intersection, a V3-only feature (Deletion Vectors, Lineage Tracking, Variant Type) shows a single solid V3 cell even with both versions selected, never a bogus "V2 None / V3 Full" split. The frame, arrow and per-segment labels mean a difference is identifiable without relying on colour, and the row extends to 3+ segments when V4 lands.
 
@@ -208,6 +218,14 @@ Each feature row also shows a version badge next to its name ("Positional Delete
 4. Optionally register a logo in the `PLATFORM_LOGOS` maps in `CompatibilityMatrix.tsx` and `FilterPanel.tsx` if a suitable file exists in `public/logos/`.
 5. Run `npm test` — the structural suite catches missing coverage, bad keys, or a file that exists on disk but is missing from the loader.
 
+### Adding a New Ingestion Tool
+
+1. Create `src/data/ingestion/<tool-id>/<tool-id>.json` with one platform object (`group` `"AWS"` or `"3rd Party"`) and a support entry for every feature in `ingestion/features.json` × both versions. Rate **write** capability and cite a primary source (docs or source code) for each cell; use `"unknown"` for anything undocumented.
+2. Add the tool id to `EXPECTED_INGESTION_IDS` in `src/data/ingestion.test.ts`.
+3. Wire it into `src/data/load-ingestion.ts` (groups must stay contiguous: AWS first, then 3rd Party).
+4. Optionally register a logo in the `PLATFORM_LOGOS` maps in `CompatibilityMatrix.tsx` and `FilterPanel.tsx`.
+5. Run `npm test`. To add a feature, add it to `ingestion/features.json` and a v2 and v3 entry to every tool file; keep it write-oriented.
+
 ### Adding a New Rubric Criterion
 
 1. Add the feature to `src/data/catalogs/features.json` (category `"openness-rubric"`, `introducedIn`/`versions` `"current"`).
@@ -235,7 +253,7 @@ Each feature row also shows a version badge next to its name ("Positional Delete
 
 - Data is split into nested per-vendor / per-engine files under `src/data/platforms/` and merged at import time by `src/data/load-data.ts`. The nested structure is the single source of truth that `load-data.ts` reads from; there is no aggregated JSON file to keep in sync.
 - Each engine file holds exactly one platform object plus only that platform's support entries. The loader concatenates the engine files in a fixed order, so the merged platform order and support map are deterministic regardless of filesystem enumeration.
-- Firehose and Kafka Connect are staged in the structure but excluded from both datasets (their files are never imported), so they are not rendered.
+- Firehose and Kafka Connect live in the separate ingestion dataset (`src/data/ingestion/`, merged by `src/data/load-ingestion.ts`) and are not part of the engines data. The ingestion feature list is its own file; keep it write-oriented and separate from `src/data/features.json`.
 - Feature definitions live in `src/data/features.json` (single source of truth for engine features and versions). The catalogs view has its own `src/data/catalogs/features.json`; keep them separate — external tooling counts every feature in the engines file for coverage.
 - The catalogs dataset follows the same rules via `src/data/load-catalogs.ts`: one file per catalog, fixed merge order, groups contiguous. `src/data/catalogs.test.ts` enforces its structure.
 - Every platform must have entries for all features × all versions. Missing entries will show as blank cells in the matrix.

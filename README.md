@@ -2,6 +2,12 @@
 
 An interactive compatibility matrix for [Apache Iceberg](https://iceberg.apache.org/) features across cloud platforms and open-source engines. Filter by platform, feature category, Iceberg version (V2/V3), and support level to quickly find what's supported where.
 
+The site has three views, switched with the buttons at the top right:
+
+- **Engines** (default): query engines and platforms against the full Iceberg feature list.
+- **Ingestion**: tools that *write* Iceberg data from a source (today Apache Iceberg Kafka Connect and Amazon Data Firehose) but are not built for reading it. It uses a smaller, write-oriented feature set: appends, upserts/deletes, schema and table handling, partitioning, catalogs and V3 types. Read features such as read support and time travel are left out. Ratings are about what the tool can **write**.
+- **Catalogs**: Iceberg catalogs scored against an openness rubric.
+
 **Live site →** deployed via GitHub Pages on every push to `main`.
 
 ## Quick Start
@@ -42,7 +48,9 @@ src/
 public/logos/         # SVG logos for platforms and engines
 ```
 
-Data lives under `src/data/platforms/` in a nested per-vendor / per-engine structure — each engine has its own file (e.g. `oss/duckdb/duckdb.json`, `gcp/bigquery/bigquery.json`). AWS is split further by S3 mode (`aws/s3buckets/<engine>/` and `aws/s3tables/<engine>/`). `src/data/load-data.ts` imports the engine files and merges them, at import time, into two datasets (`data` for S3-buckets, `dataS3Tables` for S3 Tables). Feature and version definitions live in `src/data/features.json`.
+Ingestion tools have their own dataset under `src/data/ingestion/` (`features.json` plus one `<tool-id>/<tool-id>.json` file per tool, merged by `src/data/load-ingestion.ts`), and catalogs under `src/data/catalogs/`.
+
+Engine data lives under `src/data/platforms/` in a nested per-vendor / per-engine structure — each engine has its own file (e.g. `oss/duckdb/duckdb.json`, `gcp/bigquery/bigquery.json`). AWS is split further by S3 mode (`aws/s3buckets/<engine>/` and `aws/s3tables/<engine>/`). `src/data/load-data.ts` imports the engine files and merges them, at import time, into two datasets (`data` for S3-buckets, `dataS3Tables` for S3 Tables). Feature and version definitions live in `src/data/features.json`.
 
 ## Contributing
 
@@ -55,6 +63,14 @@ Contributions are welcome! Please open a pull request against `main`.
 3. Wire the engine into `src/data/load-data.ts`: add a static `import` for the JSON file and append it to the correct ordered array (AWS engines, or the non-AWS vendors).
 4. Drop an SVG logo into `public/logos/` and wire it up in the `PLATFORM_LOGOS` map in `CompatibilityMatrix.tsx` and `FilterPanel.tsx`.
 5. Run `npm test && npm run build` to verify nothing breaks.
+
+### Adding a New Ingestion Tool
+
+1. Create `src/data/ingestion/<tool-id>/<tool-id>.json` with a single platform object (`group` is `"AWS"` or `"3rd Party"`) and a support entry for **every ingestion feature × version** (`v2` and `v3`). Rate what the tool can **write**, link a primary source for each cell, and use `"unknown"` for anything undocumented.
+2. Add the id to `EXPECTED_INGESTION_IDS` in `src/data/ingestion.test.ts` and wire the file into `src/data/load-ingestion.ts` (AWS tools first, then 3rd Party).
+3. Run `npm test && npm run build`.
+
+To add an ingestion feature, add it to `src/data/ingestion/features.json` and a v2 and v3 entry to every tool file. Keep the list write-oriented.
 
 ### Adding a New Feature
 

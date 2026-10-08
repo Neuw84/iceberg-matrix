@@ -1,0 +1,127 @@
+{
+  "versions": [
+    "v2",
+    "v3"
+  ],
+  "features": [
+    {
+      "id": "write-insert",
+      "name": "Append (INSERT)",
+      "category": "ingestion-write",
+      "introducedIn": "v2",
+      "description": "Appends incoming records to an Iceberg table as new data files in an atomic, committed snapshot"
+    },
+    {
+      "id": "write-merge-update-delete",
+      "name": "Upsert / Delete (CDC)",
+      "category": "ingestion-write",
+      "introducedIn": "v2",
+      "description": "Applies updates and deletes from the source stream to existing rows (upsert / change data capture), not only appends"
+    },
+    {
+      "id": "merge-on-read",
+      "name": "Merge-on-Read",
+      "category": "ingestion-write",
+      "introducedIn": "v2",
+      "description": "Records updates and deletes as delete files that readers merge at query time instead of rewriting data files. Rated on whether the tool writes in this mode"
+    },
+    {
+      "id": "equality-deletes",
+      "name": "Equality Deletes",
+      "category": "row-level-operations",
+      "introducedIn": "v2",
+      "description": "Writes delete files that match rows by key columns, the usual mechanism for streaming upserts. Rated on whether the tool can write equality delete files"
+    },
+    {
+      "id": "position-deletes",
+      "name": "Position Deletes",
+      "category": "row-level-operations",
+      "introducedIn": "v2",
+      "description": "Writes delete files that point at a data file and row position. Rated on whether the tool can write position delete files"
+    },
+    {
+      "id": "deletion-vectors",
+      "name": "Deletion Vectors",
+      "category": "row-level-operations",
+      "introducedIn": "v3",
+      "description": "Puffin-based binary deletion vectors that replace V2 position delete files. Rated on whether the tool can write deletion vectors"
+    },
+    {
+      "id": "table-creation",
+      "name": "Table Creation (auto-create)",
+      "category": "table-management",
+      "introducedIn": "v2",
+      "description": "Creates the destination table, and its namespace, from the incoming record schema when it does not exist"
+    },
+    {
+      "id": "schema-evolution",
+      "name": "Schema Evolution (auto)",
+      "category": "table-management",
+      "introducedIn": "v2",
+      "description": "Adds new columns to the destination table when the incoming records carry fields the table does not have"
+    },
+    {
+      "id": "type-promotion",
+      "name": "Type Promotion / Widening",
+      "category": "table-management",
+      "introducedIn": "v2",
+      "description": "Widens a column's type (for example int to long) when incoming values no longer fit"
+    },
+    {
+      "id": "table-maintenance",
+      "name": "Table Maintenance (compaction)",
+      "category": "table-management",
+      "introducedIn": "v2",
+      "description": "Compacts small files, expires snapshots or removes orphan files. Ingestion creates many small files, so this matters"
+    },
+    {
+      "id": "branching-tagging",
+      "name": "Branching & Tagging",
+      "category": "table-management",
+      "introducedIn": "v2",
+      "description": "Commits to a named branch instead of main, enabling write-audit-publish workflows"
+    },
+    {
+      "id": "hidden-partitioning",
+      "name": "Hidden Partitioning",
+      "category": "partitioning",
+      "introducedIn": "v2",
+      "description": "Writes partitioned tables using partition transforms (day, hour, bucket, truncate) without extra partition columns in the data"
+    },
+    {
+      "id": "catalog-integration",
+      "name": "Catalog Integration",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "Commits to Iceberg tables through an Iceberg catalog"
+    },
+    {
+      "id": "aws-glue-catalog",
+      "name": "AWS Glue Catalog",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "Writes to Iceberg tables registered in the AWS Glue Data Catalog"
+    },
+    {
+      "id": "rest-catalog",
+      "name": "REST Catalog",
+      "category": "catalog-support",
+      "introducedIn": "v2",
+      "description": "Writes to Iceberg tables through the Iceberg REST catalog protocol"
+    },
+    {
+      "id": "variant-type",
+      "name": "Variant Type",
+      "category": "v3-data-types",
+      "introducedIn": "v3",
+      "description": "Writes semi-structured data into the V3 variant type"
+    },
+    {
+      "id": "shredded-variant",
+      "name": "Shredded Variant",
+      "category": "v3-data-types",
+      "introducedIn": "v3",
+      "description": "Writes variant data with shredded Parquet columns for faster reads"
+    }
+  ]
+}

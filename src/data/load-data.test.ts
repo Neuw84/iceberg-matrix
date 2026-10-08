@@ -21,8 +21,9 @@ import type { CompatibilityData } from "../types";
 
 const VALID_LEVELS = ["full", "partial", "none", "unknown"];
 
-// Engines stored in the structure but deliberately not imported by the loader.
-const STAGED_EXCLUDED_IDS = ["aws-firehose", "kafka-connect"];
+// Ingestion tools live in their own dataset (src/data/ingestion/, shown in the
+// Ingestion view) and must not appear among the query engines.
+const INGESTION_ONLY_IDS = ["aws-firehose", "kafka-connect"];
 
 interface RawEntry {
   level?: unknown;
@@ -36,8 +37,8 @@ interface RawEngineFile {
   support?: Record<string, RawEntry>;
 }
 
-// Eagerly glob every engine file on disk — including the staged ones the
-// loader skips — so a malformed file is caught even before it is wired in.
+// Eagerly glob every engine file on disk so a malformed file is caught even
+// before it is wired into the loader.
 const modules = import.meta.glob<{ default: RawEngineFile }>(
   "./platforms/**/*.json",
   { eager: true },
@@ -154,10 +155,10 @@ describe.each([
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("excludes the staged engines", () => {
+  it("keeps ingestion-only tools out of the engines dataset", () => {
     const ids = new Set(dataset.platforms.map((p) => p.id));
-    for (const staged of STAGED_EXCLUDED_IDS) {
-      expect(ids.has(staged), `${staged} should stay excluded`).toBe(false);
+    for (const tool of INGESTION_ONLY_IDS) {
+      expect(ids.has(tool), `${tool} belongs to the ingestion dataset`).toBe(false);
     }
   });
 

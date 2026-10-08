@@ -166,6 +166,48 @@ describe('Engines/Catalogs view toggle', () => {
   })
 })
 
+describe('Ingestion view', () => {
+  it('orders the tabs Engines, Ingestion, Catalogs', () => {
+    render(<App />)
+    const tabs = screen.getAllByRole('tab').map((t) => t.textContent)
+    expect(tabs).toEqual(['Engines', 'Ingestion', 'Catalogs'])
+  })
+
+  it('shows the ingestion tools and only their write-oriented features', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Ingestion' }))
+    const grid = screen.getByRole('grid')
+
+    // The two ingestion tools replace the engine columns.
+    expect(within(grid).getByText('Data Firehose')).toBeInTheDocument()
+    expect(within(grid).getByText('Kafka Connect (1.12.0)')).toBeInTheDocument()
+    expect(within(grid).queryByText(/PyIceberg/)).not.toBeInTheDocument()
+
+    // Write-path rows are present; read-oriented rows are not.
+    expect(within(grid).getByText('Append (INSERT)')).toBeInTheDocument()
+    expect(within(grid).getByText('Upsert / Delete (CDC)')).toBeInTheDocument()
+    expect(within(grid).queryByText('Read Support')).not.toBeInTheDocument()
+    expect(within(grid).queryByText('Time Travel / Snapshots')).not.toBeInTheDocument()
+  })
+
+  it('keeps the version chips, but not the engine-only storage toggles', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Ingestion' }))
+    expect(
+      screen.getByRole('button', { name: 'Show Iceberg V3 features' })
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Switch to .* storage$/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Switch to S3/ })).not.toBeInTheDocument()
+  })
+
+  it('does not list the ingestion tools among the engines', () => {
+    render(<App />)
+    const grid = screen.getByRole('grid')
+    expect(within(grid).queryByText('Data Firehose')).not.toBeInTheDocument()
+    expect(within(grid).queryByText(/Kafka Connect/)).not.toBeInTheDocument()
+  })
+})
+
 describe('Matrix filters', () => {
   it('narrows rows by feature search (debounced)', async () => {
     render(<App />)

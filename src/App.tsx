@@ -2,6 +2,7 @@ import { useState, useMemo, lazy, Suspense } from "react";
 import type { AwsS3Mode, FilterState, SnowflakeStorageMode, ViewMode } from "./types";
 import { getEngineData } from "./data/load-data";
 import { dataCatalogs } from "./data/load-catalogs";
+import { dataIngestion } from "./data/load-ingestion";
 import { FilterPanel } from "./components/FilterPanel";
 import { ViewToggle } from "./components/ViewToggle";
 import { CompatibilityMatrix } from "./components/CompatibilityMatrix";
@@ -38,6 +39,18 @@ const initialCatalogFilters: FilterState = {
   searchQuery: "",
 };
 
+// Ingestion tools (Kafka Connect, Firehose) have the same v2/v3 spec dimension
+// as engines, so the version chips and Compare work the same way; only the
+// platform set and the reduced, write-oriented feature list differ.
+const initialIngestionFilters: FilterState = {
+  selectedVersions: ["v2", "v3"],
+  compareMode: false,
+  selectedPlatforms: [],
+  selectedCategories: [],
+  selectedSupportLevels: [],
+  searchQuery: "",
+};
+
 export default function App() {
   const [viewMode, setViewMode] = useState<ViewMode>("engines");
   // One filter state per view: platform ids and versions are disjoint between
@@ -45,6 +58,7 @@ export default function App() {
   // toggle. Keeping both also restores your filters when you switch back.
   const [engineFilters, setEngineFilters] = useState<FilterState>(initialEngineFilters);
   const [catalogFilters, setCatalogFilters] = useState<FilterState>(initialCatalogFilters);
+  const [ingestionFilters, setIngestionFilters] = useState<FilterState>(initialIngestionFilters);
   const [introOpen, setIntroOpen] = useState(false);
   const [awsS3Mode, setAwsS3Mode] = useState<AwsS3Mode>("s3-buckets");
   // Snowflake defaults to its managed storage ("snowflake"), which the docs
@@ -52,11 +66,23 @@ export default function App() {
   const [snowflakeMode, setSnowflakeMode] = useState<SnowflakeStorageMode>("snowflake");
 
   const isCatalogsView = viewMode === "catalogs";
+  const isIngestionView = viewMode === "ingestion";
+  const isEnginesView = viewMode === "engines";
   const activeData = isCatalogsView
     ? dataCatalogs
-    : getEngineData(awsS3Mode, snowflakeMode);
-  const filters = isCatalogsView ? catalogFilters : engineFilters;
-  const setFilters = isCatalogsView ? setCatalogFilters : setEngineFilters;
+    : isIngestionView
+      ? dataIngestion
+      : getEngineData(awsS3Mode, snowflakeMode);
+  const filters = isCatalogsView
+    ? catalogFilters
+    : isIngestionView
+      ? ingestionFilters
+      : engineFilters;
+  const setFilters = isCatalogsView
+    ? setCatalogFilters
+    : isIngestionView
+      ? setIngestionFilters
+      : setEngineFilters;
 
   const { platforms, features } = useMemo(
     () => applyFilters(activeData, filters),
@@ -120,7 +146,19 @@ export default function App() {
           </button>
           {introOpen && (
             <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800 space-y-2 collapsible-content">
-              {isCatalogsView ? (
+              {isIngestionView ? (
+                <>
+                  <p>
+                    Ingestion tools write data into Iceberg tables from a source
+                    such as a Kafka topic or a Kinesis stream, but are not built
+                    for querying it. This view compares what they can write:
+                    appends, upserts and deletes, schema handling, partitioning,
+                    catalogs and V3 types. Read-oriented features (read support,
+                    time travel, statistics) are left out because they do not
+                    apply to a write-only tool.
+                  </p>
+                </>
+              ) : isCatalogsView ? (
                 <>
                   <p>
                     The table-format layer of Iceberg is an open specification, so
@@ -157,7 +195,7 @@ export default function App() {
             filters={filters}
             data={activeData}
             onFilterChange={setFilters}
-            entityLabel={isCatalogsView ? "Catalogs" : "Platforms"}
+            entityLabel={isCatalogsView ? "Catalogs" : isIngestionView ? "Tools" : "Platforms"}
           />
         </div>
         </div>
@@ -179,10 +217,10 @@ export default function App() {
           // The per-vendor storage switches (AWS S3 Buckets/Tables, Snowflake
           // managed/external) are engines-view concerns; without these props
           // the matrix renders no toggles.
-          awsS3Mode={isCatalogsView ? undefined : awsS3Mode}
-          onAwsS3ModeChange={isCatalogsView ? undefined : setAwsS3Mode}
-          snowflakeMode={isCatalogsView ? undefined : snowflakeMode}
-          onSnowflakeModeChange={isCatalogsView ? undefined : setSnowflakeMode}
+          awsS3Mode={isEnginesView ? awsS3Mode : undefined}
+          onAwsS3ModeChange={isEnginesView ? setAwsS3Mode : undefined}
+          snowflakeMode={isEnginesView ? snowflakeMode : undefined}
+          onSnowflakeModeChange={isEnginesView ? setSnowflakeMode : undefined}
         />
       </main>
 
