@@ -214,14 +214,14 @@
     {
       "id": "lineage",
       "name": "Lineage Tracking",
-      "category": "v3-advanced",
+      "category": "row-level-operations",
       "introducedIn": "v3",
       "description": "Iceberg V3 row lineage: the engine assigns and preserves _row_id and _last_updated_sequence_number on write, so any reader can match rows across snapshots and detect row-level changes. Rated full when the engine maintains correct lineage at write time."
     },
     {
       "id": "deletion-vectors",
       "name": "Deletion Vectors",
-      "category": "v3-advanced",
+      "category": "row-level-operations",
       "introducedIn": "v3",
       "description": "Puffin-based binary deletion vectors that replace V2 position delete files, enabling efficient row-level deletes in merge-on-read tables without rewriting data files. Rated on whether the engine can write deletion vectors; being able to read tables that already contain them does not count"
     }
