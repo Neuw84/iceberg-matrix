@@ -1,0 +1,1061 @@
+{
+  "platforms": [
+    {
+      "id": "arc",
+      "name": "Arc (26.09.3)",
+      "vendor": "Basekick Labs",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+    }
+  ],
+  "support": {
+    "arc:position-deletes:v2": {
+      "level": "none",
+      "notes": "Arc never writes Iceberg delete files of any kind. Its reconciler only adds and removes whole data files by path (ReplaceDataFiles / AddFiles), and its own row-level DELETE API rewrites the affected Parquet file instead of recording a delete. Nothing in internal/iceberg constructs a position delete file.",
+      "caveats": [
+        "Row-level deletes happen in Arc's storage layer, not as Iceberg delete files"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc delete operations",
+          "url": "https://docs.basekick.net/arc/data-lifecycle/delete-operations/"
+        }
+      ]
+    },
+    "arc:position-deletes:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Not supported. Arc has no equality-delete writer; the export path registers and deregisters data files only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:merge-on-read:v2": {
+      "level": "none",
+      "notes": "Arc tables are copy-on-write by construction: with no delete files or deletion vectors there is nothing to merge at read time. Every snapshot references data files only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:copy-on-write:v2": {
+      "level": "partial",
+      "notes": "Arc's row-level DELETE (POST /api/v1/delete with a WHERE clause) rewrites each affected Parquet file without the deleted rows, and the next reconcile pass re-registers that path in one commit, so the table's record counts and column bounds follow the rewrite -- copy-on-write semantics, delivered through Arc's own API rather than Iceberg DML. Verified live: deleting 1 of 7 rows produced a reregistered=1 reconcile and DuckDB's iceberg_scan then returned 6 rows with the manifest record count updated. Partial, not full, because the rewrite reuses the original file path instead of writing a new data file, so earlier snapshots keep pointing at a path whose contents have changed (time travel to a pre-delete snapshot returned the post-delete row count), and because only DELETE drives it -- there is no UPDATE or MERGE.",
+      "caveats": [
+        "Driven by Arc's delete API, not by Iceberg DML -- an external engine cannot trigger it",
+        "The rewritten file keeps its original path, so pre-delete snapshots silently reflect the new contents",
+        "Eventually consistent: the table converges within one iceberg.reconcile_interval (default 300 s)"
+      ],
+      "links": [
+        {
+          "label": "Arc delete operations",
+          "url": "https://docs.basekick.net/arc/data-lifecycle/delete-operations/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Additive only, and automatic. Arc derives each measurement's column superset from the Parquet footers and evolveSchema adds any missing column as an optional field, then refreshes schema.name-mapping.default from the post-evolution schema (Arc's Parquet carries no field IDs, so without that mapping external readers fail on the new column). Verified live: a measurement that gained a 'temp' field produced schema-id 1 with temp as optional field-id 5 and an extended name mapping. No drop, rename, reorder or type change -- a changed column type is refused outright with the measurement left at its last good state.",
+      "caveats": [
+        "Add-column only: no drop, rename, reorder or promotion",
+        "A column whose type changes fails that measurement's export until the source data is fixed",
+        "Evolution is inferred from the data, not requested through DDL"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/schema.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/schema.go"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:type-promotion:v2": {
+      "level": "none",
+      "notes": "Explicitly refused. evolveSchema compares each incoming column against the table's current type and returns an error ('column \"value\" type mismatch: Iceberg table has long, new Parquet files have double') rather than widening the column, so no promotion is ever committed.",
+      "caveats": [
+        "A type change fails that measurement's reconcile; other measurements keep exporting"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:type-promotion:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:column-default-values:v2": {
+      "level": "none",
+      "notes": "A V3 feature; Arc writes V2 tables and sets no initial-default / write-default on any field. Columns added by schema evolution are plain optional columns that read as NULL for older files.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:column-default-values:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:table-creation:v2": {
+      "level": "partial",
+      "notes": "Arc creates the namespace and the table itself, with no operator DDL: on first sight of a measurement the exporter calls CreateNamespace + CreateTable with the schema derived from the measurement's Parquet, a day(time) partition spec and the metadata-retention properties (write.metadata.delete-after-commit.enabled, write.metadata.previous-versions-max). One table per database/measurement, named <namespace_prefix>_<database>.<measurement>. Partial because there is no CREATE TABLE surface at all: schema, partitioning, properties and naming are fixed by Arc, and you cannot create an Iceberg table that Arc does not own.",
+      "caveats": [
+        "No CREATE TABLE statement or API -- tables appear automatically per measurement",
+        "Schema, partition spec and table properties are not operator-configurable"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:table-creation:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "Tables are created with exactly one hidden partition field -- day(time), field-id 1000, name time_day -- and iceberg-go infers each registered file's partition value from the Parquet time min/max. Verified live: the manifest entry for a registered file carried partition {time_day: 20732}. Partial because the transform is hard-coded (day() matches both Arc's hourly files and its daily-compacted files; hour() would reject the latter): no bucket, truncate, month or year, no choice of source column, and a file whose rows straddle a UTC day boundary cannot be mapped at all and is logged and left out of the table.",
+      "caveats": [
+        "day(time) only -- not configurable, and no other transform is available",
+        "A data file straddling a UTC day boundary is skipped and excluded from the table"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:partition-evolution:v2": {
+      "level": "none",
+      "notes": "The partition spec is set once at table creation and never updated -- there is no UpdateSpec call anywhere in the exporter, and a live table stayed on spec-id 0 across schema evolution and deletes.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "A V3 feature, and Arc's single partition field takes one source column (time).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:time-travel:v2": {
+      "level": "none",
+      "notes": "Arc has no Iceberg read path, so it cannot query a snapshot by id or timestamp. The snapshots it commits are readable by other engines, but with a caveat Arc users should know: because its delete path rewrites a data file in place at the same path, a pre-delete snapshot resolves to the post-delete file. Verified live -- DuckDB's iceberg_scan(..., snapshot_from_id => <first snapshot>) returned 4 rows for a snapshot committed when the file held 5.",
+      "caveats": [
+        "Arc cannot read Iceberg tables, including its own",
+        "In-place file rewrites make historical snapshots non-reproducible across a delete"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "internal/api/query.go (SQL I/O denylist)",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/api/query.go"
+        }
+      ]
+    },
+    "arc:time-travel:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "Snapshot and metadata retention are built in and run on the reconcile timer: ExpireSnapshots with retain-last = iceberg.retain_snapshots (default 10) and an always-satisfied age gate, plus pruning of the Hadoop-style v<N>.metadata.json copies and iceberg-go's own metadata log. Verified live with retain_snapshots = 1: snapshot history collapsed to 1 and only two v<N>.metadata.json copies remained (retain+1, kept deliberately for directory readers mid-resolve). Data-file compaction is Arc's own, not Iceberg's -- compacted output replaces its sources in the table on the next pass. No orphan-file removal, no rewrite-manifests, no rewrite-data-files: expiry deliberately runs with post-commit cleanup disabled so the exporter can never delete Arc's primary data files, which also means expired manifests and manifest lists are left behind (15 .avro files for 1 live snapshot in the live run).",
+      "caveats": [
+        "No orphan-file removal or rewrite-manifests; expired manifests/manifest-lists are not reclaimed",
+        "Compaction is Arc's own file-level compaction reflected into the table, not Iceberg rewrite-data-files",
+        "Maintenance is timer-driven configuration, not callable procedures"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration reference",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:branching-tagging:v2": {
+      "level": "none",
+      "notes": "No branch or tag management. Every commit lands on main; the exporter never creates a ref.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:read-support:v2": {
+      "level": "none",
+      "notes": "Arc cannot read Iceberg tables, and this is deliberate rather than unimplemented: iceberg_scan, iceberg_metadata and iceberg_snapshots are on the SQL I/O denylist that Arc's query validator rejects in user SQL (the DuckDB filesystem-function family is blocked because Arc's RBAC layer cannot see inside a table function). Arc queries its own Parquet directly; Iceberg is an export surface for other engines.",
+      "caveats": [
+        "iceberg_scan / iceberg_metadata / iceberg_snapshots are rejected by Arc's SQL validator",
+        "Arc is a producer of Iceberg tables, not an Iceberg query engine"
+      ],
+      "links": [
+        {
+          "label": "internal/api/query.go (SQL I/O denylist)",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/api/query.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:read-support:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement. Arc has no Iceberg reader at either format version.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:write-insert:v2": {
+      "level": "partial",
+      "notes": "Data lands in the table without rewriting a byte: a background reconciler diffs the measurement's Parquet file set against the table's current data files and commits the delta with AddFiles / ReplaceDataFiles, so Arc's existing files are registered in place (add_files semantics, zero copy). Verified live: ingesting rows produced a snapshot with added-data-files 1 / added-records 5, and DuckDB's iceberg_scan returned them. Rated partial rather than full because this is not an insert interface: there is no INSERT statement or append API, the table is a mirror of Arc's own file set for a measurement Arc ingested, and Arc cannot append to a table it does not own. Append is also eventually consistent -- up to iceberg.reconcile_interval (default 300 s) behind live ingest.",
+      "caveats": [
+        "No INSERT or append API; writes enter through Arc's own ingest path and appear on the reconcile timer",
+        "Only tables Arc owns -- Arc cannot write into an externally created Iceberg table",
+        "Up to iceberg.reconcile_interval (default 300 s) behind live ingest"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "internal/iceberg/scheduler.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/scheduler.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:write-insert:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "DELETE only, and through Arc rather than Iceberg. POST /api/v1/delete takes a WHERE clause, rewrites the matching files without those rows (or removes a file whose every row matched), and the reconciler reflects both shapes in the table within one pass. No UPDATE, no MERGE INTO, and no Iceberg-level DML surface: an external engine holding the table cannot mutate it.",
+      "caveats": [
+        "DELETE only -- no UPDATE and no MERGE",
+        "Driven by Arc's HTTP delete API, not SQL DML against the Iceberg table",
+        "Deletes are off by default (delete.enabled = false)"
+      ],
+      "links": [
+        {
+          "label": "Arc delete operations",
+          "url": "https://docs.basekick.net/arc/data-lifecycle/delete-operations/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:catalog-integration:v2": {
+      "level": "partial",
+      "notes": "One catalog, embedded and not pluggable: Arc keeps table pointers in an iceberg-go SQL catalog on its own SQLite database (the same file as auth/tiering by default, or iceberg.catalog_db_path). PyIceberg reads it directly as a SqlCatalog. For engines without a SQLite catalog client Arc also publishes the Hadoop-style discovery files next to each table's metadata -- version-hint.text plus a v<N>.metadata.json copy -- so directory-based readers resolve the current snapshot without being handed a filename; verified live with DuckDB's iceberg_scan against the table directory. There is no REST, Glue, Hive, Nessie or JDBC-over-Postgres option, so a shared multi-engine catalog has to be layered in front of the warehouse by the operator.",
+      "caveats": [
+        "Embedded SQLite SQL catalog only -- the catalog implementation is not configurable",
+        "Directory-based readers are served by version-hint.text + v<N>.metadata.json",
+        "Table metadata references data files by absolute path, so a local warehouse is not portable between hosts"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration reference",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        }
+      ]
+    },
+    "arc:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:statistics:v2": {
+      "level": "full",
+      "notes": "Every registered file gets full Iceberg column metrics, computed from the Parquet footer at registration time (iceberg-go's fileToDataFile -> DataFileStatsFromMeta). Verified by dumping a live manifest: column_sizes, value_counts, null_value_counts and lower/upper_bounds present for all four columns, plus split_offsets and the inferred partition value, so external engines get real scan planning and file pruning.",
+      "caveats": [
+        "No NDV sketches (Puffin) -- Parquet footers carry no distinct counts",
+        "Arc never consumes these statistics itself; they exist for external readers"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:statistics:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement. Arc writes the same column metrics, but only into V2 tables.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:bloom-filters:v2": {
+      "level": "none",
+      "notes": "Arc writes no Puffin files, and the Parquet it registers is written by its own ingest path without bloom filters. No Puffin blob of any kind appears in a table's metadata directory.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "Arc cannot register tables in AWS Glue Data Catalog. Its exporter is hard-wired to an iceberg-go SQL catalog on SQLite (sqlcat.NewCatalog with sqlcat.SQLite) and exposes no catalog type, URI or credential configuration, so the only catalog Arc writes to is its own. Reaching Arc's tables from such a catalog means an operator layering one over the warehouse, which Arc neither does nor supports today.",
+      "caveats": [
+        "The catalog implementation is not configurable (iceberg.catalog_db_path only moves the SQLite file)"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration reference",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        }
+      ]
+    },
+    "arc:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:rest-catalog:v2": {
+      "level": "none",
+      "notes": "Arc cannot register tables in an Iceberg REST catalog. Its exporter is hard-wired to an iceberg-go SQL catalog on SQLite (sqlcat.NewCatalog with sqlcat.SQLite) and exposes no catalog type, URI or credential configuration, so the only catalog Arc writes to is its own. Reaching Arc's tables from such a catalog means an operator layering one over the warehouse, which Arc neither does nor supports today.",
+      "caveats": [
+        "The catalog implementation is not configurable (iceberg.catalog_db_path only moves the SQLite file)"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration reference",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        }
+      ]
+    },
+    "arc:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:unity-catalog:v2": {
+      "level": "none",
+      "notes": "Arc cannot register tables in Databricks Unity Catalog. Its exporter is hard-wired to an iceberg-go SQL catalog on SQLite (sqlcat.NewCatalog with sqlcat.SQLite) and exposes no catalog type, URI or credential configuration, so the only catalog Arc writes to is its own. Reaching Arc's tables from such a catalog means an operator layering one over the warehouse, which Arc neither does nor supports today.",
+      "caveats": [
+        "The catalog implementation is not configurable (iceberg.catalog_db_path only moves the SQLite file)"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration reference",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        }
+      ]
+    },
+    "arc:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:snowflake-horizon-catalog:v2": {
+      "level": "none",
+      "notes": "Arc cannot register tables in Snowflake Horizon Catalog. Its exporter is hard-wired to an iceberg-go SQL catalog on SQLite (sqlcat.NewCatalog with sqlcat.SQLite) and exposes no catalog type, URI or credential configuration, so the only catalog Arc writes to is its own. Reaching Arc's tables from such a catalog means an operator layering one over the warehouse, which Arc neither does nor supports today.",
+      "caveats": [
+        "The catalog implementation is not configurable (iceberg.catalog_db_path only moves the SQLite file)"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration reference",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        }
+      ]
+    },
+    "arc:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:google-lakehouse:v2": {
+      "level": "none",
+      "notes": "Arc cannot register tables in the Google Lakehouse runtime catalog. Its exporter is hard-wired to an iceberg-go SQL catalog on SQLite (sqlcat.NewCatalog with sqlcat.SQLite) and exposes no catalog type, URI or credential configuration, so the only catalog Arc writes to is its own. Reaching Arc's tables from such a catalog means an operator layering one over the warehouse, which Arc neither does nor supports today.",
+      "caveats": [
+        "The catalog implementation is not configurable (iceberg.catalog_db_path only moves the SQLite file)"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration reference",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        }
+      ]
+    },
+    "arc:google-lakehouse:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:variant-type:v2": {
+      "level": "none",
+      "notes": "A V3 type, and Arc's Arrow-to-Iceberg mapping covers only int32/int64, float32/float64, string, boolean, microsecond timestamp (tz and non-tz) and decimal128. Anything else fails the measurement with 'unsupported Arrow type for Iceberg export'.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/schema.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/schema.go"
+        }
+      ]
+    },
+    "arc:variant-type:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:shredded-variant:v2": {
+      "level": "none",
+      "notes": "A V3 type; Arc has no Variant support to shred.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/schema.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/schema.go"
+        }
+      ]
+    },
+    "arc:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:geometry-type:v2": {
+      "level": "none",
+      "notes": "A V3 type. Arc has no geospatial column type on ingest and none in its Iceberg type mapping.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/schema.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/schema.go"
+        }
+      ]
+    },
+    "arc:geometry-type:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "A V3 type. Arc stores time as a microsecond, UTC-adjusted timestamp and maps it to Iceberg timestamptz; the mapping has no nanosecond branch.",
+      "caveats": [
+        "Arc's time column is microsecond precision (timestamptz)"
+      ],
+      "links": [
+        {
+          "label": "internal/iceberg/schema.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/schema.go"
+        }
+      ]
+    },
+    "arc:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:unknown-type:v2": {
+      "level": "none",
+      "notes": "A V3 type; not present in Arc's type mapping.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/schema.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/schema.go"
+        }
+      ]
+    },
+    "arc:unknown-type:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:lineage:v2": {
+      "level": "none",
+      "notes": "A V3 feature. Arc assigns no _row_id or _last_updated_sequence_number -- it registers Parquet files written by its ingest path, which carry no lineage columns.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:lineage:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "A V3 feature. Arc writes no delete files and no Puffin blobs; deletes rewrite data files instead.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc delete operations",
+          "url": "https://docs.basekick.net/arc/data-lifecycle/delete-operations/"
+        }
+      ]
+    },
+    "arc:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Arc produces Iceberg format-version 2 tables only. The exporter calls iceberg-go v0.6.0's CreateTable without a format-version property, so tables are created at the library default (2), and no code path upgrades a table afterwards -- every metadata.json written by a live Arc 26.09.3 instance carries \"format-version\": 2. Arc therefore neither writes nor reads a V3 table, so every V3 cell is none rather than a per-feature judgement.",
+      "caveats": [
+        "Arc writes format-version 2 tables; it has no V3 writer and no Iceberg reader at all"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "internal/iceberg/exporter.go",
+          "url": "https://github.com/basekick-labs/arc/blob/main/internal/iceberg/exporter.go"
+        }
+      ]
+    }
+  }
+}

@@ -42,6 +42,7 @@ import flink from "./platforms/oss/flink/flink.json";
 import pyiceberg from "./platforms/oss/pyiceberg/pyiceberg.json";
 import doris from "./platforms/oss/doris/doris.json";
 import databend from "./platforms/oss/databend/databend.json";
+import arc from "./platforms/oss/arc/arc.json";
 import trino from "./platforms/oss/trino/trino.json";
 import oracle26ai from "./platforms/oracle/oracle-26ai/oracle-26ai.json";
 // kafka-connect intentionally NOT imported (staged, excluded from app)
@@ -72,6 +73,7 @@ const postSnowflakeEngines: EngineFile[] = [
   pyiceberg,
   doris,
   databend,
+  arc,
   oracle26ai,
 ];
 
