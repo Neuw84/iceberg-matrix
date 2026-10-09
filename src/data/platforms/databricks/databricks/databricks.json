@@ -92,7 +92,7 @@
     },
     "databricks:copy-on-write:v2": {
       "level": "full",
-      "notes": "Copy-on-write is the default write mode for managed Iceberg tables in Databricks. Managed Iceberg tables are in Public Preview (DBR 16.4 LTS+).",
+      "notes": "Copy-on-write is the default write mode for managed Iceberg tables in Databricks. Managed Iceberg tables are GA (DBR 16.4 LTS+).",
       "caveats": [
         "Managed Iceberg tables are GA"
       ],
@@ -119,7 +119,7 @@
     },
     "databricks:schema-evolution:v2": {
       "level": "full",
-      "notes": "Full schema evolution supported on managed Iceberg tables including add, rename, drop, and reorder columns. Managed Iceberg tables are in Public Preview (DBR 16.4 LTS+).",
+      "notes": "Full schema evolution supported on managed Iceberg tables including add, rename, drop, and reorder columns. Managed Iceberg tables are GA (DBR 16.4 LTS+).",
       "caveats": [
         "Managed Iceberg tables are GA"
       ],
@@ -441,7 +441,7 @@
     },
     "databricks:write-merge-update-delete:v2": {
       "level": "full",
-      "notes": "MERGE, UPDATE, DELETE fully supported for native managed Iceberg tables via copy-on-write. Managed Iceberg tables are in Public Preview (DBR 16.4 LTS+).",
+      "notes": "MERGE, UPDATE, DELETE fully supported for native managed Iceberg tables via copy-on-write. Managed Iceberg tables are GA (DBR 16.4 LTS+).",
       "caveats": [
         "Managed Iceberg tables are GA",
         "Uses copy-on-write for row-level operations in v2 (no v2 delete files)"
@@ -563,7 +563,7 @@
     },
     "databricks:unity-catalog:v2": {
       "level": "full",
-      "notes": "Native Unity Catalog with Iceberg REST Catalog API support. Manages lifecycle tasks including snapshot expiration and file compaction. Supports credential vending for external engine access. Managed Iceberg tables are in Public Preview (DBR 16.4 LTS+).",
+      "notes": "Native Unity Catalog with Iceberg REST Catalog API support. Manages lifecycle tasks including snapshot expiration and file compaction. Supports credential vending for external engine access. Managed Iceberg tables are GA (DBR 16.4 LTS+).",
       "caveats": [
         "Managed Iceberg tables are GA"
       ],
@@ -662,12 +662,17 @@
       "links": []
     },
     "databricks:shredded-variant:v3": {
-      "level": "unknown",
-      "notes": "VARIANT type is supported on Iceberg v3 tables but shredded variant (storing frequently accessed fields as separate columns) is not explicitly documented for managed Iceberg tables.",
+      "level": "full",
+      "notes": "Variant shredding is GA on Databricks Runtime 17.3 and above for Iceberg tables as well as Delta tables: commonly occurring fields of a VARIANT column are written as separate typed Parquet columns following the Parquet variant shredding spec. It is enabled automatically for new tables with VARIANT columns (iceberg.enableVariantShredding = true); existing tables opt in with ALTER TABLE ... SET TBLPROPERTIES. Verified on a managed Iceberg v3 table: the property was set at creation and the data files carry typed_value columns for the shredded fields.",
       "caveats": [
-        "Not explicitly documented for managed Iceberg v3 tables"
+        "Existing tables created before shredding was available need ALTER TABLE ... SET TBLPROPERTIES ('iceberg.enableVariantShredding' = 'true')",
+        "DBR 18.1+ is recommended for statistics collection on shredded fields"
       ],
       "links": [
+        {
+          "label": "Variant shredding",
+          "url": "https://docs.databricks.com/aws/en/delta/variant-shredding"
+        },
         {
           "label": "Iceberg v3 features",
           "url": "https://docs.databricks.com/aws/en/iceberg/iceberg-v3"
@@ -809,7 +814,7 @@
       "caveats": [
         "Read-only \u2014 Databricks does not support writes to externally managed Iceberg tables (Databricks engine limitation)",
         "Unity Catalog is the primary catalog; Horizon Catalog is an external REST catalog",
-        "Managed Iceberg tables in Databricks are in Public Preview (requires DBR 16.4 LTS+)"
+        "Managed Iceberg tables in Databricks are GA (requires DBR 16.4 LTS+)"
       ],
       "links": [
         {
