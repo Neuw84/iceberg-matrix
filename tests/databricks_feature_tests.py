@@ -868,12 +868,59 @@ def test_variant_type() -> TestResult:
     return _run(r, body)
 
 
+def _variant_typed_value_fields(q: str) -> list:
+    """Shredded fields of the VARIANT columns in one of the table's data files.
+
+    Reads a Parquet footer from our bucket and returns the field names under
+    any typed_value group (empty when variants are stored unshredded).
+    Returns None when storage inspection is not possible.
+    """
+    path = str(sql(f"SELECT _metadata.file_path FROM {q} LIMIT 1")[0][0])
+    m = re.match(r"s3a?://([^/]+)/(.*)", path)
+    if not DATA_BUCKET or not m or m.group(1) != DATA_BUCKET:
+        return None
+
+    import boto3
+    import io
+    import pyarrow.parquet as pq
+
+    s3 = boto3.client("s3", region_name=AWS_REGION)
+    body = s3.get_object(Bucket=DATA_BUCKET, Key=m.group(2))["Body"].read()
+    schema = pq.ParquetFile(io.BytesIO(body)).schema
+    # Data files name columns by field id (col-1, col-2, ...), not by the SQL
+    # column name, so match the <variant>.typed_value.<field> leaf paths.
+    paths = [schema.column(i).path.split(".") for i in range(len(schema))]
+    return sorted({p[2] for p in paths if len(p) >= 3 and p[1] == "typed_value"})
+
+
 def test_shredded_variant() -> TestResult:
     r = TestResult("shredded-variant", "Shredded Variant", "v3")
-    r.result = "skip"
-    r.details = ("Shredding is an internal write optimisation with no SQL surface "
-                 "to enable or observe from a warehouse session")
-    return r
+
+    def body(ns, r):
+        q = _create_iceberg(ns, "t", "id INT, payload VARIANT", version="3")
+        sql(f"INSERT INTO {q} SELECT id, parse_json(concat('{{\"a\":', id, "
+            f"',\"b\":\"x', id, '\"}}')) FROM range(1000)")
+        props = {str(k): str(v) for k, v in sql(f"SHOW TBLPROPERTIES {q}")}
+        enabled = props.get("iceberg.enableVariantShredding")
+        if enabled != "true":
+            r.result = "fail"
+            r.details = f"iceberg.enableVariantShredding={enabled} on a new v3 table"
+            return
+        fields = _variant_typed_value_fields(q)
+        if fields is None:
+            r.result = "pass"
+            r.details = ("iceberg.enableVariantShredding=true on a new v3 table "
+                         "(storage inspection unavailable, Parquet layout not checked)")
+        elif fields:
+            r.result = "pass"
+            r.details = ("iceberg.enableVariantShredding=true; data file stores "
+                         f"typed_value columns for {', '.join(fields)}")
+        else:
+            r.result = "fail"
+            r.details = ("iceberg.enableVariantShredding=true but the data file "
+                         "has no typed_value group (variant stored unshredded)")
+
+    return _run(r, body)
 
 
 def test_geometry_type() -> TestResult:
