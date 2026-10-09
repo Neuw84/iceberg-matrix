@@ -30,6 +30,7 @@ import databricks from "./platforms/databricks/databricks/databricks.json";
 // files carry the same platform id ("snowflake") so filters survive the toggle.
 import snowflakeManaged from "./platforms/snowflake/managed/snowflake/snowflake.json";
 import snowflakeExternal from "./platforms/snowflake/external/snowflake/snowflake.json";
+import starburst from "./platforms/starburst/starburst/starburst.json";
 import duckdb from "./platforms/oss/duckdb/duckdb.json";
 import clickhouse from "./platforms/oss/clickhouse/clickhouse.json";
 import daft from "./platforms/oss/daft/daft.json";
@@ -65,6 +66,7 @@ const postSnowflakeEngines: EngineFile[] = [
   sparkGluten,
   sparkComet,
   flink,
+  starburst,
   trino,
   pyiceberg,
   doris,
