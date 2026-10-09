@@ -81,6 +81,7 @@ const PLATFORM_LOGOS: Record<string, string> = {
   daft: "/logos/daft.svg",
   doris: "/logos/doris.svg",
   databend: "/logos/databend.svg",
+  starburst: "/logos/starburst.svg",
   trino: "/logos/trino.svg",
   "oracle-26ai": "/logos/oracle.svg",
   "kafka-connect": "/logos/kafka-connect.svg",
