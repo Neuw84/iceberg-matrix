@@ -87,6 +87,7 @@ const PLATFORM_LOGOS: Record<string, string> = {
   "kafka-connect": "/logos/kafka-connect.svg",
   "olake-go": "/logos/olake.svg",
   pixeltable: "/logos/pixeltable.png",
+  arc: "/logos/arc.svg",
   "fivetran-managed-data-lake": "/logos/fivetran.svg",
   "fivetran-catalog": "/logos/fivetran.svg",
   "google-bigquery": "/logos/bigquery.svg",

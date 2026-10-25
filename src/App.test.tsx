@@ -193,6 +193,7 @@ describe('Ingestion view', () => {
     expect(within(grid).getByText('Kafka Connect (1.12.0)')).toBeInTheDocument()
     expect(within(grid).getByText('OLake Go (0.12.0)')).toBeInTheDocument()
     expect(within(grid).getByText('Pixeltable (0.7.16)')).toBeInTheDocument()
+    expect(within(grid).getByText('Arc (26.09.3)')).toBeInTheDocument()
     expect(within(grid).queryByText(/PyIceberg/)).not.toBeInTheDocument()
 
     // Write-path rows are present; read-oriented rows are not.
@@ -219,6 +220,7 @@ describe('Ingestion view', () => {
     expect(within(grid).queryByText(/Kafka Connect/)).not.toBeInTheDocument()
     expect(within(grid).queryByText(/OLake Go/)).not.toBeInTheDocument()
     expect(within(grid).queryByText(/Pixeltable/)).not.toBeInTheDocument()
+    expect(within(grid).queryByText(/^Arc \(/)).not.toBeInTheDocument()
   })
 })
 

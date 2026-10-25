@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A React single-page application that displays an interactive compatibility matrix for Apache Iceberg features across cloud platforms and open-source engines. A top-level Engines / Ingestion / Catalogs toggle (in that order) switches between three datasets: the engines matrix (default, one column per engine with V2/V3 version chips, transition cells where versions differ, an AWS S3-mode toggle, and a Compare differences table) an ingestion matrix (tools that write Iceberg data from a source but are not built for reading it: Kafka Connect, Data Firehose, OLake Go and Pixeltable, scored on a reduced write-oriented feature set), and a catalogs openness-rubric matrix (11 Iceberg catalogs scored against 6 openness criteria). Built with Vite, TypeScript, React 19.2, and Tailwind CSS. Deployed to GitHub Pages via GitHub Actions.
+A React single-page application that displays an interactive compatibility matrix for Apache Iceberg features across cloud platforms and open-source engines. A top-level Engines / Ingestion / Catalogs toggle (in that order) switches between three datasets: the engines matrix (default, one column per engine with V2/V3 version chips, transition cells where versions differ, an AWS S3-mode toggle, and a Compare differences table) an ingestion matrix (tools that write Iceberg data from a source but are not built for reading it: Kafka Connect, Data Firehose, OLake Go, Pixeltable, Fivetran Managed Data Lake and Arc, scored on a reduced write-oriented feature set), and a catalogs openness-rubric matrix (11 Iceberg catalogs scored against 6 openness criteria). Built with Vite, TypeScript, React 19.2, and Tailwind CSS. Deployed to GitHub Pages via GitHub Actions.
 
 ## Project Structure
 
@@ -32,7 +32,7 @@ A React single-page application that displays an interactive compatibility matri
 │   │   ├── ingestion.test.ts         # Structural tests for the ingestion dataset (extension point: EXPECTED_INGESTION_IDS)
 │   │   ├── ingestion/                # Ingestion-tool dataset (write-oriented, reduced feature set)
 │   │   │   ├── features.json         # 17 write-oriented features, versions v2/v3
-│   │   │   └── <tool-id>/<tool-id>.json   # One folder+file per tool (aws-firehose, fivetran-managed-data-lake, kafka-connect, olake-go, pixeltable)
+│   │   │   └── <tool-id>/<tool-id>.json   # One folder+file per tool (arc, aws-firehose, fivetran-managed-data-lake, kafka-connect, olake-go, pixeltable)
 │   │   ├── catalogs/                 # Catalogs openness-rubric dataset
 │   │   │   ├── features.json         # 3 spec-support features + 6 rubric criteria
 │   │   │   └── <catalog-id>/<catalog-id>.json   # One folder+file per catalog (11 today)
@@ -173,7 +173,7 @@ Snowflake mirrors the AWS dual-mode pattern, split by Iceberg storage option rat
 
 ### Ingestion dataset
 
-The Ingestion view covers tools whose job is to **write** Iceberg data from a source (a Kafka topic, a Kinesis stream) and which are not built for reading it. Today: Apache Iceberg **Kafka Connect** sink, Amazon **Data Firehose**, **OLake Go**, Fivetran **Managed Data Lake** and **Pixeltable** (batch export of AI-derived tables and query results through PyIceberg). They are deliberately not in the engines dataset (a regression guard in `load-data.test.ts` keeps them out).
+The Ingestion view covers tools whose job is to **write** Iceberg data from a source (a Kafka topic, a Kinesis stream) and which are not built for reading it. Today: Apache Iceberg **Kafka Connect** sink, Amazon **Data Firehose**, **OLake Go**, Fivetran **Managed Data Lake**, **Pixeltable** (batch export of AI-derived tables and query results through PyIceberg) and **Arc** (a time-series database that registers its own Parquet files into Iceberg tables by reference). They are deliberately not in the engines dataset (a regression guard in `load-data.test.ts` keeps them out).
 
 - Data lives in `src/data/ingestion/`, independent from the engines data. `features.json` is a **reduced, write-oriented feature set** (17 features, versions `v2`/`v3`): append, upsert/delete (CDC), merge-on-read, equality/position deletes, deletion vectors, auto table creation, auto schema evolution, type promotion, table maintenance, branching, hidden partitioning, catalog integration (Glue, REST), and V3 variant / shredded variant. Read-oriented features (read support, time travel, statistics, bloom filters, query-time catalogs) are intentionally absent; `ingestion.test.ts` fails if one is added. Ids are reused from the engines set where the meaning matches, but descriptions are rewritten for a write-only tool, and a new `ingestion-write` category ("Write Path") holds append, upsert and merge-on-read.
 - Each tool lives in `ingestion/<tool-id>/<tool-id>.json` with one platform object and a support entry for every feature × version. Groups: `AWS` (Firehose), `3rd Party` (Kafka Connect, Fivetran Managed Data Lake).

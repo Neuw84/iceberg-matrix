@@ -1,0 +1,490 @@
+{
+  "platforms": [
+    {
+      "id": "arc",
+      "name": "Arc (26.09.3)",
+      "vendor": "Basekick Labs",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+    }
+  ],
+  "support": {
+    "arc:write-insert:v2": {
+      "level": "full",
+      "notes": "Arc registers the Parquet files its own ingest path writes into one Iceberg table per measurement, by reference (add_files semantics, zero copy). A background reconciler diffs the measurement's file set against the table's data files and commits the delta in one snapshot with AddFiles / ReplaceDataFiles. Verified live: ingesting rows produced a snapshot with added-data-files 1 / added-records 5, and DuckDB's iceberg_scan returned them.",
+      "caveats": [
+        "Commits happen on a timer (iceberg.reconcile_interval, default 300 s), so the table trails live ingest by up to one interval",
+        "Records enter through Arc's ingest APIs; there is no INSERT statement or append API against the Iceberg table",
+        "Arc writes only the tables it creates, one per database/measurement; it cannot append to an externally created table",
+        "A data file whose rows straddle a UTC day boundary cannot be mapped to the day(time) partition and is left out of the table"
+      ],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc 26.09.3 Iceberg reconcile scheduler",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/scheduler.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:write-insert:v3": {
+      "level": "none",
+      "notes": "Arc creates its Iceberg tables at format-version 2 and never upgrades them: the exporter calls iceberg-go CreateTable without a format-version property, and it writes only to tables it created. Verified live: every metadata.json carries \"format-version\": 2. Arc never appends to a V3 table.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "DELETE only, issued through Arc rather than from a change stream. POST /api/v1/delete takes a WHERE clause and rewrites the matching Parquet files without those rows (or removes a file whose every row matched); the next reconcile pass re-registers the rewritten file or drops the removed one in one commit. Verified live: deleting 1 of 7 rows logged reregistered=1 and iceberg_scan then returned 6 rows, with the manifest record count following. No UPDATE, no upsert, no CDC.",
+      "caveats": [
+        "DELETE only: no UPDATE, upsert or MERGE",
+        "Driven by Arc's HTTP delete API; an external engine holding the table cannot mutate it",
+        "Deletes are off by default (delete.enabled = false)",
+        "In 26.09.3 the rewrite keeps the original file path, so a snapshot committed before the delete resolves to the post-delete file contents (verified live: time travel to the pre-delete snapshot returned 4 rows for a snapshot committed at 5)"
+      ],
+      "links": [
+        {
+          "label": "Arc delete operations",
+          "url": "https://docs.basekick.net/arc/data-lifecycle/delete-operations/"
+        },
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Arc creates its Iceberg tables at format-version 2 and never upgrades them: the exporter calls iceberg-go CreateTable without a format-version property, and it writes only to tables it created. Verified live: every metadata.json carries \"format-version\": 2.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:merge-on-read:v2": {
+      "level": "none",
+      "notes": "Arc writes no delete files, so there is nothing to merge at read time: a delete rewrites the data file (copy-on-write) and every snapshot references data files only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc delete operations",
+          "url": "https://docs.basekick.net/arc/data-lifecycle/delete-operations/"
+        }
+      ]
+    },
+    "arc:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Arc writes no delete files, so there is nothing to merge at read time: a delete rewrites the data file (copy-on-write) and every snapshot references data files only. Arc tables are also V2 only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc delete operations",
+          "url": "https://docs.basekick.net/arc/data-lifecycle/delete-operations/"
+        }
+      ]
+    },
+    "arc:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Arc never writes equality delete files. The exporter only adds and removes whole data files by path.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Arc never writes equality delete files. The exporter only adds and removes whole data files by path.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:position-deletes:v2": {
+      "level": "none",
+      "notes": "Arc never writes position delete files. Its row-level DELETE rewrites the affected Parquet file instead of recording a delete, and nothing in the exporter constructs a delete file.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc delete operations",
+          "url": "https://docs.basekick.net/arc/data-lifecycle/delete-operations/"
+        }
+      ]
+    },
+    "arc:position-deletes:v3": {
+      "level": "none",
+      "notes": "Arc never writes position delete files. Its row-level DELETE rewrites the affected Parquet file instead of recording a delete, and nothing in the exporter constructs a delete file.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc delete operations",
+          "url": "https://docs.basekick.net/arc/data-lifecycle/delete-operations/"
+        }
+      ]
+    },
+    "arc:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "V3 feature; not applicable to V2.",
+      "caveats": []
+    },
+    "arc:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Arc writes no Puffin files or deletion vectors, and creates V2 tables only. Arc creates its Iceberg tables at format-version 2 and never upgrades them: the exporter calls iceberg-go CreateTable without a format-version property, and it writes only to tables it created. Verified live: every metadata.json carries \"format-version\": 2.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:table-creation:v2": {
+      "level": "full",
+      "notes": "On the first file of a new measurement the exporter creates the namespace and the table itself, from the schema of the measurement's Parquet, with a day(time) partition spec and the metadata-retention properties. One table per database/measurement, named <namespace_prefix>_<database>.<measurement>.",
+      "caveats": [
+        "Schema, partition spec, table properties and naming are fixed by Arc, not operator-configurable"
+      ],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:table-creation:v3": {
+      "level": "none",
+      "notes": "Arc creates its Iceberg tables at format-version 2 and never upgrades them: the exporter calls iceberg-go CreateTable without a format-version property, and it writes only to tables it created. Verified live: every metadata.json carries \"format-version\": 2.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:schema-evolution:v2": {
+      "level": "full",
+      "notes": "Automatic and additive. Arc derives each measurement's column superset from the Parquet footers and adds every missing column as an optional field, then refreshes schema.name-mapping.default (Arc's Parquet carries no field IDs, so external readers depend on that mapping). Verified live: a measurement that gained a column produced schema-id 1 with the new field optional and the name mapping extended.",
+      "caveats": [
+        "Add-column only: no drop, rename or reorder",
+        "A column whose type changes is refused, not widened, and stops that measurement's export until the source data is fixed (see Type Promotion)"
+      ],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg schema mapping",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/schema.go"
+        },
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Arc creates its Iceberg tables at format-version 2 and never upgrades them: the exporter calls iceberg-go CreateTable without a format-version property, and it writes only to tables it created. Verified live: every metadata.json carries \"format-version\": 2.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:type-promotion:v2": {
+      "level": "none",
+      "notes": "Refused. The exporter compares each incoming column with the table's current type and fails the measurement (for example 'Iceberg table has long, new Parquet files have double') instead of widening it.",
+      "caveats": [
+        "Other measurements keep exporting"
+      ],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:type-promotion:v3": {
+      "level": "none",
+      "notes": "Arc creates its Iceberg tables at format-version 2 and never upgrades them: the exporter calls iceberg-go CreateTable without a format-version property, and it writes only to tables it created. Verified live: every metadata.json carries \"format-version\": 2.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "Snapshot expiry and metadata pruning run on the reconcile timer: ExpireSnapshots keeps iceberg.retain_snapshots (default 10) snapshots, and old metadata.json versions are pruned. Verified live with retain_snapshots = 1: history collapsed to 1 snapshot. Small-file compaction is Arc's own (hourly files merged into daily files), and the compacted output replaces its sources in the table on the next pass. Partial because expiry runs with post-commit file cleanup disabled, so in 26.09.3 the manifests and manifest lists of expired snapshots are never reclaimed, and there is no orphan-file removal.",
+      "caveats": [
+        "Compaction is Arc's file-level compaction mirrored into the table, not Iceberg rewrite-data-files",
+        "Expired manifests and manifest lists accumulate in the metadata directory",
+        "Timer-driven configuration, not callable procedures"
+      ],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Arc creates its Iceberg tables at format-version 2 and never upgrades them: the exporter calls iceberg-go CreateTable without a format-version property, and it writes only to tables it created. Verified live: every metadata.json carries \"format-version\": 2.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Every commit lands on main; the exporter never creates a branch or tag.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Every commit lands on main; the exporter never creates a branch or tag. Arc tables are also V2 only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "Tables are created with exactly one hidden partition field, day(time) (time_day, field-id 1000), and each file's partition value is inferred from the Parquet time min/max. Verified live: a registered file's manifest entry carried {time_day: 20732}. Partial because the transform is hard-coded: no hour, month, year, bucket or truncate, and no choice of source column.",
+      "caveats": [
+        "day(time) only, not configurable",
+        "A data file straddling a UTC day boundary cannot be mapped and is left out of the table"
+      ],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        }
+      ]
+    },
+    "arc:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Arc creates its Iceberg tables at format-version 2 and never upgrades them: the exporter calls iceberg-go CreateTable without a format-version property, and it writes only to tables it created. Verified live: every metadata.json carries \"format-version\": 2.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:catalog-integration:v2": {
+      "level": "partial",
+      "notes": "Arc commits through one catalog, embedded and not pluggable: an iceberg-go SQL catalog on Arc's own SQLite database (or iceberg.catalog_db_path). PyIceberg can read it as a SqlCatalog. Arc also writes Hadoop-style discovery files (version-hint.text and v<N>.metadata.json) next to each table, so directory-based readers resolve the current snapshot without a catalog; verified live with DuckDB's iceberg_scan on the table directory.",
+      "caveats": [
+        "The catalog type is not configurable: no REST, Glue, Hive, Nessie or JDBC option",
+        "A shared multi-engine catalog has to be layered over the warehouse by the operator",
+        "Table metadata references data files by absolute path, so a local warehouse is not portable between hosts"
+      ],
+      "links": [
+        {
+          "label": "Arc Iceberg export docs",
+          "url": "https://docs.basekick.net/arc/integrations/apache-iceberg/"
+        },
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        }
+      ]
+    },
+    "arc:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Arc creates its Iceberg tables at format-version 2 and never upgrades them: the exporter calls iceberg-go CreateTable without a format-version property, and it writes only to tables it created. Verified live: every metadata.json carries \"format-version\": 2.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        }
+      ]
+    },
+    "arc:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "Arc cannot register tables in AWS Glue Data Catalog. The exporter is hard-wired to its embedded SQLite SQL catalog and exposes no catalog type, URI or credential settings.",
+      "caveats": [
+        "iceberg.catalog_db_path only moves the SQLite file"
+      ],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        }
+      ]
+    },
+    "arc:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Arc cannot register tables in AWS Glue Data Catalog. The exporter is hard-wired to its embedded SQLite SQL catalog and exposes no catalog type, URI or credential settings.",
+      "caveats": [
+        "iceberg.catalog_db_path only moves the SQLite file"
+      ],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        }
+      ]
+    },
+    "arc:rest-catalog:v2": {
+      "level": "none",
+      "notes": "Arc cannot register tables in an Iceberg REST catalog. The exporter is hard-wired to its embedded SQLite SQL catalog and exposes no catalog type, URI or credential settings.",
+      "caveats": [
+        "iceberg.catalog_db_path only moves the SQLite file"
+      ],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        }
+      ]
+    },
+    "arc:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Arc cannot register tables in an Iceberg REST catalog. The exporter is hard-wired to its embedded SQLite SQL catalog and exposes no catalog type, URI or credential settings.",
+      "caveats": [
+        "iceberg.catalog_db_path only moves the SQLite file"
+      ],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg exporter",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/exporter.go"
+        },
+        {
+          "label": "Arc configuration",
+          "url": "https://docs.basekick.net/arc/configuration/"
+        }
+      ]
+    },
+    "arc:variant-type:v2": {
+      "level": "none",
+      "notes": "V3 feature; not applicable to V2.",
+      "caveats": []
+    },
+    "arc:variant-type:v3": {
+      "level": "none",
+      "notes": "Arc's Arrow-to-Iceberg type mapping covers int32/int64, float32/float64, string, boolean, microsecond timestamp and decimal128 only; any other type fails the measurement. Arc tables are also V2 only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg schema mapping",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/schema.go"
+        }
+      ]
+    },
+    "arc:shredded-variant:v2": {
+      "level": "none",
+      "notes": "V3 feature; not applicable to V2.",
+      "caveats": []
+    },
+    "arc:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Arc has no variant support to shred, and its tables are V2 only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Arc 26.09.3 Iceberg schema mapping",
+          "url": "https://github.com/basekick-labs/arc/blob/v26.09.3/internal/iceberg/schema.go"
+        }
+      ]
+    }
+  }
+}

@@ -5,6 +5,7 @@ import ingestionFeaturesJson from "./ingestion/features.json";
 // load-catalogs.ts: the merged platform order is the matrix column order, and
 // the group-header row groups *consecutive* columns, so each group's tools must
 // stay contiguous (AWS first, then 3rd Party).
+import arc from "./ingestion/arc/arc.json";
 import awsFirehose from "./ingestion/aws-firehose/aws-firehose.json";
 import fivetranManagedDataLake from "./ingestion/fivetran-managed-data-lake/fivetran-managed-data-lake.json";
 import kafkaConnect from "./ingestion/kafka-connect/kafka-connect.json";
@@ -19,7 +20,7 @@ export interface IngestionFile {
 // Adding an ingestion tool: import its file above and slot it into the right
 // group here (see the extension recipe in ingestion.test.ts: the tests catch a
 // file that exists on disk but is missing from this list).
-const ingestionFiles: IngestionFile[] = [awsFirehose, fivetranManagedDataLake, kafkaConnect, olakeGo, pixeltable];
+const ingestionFiles: IngestionFile[] = [awsFirehose, arc, fivetranManagedDataLake, kafkaConnect, olakeGo, pixeltable];
 
 // Pure merge, same shape as the other loaders: concatenate platforms in input
 // order and union the support maps.

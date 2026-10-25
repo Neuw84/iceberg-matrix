@@ -21,7 +21,7 @@ import { describe, it, expect } from "vitest";
 import ingestionFeaturesJson from "./ingestion/features.json";
 
 // The one list to update when a tool is added or removed.
-const EXPECTED_INGESTION_IDS = ["aws-firehose", "fivetran-managed-data-lake", "kafka-connect", "olake-go", "pixeltable"];
+const EXPECTED_INGESTION_IDS = ["arc", "aws-firehose", "fivetran-managed-data-lake", "kafka-connect", "olake-go", "pixeltable"];
 
 const VALID_LEVELS = ["full", "partial", "none", "unknown"];
 const VALID_GROUPS = ["AWS", "3rd Party"];
