@@ -458,3 +458,26 @@ describe('Snowflake storage mode toggle', () => {
     ).not.toBeInTheDocument()
   })
 })
+
+describe('Shareable URL', () => {
+  it('opens the view and filters a link names', async () => {
+    window.history.replaceState(null, '', '/?view=catalogs&q=polaris')
+    render(<App />)
+    await waitFor(() => expect(screen.queryByText('Loading…')).not.toBeInTheDocument())
+    expect(screen.getByRole('tab', { name: 'Catalogs' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByLabelText(/^Search/)).toHaveValue('polaris')
+  })
+
+  it('writes filter changes to the address bar', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Filter by Partitioning' }))
+    expect(window.location.search).toBe('?cat=partitioning')
+  })
+
+  it('ignores platforms the dataset does not have', () => {
+    window.history.replaceState(null, '', '/?p=duckdb,no-such-engine')
+    render(<App />)
+    expect(screen.getAllByText(/DuckDB/).length).toBeGreaterThan(0)
+    expect(window.location.search).toBe('?p=duckdb')
+  })
+})

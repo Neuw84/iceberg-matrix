@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense } from "react";
+import { useState, useMemo, useEffect, lazy, Suspense } from "react";
 import type { AwsS3Mode, FilterState, SnowflakeStorageMode, ViewMode } from "./types";
 import { preloadView } from "./data/view-data";
 import { useViewData } from "./hooks/useViewData";
@@ -6,6 +6,7 @@ import { FilterPanel } from "./components/FilterPanel";
 import { ViewToggle } from "./components/ViewToggle";
 import { CompatibilityMatrix } from "./components/CompatibilityMatrix";
 import { applyFilters } from "./utils/filters";
+import { parseUrlState, toUrlSearch } from "./utils/url-state";
 
 // Code-split the comparison view: it is only rendered in compare mode, so keep
 // it out of the initial bundle.
@@ -50,19 +51,32 @@ const initialIngestionFilters: FilterState = {
   searchQuery: "",
 };
 
+const initialFilters: Record<ViewMode, FilterState> = {
+  engines: initialEngineFilters,
+  catalogs: initialCatalogFilters,
+  ingestion: initialIngestionFilters,
+};
+
 export default function App() {
-  const [viewMode, setViewMode] = useState<ViewMode>("engines");
+  // A shared link opens the view and filters in its query string. Read once;
+  // after that the URL follows the state (see the effect below).
+  const [fromUrl] = useState(() => parseUrlState(window.location.search));
+  const startFilters = (view: ViewMode) =>
+    fromUrl.view === view ? { ...initialFilters[view], ...fromUrl.filters } : initialFilters[view];
+  const [viewMode, setViewMode] = useState<ViewMode>(fromUrl.view);
   // One filter state per view: platform ids and versions are disjoint between
   // the two datasets, so sharing state would leak stale selections across the
   // toggle. Keeping both also restores your filters when you switch back.
-  const [engineFilters, setEngineFilters] = useState<FilterState>(initialEngineFilters);
-  const [catalogFilters, setCatalogFilters] = useState<FilterState>(initialCatalogFilters);
-  const [ingestionFilters, setIngestionFilters] = useState<FilterState>(initialIngestionFilters);
+  const [engineFilters, setEngineFilters] = useState<FilterState>(() => startFilters("engines"));
+  const [catalogFilters, setCatalogFilters] = useState<FilterState>(() => startFilters("catalogs"));
+  const [ingestionFilters, setIngestionFilters] = useState<FilterState>(() => startFilters("ingestion"));
   const [introOpen, setIntroOpen] = useState(false);
-  const [awsS3Mode, setAwsS3Mode] = useState<AwsS3Mode>("s3-buckets");
+  const [awsS3Mode, setAwsS3Mode] = useState<AwsS3Mode>(fromUrl.awsS3Mode ?? "s3-buckets");
   // Snowflake defaults to its managed storage ("snowflake"), which the docs
   // recommend; "external" swaps in the external-volume (customer S3) data.
-  const [snowflakeMode, setSnowflakeMode] = useState<SnowflakeStorageMode>("snowflake");
+  const [snowflakeMode, setSnowflakeMode] = useState<SnowflakeStorageMode>(
+    fromUrl.snowflakeMode ?? "snowflake",
+  );
 
   const isCatalogsView = viewMode === "catalogs";
   const isIngestionView = viewMode === "ingestion";
@@ -75,11 +89,25 @@ export default function App() {
     awsS3Mode,
     snowflakeMode,
   );
-  const filters = isCatalogsView
+  const storedFilters = isCatalogsView
     ? catalogFilters
     : isIngestionView
       ? ingestionFilters
       : engineFilters;
+  // A link can name platforms or categories this dataset does not have (a
+  // renamed engine, a typo); ignore them rather than show an empty matrix. The
+  // next filter change stores the cleaned selection.
+  const filters = useMemo(() => {
+    if (!activeData) return storedFilters;
+    const platformIds = new Set(activeData.platforms.map((p) => p.id));
+    const categories = new Set(activeData.features.map((f) => f.category));
+    const selectedPlatforms = storedFilters.selectedPlatforms.filter((id) => platformIds.has(id));
+    const selectedCategories = storedFilters.selectedCategories.filter((c) => categories.has(c));
+    return selectedPlatforms.length === storedFilters.selectedPlatforms.length &&
+      selectedCategories.length === storedFilters.selectedCategories.length
+      ? storedFilters
+      : { ...storedFilters, selectedPlatforms, selectedCategories };
+  }, [activeData, storedFilters]);
   const setFilters = isCatalogsView
     ? setCatalogFilters
     : isIngestionView
@@ -96,6 +124,19 @@ export default function App() {
   // The comparison summary is an explicit opt-in (the Compare toggle), not an
   // automatic consequence of selecting both versions. It still requires two
   // versions to compare, and never applies to the catalogs view.
+  // Keep the address bar shareable. replaceState, not pushState: a filter
+  // click is not a page the Back button should return to.
+  useEffect(() => {
+    const search = toUrlSearch(viewMode, filters, initialFilters[viewMode], awsS3Mode, snowflakeMode);
+    if (search !== window.location.search) {
+      window.history.replaceState(
+        window.history.state,
+        "",
+        `${window.location.pathname}${search}${window.location.hash}`,
+      );
+    }
+  }, [viewMode, filters, awsS3Mode, snowflakeMode]);
+
   const isCompareMode =
     !isCatalogsView && filters.compareMode && filters.selectedVersions.length > 1;
 
