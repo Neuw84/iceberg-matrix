@@ -39,7 +39,7 @@ const initialCatalogFilters: FilterState = {
   searchQuery: "",
 };
 
-// Ingestion tools (Kafka Connect, Firehose, OLake Go, Fivetran Managed Data Lake) have the same v2/v3 spec dimension
+// Ingestion tools (see src/data/ingestion/) have the same v2/v3 spec dimension
 // as engines, so the version chips and Compare work the same way; only the
 // platform set and the reduced, write-oriented feature list differ.
 const initialIngestionFilters: FilterState = {
@@ -181,6 +181,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => setIntroOpen(!introOpen)}
+            aria-expanded={introOpen}
             className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800 cursor-pointer transition-colors"
           >
             <svg
@@ -192,7 +193,8 @@ export default function App() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
-            {introOpen ? "Hide" : "About this matrix"}
+            {/* One label; the chevron and aria-expanded carry the state. */}
+            About this matrix
           </button>
           {introOpen && (
             <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800 space-y-2 collapsible-content">
