@@ -303,7 +303,7 @@ export default function App() {
       </main>
 
       <footer className="border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-6">
-        <div className="max-w-[1800px] mx-auto text-[10px] text-gray-400 space-y-0.5">
+        <div className="max-w-[1800px] mx-auto text-xs text-gray-600 space-y-1">
           <p>
             All product names, logos, and brands mentioned on this site are the property of their respective owners.
             All company, product, and service names used are for identification purposes only.
@@ -315,7 +315,7 @@ export default function App() {
               href="https://github.com/Neuw84/iceberg-matrix"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-500 hover:text-blue-700 underline"
+              className="text-blue-700 hover:text-blue-900 underline"
             >
               GitHub repo
             </a>
