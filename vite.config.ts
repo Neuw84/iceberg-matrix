@@ -1,10 +1,35 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import type { Plugin } from 'vite'
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import { SUITES, coveredFeatures } from './src/data/test-coverage'
+
+// Reads the engine feature suites at build time and serves which features each
+// one tests as `virtual:test-coverage`, so the Python source never reaches the
+// bundle. Edits to a suite reload the dev server.
+function testCoverage(): Plugin {
+  const id = 'virtual:test-coverage'
+  const resolved = '\0' + id
+  return {
+    name: 'test-coverage',
+    resolveId: (source) => (source === id ? resolved : undefined),
+    load(loadId) {
+      if (loadId !== resolved) return
+      const coverage = SUITES.map((suite) => {
+        const path = fileURLToPath(new URL(suite.file, import.meta.url))
+        this.addWatchFile(path)
+        return { ...suite, features: coveredFeatures(readFileSync(path, 'utf8')) }
+      })
+      return `export default ${JSON.stringify(coverage)}`
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
-  plugins: [react()],
+  plugins: [react(), testCoverage()],
   build: {
     // The matrix data (all per-engine JSON) is intentionally isolated into its
     // own chunk; ~540 kB raw compresses to ~59 kB gzip and is cached separately

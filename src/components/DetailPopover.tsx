@@ -39,7 +39,15 @@ function toSections(entries: VersionEntry[]): Section[] {
   const sections: Section[] = [];
   const index = new Map<string, number>();
   for (const { version, entry } of entries) {
-    const key = JSON.stringify([entry.level, entry.notes, entry.caveats, entry.links ?? []]);
+    const key = JSON.stringify([
+      entry.level,
+      entry.notes,
+      entry.caveats,
+      entry.links ?? [],
+      entry.testedBy ?? null,
+      entry.testedOn ?? null,
+      entry.lastReviewed ?? null,
+    ]);
     const at = index.get(key);
     if (at === undefined) {
       index.set(key, sections.length);
@@ -51,15 +59,48 @@ function toSections(entries: VersionEntry[]): Section[] {
   return sections;
 }
 
+/** Where the rating comes from: a CI-checked suite, or the docs. */
+function SourceLine({ entry }: { entry: SupportEntry }) {
+  const suite = entry.testedBy;
+  if (suite) {
+    return (
+      <p className="mb-2 rounded-md bg-indigo-50 px-2 py-1 text-[11px] text-indigo-900">
+        <span className="font-semibold">Tested</span> by{" "}
+        <a
+          href={`https://github.com/Neuw84/iceberg-matrix/blob/main/${suite}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-mono underline hover:text-indigo-700"
+        >
+          {suite.split("/").pop()}
+        </a>
+        {entry.testedOn === "manual"
+          ? ", run by hand on the vendor's platform"
+          : ", checked on every pull request"}
+      </p>
+    );
+  }
+  return (
+    <p className="mb-2 rounded-md bg-gray-50 px-2 py-1 text-[11px] text-gray-600">
+      <span className="font-semibold">From documentation</span>
+      {entry.lastReviewed ? ` · reviewed ${entry.lastReviewed}` : " · not yet verified by a test suite"}
+    </p>
+  );
+}
+
 function EntryBody({ entry }: { entry: SupportEntry }) {
   const hasDetails = entry.notes || entry.caveats.length > 0 || (entry.links?.length ?? 0) > 0;
   if (!hasDetails) {
     return (
-      <p className="text-gray-400 italic text-xs">No additional details available.</p>
+      <>
+        <SourceLine entry={entry} />
+        <p className="text-gray-400 italic text-xs">No additional details available.</p>
+      </>
     );
   }
   return (
     <>
+      <SourceLine entry={entry} />
       {entry.notes && <p className="mb-2 leading-relaxed">{entry.notes}</p>}
       {entry.caveats.length > 0 && (
         <div>

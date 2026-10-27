@@ -8,6 +8,8 @@ import type {
   Version,
 } from "../types";
 import featuresJson from "./features.json";
+// Which features each engine feature suite tests (see ./test-coverage.ts).
+import testCoverage from "virtual:test-coverage";
 
 // --- AWS S3 buckets engines (order: athena, emr, glue, managed-flink, redshift-s3) ---
 import bAthena from "./platforms/aws/s3buckets/athena/athena.json";
@@ -111,6 +113,17 @@ export function mergeEngines(
   ]) {
     platforms.push(...(engine.platforms as Platform[]));
     Object.assign(support, engine.support as Record<string, SupportEntry>);
+  }
+
+  // Mark the cells a suite tests. Copies, so the imported engine JSON stays
+  // untouched across merges.
+  for (const suite of testCoverage) {
+    for (const { feature, version } of suite.features) {
+      for (const v of version ? [version] : suite.versions) {
+        const key = `${suite.platform}:${feature}:${v}`;
+        if (support[key]) support[key] = { ...support[key], testedBy: suite.file, testedOn: suite.runs };
+      }
+    }
   }
 
   return {

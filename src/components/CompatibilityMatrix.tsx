@@ -156,6 +156,18 @@ export function CompatibilityMatrix({
   );
   const versions = filters.selectedVersions;
 
+  // Platforms with suite-tested cells → header tooltip naming the suite and
+  // when it runs (keys are `${platformId}:${featureId}:${version}`).
+  const suiteByPlatform = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const [key, entry] of Object.entries(data.support)) {
+      if (!entry.testedBy) continue;
+      const when = entry.testedOn === "manual" ? "run by hand on the vendor's platform" : "checked on every pull request";
+      map.set(key.split(":")[0], `${entry.testedBy.split("/").pop()} (${when})`);
+    }
+    return map;
+  }, [data]);
+
   const grouped = useMemo(
     () =>
       CATEGORY_ORDER.map((cat) => ({
@@ -380,6 +392,17 @@ export function CompatibilityMatrix({
                       <span className="text-[10px] font-semibold text-gray-700 leading-tight">
                         {p.name}
                       </span>
+                      {suiteByPlatform.has(p.id) && (
+                        <span
+                          className="inline-flex items-center gap-0.5 rounded-full bg-indigo-50 px-1.5 text-[9px] font-semibold text-indigo-700"
+                          title={`Features tested by ${suiteByPlatform.get(p.id)}. Click a cell to see its source.`}
+                        >
+                          <svg viewBox="0 0 16 16" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                            <path d="M6 2h4M7 2v4L3 13a1 1 0 0 0 1 1.5h8A1 1 0 0 0 13 13L9 6V2" strokeLinejoin="round" />
+                          </svg>
+                          Tested
+                        </span>
+                      )}
                       {isVariant && (
                         <div
                           className="inline-flex max-w-full flex-wrap items-center justify-center gap-0.5 mt-0.5 px-1 py-0.5 rounded-xl border border-gray-300 bg-white"

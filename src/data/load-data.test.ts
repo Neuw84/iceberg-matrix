@@ -12,6 +12,8 @@
 import { describe, it, expect } from "vitest";
 import featuresJson from "./features.json";
 import { data, loadEngineData, peekEngineData } from "./load-data";
+import testCoverage from "virtual:test-coverage";
+import { coveredFeatures } from "./test-coverage";
 import type { CompatibilityData } from "../types";
 
 const VALID_LEVELS = ["full", "partial", "none", "unknown"];
@@ -146,8 +148,9 @@ describe("lazy engine datasets (loadEngineData)", () => {
     // Snowflake external is built from the external file. Its cells may equal the
     // managed ones today, so compare against the file itself, not against `data`.
     const { snowflakeExternal } = await import("./engine-variants/snowflake-external");
-    expect(dataSnowflakeExternal.support["snowflake:position-deletes:v2"]).toEqual(
-      (snowflakeExternal.support as Record<string, unknown>)["snowflake:position-deletes:v2"],
+    // toMatchObject: the loader adds test-coverage fields on top of the file's.
+    expect(dataSnowflakeExternal.support["snowflake:position-deletes:v2"]).toMatchObject(
+      (snowflakeExternal.support as Record<string, object>)["snowflake:position-deletes:v2"],
     );
     // And a combined variant takes S3 Tables AWS cells together with external Snowflake.
     expect(dataS3TablesSnowflakeExternal.support["aws-athena:position-deletes:v2"]).toEqual(
@@ -209,5 +212,101 @@ describe.each([
         previous = g;
       }
     }
+  });
+});
+
+describe("test coverage", () => {
+  const featureIds = new Set(featuresJson.features.map((f) => f.id));
+
+  for (const suite of testCoverage) {
+    describe(suite.file, () => {
+      it("tests at least one feature", () => {
+        expect(suite.features.length).toBeGreaterThan(0);
+      });
+
+      // A typoed feature id in the Python would otherwise mark nothing.
+      it("names only features that exist, on a platform that exists", () => {
+        expect(data.platforms.map((p) => p.id)).toContain(suite.platform);
+        for (const { feature } of suite.features) expect(featureIds, feature).toContain(feature);
+      });
+
+      // The S3 Tables / Snowflake external datasets carry the same platform
+      // ids, so the default dataset is enough to see the marks land.
+      it("marks its cells as tested", () => {
+        const marked = Object.entries(data.support).filter(
+          ([key, e]) => key.startsWith(`${suite.platform}:`) && e.testedBy === suite.file,
+        );
+        expect(marked.length).toBeGreaterThan(0);
+      });
+    });
+  }
+});
+
+describe("coveredFeatures", () => {
+  const suite = (tests: string, registry: string) => `
+def test_a() -> TestResult:
+    r = TestResult("feature-a", "A")
+    r.result = "pass"
+    return r
+
+
+def test_v3_arg() -> TestResult:
+    r = TestResult("feature-v3", "V3 only", "v3")
+    return _catalog_test(r, body)
+
+
+def test_with_diagnostic(version: str) -> list:
+    r = TestResult("feature-main", "Main", version)
+    d = TestResult("feature-main-read", "Main: read half",
+                   version, diagnostic=True)
+    return [r, d]
+
+
+def test_v3_attr() -> TestResult:
+    r = TestResult("feature-v3-attr", "V3 only")
+    r.version_tested = "v3"
+    return _catalog_test(r, body)
+
+
+def test_always_skips() -> TestResult:
+    r = TestResult("feature-skip", "Skip")
+    r.result = "skip"
+    return r
+
+
+def test_sometimes_skips() -> TestResult:
+    r = TestResult("feature-maybe", "Maybe")
+    if not available():
+        r.result = "skip"
+        return r
+    return _catalog_test(r, body)
+
+
+def test_unregistered() -> TestResult:
+    r = TestResult("feature-unregistered", "Unregistered")
+    r.result = "pass"
+    return r
+${tests}
+ALL_TESTS = [
+${registry}
+]
+`;
+
+  it("counts registered tests that can measure, and skips the rest", () => {
+    const src = suite("", "    test_a,\n    test_always_skips,\n    test_sometimes_skips,");
+    expect(coveredFeatures(src)).toEqual([{ feature: "feature-a" }, { feature: "feature-maybe" }]);
+  });
+
+  it("keeps the version a result names", () => {
+    const src = suite("", "    test_v3_arg,\n    test_v3_attr,\n    test_with_diagnostic,");
+    expect(coveredFeatures(src)).toEqual([
+      { feature: "feature-main" },
+      { feature: "feature-v3", version: "v3" },
+      { feature: "feature-v3-attr", version: "v3" },
+    ]);
+  });
+
+  it("throws without an ALL_TESTS registry", () => {
+    expect(() => coveredFeatures("def test_a():\n    pass\n")).toThrow(/ALL_TESTS/);
   });
 });
