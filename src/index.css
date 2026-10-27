@@ -19,7 +19,7 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    background: white;
+    background: rgb(var(--c-white));
   }
 
   /* Corner cell (feature column header): sticky both directions, highest z */
@@ -46,7 +46,7 @@
     background-color: rgba(59, 130, 246, 0.03);
   }
   .matrix-wrapper tbody tr:hover td:first-child {
-    background-color: rgb(249, 250, 251);
+    background-color: rgb(var(--c-gray-50));
   }
 
   /* Smooth transitions for filter chips */
