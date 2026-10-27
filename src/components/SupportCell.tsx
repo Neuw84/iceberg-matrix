@@ -48,6 +48,9 @@ function cfgFor(level: SupportLevel) {
   return CONFIG[level] ?? CONFIG.unknown;
 }
 
+/** Appended to a tested cell's label; the visible mark is on the column header. */
+const TESTED_SUFFIX = " (tested)";
+
 interface SupportCellProps {
   /**
    * Support entries by version, in the order the versions should stack (top to
@@ -65,20 +68,23 @@ interface SupportCellProps {
 function SolidCell({
   level,
   notes,
+  tested = false,
   onClick,
 }: {
   level: SupportLevel;
   notes: string;
+  tested?: boolean;
   onClick?: () => void;
 }) {
   const cfg = cfgFor(level);
+  const suffix = tested ? TESTED_SUFFIX : "";
   return (
     <button
       type="button"
       onClick={onClick}
       className={`inline-flex items-center justify-center gap-1 w-full px-1.5 py-0.5 rounded border text-xs font-medium cursor-pointer transition-colors ${cfg.bg} ${cfg.color} ${cfg.border}`}
-      aria-label={`Support level: ${cfg.label}`}
-      title={notes || cfg.label}
+      aria-label={`Support level: ${cfg.label}${suffix}`}
+      title={(notes || cfg.label) + (tested ? "\n\nVerified by the test suite" : "")}
     >
       <span aria-hidden="true" className="text-[11px]">{cfg.icon}</span>
       <span className="text-[10px]">{cfg.label}</span>
@@ -114,6 +120,8 @@ export const SupportCell = memo(function SupportCell({
       <SolidCell
         level={entry.level}
         notes={notes}
+        // Only marked when every version the cell stands for was measured.
+        tested={entries.every((e) => e.entry.testedBy)}
         onClick={onClick ? () => onClick(version) : undefined}
       />
     );
@@ -154,7 +162,7 @@ export const SupportCell = memo(function SupportCell({
               type="button"
               onClick={onClick ? () => onClick(version) : undefined}
               className={`flex w-full min-w-0 flex-col items-center justify-center px-0.5 py-0.5 font-medium cursor-pointer transition-colors ${cfg.bg} ${cfg.color}`}
-              aria-label={`${version.toUpperCase()} support level: ${cfg.label}`}
+              aria-label={`${version.toUpperCase()} support level: ${cfg.label}${entry.testedBy ? TESTED_SUFFIX : ""}`}
               title={entry.notes || `${version.toUpperCase()}: ${cfg.label}`}
             >
               <span className="text-[8px] font-bold uppercase leading-none opacity-70">

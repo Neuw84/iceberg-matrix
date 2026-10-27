@@ -95,6 +95,13 @@ export interface SupportEntry {
   notes: string;
   caveats: string[];
   links?: { label: string; url: string }[];
+  /** Month the docs-sourced rating was last checked by hand, e.g. "2026-09". */
+  lastReviewed?: string;
+  /**
+   * Repo path of the feature suite that tests this cell, set by the loader
+   * from src/data/test-coverage.ts. Never written in the engine JSON itself.
+   */
+  testedBy?: string;
 }
 
 // Keyed as `${platformId}:${featureId}:${version}`

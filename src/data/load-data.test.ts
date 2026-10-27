@@ -12,6 +12,8 @@
 import { describe, it, expect } from "vitest";
 import featuresJson from "./features.json";
 import { data, loadEngineData, peekEngineData } from "./load-data";
+import testCoverage from "virtual:test-coverage";
+import { coveredFeatures } from "./test-coverage";
 import type { CompatibilityData } from "../types";
 
 const VALID_LEVELS = ["full", "partial", "none", "unknown"];
@@ -209,5 +211,72 @@ describe.each([
         previous = g;
       }
     }
+  });
+});
+
+describe("test coverage", () => {
+  const featureIds = new Set(featuresJson.features.map((f) => f.id));
+
+  for (const suite of testCoverage) {
+    describe(suite.file, () => {
+      it("tests at least one feature", () => {
+        expect(suite.features.length).toBeGreaterThan(0);
+      });
+
+      // A typoed feature id in the Python would otherwise mark nothing.
+      it("names only features that exist, on a platform that exists", () => {
+        expect(data.platforms.map((p) => p.id)).toContain(suite.platform);
+        for (const f of suite.features) expect(featureIds, f).toContain(f);
+      });
+
+      it("marks its cells as tested", () => {
+        const marked = Object.entries(data.support).filter(
+          ([key, e]) => key.startsWith(`${suite.platform}:`) && e.testedBy === suite.file,
+        );
+        expect(marked.length).toBeGreaterThan(0);
+      });
+    });
+  }
+});
+
+describe("coveredFeatures", () => {
+  const suite = (tests: string, registry: string) => `
+def test_a() -> TestResult:
+    r = TestResult("feature-a", "A")
+    r.result = "pass"
+    return r
+
+
+def test_always_skips() -> TestResult:
+    r = TestResult("feature-skip", "Skip")
+    r.result = "skip"
+    return r
+
+
+def test_sometimes_skips() -> TestResult:
+    r = TestResult("feature-maybe", "Maybe")
+    if not available():
+        r.result = "skip"
+        return r
+    return _catalog_test(r, body)
+
+
+def test_unregistered() -> TestResult:
+    r = TestResult("feature-unregistered", "Unregistered")
+    r.result = "pass"
+    return r
+${tests}
+ALL_TESTS = [
+${registry}
+]
+`;
+
+  it("counts registered tests that can measure, and skips the rest", () => {
+    const src = suite("", "    test_a,\n    test_always_skips,\n    test_sometimes_skips,");
+    expect(coveredFeatures(src)).toEqual(["feature-a", "feature-maybe"]);
+  });
+
+  it("throws without an ALL_TESTS registry", () => {
+    expect(() => coveredFeatures("def test_a():\n    pass\n")).toThrow(/ALL_TESTS/);
   });
 });
