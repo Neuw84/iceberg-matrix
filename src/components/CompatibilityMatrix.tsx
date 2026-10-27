@@ -1,4 +1,5 @@
 import { Fragment, useState, useMemo, useCallback, lazy, Suspense } from "react";
+import type { KeyboardEvent } from "react";
 import type {
   AwsS3Mode,
   SnowflakeStorageMode,
@@ -15,6 +16,7 @@ import { getSupportEntry } from "../utils/support";
 import { FeatureRow } from "./FeatureRow";
 import type { VersionEntry } from "./DetailPopover";
 import { ENGINE_COL_MAX_WIDTH, ENGINE_COL_WIDTH, NAME_COL_WIDTH } from "./matrixLayout";
+import { GRID_KEYS, nextGridButton } from "./gridNavigation";
 
 // DetailPopover is only mounted when a cell is clicked; code-split it.
 const DetailPopover = lazy(() =>
@@ -244,6 +246,14 @@ export function CompatibilityMatrix({
     [],
   );
 
+  const handleGridKeyDown = useCallback((e: KeyboardEvent<HTMLTableElement>) => {
+    if (!GRID_KEYS.includes(e.key)) return;
+    const next = nextGridButton(e.currentTarget, e.target as HTMLElement, e.key);
+    if (!next) return;
+    e.preventDefault(); // don't also scroll the page
+    next.focus();
+  }, []);
+
   const getEntry = useCallback(
     (pid: string, fid: string, ver: Version) => getSupportEntry(data, pid, fid, ver),
     [data],
@@ -294,6 +304,7 @@ export function CompatibilityMatrix({
       </div>
       <div className="overflow-x-auto matrix-wrapper">
         <table
+          onKeyDown={handleGridKeyDown}
           className="border-separate border-spacing-0 text-sm"
           // Fixed layout + an identical <col> per engine gives every engine
           // column exactly the same width, regardless of cell content.
