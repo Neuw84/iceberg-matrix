@@ -24,6 +24,31 @@ interface DetailPopoverProps {
   onClose: () => void;
 }
 
+const REPO_URL = "https://github.com/Neuw84/iceberg-matrix";
+
+/** A new GitHub issue prefilled with the cell, so a report names what it means. */
+function correctionUrl(feature: Feature, platform: Platform, entries: VersionEntry[]): string {
+  const rating = entries
+    .map(({ version, entry }) => (version === "current" ? entry.level : `${version.toUpperCase()}: ${entry.level}`))
+    .join(", ");
+  const body = [
+    `**Feature:** ${feature.name} (\`${feature.id}\`)`,
+    `**Platform:** ${platform.name} (\`${platform.id}\`)`,
+    `**Current rating:** ${rating}`,
+    "",
+    "**What should it be, and why?**",
+    "",
+    "",
+    "**Source** (docs, release notes, or a test that shows it):",
+    "",
+  ].join("\n");
+  const params = new URLSearchParams({
+    title: `Correction: ${feature.name} on ${platform.name}`,
+    body,
+  });
+  return `${REPO_URL}/issues/new?${params}`;
+}
+
 interface Section {
   versions: Version[];
   entry: SupportEntry;
@@ -146,10 +171,33 @@ export function DetailPopover({
   onClose,
 }: DetailPopoverProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  // Modal focus: move into the dialog on open, back to the cell that opened it
+  // on close. Separate from the listeners below, whose effect reruns whenever
+  // the parent passes a new onClose.
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    return () => opener?.focus();
+  }, []);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
+      // Keep Tab inside the dialog: the backdrop makes the page behind inert.
+      if (e.key === "Tab" && ref.current) {
+        const focusable = ref.current.querySelectorAll<HTMLElement>("a[href], button");
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     }
     function handleClickOutside(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
@@ -177,6 +225,7 @@ export function DetailPopover({
     <div
       ref={ref}
       role="dialog"
+      aria-modal="true"
       aria-label={`Details for ${feature.name} on ${platform.name}`}
       // Phone: the original 24rem, never wider than the screen. Tablet and up
       // get more room so long notes and caveat lists don't wrap into a tall,
@@ -190,6 +239,7 @@ export function DetailPopover({
           <p className="text-[11px] text-gray-500 mt-0.5">{subtitle}</p>
         </div>
         <button
+          ref={closeRef}
           type="button"
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600 text-lg leading-none cursor-pointer ml-2 mt-0.5"
@@ -226,6 +276,17 @@ export function DetailPopover({
             </section>
           );
         })}
+      </div>
+
+      <div className="border-t border-gray-200 bg-gray-50 px-4 py-2 text-right text-xs">
+        <a
+          href={correctionUrl(feature, platform, entries)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-700 hover:text-blue-900 underline"
+        >
+          Suggest a correction
+        </a>
       </div>
     </div>
   );

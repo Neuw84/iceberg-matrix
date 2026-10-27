@@ -481,3 +481,41 @@ describe('Shareable URL', () => {
     expect(window.location.search).toBe('?p=duckdb')
   })
 })
+
+describe('Keyboard and focus', () => {
+  it('moves focus between cells with the arrow keys', () => {
+    render(<App />)
+    const grid = screen.getByRole('grid')
+    const first = within(grid).getAllByRole('button', { name: /^Support level/ })[0]
+    first.focus()
+    fireEvent.keyDown(first, { key: 'ArrowRight' })
+    expect(document.activeElement).not.toBe(first)
+    expect(document.activeElement?.closest('td')).toBe(first.closest('td')?.nextElementSibling)
+  })
+
+  it('focuses the popover on open and returns focus to the cell on close', async () => {
+    render(<App />)
+    await openView('Catalogs')
+    const cell = screen.getByTitle('Fully managed SaaS with zero catalog operations.')
+    cell.focus()
+    fireEvent.click(cell)
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+    expect(within(dialog).getByRole('button', { name: 'Close' })).toHaveFocus()
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(cell).toHaveFocus()
+  })
+
+  it('links the popover to a prefilled correction issue', async () => {
+    render(<App />)
+    await openView('Catalogs')
+    fireEvent.click(screen.getByTitle('Fully managed SaaS with zero catalog operations.'))
+    const dialog = await screen.findByRole('dialog')
+    const href = within(dialog).getByRole('link', { name: 'Suggest a correction' }).getAttribute('href')!
+    const url = new URL(href)
+    expect(url.pathname).toBe('/Neuw84/iceberg-matrix/issues/new')
+    expect(url.searchParams.get('title')).toBe('Correction: Managed Offering on Snowflake Horizon')
+    expect(url.searchParams.get('body')).toContain('**Current rating:** full')
+  })
+})
