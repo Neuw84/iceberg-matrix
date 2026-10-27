@@ -5,6 +5,8 @@ import { useViewData } from "./hooks/useViewData";
 import { FilterPanel } from "./components/FilterPanel";
 import { ViewToggle } from "./components/ViewToggle";
 import { CompatibilityMatrix } from "./components/CompatibilityMatrix";
+import { MobileMatrix } from "./components/MobileMatrix";
+import { useMediaQuery } from "./hooks/useMediaQuery";
 import { applyFilters } from "./utils/filters";
 import { parseUrlState, toUrlSearch } from "./utils/url-state";
 
@@ -78,6 +80,8 @@ export default function App() {
     fromUrl.snowflakeMode ?? "snowflake",
   );
 
+  // Below Tailwind's `sm` breakpoint the grid does not fit; show the list.
+  const isPhone = useMediaQuery("(max-width: 639px)");
   const isCatalogsView = viewMode === "catalogs";
   const isIngestionView = viewMode === "ingestion";
   const isEnginesView = viewMode === "engines";
@@ -287,6 +291,17 @@ export default function App() {
 
         {activeData && (
           <div aria-busy={dataLoading} className={dataLoading ? "opacity-70 transition-opacity" : undefined}>
+            {isPhone ? (
+              <MobileMatrix
+                data={activeData}
+                filters={filters}
+                entityNoun={isCatalogsView ? "Catalog" : isIngestionView ? "Tool" : "Engine"}
+                awsS3Mode={isEnginesView ? awsS3Mode : undefined}
+                onAwsS3ModeChange={isEnginesView ? setAwsS3Mode : undefined}
+                snowflakeMode={isEnginesView ? snowflakeMode : undefined}
+                onSnowflakeModeChange={isEnginesView ? setSnowflakeMode : undefined}
+              />
+            ) : (
             <CompatibilityMatrix
               data={activeData}
               filters={filters}
@@ -298,6 +313,7 @@ export default function App() {
               snowflakeMode={isEnginesView ? snowflakeMode : undefined}
               onSnowflakeModeChange={isEnginesView ? setSnowflakeMode : undefined}
             />
+            )}
           </div>
         )}
       </main>

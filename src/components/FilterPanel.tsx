@@ -121,6 +121,13 @@ export function FilterPanel({
   // matrix on every keystroke. Local state drives the input; changes are
   // propagated to the shared filter state after a short pause.
   const [searchInput, setSearchInput] = useState(filters.searchQuery);
+  // Phones show only the search box until "Filters" is tapped; wider screens
+  // always show everything (sm:contents below).
+  const [moreOpen, setMoreOpen] = useState(false);
+  const activeCount =
+    filters.selectedCategories.length +
+    filters.selectedSupportLevels.length +
+    (filters.selectedPlatforms.length > 0 ? 1 : 0);
   // Reset the local input when searchQuery changes externally (e.g. "Clear
   // all"), using React's recommended render-time adjustment pattern.
   const [prevQuery, setPrevQuery] = useState(filters.searchQuery);
@@ -361,6 +368,17 @@ export function FilterPanel({
           </div>
         </div>
 
+        <button
+          type="button"
+          onClick={() => setMoreOpen(!moreOpen)}
+          aria-expanded={moreOpen}
+          className="sm:hidden w-full rounded-md border border-gray-300 px-3 py-1.5 text-left text-xs font-medium text-gray-700"
+        >
+          {moreOpen ? "Hide filters" : "Filters"}
+          {activeCount > 0 && ` · ${activeCount} active`}
+        </button>
+
+        <div className={`${moreOpen ? "contents" : "hidden"} sm:contents`}>
         {/* Platforms / Catalogs */}
         <div>
           <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">{entityLabel}</p>
@@ -536,6 +554,7 @@ export function FilterPanel({
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
