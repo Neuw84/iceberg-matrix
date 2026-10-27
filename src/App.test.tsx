@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
 import fc from 'fast-check'
 import App from './App'
 
@@ -517,5 +517,41 @@ describe('Keyboard and focus', () => {
     expect(url.pathname).toBe('/Neuw84/iceberg-matrix/issues/new')
     expect(url.searchParams.get('title')).toBe('Correction: Managed Offering on Snowflake Horizon')
     expect(url.searchParams.get('body')).toContain('**Current rating:** full')
+  })
+})
+
+describe('Phone layout', () => {
+  function asPhone() {
+    window.matchMedia = ((query: string) => ({
+      matches: query === '(max-width: 639px)',
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })) as unknown as typeof window.matchMedia
+  }
+  afterEach(() => {
+    // jsdom has no matchMedia; remove the stub so other tests get desktop.
+    delete (window as { matchMedia?: unknown }).matchMedia
+  })
+
+  it('lists one engine instead of the grid, and compares two', () => {
+    asPhone()
+    render(<App />)
+    expect(screen.queryByRole('grid')).not.toBeInTheDocument()
+    const [engine, compare] = screen.getAllByRole('combobox')
+    fireEvent.change(engine, { target: { value: 'duckdb' } })
+    fireEvent.change(compare, { target: { value: 'trino' } })
+    const rowOps = screen.getByRole('region', { name: 'Row-Level Operations' })
+    const firstRow = within(rowOps).getAllByRole('listitem')[0]
+    expect(within(firstRow).getAllByRole('button', { name: /^Support level/ })).toHaveLength(2)
+  })
+
+  it('folds the filters behind a button', () => {
+    asPhone()
+    render(<App />)
+    const toggle = screen.getByRole('button', { name: 'Filters' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(toggle)
+    expect(screen.getByRole('button', { name: 'Hide filters' })).toHaveAttribute('aria-expanded', 'true')
   })
 })
