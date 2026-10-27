@@ -384,7 +384,7 @@ export function FilterPanel({
                   aria-label={`Filter by ${GROUP_LABELS[group]}`}
                 >
                   {GROUP_LOGOS[group] && (
-                    <img src={GROUP_LOGOS[group]} alt="" width={14} height={14} decoding="async" className="w-3.5 h-3.5 inline-block mr-1 -mt-px" />
+                    <img src={GROUP_LOGOS[group]} alt="" width={14} height={14} decoding="async" className="w-3.5 h-3.5 inline-block mr-1 -mt-px dark:brightness-0 dark:invert" />
                   )}
                   {GROUP_LABELS[group]}
                 </button>
@@ -412,7 +412,7 @@ export function FilterPanel({
                       aria-label={`Filter by ${p.name}`}
                     >
                       {PLATFORM_LOGOS[p.id] && (
-                        <img src={PLATFORM_LOGOS[p.id]} alt="" width={12} height={12} decoding="async" className="w-3 h-3 inline-block mr-0.5 -mt-px" />
+                        <img src={PLATFORM_LOGOS[p.id]} alt="" width={12} height={12} decoding="async" className="w-3 h-3 inline-block mr-0.5 -mt-px dark:brightness-0 dark:invert" />
                       )}
                       {p.name}
                     </button>

@@ -386,7 +386,7 @@ export function CompatibilityMatrix({
                           // matrix: fetch them as they scroll into view.
                           loading="lazy"
                           decoding="async"
-                          className="w-4 h-4 opacity-60"
+                          className="w-4 h-4 opacity-60 dark:brightness-0 dark:invert"
                         />
                       )}
                       <span className="text-[10px] font-semibold text-gray-700 leading-tight">
