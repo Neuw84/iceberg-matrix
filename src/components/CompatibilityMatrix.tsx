@@ -156,12 +156,14 @@ export function CompatibilityMatrix({
   );
   const versions = filters.selectedVersions;
 
-  // Platforms with suite-tested cells → that suite's file name, for the
-  // header "Tested" mark (keys are `${platformId}:${featureId}:${version}`).
+  // Platforms with suite-tested cells → header tooltip naming the suite and
+  // when it runs (keys are `${platformId}:${featureId}:${version}`).
   const suiteByPlatform = useMemo(() => {
     const map = new Map<string, string>();
     for (const [key, entry] of Object.entries(data.support)) {
-      if (entry.testedBy) map.set(key.split(":")[0], entry.testedBy.split("/").pop()!);
+      if (!entry.testedBy) continue;
+      const when = entry.testedOn === "manual" ? "run by hand on the vendor's platform" : "checked on every pull request";
+      map.set(key.split(":")[0], `${entry.testedBy.split("/").pop()} (${when})`);
     }
     return map;
   }, [data]);
@@ -393,7 +395,7 @@ export function CompatibilityMatrix({
                       {suiteByPlatform.has(p.id) && (
                         <span
                           className="inline-flex items-center gap-0.5 rounded-full bg-indigo-50 px-1.5 text-[9px] font-semibold text-indigo-700"
-                          title={`Features tested by ${suiteByPlatform.get(p.id)} in CI. Click a cell to see its source.`}
+                          title={`Features tested by ${suiteByPlatform.get(p.id)}. Click a cell to see its source.`}
                         >
                           <svg viewBox="0 0 16 16" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                             <path d="M6 2h4M7 2v4L3 13a1 1 0 0 0 1 1.5h8A1 1 0 0 0 13 13L9 6V2" strokeLinejoin="round" />

@@ -102,6 +102,8 @@ export interface SupportEntry {
    * from src/data/test-coverage.ts. Never written in the engine JSON itself.
    */
   testedBy?: string;
+  /** When that suite runs: on every pull request, or started by hand. */
+  testedOn?: "pr" | "manual";
 }
 
 // Keyed as `${platformId}:${featureId}:${version}`

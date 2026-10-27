@@ -45,6 +45,7 @@ function toSections(entries: VersionEntry[]): Section[] {
       entry.caveats,
       entry.links ?? [],
       entry.testedBy ?? null,
+      entry.testedOn ?? null,
       entry.lastReviewed ?? null,
     ]);
     const at = index.get(key);
@@ -73,7 +74,9 @@ function SourceLine({ entry }: { entry: SupportEntry }) {
         >
           {suite.split("/").pop()}
         </a>
-        , checked in CI
+        {entry.testedOn === "manual"
+          ? ", run by hand on the vendor's platform"
+          : ", checked on every pull request"}
       </p>
     );
   }

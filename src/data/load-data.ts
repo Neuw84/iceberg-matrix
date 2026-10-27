@@ -118,10 +118,10 @@ export function mergeEngines(
   // Mark the cells a suite tests. Copies, so the imported engine JSON stays
   // untouched across merges.
   for (const suite of testCoverage) {
-    for (const feature of suite.features) {
-      for (const version of suite.versions) {
-        const key = `${suite.platform}:${feature}:${version}`;
-        if (support[key]) support[key] = { ...support[key], testedBy: suite.file };
+    for (const { feature, version } of suite.features) {
+      for (const v of version ? [version] : suite.versions) {
+        const key = `${suite.platform}:${feature}:${v}`;
+        if (support[key]) support[key] = { ...support[key], testedBy: suite.file, testedOn: suite.runs };
       }
     }
   }
