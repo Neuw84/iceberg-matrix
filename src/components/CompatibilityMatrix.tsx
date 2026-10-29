@@ -45,6 +45,7 @@ const PLATFORM_LOGOS: Record<string, string> = {
   polars: "/logos/polars.svg",
   doris: "/logos/doris.svg",
   starrocks: "/logos/starrocks.svg",
+  phoenixai: "/logos/phoenixai.svg",
   databend: "/logos/databend.svg",
   starburst: "/logos/starburst.svg",
   trino: "/logos/trino.svg",
