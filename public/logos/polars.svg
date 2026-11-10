@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img">
+  <title>Polars</title>
+  <!-- Original faceted polar-bear face (front view): two small round ears, a broad skull,
+       a muzzle with a large nose, and round eyes. Transparent background. Thin gaps cut
+       by the mask separate the facets, and the eyes, nose and mouth are real holes, so the
+       mark still reads as one silhouette when the app renders it white in dark mode. -->
+  <defs>
+    <mask id="facets" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <rect width="64" height="64" fill="#fff"/>
+      <!-- facet gaps -->
+      <g stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <path d="M32 12V33"/>
+        <path d="M23 34 20.5 45 27 57"/>
+        <path d="M41 34 43.5 45 37 57"/>
+        <path d="M11 44 20.5 45"/>
+        <path d="M53 44 43.5 45"/>
+        <path d="M19.5 14.5C16 13 12.5 14 10.5 16.5M44.5 14.5C48 13 51.5 14 53.5 16.5"/>
+      </g>
+      <!-- eyes, nose and mouth -->
+      <g fill="#000">
+        <circle cx="20.5" cy="27.5" r="3"/>
+        <circle cx="43.5" cy="27.5" r="3"/>
+        <path d="M24.5 38.5 Q32 35.5 39.5 38.5 Q39 44 32 47.5 Q25 44 24.5 38.5z"/>
+      </g>
+      <path d="M32 47.5V51.5M32 51.5Q29.5 54.5 26.5 53.5M32 51.5Q34.5 54.5 37.5 53.5" stroke="#000" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    </mask>
+  </defs>
+  <g mask="url(#facets)">
+    <!-- ears -->
+    <circle cx="13" cy="15" r="8.5" fill="#1597d6"/>
+    <circle cx="51" cy="15" r="8.5" fill="#1597d6"/>
+    <!-- skull -->
+    <path d="M20 12 32 11V33L23 34 12 29z" fill="#34c3f0"/>
+    <path d="M44 12 32 11V33L41 34 52 29z" fill="#5fd3f6"/>
+    <path d="M12 29 23 34 20.5 45 11 44z" fill="#1597d6"/>
+    <path d="M52 29 41 34 43.5 45 53 44z" fill="#0f7fc4"/>
+    <path d="M11 44 20.5 45 27 57 20 57z" fill="#0b6aa8"/>
+    <path d="M53 44 43.5 45 37 57 44 57z" fill="#0a5a92"/>
+    <!-- muzzle -->
+    <path d="M23 34 41 34 43.5 45 37 57 27 57 20.5 45z" fill="#8fe3fa"/>
+  </g>
+</svg>
