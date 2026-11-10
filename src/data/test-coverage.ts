@@ -54,6 +54,7 @@ export const SUITES: SuiteConfig[] = [
   { file: "tests/trino_feature_tests.py", platform: "trino", versions: V2, runs: "pr" },
   { file: "tests/pyiceberg_feature_tests.py", platform: "pyiceberg", versions: V2, runs: "pr" },
   { file: "tests/daft_feature_tests.py", platform: "daft", versions: V2, runs: "pr" },
+  { file: "tests/polars_feature_tests.py", platform: "polars", versions: BOTH, runs: "pr" },
   { file: "tests/clickhouse_feature_tests.py", platform: "clickhouse", versions: V2, runs: "pr" },
   // Cloud platforms, started by hand. EMR and Glue run the Spark suite on the
   // cluster through tests/aws/platform_entrypoint.py.

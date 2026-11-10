@@ -38,6 +38,7 @@ import starburst from "./platforms/starburst/starburst/starburst.json";
 import duckdb from "./platforms/oss/duckdb/duckdb.json";
 import clickhouse from "./platforms/oss/clickhouse/clickhouse.json";
 import daft from "./platforms/oss/daft/daft.json";
+import polars from "./platforms/oss/polars/polars.json";
 import spark from "./platforms/oss/spark/spark.json";
 import sparkGluten from "./platforms/oss/spark-gluten/spark-gluten.json";
 import sparkComet from "./platforms/oss/spark-comet/spark-comet.json";
@@ -79,6 +80,7 @@ const postSnowflakeEngines: EngineFile[] = [
   duckdb,
   clickhouse,
   daft,
+  polars,
   spark,
   sparkGluten,
   sparkComet,

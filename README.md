@@ -148,7 +148,7 @@ uv run python tests/iceberg_feature_tests.py
 
 All the open-source engine suites (`iceberg_feature_tests.py` for Spark,
 `duckdb_feature_tests.py`, `pyiceberg_feature_tests.py`, `daft_feature_tests.py`,
-`clickhouse_feature_tests.py`, `flink_feature_tests.py`, `trino_feature_tests.py`)
+`polars_feature_tests.py`, `clickhouse_feature_tests.py`, `flink_feature_tests.py`, `trino_feature_tests.py`)
 run against one shared Iceberg REST catalog so that a table created by one engine
 can be inspected or mutated by another. The catalog is [Apache Polaris](https://polaris.apache.org)
 1.7 backed by RustFS, defined in `tests/docker/docker-compose.polaris.yml`:
@@ -173,6 +173,14 @@ connector speaks the REST protocol natively (`iceberg.catalog.type=rest`), so
 it drives most cells in Trino SQL and only leans on the Spark/DuckDB fixtures
 for the V3 columns and equality deletes it cannot write. Run the suites one at a
 time, concurrent Spark + Flink runs can exhaust Docker memory.
+
+The Polars suite runs every version-agnostic test once on V2 and once on V3 tables (set `POLARS_FORMAT_VERSIONS=v2` to run only V2); Polars cannot write V3, so the V3 pass measures reads plus the refusal of each write path. It needs its own dependencies (Polars requires PyIceberg >= 0.12.0, newer than the 0.11.1 pin in `tests/requirements.txt`), so install it into a separate environment:
+```bash
+uv venv --python 3.11 .venv-polars
+VIRTUAL_ENV=.venv-polars uv pip install 'polars[iceberg]==2.1.0' 'pyiceberg[sql-sqlite,pyarrow,pyiceberg-core]==0.12.0' pyspark==4.1.2 duckdb==2.0.0
+./tests/docker/start-polaris.sh && source tests/docker/env.sh
+.venv-polars/bin/python tests/polars_feature_tests.py   # needs Java 17 and the Iceberg Spark JARs (ICEBERG_JAR)
+```
 
 The suite also enforces **matrix coverage**: every feature defined in
 `src/data/features.json` must have a corresponding `test_*` function registered

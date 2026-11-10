@@ -1,0 +1,923 @@
+{
+  "platforms": [
+    {
+      "id": "polars",
+      "name": "Polars (2.1.0)",
+      "vendor": "Polars",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://docs.pola.rs/"
+    }
+  ],
+  "support": {
+    "polars:position-deletes:v2": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): not supported as a write operation. pl.delete_iceberg on a table that requests write.delete.mode=merge-on-read wrote no position delete file: PyIceberg warned \"Merge on read is not yet supported, falling back to copy-on-write\" and rewrote the data file. Polars does read position delete files written by other engines (a Spark-written one was applied natively), but that is a read capability, not this operation.",
+      "caveats": [
+        "Read capability only: the native reader applies position delete files written by other engines",
+        "pl.delete_iceberg always rewrites data files (copy-on-write) through PyIceberg"
+      ],
+      "links": [
+        {
+          "label": "pl.delete_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.delete_iceberg.html"
+        },
+        {
+          "label": "polars-iceberg (native scan planning plugin)",
+          "url": "https://github.com/pola-rs/polars-iceberg"
+        }
+      ]
+    },
+    "polars:position-deletes:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): pl.delete_iceberg on a Spark-created V3 table that requests merge-on-read is refused with \"Cannot write manifest for table version: 3\", so Polars writes neither position delete files nor the deletion vectors that replace them in V3. The native reader does apply a Spark-written deletion vector (Puffin), but that is a read capability.",
+      "caveats": [
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\"",
+        "Read capability only: a Spark-written Puffin deletion vector is applied by the native, PyIceberg and automatic readers"
+      ],
+      "links": [
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): not supported as a write operation: pl.delete_iceberg wrote no equality delete file. Polars also cannot read a table that contains one: scanning a table with a Java-API equality delete raised \"PyIceberg does not yet support equality deletes\" (with the native reader and with reader_override='pyiceberg').",
+      "caveats": [
+        "Reading a table that contains equality deletes fails (the PyIceberg fallback refuses it)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg: equality delete support in PyIceberg (apache/iceberg#6568)",
+          "url": "https://github.com/apache/iceberg/issues/6568"
+        },
+        {
+          "label": "pl.delete_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.delete_iceberg.html"
+        }
+      ]
+    },
+    "polars:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): pl.delete_iceberg on a V3 table is refused, so no delete file of any kind can be written. A V3 table that contains a Java-API equality delete cannot be read either: \"PyIceberg does not yet support equality deletes\" (same as V2).",
+      "caveats": [
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\"",
+        "Reading a V3 table that contains equality deletes fails (the PyIceberg fallback refuses it)"
+      ],
+      "links": [
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        },
+        {
+          "label": "Iceberg: equality delete support in PyIceberg (apache/iceberg#6568)",
+          "url": "https://github.com/apache/iceberg/issues/6568"
+        }
+      ]
+    },
+    "polars:merge-on-read:v2": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): not supported as a write operation. With write.delete.mode=merge-on-read set on the table, pl.delete_iceberg still produced no delete file: PyIceberg warned that merge-on-read is not supported and fell back to copy-on-write.",
+      "caveats": [
+        "Polars can read merge-on-read tables written by other engines (position deletes, V3 deletion vectors), but not produce them"
+      ],
+      "links": [
+        {
+          "label": "pl.delete_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.delete_iceberg.html"
+        }
+      ]
+    },
+    "polars:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): pl.delete_iceberg on a V3 table fails, so no merge-on-read write is possible.",
+      "caveats": [
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:copy-on-write:v2": {
+      "level": "full",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): pl.delete_iceberg(table, predicate) rewrote the affected data file (snapshot operation overwrite, no delete files) and the deleted row disappeared. Copy-on-write is the only delete strategy Polars has; write_iceberg(mode='overwrite') and sink_iceberg(mode='overwrite') also rewrite. Also measured on a table partitioned by day(ts) and bucket(4, name): pl.delete_iceberg rewrote one file inside a partition (snapshot operation overwrite, data files only) and write_iceberg(mode='overwrite') replaced the table contents.",
+      "caveats": [
+        "Delegates to PyIceberg's copy-on-write delete; rewrites whole data files, not row ranges"
+      ],
+      "links": [
+        {
+          "label": "pl.delete_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.delete_iceberg.html"
+        },
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        }
+      ]
+    },
+    "polars:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): pl.delete_iceberg on a V3 table fails, so copy-on-write cannot be used on V3 tables.",
+      "caveats": [
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:schema-evolution:v2": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): sink_iceberg(schema_mode='merge') adds columns that are missing from the table (older rows read null); schema_mode='overwrite' (with mode='overwrite') replaces the schema, which drops columns. Without schema_mode a mismatched frame is rejected. There is no rename or reorder operation: a frame whose columns are in another order is rejected by sink_iceberg without schema_mode and is matched by name by write_iceberg, and in neither case does the table's column order change; a frame with a renamed column adds it as a new column and leaves the old one in place.",
+      "caveats": [
+        "No column rename or reorder: renamed columns arrive as new columns, and the table's column order never changes",
+        "Evolution happens only as part of a data write, not as a standalone operation",
+        "schema_mode is marked unstable in the Polars docs"
+      ],
+      "links": [
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        },
+        {
+          "label": "Polars 1.44 release post (Iceberg sink schema evolution, v3 deletion vectors on scan)",
+          "url": "https://pola.rs/posts/polars-1-44/"
+        }
+      ]
+    },
+    "polars:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): sink_iceberg(schema_mode='merge') on a V3 table fails before the schema changes.",
+      "caveats": [
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:type-promotion:v2": {
+      "level": "full",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): appending Int64, Float64 and Decimal(18,2) data with sink_iceberg(schema_mode='merge') to a table with int, float and decimal(9,2) columns promoted them to long, double and decimal(18,2), and the existing row still read correctly. Without schema_mode the wider frame is refused. The other direction was measured too: appending Int32, Float32 and Decimal(9,2) data to the now-wide columns is refused without schema_mode (a to_arrow() conversion error: Polars does not cast to the table type), and with schema_mode='merge' it is accepted while the table keeps long, double and decimal(18,2); a column is never narrowed.",
+      "caveats": [
+        "Promotion is implicit on write; there is no standalone widening operation",
+        "Only widening is performed. Narrower data never changes the table: it is refused without schema_mode and appended into the wide column type with schema_mode='merge'",
+        "schema_mode is marked unstable in the Polars docs"
+      ],
+      "links": [
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        }
+      ]
+    },
+    "polars:type-promotion:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): promotion on a V3 table fails with the V3 write refusal.",
+      "caveats": [
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values is a V3 feature, not applicable to format version 2",
+      "caveats": []
+    },
+    "polars:column-default-values:v3": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): the native and automatic readers apply the V3 initial-default on read: a row written before the column existed returns the default ('eu'). Write defaults cannot be applied: appending a row without the column to the V3 table is refused with \"Cannot write manifest for table version: 3\".",
+      "caveats": [
+        "Read-side only: initial-default honoured; write-default needs V3 writes",
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:table-creation:v2": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): sink_iceberg(create_if_not_exists=True, create_namespace_if_not_exists=True) creates a V2 table from the frame schema in the REST catalog and writes the rows. The table is created unpartitioned, unsorted, with default properties and the catalog's default location. Frames with a UInt64, Duration or nanosecond Datetime column are refused at creation.",
+      "caveats": [
+        "No partition spec, sort order, table properties or format-version parameter",
+        "Types without a lossless Iceberg mapping (UInt64, nanosecond Datetime, Duration) are rejected with a TypeError (\"columns without a lossless Iceberg type\"); smaller unsigned ints widen (UInt8 to int, UInt32 to long)",
+        "Creating tables is done by sink_iceberg; there is no separate DDL"
+      ],
+      "links": [
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        }
+      ]
+    },
+    "polars:table-creation:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): tables created by Polars are format-version 2, and sink_iceberg has no way to ask for 3. A catalog-level table-default.format-version=3 on the PyIceberg catalog is ignored too: sink_iceberg(create_if_not_exists=True) still created a format-version 2 table. PyIceberg itself can create an empty V3 table through the REST catalog; it is Polars that cannot request one.",
+      "caveats": [
+        "No format-version or properties parameter on sink_iceberg",
+        "A catalog-level table-default.format-version=3 does not change the format version of tables sink_iceberg creates"
+      ],
+      "links": [
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        }
+      ]
+    },
+    "polars:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): write_iceberg and the native sink_iceberg both wrote into a table partitioned by day(ts) and bucket(4, name), producing correct partition values, and a ts predicate planned only the matching files. Polars cannot declare a partition spec: the table came from PyIceberg. The same was measured for identity(id), truncate(2, name), year(ts), month(ts) and hour(ts), each in its own table: Polars wrote them with write_iceberg and a selective predicate planned 1 of 3 or 4 files.",
+      "caveats": [
+        "Cannot create partitioned tables (no partition spec parameter)",
+        "write_iceberg on a partitioned table needs the pyiceberg-core package"
+      ],
+      "links": [
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        },
+        {
+          "label": "DataFrame.write_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.DataFrame.write_iceberg.html"
+        }
+      ]
+    },
+    "polars:hidden-partitioning:v3": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): on a V3 table partitioned by day(ts) and bucket(4, name), written with Spark because Polars' own write_iceberg and sink_iceberg appends are refused, a ts predicate planned only the matching files and returned the right rows. Spark-written V3 tables partitioned by identity(id), truncate(2, name), year(ts), month(ts) and hour(ts) were pruned the same way (1 of 3 or 4 files planned).",
+      "caveats": [
+        "Read-side only; V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:partition-evolution:v2": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): after the partition spec was evolved outside Polars, sink_iceberg wrote under the new spec and scan_iceberg read across both specs. Polars has no operation to change the spec itself.",
+      "caveats": [
+        "Cannot evolve a partition spec"
+      ],
+      "links": [
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        },
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        }
+      ]
+    },
+    "polars:partition-evolution:v3": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): scan_iceberg read a V3 table across an evolved partition spec (the spec was evolved with PyIceberg and the data written with Spark). Polars' own sink_iceberg append under the new spec is refused on V3.",
+      "caveats": [
+        "Read-side only; cannot evolve a spec, and V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms is a V3 feature, not applicable to format version 2",
+      "caveats": []
+    },
+    "polars:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): Polars' Iceberg layer is PyIceberg's metadata model, which drops source-ids from a partition field (it does not model multi-argument transforms), and no Polars write function takes a partition spec. Spark with Iceberg 1.11 refuses to create such a table (\"Cannot convert transform with more than one column reference: bucket(4, a, b)\"), so there is no table to read.",
+      "caveats": [
+        "Not yet implemented in PyIceberg"
+      ],
+      "links": [
+        {
+          "label": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    "polars:time-travel:v2": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): scan_iceberg(snapshot_id=...) returned the historical rows, and an incremental append scan (from_snapshot_id_exclusive / to_snapshot_id_inclusive) returned only the rows appended in between. There is no timestamp (as-of) parameter.",
+      "caveats": [
+        "Snapshot IDs only, no AS OF timestamp",
+        "No branch or tag name (see Branching & Tagging)"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        }
+      ]
+    },
+    "polars:time-travel:v3": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): scan_iceberg(snapshot_id=...) returned the historical rows of a Spark-written V3 table.",
+      "caveats": [
+        "Snapshot IDs only, no AS OF timestamp"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        }
+      ]
+    },
+    "polars:table-maintenance:v2": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): Polars exposes no compaction, snapshot expiry, orphan-file removal or manifest rewrite. Its whole Iceberg API is scan_iceberg, sink_iceberg, write_iceberg and delete_iceberg; small appends stay as separate snapshots and files.",
+      "caveats": [
+        "Maintenance must be run with another engine"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        }
+      ]
+    },
+    "polars:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): no maintenance operation exists in the Polars API, for any format version.",
+      "caveats": [
+        "Maintenance must be run with another engine"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        }
+      ]
+    },
+    "polars:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): none of scan_iceberg, sink_iceberg, write_iceberg or delete_iceberg takes a branch, tag or ref parameter. A branch created by Spark is visible in table metadata but reachable from Polars only through its snapshot id, and Polars writes always target main.",
+      "caveats": [
+        "A branch's head can be scanned by snapshot id; there is no branch/tag name support or write target"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        }
+      ]
+    },
+    "polars:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): no branch, tag or ref parameter on any Polars Iceberg function, for any format version.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        }
+      ]
+    },
+    "polars:read-support:v2": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): pl.scan_iceberg() read a Spark-created V2 table through the REST catalog, with projection and predicate pushdown into the scan. Position delete files are applied natively; the query is planned by the native polars-iceberg reader and falls back to PyIceberg for table features it does not handle. A table that contains an equality delete (attached with the Iceberg Java API, as a Flink upsert sink would) cannot be loaded at all: the native, PyIceberg and automatic readers all raised ValueError \"PyIceberg does not yet support equality deletes: https://github.com/apache/iceberg/issues/6568\". Rated partial because tables written by upsert pipelines fail to load.",
+      "caveats": [
+        "Tables that contain equality delete files cannot be loaded, whichever reader is used (ValueError: PyIceberg does not yet support equality deletes: https://github.com/apache/iceberg/issues/6568)",
+        "scan_iceberg is marked unstable in the Polars docs"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "polars-iceberg (native scan planning plugin)",
+          "url": "https://github.com/pola-rs/polars-iceberg"
+        },
+        {
+          "label": "Iceberg: equality delete support in PyIceberg (apache/iceberg#6568)",
+          "url": "https://github.com/apache/iceberg/issues/6568"
+        }
+      ]
+    },
+    "polars:read-support:v3": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): the native reader read a Spark-created V3 table that carries a deletion vector (V3 deletion vectors are read natively since Polars 1.44). Initial column defaults, unknown-type and nanosecond-timestamp columns also read correctly. As in V2, a V3 table that contains an equality delete cannot be loaded (ValueError \"PyIceberg does not yet support equality deletes: https://github.com/apache/iceberg/issues/6568\").",
+      "caveats": [
+        "Tables that contain equality delete files cannot be loaded, whichever reader is used",
+        "V3 tables with a variant or geometry column cannot be read (see Variant Type and Geometry / Geo Types)"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "Polars 1.44 release post (Iceberg sink schema evolution, v3 deletion vectors on scan)",
+          "url": "https://pola.rs/posts/polars-1-44/"
+        }
+      ]
+    },
+    "polars:write-insert:v2": {
+      "level": "full",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): DataFrame.write_iceberg(mode='append') and LazyFrame.sink_iceberg(mode='append') both appended to a table through the REST catalog, and sink_iceberg(mode='overwrite') replaced the contents.",
+      "caveats": [
+        "write_iceberg goes through PyIceberg; sink_iceberg writes Parquet natively and commits through PyIceberg",
+        "sink_iceberg needs explicit S3 storage_options: it does not take them from the catalog or table"
+      ],
+      "links": [
+        {
+          "label": "DataFrame.write_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.DataFrame.write_iceberg.html"
+        },
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        }
+      ]
+    },
+    "polars:write-insert:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): appending to a V3 table with write_iceberg or sink_iceberg fails.",
+      "caveats": [
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:write-merge-update-delete:v2": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): pl.delete_iceberg(table, predicate) deleted rows from a table, and sink_iceberg(mode='overwrite', overwrite_filter=...) replaced the matching rows. There is no MERGE, UPDATE or upsert for Iceberg.",
+      "caveats": [
+        "No MERGE INTO, UPDATE or upsert",
+        "Deletes are copy-on-write only",
+        "delete_iceberg and overwrite_filter are marked unstable in the Polars docs"
+      ],
+      "links": [
+        {
+          "label": "pl.delete_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.delete_iceberg.html"
+        },
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        }
+      ]
+    },
+    "polars:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): pl.delete_iceberg on a V3 table fails.",
+      "caveats": [
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): Polars read and wrote through two PyIceberg catalog types: the Iceberg REST catalog and a SQL (SQLite) catalog. The catalog= argument accepts any PyIceberg catalog or a polars IcebergCatalogConfig, so Polars has no catalog client of its own.",
+      "caveats": [
+        "Catalog support is whatever PyIceberg provides",
+        "Only the REST catalog (Apache Polaris) and a SQL catalog (SQLite) were exercised. Glue, Hive, DynamoDB and the other PyIceberg catalog types were not tested, and the Glue test only reports skip"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    "polars:catalog-integration:v3": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): a V3 table was loaded and read through the REST catalog; writing to it is refused.",
+      "caveats": [
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\"",
+        "A SQL/SQLite catalog cannot create V3 tables at all: PyIceberg raises NotImplementedError \"Writing V3 is not yet supported\"; only the REST catalog was usable for V3"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:statistics:v2": {
+      "level": "full",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): files written by sink_iceberg carry column lower/upper bounds in the manifest, and a predicate scan planned only the files whose bounds can match (1 of 2). The manifest also holds per-column null and value counts (a column with one null in four rows reported 1 and 4). With the table's data files deleted, scan_iceberg(use_metadata_statistics=True) still answered a row count of 3, so the native reader does answer row counts from metadata alone.",
+      "caveats": [
+        "use_metadata_statistics and fast_deletion_count are marked unstable in the Polars docs"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "polars-iceberg (native scan planning plugin)",
+          "url": "https://github.com/pola-rs/polars-iceberg"
+        }
+      ]
+    },
+    "polars:statistics:v3": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): on Spark-written V3 files a predicate scan planned only the matching file.",
+      "caveats": [
+        "Read-side only; V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:bloom-filters:v2": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): neither sink_iceberg nor write_iceberg produced a Parquet bloom filter for a column with write.parquet.bloom-filter-enabled.column.id=true, and Puffin bloom blobs are not used.",
+      "caveats": [
+        "The table property is ignored"
+      ],
+      "links": [
+        {
+          "label": "LazyFrame.sink_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.LazyFrame.sink_iceberg.html"
+        },
+        {
+          "label": "DataFrame.write_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.DataFrame.write_iceberg.html"
+        }
+      ]
+    },
+    "polars:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): no write path works on a V3 table, and the property is ignored on V2.",
+      "caveats": [
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:aws-glue-catalog:v2": {
+      "level": "partial",
+      "notes": "Polars takes any PyIceberg catalog as catalog=, and PyIceberg ships a Glue catalog, so Polars can attach to AWS Glue. Rated partial because this pairing has not been measured.",
+      "caveats": [
+        "Inferred from the Polars and PyIceberg docs. The suite's Glue test only reports skip (it would need AWS credentials and a Glue Data Catalog), so no run has ever exercised it"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    "polars:aws-glue-catalog:v3": {
+      "level": "unknown",
+      "notes": "Not measured. V3 tables in AWS Glue were not tested with Polars.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        }
+      ]
+    },
+    "polars:rest-catalog:v2": {
+      "level": "full",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): full round-trip through the Iceberg REST catalog (Apache Polaris, OAuth2 client credentials, S3 storage): create with sink_iceberg, append with write_iceberg, read with scan_iceberg, drop through PyIceberg.",
+      "caveats": [
+        "The catalog connection is a PyIceberg RestCatalog",
+        "Tested against Apache Polaris with OAuth2 client credentials and static S3 keys. Vended credentials, token refresh and other REST catalog servers were not tested"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    "polars:rest-catalog:v3": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): scan_iceberg read a V3 table from the REST catalog; writing to it is refused.",
+      "caveats": [
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Unity Catalog exposes an Iceberg REST API that PyIceberg's REST catalog can talk to, and Polars accepts that catalog. Rated partial because this pairing has not been measured.",
+      "caveats": [
+        "Inferred from the Polars and PyIceberg docs. The suite's Unity Catalog test only reports skip (it would need a Databricks endpoint), so no run has ever exercised it"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    "polars:unity-catalog:v3": {
+      "level": "unknown",
+      "notes": "Not measured. V3 tables in Unity Catalog were not tested with Polars.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        }
+      ]
+    },
+    "polars:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Snowflake Horizon implements the Iceberg REST Catalog API, which PyIceberg's REST catalog supports, so Polars can attach through catalog=. Rated partial because this pairing has not been measured.",
+      "caveats": [
+        "Inferred from the Polars and PyIceberg docs. The suite has no test for Snowflake Horizon and it was never run against one"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "Snowflake Horizon Catalog docs",
+          "url": "https://docs.snowflake.com/en/user-guide/tables-iceberg-access-using-external-query-engine-snowflake-horizon"
+        }
+      ]
+    },
+    "polars:snowflake-horizon-catalog:v3": {
+      "level": "unknown",
+      "notes": "Not measured. V3 tables in Snowflake Horizon were not tested with Polars.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        }
+      ]
+    },
+    "polars:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "Google Lakehouse exposes a standard Iceberg REST catalog and Polars can attach to any PyIceberg REST catalog, so it can read its tables. Rated partial because this specific pairing has not been measured end to end.",
+      "caveats": [
+        "Inferred from generic Iceberg REST catalog support. The suite has no test for Google Lakehouse and it was never run against one"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "Google Lakehouse runtime catalog (Iceberg REST)",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        }
+      ]
+    },
+    "polars:google-lakehouse:v3": {
+      "level": "unknown",
+      "notes": "Not measured. V3 tables in Google Lakehouse were not tested with Polars.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        }
+      ]
+    },
+    "polars:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature, not applicable to format version 2",
+      "caveats": []
+    },
+    "polars:variant-type:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): a Spark-written V3 table with a VARIANT column cannot be loaded: pl.scan_iceberg fails while PyIceberg parses the table schema. Polars also has no Variant dtype.",
+      "caveats": [
+        "PyIceberg 0.12.0 has no VariantType",
+        "Error raised: TypeError \"ValidationError.__new__() missing 1 required positional argument: 'line_errors'\" while PyIceberg parses the table schema"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    "polars:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature, not applicable to format version 2",
+      "caveats": []
+    },
+    "polars:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): Polars has no Variant dtype and every write path fails on a V3 table, so it can neither write nor shred variant data. A table written by Spark with write.parquet.shred-variants=true (typed_value columns confirmed in the Parquet file) cannot be loaded either: the same schema-parsing error as for an unshredded variant column.",
+      "caveats": [
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\"",
+        "Variant columns, shredded or not, make the table unloadable in Polars 2.1.0 / PyIceberg 0.12.0"
+      ],
+      "links": [
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature, not applicable to format version 2",
+      "caveats": []
+    },
+    "polars:geometry-type:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): a DuckDB-written V3 table with a GEOMETRY column cannot be read: the native reader fails on the Parquet GEOMETRY logical type (\"LogicalType union has no variant set\") and the PyIceberg reader fails with \"Cannot promote an binary to geometry\". An empty V3 table with a GEOGRAPHY column (made with the Iceberg Java API) loads and the column maps to Binary; no engine in the test setup can write a GEOGRAPHY value, so GEOGRAPHY data was not tested. Polars has no geometry dtype and cannot write to V3 tables.",
+      "caveats": [
+        "Both readers fail on the table",
+        "GEOGRAPHY: only an empty table could be tested (loads as Binary); no GEOGRAPHY data was read"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "polars-iceberg (native scan planning plugin)",
+          "url": "https://github.com/pola-rs/polars-iceberg"
+        }
+      ]
+    },
+    "polars:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps is a V3 feature, not applicable to format version 2",
+      "caveats": []
+    },
+    "polars:nanosecond-timestamps:v3": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): a DuckDB-written V3 timestamp_ns table reads as Datetime('ns') with the sub-microsecond digits intact (123456789). Polars cannot write nanosecond timestamps: write_iceberg raises \"Nanosecond resolution temporal type ... is not safely convertible to microseconds\", sink_iceberg raises UnsupportedPyArrowTypeException (\"unsupported type: timestamp[ns]\"), and creating a table from a nanosecond frame raises \"columns without a lossless Iceberg type\".",
+      "caveats": [
+        "Read-side only; V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\"",
+        "Writing a Datetime(\"ns\") frame fails in every write path, even before the V3 write refusal is reached"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        },
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature, not applicable to format version 2",
+      "caveats": []
+    },
+    "polars:unknown-type:v3": {
+      "level": "partial",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): a Spark-written V3 table with a VOID column (Iceberg type unknown) loads and scans, yielding null.",
+      "caveats": [
+        "Read-side only: Polars cannot declare an unknown-type column or create V3 tables"
+      ],
+      "links": [
+        {
+          "label": "pl.scan_iceberg",
+          "url": "https://docs.pola.rs/api/python/stable/reference/api/polars.scan_iceberg.html"
+        }
+      ]
+    },
+    "polars:lineage:v2": {
+      "level": "none",
+      "notes": "Row lineage is a V3 feature, not applicable to format version 2",
+      "caveats": []
+    },
+    "polars:lineage:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): not supported as a write operation: every write path fails on a V3 table, so Polars cannot assign row IDs on commit. It reads V3 tables that have row-lineage metadata written by other engines, but does not expose _row_id or _last_updated_sequence_number as columns.",
+      "caveats": [
+        "Read capability: V3 row-lineage metadata is parsed, lineage columns are not exposed",
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    },
+    "polars:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors is a V3 feature, not applicable to format version 2",
+      "caveats": []
+    },
+    "polars:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Measured (Polars 2.1.0, PyIceberg 0.12.0): not supported as a write operation: pl.delete_iceberg on a V3 table fails with \"Cannot write manifest for table version: 3\", so Polars cannot write deletion vectors. It can read them: the native, PyIceberg and automatic readers applied a Spark-written Puffin deletion vector (added in Polars 1.44), but that is a read capability, not this operation.",
+      "caveats": [
+        "Read capability: the native reader applies V3 deletion vectors written by other engines (Polars 1.44+)",
+        "V3 write is not supported: every Polars write path (write_iceberg, sink_iceberg, delete_iceberg) fails on a V3 table with PyIceberg's \"Cannot write manifest for table version: 3\""
+      ],
+      "links": [
+        {
+          "label": "Polars 1.44 release post (Iceberg sink schema evolution, v3 deletion vectors on scan)",
+          "url": "https://pola.rs/posts/polars-1-44/"
+        },
+        {
+          "label": "PyIceberg: V3 write support (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
+    }
+  }
+}

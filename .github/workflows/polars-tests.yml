@@ -1,0 +1,138 @@
+name: Polars Feature Tests
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  SPARK_VERSION: "4.1"
+  ICEBERG_VERSION: "1.11.0"
+
+jobs:
+  polars-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+
+      # Java + PySpark + the Iceberg runtime are needed by tests/spark_fixture.py
+      # and by the REST-catalog tests: Spark creates fixtures through the same
+      # Polaris catalog Polars then mutates/reads. Without them those cells
+      # report skip.
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # duckdb is the producer for the V3 GEOMETRY fixture (neither Spark's
+      # Iceberg connector nor PyIceberg can write one) -- see
+      # spark_fixture.create_geometry_fixture.
+      # polars[iceberg] adds the native polars-iceberg reader and requires
+      # pyiceberg >= 0.12.0; pyiceberg-core is needed by DataFrame.write_iceberg on
+      # partitioned tables.
+      - name: Install Polars + PyIceberg + PySpark + DuckDB
+        run: uv pip install --system 'polars[iceberg]==2.1.0' 'pyiceberg[sql-sqlite,pyarrow,pyiceberg-core]==0.12.0' pyspark==4.1.2 duckdb==2.0.0
+
+      - name: Download Iceberg Spark runtime + AWS bundle JARs
+        run: |
+          BASE="https://repo1.maven.org/maven2/org/apache/iceberg"
+          RUNTIME_JAR="iceberg-spark-runtime-${SPARK_VERSION}_2.13-${ICEBERG_VERSION}.jar"
+          AWS_JAR="iceberg-aws-bundle-${ICEBERG_VERSION}.jar"
+          curl -fSL -o "${RUNTIME_JAR}" \
+            "${BASE}/iceberg-spark-runtime-${SPARK_VERSION}_2.13/${ICEBERG_VERSION}/${RUNTIME_JAR}"
+          curl -fSL -o "${AWS_JAR}" \
+            "${BASE}/iceberg-aws-bundle/${ICEBERG_VERSION}/${AWS_JAR}"
+          echo "ICEBERG_JAR=$(pwd)/${RUNTIME_JAR},$(pwd)/${AWS_JAR}" >> $GITHUB_ENV
+
+      - name: Start Polaris REST catalog + RustFS
+        run: ./tests/docker/start-polaris.sh
+
+      - name: Run Polars feature tests
+        env:
+          ICEBERG_REST_URI: http://127.0.0.1:8181/api/catalog
+          ICEBERG_REST_WAREHOUSE: demo
+          ICEBERG_REST_CREDENTIAL: root:s3cr3t
+          ICEBERG_REST_SCOPE: PRINCIPAL_ROLE:ALL
+          ICEBERG_S3_ENDPOINT: 127.0.0.1:9000
+          ICEBERG_S3_KEY_ID: rustfs
+          ICEBERG_S3_SECRET: rustfs12345
+          ICEBERG_S3_REGION: us-east-1
+        run: |
+          export REPO_ROOT="${GITHUB_WORKSPACE}"
+          export REPORT_DIR="${GITHUB_WORKSPACE}/test-reports"
+          python tests/polars_feature_tests.py
+        continue-on-error: true
+
+      - name: Tear down Polaris REST catalog
+        if: always()
+        run: ./tests/docker/stop-polaris.sh
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: polars-test-report
+          path: test-reports/
+          retention-days: 30
+
+      - name: Post PR comment with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'test-reports/polars-test-report.md';
+            if (!fs.existsSync(reportPath)) {
+              console.log('No report found, skipping comment');
+              return;
+            }
+            const body = fs.readFileSync(reportPath, 'utf8');
+            const truncated = body.length > 60000 ? body.substring(0, 60000) + '\n\n... (truncated)' : body;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const marker = '<!-- polars-test-report -->';
+            const existing = comments.find(c => c.body.includes(marker));
+            const commentBody = `${marker}\n${truncated}`;
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: commentBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody,
+              });
+            }
