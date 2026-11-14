@@ -1442,40 +1442,73 @@ def test_time_travel(version: str) -> TestResult:
     ok, out = _run_sql([
         _create(tbl, "id BIGINT", version),
         f"INSERT INTO {_table(tbl)} VALUES (1)",
-        f"INSERT INTO {_table(tbl)} VALUES (2)",
     ])
-    if not ok:
+    # T1 sits between the two commits. It is taken from Redshift's clock, the
+    # one AS OF TIMESTAMP is resolved against, and the sleeps keep it out of
+    # either commit's second.
+    if ok:
+        time.sleep(3)
+        ok, out = _run_sql(["SELECT SYSDATE"])
+        t1 = out
+    if ok:
+        time.sleep(3)
+        ok, out = _run_sql([f"INSERT INTO {_table(tbl)} VALUES (2)"])
+    if ok:
+        ok, out = _run_sql([f"SELECT COUNT(*) FROM {_table(tbl)}"])
+        now = out.strip()
+    if not ok or now != "2":
         r.result = "error"
-        r.details = _error_reason(out)
+        r.details = _error_reason(out) if not ok else f"expected 2 rows now, got {now!r}"
         _run_sql([f"DROP TABLE {_table(tbl)}"])
         return r
 
     # Try every syntax an engine might accept, so "not supported" is a measured
-    # conclusion rather than one failed guess.
-    attempts = {
-        "FOR SYSTEM_TIME AS OF": f"SELECT COUNT(*) FROM {_table(tbl)} FOR SYSTEM_TIME AS OF '2026-01-01'",
-        "FOR TIMESTAMP AS OF": f"SELECT COUNT(*) FROM {_table(tbl)} FOR TIMESTAMP AS OF '2026-01-01'",
+    # conclusion rather than one failed guess. A timestamp form counts only if
+    # it really reads the older snapshot: 1 row at T1, against 2 now.
+    by_time = {
+        "AS OF TIMESTAMP": f"SELECT COUNT(*) FROM {_table(tbl)} AS OF TIMESTAMP '{t1}'",
+        "FOR SYSTEM_TIME AS OF": f"SELECT COUNT(*) FROM {_table(tbl)} FOR SYSTEM_TIME AS OF '{t1}'",
+        "FOR TIMESTAMP AS OF": f"SELECT COUNT(*) FROM {_table(tbl)} FOR TIMESTAMP AS OF '{t1}'",
+    }
+    # Redshift exposes no snapshot IDs, so 1 is a placeholder; if Redshift adds
+    # snapshot-ID time travel, replace it with a real ID or this probe will keep failing.
+    by_snapshot = {
+        "AS OF VERSION": f"SELECT COUNT(*) FROM {_table(tbl)} AS OF VERSION 1",
         "FOR VERSION AS OF": f"SELECT COUNT(*) FROM {_table(tbl)} FOR VERSION AS OF 1",
         "FOR SYSTEM_VERSION AS OF": f"SELECT COUNT(*) FROM {_table(tbl)} FOR SYSTEM_VERSION AS OF 1",
-        "$snapshots metadata table": f"SELECT COUNT(*) FROM {_table(tbl)}$snapshots",
     }
-    accepted = []
-    reasons = []
-    for label, sql in attempts.items():
-        a_ok, a_out = _run_sql([sql])
-        if a_ok:
-            accepted.append(label)
-        else:
-            reasons.append(f"{label}: {_error_reason(a_out, 70)}")
+    accepted = {"time": [], "snapshot": []}
+    reasons = {"time": [], "snapshot": []}
+    for kind, attempts in (("time", by_time), ("snapshot", by_snapshot)):
+        for label, sql in attempts.items():
+            a_ok, a_out = _run_sql([sql])
+            if a_ok and (kind == "snapshot" or a_out.strip() == "1"):
+                accepted[kind].append(label)
+            elif a_ok:
+                reasons[kind].append(f"{label}: returned {a_out.strip()!r}, expected 1 row at T1")
+            else:
+                reasons[kind].append(f"{label}: {_error_reason(a_out, 70)}")
+    # Exposing $snapshots lists snapshots but does not read one, so it is
+    # recorded and kept out of the verdict.
+    m_ok, m_out = _run_sql([f"SELECT COUNT(*) FROM {_table(tbl)}$snapshots"])
+    metadata = "$snapshots is exposed" if m_ok else f"$snapshots: {_error_reason(m_out, 70)}"
 
-    if accepted:
+    if accepted["time"] and accepted["snapshot"]:
         r.result = "pass"
-        r.details = f"Time travel available via {', '.join(accepted)}"
+        r.details = f"Time travel available via {', '.join(accepted['time'] + accepted['snapshot'])}; {metadata}"
+    elif accepted["time"] or accepted["snapshot"]:
+        works, missing = ("time", "snapshot") if accepted["time"] else ("snapshot", "time")
+        r.result = "partial"
+        r.details = (
+            f"{', '.join(accepted[works])} reads the older snapshot, but no {missing}-based "
+            f"form works; first: {reasons[missing][0]}; {metadata}"
+        )
     else:
         r.result = "fail"
         r.details = (
-            "No time-travel syntax is accepted and no snapshot metadata table is "
-            f"exposed. Tried {len(attempts)} forms; first: {reasons[0] if reasons else 'n/a'}"
+            "No time-travel syntax reads an older snapshot. "
+            f"Tried {len(by_time) + len(by_snapshot)} forms; "
+            f"first: {(reasons['time'] + reasons['snapshot'])[0]}; {metadata}"
         )
     _run_sql([f"DROP TABLE {_table(tbl)}"])
     return r
