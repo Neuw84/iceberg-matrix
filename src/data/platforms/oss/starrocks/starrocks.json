@@ -1,0 +1,934 @@
+{
+  "platforms": [
+    {
+      "id": "starrocks",
+      "name": "StarRocks (4.2)",
+      "vendor": "StarRocks",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/"
+    }
+  ],
+  "support": {
+    "starrocks:position-deletes:v2": {
+      "level": "full",
+      "notes": "StarRocks 4.2 writes Parquet position delete files for DELETE, UPDATE and MERGE INTO on V2 tables and commits them in an Iceberg RowDelta. It also reads Parquet and ORC position delete files written by other engines.",
+      "caveats": [
+        "A DELETE whose predicate matches whole data files or partitions is committed as a metadata-only file removal instead."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg DML: DELETE",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DML/#delete"
+        },
+        {
+          "label": "StarRocks 4.2 Iceberg DML: UPDATE",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/docs/en/data_source/catalog/iceberg/DML.md#update"
+        },
+        {
+          "label": "StarRocks 4.2 RowDelta commit (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/IcebergMetadata.java#L2938-L3123"
+        }
+      ]
+    },
+    "starrocks:position-deletes:v3": {
+      "level": "none",
+      "notes": "Not applicable to V3 writes: Iceberg V3 replaces new position delete files with deletion vectors, which StarRocks 4.2 cannot write. A row-level DELETE on a V3 table still produces a position delete file, which the Iceberg library rejects (\"Must use DVs for position deletes in V3\").",
+      "caveats": [
+        "This write-rated feature is displayed only for V2."
+      ],
+      "links": [
+        {
+          "label": "Iceberg format specification",
+          "url": "https://iceberg.apache.org/spec/"
+        }
+      ]
+    },
+    "starrocks:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Not supported as a write operation: StarRocks 4.2 DML writes position deletes only. It reads equality delete files written by other engines, and the add_equality_delete_files procedure can commit equality delete files that another tool has already written.",
+      "caveats": [
+        "add_equality_delete_files registers existing Parquet or ORC files; StarRocks does not produce them."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: usage notes",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#usage-notes"
+        },
+        {
+          "label": "StarRocks 4.2 procedure add_equality_delete_files",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/docs/en/data_source/catalog/iceberg/procedures.md#add-equality-delete-files"
+        }
+      ]
+    },
+    "starrocks:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Not supported as a write operation: StarRocks 4.2 does not write equality delete files.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: usage notes",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#usage-notes"
+        }
+      ]
+    },
+    "starrocks:merge-on-read:v2": {
+      "level": "full",
+      "notes": "DELETE, UPDATE and MERGE INTO all use merge-on-read on V2 tables: UPDATE and MERGE commit position delete files plus new data files in a single RowDelta. Reads apply position and equality deletes written by other engines.",
+      "caveats": [
+        "write.delete.mode, write.update.mode and write.merge.mode are not read; row-level DML always uses merge-on-read."
+      ],
+      "links": [
+        {
+          "label": "StarRocks 4.2 Iceberg DML: UPDATE",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/docs/en/data_source/catalog/iceberg/DML.md#update"
+        },
+        {
+          "label": "StarRocks 4.2 Iceberg DML: MERGE INTO",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/docs/en/data_source/catalog/iceberg/DML.md#merge-into"
+        },
+        {
+          "label": "StarRocks 4.2 RowDelta commit (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/IcebergMetadata.java#L2938-L3123"
+        }
+      ]
+    },
+    "starrocks:merge-on-read:v3": {
+      "level": "none",
+      "notes": "StarRocks 4.2 cannot write deletion vectors, so it has no merge-on-read write path on V3 tables: UPDATE and MERGE INTO are rejected and a row-level DELETE fails at commit.",
+      "caveats": [
+        "Queries that scan a data file with a deletion vector fail with \"Iceberg V3 Deletion Vectors are not supported\"."
+      ],
+      "links": [
+        {
+          "label": "StarRocks 4.2 deletion vector check (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/IcebergConnectorScanRangeSource.java#L323-L327"
+        },
+        {
+          "label": "StarRocks 4.2 UPDATE format-version check (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/sql/analyzer/UpdateAnalyzer.java#L83-L87"
+        }
+      ]
+    },
+    "starrocks:copy-on-write:v2": {
+      "level": "none",
+      "notes": "StarRocks 4.2 has no copy-on-write mode: DELETE, UPDATE and MERGE INTO write delete files and never rewrite existing data files, whatever write.*.mode is set to.",
+      "caveats": [
+        "A DELETE whose predicate matches whole data files or partitions is committed as a metadata-only file removal instead."
+      ],
+      "links": [
+        {
+          "label": "StarRocks 4.2 Iceberg DML: UPDATE",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/docs/en/data_source/catalog/iceberg/DML.md#update"
+        }
+      ]
+    },
+    "starrocks:copy-on-write:v3": {
+      "level": "none",
+      "notes": "StarRocks 4.2 has no copy-on-write mode for V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks Iceberg DML: DELETE",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DML/#delete"
+        }
+      ]
+    },
+    "starrocks:schema-evolution:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE ADD COLUMN (with FIRST/AFTER), DROP COLUMN, RENAME COLUMN and MODIFY COLUMN are committed through Iceberg UpdateSchema without rewriting data files, and StarRocks 4.2 adds ADD/DROP FIELD for fields nested in STRUCT columns. Parquet columns are resolved by Iceberg field ID, so reads stay correct after renames and drops.",
+      "caveats": [
+        "Nested fields cannot be renamed or retyped."
+      ],
+      "links": [
+        {
+          "label": "StarRocks 4.2 ALTER TABLE column changes (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/IcebergAlterTableExecutor.java#L114-L219"
+        },
+        {
+          "label": "StarRocks 4.2 Iceberg DDL: add or drop a nested field",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/docs/en/data_source/catalog/iceberg/DDL.md#alter-table-to-add-or-drop-a-nested-field"
+        },
+        {
+          "label": "StarRocks Iceberg DDL: column definition and default values",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DDL/#column_definition"
+        }
+      ]
+    },
+    "starrocks:schema-evolution:v3": {
+      "level": "full",
+      "notes": "The same ALTER TABLE operations work on V3 tables; ADD COLUMN can also set a V3 default, which allows adding a NOT NULL column.",
+      "caveats": [
+        "Nested fields cannot be renamed or retyped."
+      ],
+      "links": [
+        {
+          "label": "StarRocks 4.2 ALTER TABLE column changes (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/IcebergAlterTableExecutor.java#L114-L219"
+        },
+        {
+          "label": "StarRocks 4.2 Iceberg DDL: add or drop a nested field",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/docs/en/data_source/catalog/iceberg/DDL.md#alter-table-to-add-or-drop-a-nested-field"
+        },
+        {
+          "label": "StarRocks Iceberg DDL: column definition and default values",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DDL/#column_definition"
+        }
+      ]
+    },
+    "starrocks:type-promotion:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE MODIFY COLUMN widens int to bigint, float to double and decimal precision as a metadata-only change; the Parquet reader converts values in files written before the promotion.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks 4.2 MODIFY COLUMN type change (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/IcebergAlterTableExecutor.java#L173-L219"
+        }
+      ]
+    },
+    "starrocks:type-promotion:v3": {
+      "level": "full",
+      "notes": "The same promotions as on V2 tables (int to bigint, float to double, decimal precision widening) work on V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks 4.2 MODIFY COLUMN type change (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/IcebergAlterTableExecutor.java#L173-L219"
+        }
+      ]
+    },
+    "starrocks:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "starrocks:column-default-values:v3": {
+      "level": "full",
+      "notes": "CREATE TABLE and ALTER TABLE ADD COLUMN ... DEFAULT set initial-default and write-default, and MODIFY COLUMN ... DEFAULT changes write-default. Reads fill initial-default for files written before the column existed, including missing STRUCT subfields, and INSERT applies write-default when the column is omitted or set to DEFAULT.",
+      "caveats": [
+        "Only constant defaults on primitive types are accepted; expression defaults such as CURRENT_TIMESTAMP are rejected."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg DDL: column definition and default values",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DDL/#column_definition"
+        },
+        {
+          "label": "StarRocks Iceberg DML: INSERT DEFAULT",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DML/#default"
+        }
+      ]
+    },
+    "starrocks:table-creation:v2": {
+      "level": "full",
+      "notes": "CREATE TABLE and CREATE TABLE AS SELECT create Iceberg tables in Hive Metastore, Glue, REST and JDBC catalogs, with PARTITION BY transforms, ORDER BY sort order, location and table properties. New tables default to format version 2.",
+      "caveats": [
+        "Writes Parquet data files only."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg DDL: CREATE TABLE",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DDL/#create-table"
+        }
+      ]
+    },
+    "starrocks:table-creation:v3": {
+      "level": "full",
+      "notes": "Setting the table property \"format-version\"=\"3\" creates a V3 table.",
+      "caveats": [
+        "Writes Parquet data files only."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg DDL: CREATE TABLE",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DDL/#create-table"
+        },
+        {
+          "label": "StarRocks Iceberg DDL: column definition and default values",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DDL/#column_definition"
+        }
+      ]
+    },
+    "starrocks:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "PARTITION BY accepts identity, year, month, day, hour, bucket and truncate transforms. INSERT computes the transforms on write, and scans prune manifests and files by projecting predicates through each partition spec.",
+      "caveats": [
+        "Identity partitions cannot use FLOAT, DOUBLE or complex-type columns."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg DDL: partition_desc",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DDL/#partition_desc"
+        }
+      ]
+    },
+    "starrocks:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Same transforms and pruning on V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks Iceberg DDL: partition_desc",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DDL/#partition_desc"
+        }
+      ]
+    },
+    "starrocks:partition-evolution:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE ADD PARTITION COLUMN, DROP PARTITION COLUMN and (new in 4.2) REPLACE PARTITION COLUMN ... WITH change the partition spec through Iceberg UpdatePartitionSpec without rewriting data. Scans handle files written under every historical spec.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks 4.2 Iceberg DDL: evolve partition spec",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/docs/en/data_source/catalog/iceberg/DDL.md#alter-table-to-evolve-partition-spec"
+        }
+      ]
+    },
+    "starrocks:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Same partition evolution on V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks 4.2 Iceberg DDL: evolve partition spec",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/docs/en/data_source/catalog/iceberg/DDL.md#alter-table-to-evolve-partition-spec"
+        }
+      ]
+    },
+    "starrocks:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "starrocks:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Not supported: partition DDL accepts single-column transforms only, and the bundled Iceberg Java 1.11 parses each partition field from a single source-id.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks Iceberg DDL: partition_desc",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DDL/#partition_desc"
+        }
+      ]
+    },
+    "starrocks:time-travel:v2": {
+      "level": "full",
+      "notes": "SELECT ... FOR VERSION AS OF (snapshot ID, branch or tag) and FOR TIMESTAMP AS OF read historical snapshots with that snapshot's schema and partition specs; rollback_to_snapshot restores one.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks Iceberg time travel",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_timetravel/#query-with-time-travel"
+        },
+        {
+          "label": "StarRocks Iceberg procedures: rollback_to_snapshot",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/procedures/#rollback-to-snapshot"
+        }
+      ]
+    },
+    "starrocks:time-travel:v3": {
+      "level": "full",
+      "notes": "Same time travel on V3 tables.",
+      "caveats": [
+        "Snapshots that contain deletion vectors cannot be read."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg time travel",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_timetravel/#query-with-time-travel"
+        }
+      ]
+    },
+    "starrocks:table-maintenance:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE ... EXECUTE runs expire_snapshots, remove_orphan_files, rewrite_manifests and rewrite_data_files (compaction), plus rollback_to_snapshot, cherrypick_snapshot and fast_forward.",
+      "caveats": [
+        "rewrite_data_files is bin-pack compaction only (no sort or z-order).",
+        "No automatic maintenance; procedures run on demand."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg procedures: data maintenance",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/procedures/#data-maintenance"
+        },
+        {
+          "label": "StarRocks Iceberg procedures: metadata management",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/procedures/#metadata-management"
+        }
+      ]
+    },
+    "starrocks:table-maintenance:v3": {
+      "level": "partial",
+      "notes": "The same procedures run on V3 tables and rewrite_data_files preserves _row_id and _last_updated_sequence_number, but compaction cannot read data files that have deletion vectors.",
+      "caveats": [
+        "rewrite_data_files fails on tables that contain deletion vectors; expire_snapshots, remove_orphan_files and rewrite_manifests are unaffected.",
+        "rewrite_data_files is bin-pack compaction only (no sort or z-order)."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg procedures: data maintenance",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/procedures/#data-maintenance"
+        },
+        {
+          "label": "StarRocks Iceberg procedures: metadata management",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/procedures/#metadata-management"
+        },
+        {
+          "label": "StarRocks 4.2 deletion vector check (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/IcebergConnectorScanRangeSource.java#L323-L327"
+        }
+      ]
+    },
+    "starrocks:branching-tagging:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE CREATE [OR REPLACE] BRANCH/TAG (with AS OF VERSION and retention) and DROP BRANCH/TAG manage refs; branches and tags are queried with FOR VERSION AS OF, and INSERT, DELETE, UPDATE and MERGE INTO can write to a branch. fast_forward and cherrypick_snapshot are available.",
+      "caveats": [
+        "Row-level DML on a branch is new in 4.2."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg branches, tags and snapshots",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_timetravel/#manage-branches-tags-and-snapshots"
+        },
+        {
+          "label": "StarRocks Iceberg procedures: branch management",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/procedures/#branch-management"
+        },
+        {
+          "label": "StarRocks PR #81554: DML on an Iceberg branch",
+          "url": "https://github.com/StarRocks/starrocks/pull/81554"
+        }
+      ]
+    },
+    "starrocks:branching-tagging:v3": {
+      "level": "full",
+      "notes": "Same branch and tag management on V3 tables; INSERT can write to a branch.",
+      "caveats": [
+        "Row-level DML is not available on V3 tables, on branches or otherwise."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg branches, tags and snapshots",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_timetravel/#manage-branches-tags-and-snapshots"
+        }
+      ]
+    },
+    "starrocks:read-support:v2": {
+      "level": "full",
+      "notes": "Reads Parquet and ORC data files with position and equality deletes, partition and manifest min/max pruning, column projection, and Parquet row-group, page-index and bloom-filter skipping. Scan planning runs on the coordinator by default (plan_mode = local in 4.2) and can be distributed; metadata tables are supported.",
+      "caveats": [
+        "Avro data and delete files are not supported.",
+        "Encrypted tables are rejected.",
+        "Iceberg fixed(L) columns cannot be queried.",
+        "REST server-side scan planning is not used."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: usage notes",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#usage-notes"
+        },
+        {
+          "label": "StarRocks data lake feature support: Iceberg",
+          "url": "https://docs.starrocks.io/docs/data_source/feature-support-data-lake-analytics/#iceberg-catalog"
+        },
+        {
+          "label": "StarRocks Iceberg metadata tables",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_meta_table/"
+        },
+        {
+          "label": "StarRocks system variable plan_mode",
+          "url": "https://docs.starrocks.io/docs/sql-reference/System_variable/#plan_mode"
+        }
+      ]
+    },
+    "starrocks:read-support:v3": {
+      "level": "partial",
+      "notes": "Reads V3 tables, including the row-lineage columns, VARIANT, unknown-type columns (as NULL) and GEOGRAPHY, but not deletion vectors.",
+      "caveats": [
+        "Queries that scan a data file with a deletion vector fail with \"Iceberg V3 Deletion Vectors are not supported\".",
+        "Columns of types StarRocks does not map (timestamp_ns, geometry) cannot be queried; other columns stay readable.",
+        "Encrypted tables are rejected."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg metadata tables",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_meta_table/"
+        },
+        {
+          "label": "StarRocks 4.2 deletion vector check (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/IcebergConnectorScanRangeSource.java#L323-L327"
+        }
+      ]
+    },
+    "starrocks:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO, INSERT OVERWRITE and CREATE TABLE AS SELECT write to Iceberg tables, including transform-partitioned tables and branches, honoring identity sort orders.",
+      "caveats": [
+        "Writes Parquet data files only."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg DML: INSERT",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DML/#insert"
+        }
+      ]
+    },
+    "starrocks:write-insert:v3": {
+      "level": "full",
+      "notes": "INSERT INTO, INSERT OVERWRITE and CTAS work on V3 tables; rows inherit row IDs at commit and write-defaults apply to omitted columns.",
+      "caveats": [
+        "Writes Parquet data files only."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg DML: INSERT",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DML/#insert"
+        }
+      ]
+    },
+    "starrocks:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "StarRocks 4.2 supports DELETE, UPDATE and MERGE INTO (WHEN MATCHED UPDATE/DELETE, WHEN NOT MATCHED INSERT) on V2 tables, including on branches, committed as Iceberg row deltas with conflict validation.",
+      "caveats": [
+        "UPDATE and MERGE INTO cannot assign partition columns.",
+        "DELETE and UPDATE require a WHERE clause.",
+        "UPDATE and MERGE INTO are documented for Parquet tables only; DELETE also works on ORC data files.",
+        "StarRocks 4.2 is not released yet; these statements are new in 4.2 (4.1 supports DELETE only)."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg DML: DELETE",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/DML/#delete"
+        },
+        {
+          "label": "StarRocks 4.2 Iceberg DML: UPDATE",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/docs/en/data_source/catalog/iceberg/DML.md#update"
+        },
+        {
+          "label": "StarRocks 4.2 Iceberg DML: MERGE INTO",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/docs/en/data_source/catalog/iceberg/DML.md#merge-into"
+        },
+        {
+          "label": "StarRocks PR #72884: Iceberg UPDATE",
+          "url": "https://github.com/StarRocks/starrocks/pull/72884"
+        },
+        {
+          "label": "StarRocks PR #73707: Iceberg MERGE INTO",
+          "url": "https://github.com/StarRocks/starrocks/pull/73707"
+        }
+      ]
+    },
+    "starrocks:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "UPDATE and MERGE INTO are rejected on V3 tables, and a row-level DELETE on a V3 table writes a position delete file, which the Iceberg library rejects because V3 requires deletion vectors.",
+      "caveats": [
+        "A DELETE whose predicate matches whole data files or partitions is committed as a metadata-only file removal instead.",
+        "Queries that scan a data file with a deletion vector fail with \"Iceberg V3 Deletion Vectors are not supported\"."
+      ],
+      "links": [
+        {
+          "label": "StarRocks 4.2 Iceberg DML: UPDATE",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/docs/en/data_source/catalog/iceberg/DML.md#update"
+        },
+        {
+          "label": "StarRocks 4.2 UPDATE format-version check (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/sql/analyzer/UpdateAnalyzer.java#L83-L87"
+        },
+        {
+          "label": "Iceberg format specification",
+          "url": "https://iceberg.apache.org/spec/"
+        }
+      ]
+    },
+    "starrocks:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Iceberg catalogs of type hive (Hive Metastore), glue, rest and jdbc are supported, read and write; the code also accepts an undocumented hadoop type.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: MetastoreParams",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#metastoreparams"
+        },
+        {
+          "label": "StarRocks 4.2 catalog types (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/IcebergConnector.java#L104-L116"
+        }
+      ]
+    },
+    "starrocks:catalog-integration:v3": {
+      "level": "full",
+      "notes": "The same catalog types work for V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: MetastoreParams",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "starrocks:statistics:v2": {
+      "level": "full",
+      "notes": "The writer records column sizes, value counts, null counts and lower/upper bounds in manifests. Scans prune files with manifest metrics, MIN/MAX/COUNT over data files without delete files can be answered from metadata, and Puffin NDV sketches are read.",
+      "caveats": [
+        "NaN counts are not written.",
+        "Manifest column statistics feed cost estimation only with enable_iceberg_column_statistics = true (default false).",
+        "Puffin statistics are read, not written."
+      ],
+      "links": [
+        {
+          "label": "StarRocks system variable enable_iceberg_column_statistics",
+          "url": "https://docs.starrocks.io/docs/sql-reference/System_variable/#enable_iceberg_column_statistics"
+        }
+      ]
+    },
+    "starrocks:statistics:v3": {
+      "level": "full",
+      "notes": "Same statistics on V3 tables.",
+      "caveats": [
+        "NaN counts are not written.",
+        "Manifest column statistics feed cost estimation only with enable_iceberg_column_statistics = true (default false).",
+        "Puffin statistics are read, not written."
+      ],
+      "links": [
+        {
+          "label": "StarRocks system variable enable_iceberg_column_statistics",
+          "url": "https://docs.starrocks.io/docs/sql-reference/System_variable/#enable_iceberg_column_statistics"
+        }
+      ]
+    },
+    "starrocks:bloom-filters:v2": {
+      "level": "partial",
+      "notes": "Reads Parquet bloom filters written by other engines to skip row groups (on by default). The Iceberg writer does not produce Parquet bloom filters, and Puffin bloom filters are neither read nor written.",
+      "caveats": [
+        "write.parquet.bloom-filter-enabled.column.* is ignored."
+      ],
+      "links": [
+        {
+          "label": "StarRocks system variable enable_parquet_reader_bloom_filter",
+          "url": "https://docs.starrocks.io/docs/sql-reference/System_variable/#enable_parquet_reader_bloom_filter"
+        }
+      ]
+    },
+    "starrocks:bloom-filters:v3": {
+      "level": "partial",
+      "notes": "Same as V2: Parquet bloom filters are read, not written.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks system variable enable_parquet_reader_bloom_filter",
+          "url": "https://docs.starrocks.io/docs/sql-reference/System_variable/#enable_parquet_reader_bloom_filter"
+        }
+      ]
+    },
+    "starrocks:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "iceberg.catalog.type = glue uses Iceberg's GlueCatalog with instance profile, assumed role or IAM keys (cross-account via catalog ID), for reads, CREATE/DROP database and table, INSERT, DELETE, UPDATE and MERGE INTO. The Glue Iceberg REST endpoint for S3 Tables works through the REST catalog with SigV4.",
+      "caveats": [
+        "Iceberg views are not supported on Glue."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: MetastoreParams",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#metastoreparams"
+        },
+        {
+          "label": "StarRocks Iceberg REST catalog for AWS S3 Tables",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_rest_s3/"
+        }
+      ]
+    },
+    "starrocks:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "The Glue catalog works for V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: MetastoreParams",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "starrocks:rest-catalog:v2": {
+      "level": "full",
+      "notes": "The REST catalog supports OAuth2 (token or client credentials), per-user JWT pass-through and SigV4, vended credentials for S3, ADLS and GCS (on by default), nested namespaces, Iceberg views and register table, for both reads and writes.",
+      "caveats": [
+        "REST server-side scan planning is not used.",
+        "Nested namespaces are off by default."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: MetastoreParams",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#metastoreparams"
+        },
+        {
+          "label": "StarRocks Iceberg REST catalog security",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_rest_security/"
+        },
+        {
+          "label": "StarRocks Iceberg REST catalog for AWS S3 Tables",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_rest_s3/"
+        }
+      ]
+    },
+    "starrocks:rest-catalog:v3": {
+      "level": "full",
+      "notes": "The REST catalog works for V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: MetastoreParams",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "starrocks:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "StarRocks 4.2 connects through its generic Iceberg REST catalog client (OAuth2 bearer token or client credentials, vended credentials for S3, ADLS and GCS); this provider pairing is not documented or tested end to end.",
+      "caveats": [
+        "No Databricks-specific authentication or documentation."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: MetastoreParams",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "starrocks:unity-catalog:v3": {
+      "level": "partial",
+      "notes": "StarRocks 4.2 connects through its generic Iceberg REST catalog client (OAuth2 bearer token or client credentials, vended credentials for S3, ADLS and GCS); this provider pairing is not documented or tested end to end.",
+      "caveats": [
+        "No Databricks-specific authentication or documentation."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: MetastoreParams",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "starrocks:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "StarRocks 4.2 connects through its generic Iceberg REST catalog client (OAuth2 bearer token or client credentials, vended credentials for S3, ADLS and GCS); this provider pairing is not documented or tested end to end.",
+      "caveats": [
+        "The docs give an Apache Polaris example; there is no Snowflake-specific authentication or documentation."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: MetastoreParams",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "starrocks:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "StarRocks 4.2 connects through its generic Iceberg REST catalog client (OAuth2 bearer token or client credentials, vended credentials for S3, ADLS and GCS); this provider pairing is not documented or tested end to end.",
+      "caveats": [
+        "The docs give an Apache Polaris example; there is no Snowflake-specific authentication or documentation."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: MetastoreParams",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "starrocks:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "StarRocks 4.2 connects through its generic Iceberg REST catalog client (OAuth2 bearer token or client credentials, vended credentials for S3, ADLS and GCS); this provider pairing is not documented or tested end to end.",
+      "caveats": [
+        "Iceberg's Google auth manager (iceberg-gcp) is not bundled, so only a static OAuth2 bearer token can be used, without ADC refresh."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: MetastoreParams",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "starrocks:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "StarRocks 4.2 connects through its generic Iceberg REST catalog client (OAuth2 bearer token or client credentials, vended credentials for S3, ADLS and GCS); this provider pairing is not documented or tested end to end.",
+      "caveats": [
+        "Iceberg's Google auth manager (iceberg-gcp) is not bundled, so only a static OAuth2 bearer token can be used, without ADC refresh."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg catalog: MetastoreParams",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "starrocks:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "starrocks:variant-type:v3": {
+      "level": "full",
+      "notes": "StarRocks 4.2 maps Iceberg VARIANT to its VARIANT type, reads both unshredded and shredded Parquet variant values, and writes unshredded variant values through CREATE TABLE and INSERT on format-version 3 tables.",
+      "caveats": [
+        "Parquet only; writes are always unshredded.",
+        "CREATE TABLE needs 'format-version'='3' (the default is 2); creating a VARIANT column through a Hive Metastore catalog is not supported.",
+        "The VARIANT reference page still describes unshredded values only; shredded reads were added by PR #69884."
+      ],
+      "links": [
+        {
+          "label": "StarRocks VARIANT type",
+          "url": "https://docs.starrocks.io/docs/sql-reference/data-types/semi_structured/VARIANT/"
+        },
+        {
+          "label": "StarRocks 4.2 Iceberg VARIANT mapping (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/IcebergApiConverter.java#L293-L294"
+        },
+        {
+          "label": "StarRocks 4.2 Parquet VARIANT writer (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/be/src/formats/parquet/file_writer.cpp#L371-L386"
+        },
+        {
+          "label": "StarRocks PR #69884: read shredded VARIANT",
+          "url": "https://github.com/StarRocks/starrocks/pull/69884"
+        }
+      ]
+    },
+    "starrocks:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "starrocks:shredded-variant:v3": {
+      "level": "partial",
+      "notes": "StarRocks 4.2 reads shredded variant Parquet files, rebuilding values from the typed_value columns over the residual value, with path-aware pruning and predicate pushdown on the shredded columns. It does not write shredded variant.",
+      "caveats": [
+        "Read-only: writes are always unshredded.",
+        "The VARIANT reference page still describes unshredded values only."
+      ],
+      "links": [
+        {
+          "label": "StarRocks PR #69884: read shredded VARIANT",
+          "url": "https://github.com/StarRocks/starrocks/pull/69884"
+        },
+        {
+          "label": "StarRocks PR #71741: shredded VARIANT path-aware pruning",
+          "url": "https://github.com/StarRocks/starrocks/pull/71741"
+        }
+      ]
+    },
+    "starrocks:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry types are a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "starrocks:geometry-type:v3": {
+      "level": "partial",
+      "notes": "StarRocks 4.2 reads Iceberg GEOGRAPHY columns that use the default OGC:CRS84 spherical model from Parquet as native GEOGRAPHY values. Iceberg GEOMETRY columns, and GEOGRAPHY with other CRS or edge algorithms, are not supported, and there is no write path.",
+      "caveats": [
+        "Read-only; geo columns cannot be created or written from StarRocks.",
+        "GEOGRAPHY fields nested inside STRUCT, ARRAY or MAP columns are not supported.",
+        "GEOMETRY columns, and GEOGRAPHY columns with another CRS or edge algorithm, map to StarRocks' unsupported type: the table loads and other columns stay queryable, but any query that references the column, including SELECT *, fails with \"Datatype of external table column [...] is not supported!\"."
+      ],
+      "links": [
+        {
+          "label": "StarRocks 4.2 Iceberg type mapping (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/ColumnTypeConverter.java#L941-L963"
+        },
+        {
+          "label": "StarRocks PR #79110: native GEOGRAPHY reads",
+          "url": "https://github.com/StarRocks/starrocks/pull/79110"
+        }
+      ]
+    },
+    "starrocks:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "starrocks:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Iceberg timestamp_ns and timestamptz_ns columns are not supported; StarRocks DATETIME has microsecond precision, and such columns map to StarRocks' unsupported type: the table loads and other columns stay queryable, but any query that references the column, including SELECT *, fails with \"Datatype of external table column [...] is not supported!\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "StarRocks 4.2 Iceberg type mapping (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/ColumnTypeConverter.java#L941-L963"
+        }
+      ]
+    },
+    "starrocks:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "starrocks:unknown-type:v3": {
+      "level": "partial",
+      "notes": "Read-only: StarRocks 4.2 reads Iceberg unknown columns, top-level or nested, as NULL, but it cannot declare, write or promote them.",
+      "caveats": [
+        "Unknown-typed columns cannot be declared from StarRocks SQL.",
+        "INSERT, UPDATE and MERGE INTO into a table with an unknown column are not supported: the column is not omitted from data files, and the Parquet writer has no NULL type.",
+        "An unknown column cannot be promoted to a concrete type with ALTER TABLE MODIFY COLUMN: the bundled Iceberg Java 1.11 does not allow promotions from unknown."
+      ],
+      "links": [
+        {
+          "label": "StarRocks 4.2 Iceberg type mapping (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/ColumnTypeConverter.java#L941-L963"
+        },
+        {
+          "label": "StarRocks PR #81257: unknown type reads as NULL",
+          "url": "https://github.com/StarRocks/starrocks/pull/81257"
+        }
+      ]
+    },
+    "starrocks:lineage:v2": {
+      "level": "none",
+      "notes": "Row Lineage is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "starrocks:lineage:v3": {
+      "level": "full",
+      "notes": "INSERT into a V3 table leaves _row_id null so rows inherit IDs from the manifest's first-row-id at commit, and rewrite_data_files copies _row_id and _last_updated_sequence_number into the rewritten files. Both are exposed as metadata columns.",
+      "caveats": [
+        "StarRocks 4.2 has no row-level DML on V3 tables, so the lineage of updated rows does not arise.",
+        "Lineage in rewrite_data_files is controlled by the session variable enable_iceberg_compaction_with_row_lineage (default true).",
+        "Queries that scan a data file with a deletion vector fail with \"Iceberg V3 Deletion Vectors are not supported\"."
+      ],
+      "links": [
+        {
+          "label": "StarRocks Iceberg V3 row lineage columns",
+          "url": "https://docs.starrocks.io/docs/data_source/catalog/iceberg/iceberg_meta_table/#iceberg-v3-row-lineage-metadata-columns"
+        },
+        {
+          "label": "StarRocks 4.2 rewrite_data_files row lineage (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/procedure/RewriteDataFilesProcedure.java#L142-L193"
+        }
+      ]
+    },
+    "starrocks:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "starrocks:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "StarRocks 4.2 neither writes nor reads deletion vectors.",
+      "caveats": [
+        "Queries that scan a data file with a deletion vector fail with \"Iceberg V3 Deletion Vectors are not supported\"."
+      ],
+      "links": [
+        {
+          "label": "StarRocks 4.2 deletion vector check (source)",
+          "url": "https://github.com/StarRocks/starrocks/blob/6f38a0413b5daaf74e44cb570d3610a924c9102b/fe/fe-core/src/main/java/com/starrocks/connector/iceberg/IcebergConnectorScanRangeSource.java#L323-L327"
+        }
+      ]
+    }
+  }
+}
