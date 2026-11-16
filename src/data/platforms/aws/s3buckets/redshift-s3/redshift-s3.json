@@ -224,23 +224,34 @@
       "caveats": []
     },
     "aws-redshift-s3:time-travel:v2": {
-      "level": "none",
-      "notes": "Redshift exposes only the current state of an Iceberg table. No time-travel syntax is accepted and no snapshot metadata table is queryable, so an older snapshot cannot be read.",
+      "level": "partial",
+      "notes": "Measured on Redshift Serverless 1.0.539507 (S3 buckets mode): AS OF TIMESTAMP reads past snapshots (patch 207+).",
       "caveats": [
-        "Five spellings were rejected, including FOR SYSTEM_TIME AS OF, FOR TIMESTAMP AS OF and FOR VERSION AS OF: syntax error at or near \"SYSTEM_TIME\"",
-        "Iceberg metadata tables such as $snapshots and $history are not exposed either"
+        "Timestamp only: snapshot IDs are not supported (AS OF VERSION is a syntax error; documented limitation)",
+        "Iceberg metadata tables such as $snapshots are not exposed",
+        "Not for snapshots whose schema has struct/array/map columns, Lake Formation-governed tables, or datashares"
       ],
       "links": [
         {
-          "label": "Querying Iceberg tables in Redshift",
-          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+          "label": "Time travel queries on Iceberg tables in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-time-travel.html"
         }
       ]
     },
     "aws-redshift-s3:time-travel:v3": {
-      "level": "none",
-      "notes": "Redshift does not support Iceberg V3",
-      "caveats": []
+      "level": "partial",
+      "notes": "Measured on Redshift Serverless 1.0.539507 (S3 buckets mode): AS OF TIMESTAMP reads past snapshots (patch 207+).",
+      "caveats": [
+        "Timestamp only: snapshot IDs are not supported (AS OF VERSION is a syntax error; documented limitation)",
+        "Iceberg metadata tables such as $snapshots are not exposed",
+        "Not for Lake Formation-governed tables or datashares"
+      ],
+      "links": [
+        {
+          "label": "Time travel queries on Iceberg tables in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-time-travel.html"
+        }
+      ]
     },
     "aws-redshift-s3:table-maintenance:v2": {
       "level": "partial",

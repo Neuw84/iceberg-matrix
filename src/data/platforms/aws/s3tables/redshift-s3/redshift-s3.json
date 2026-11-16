@@ -234,24 +234,36 @@
       ]
     },
     "aws-redshift-s3:time-travel:v2": {
-      "level": "none",
-      "notes": "Redshift exposes only the current state of an Iceberg table. No time-travel syntax is accepted and no snapshot metadata table is queryable, so an older snapshot cannot be read.",
+      "level": "partial",
+      "notes": "Measured on Redshift Serverless 1.0.539507 (S3 Tables mode, through a Glue resource link): AS OF TIMESTAMP reads past snapshots (patch 207+).",
       "caveats": [
-        "Five spellings were rejected, including FOR SYSTEM_TIME AS OF, FOR TIMESTAMP AS OF and FOR VERSION AS OF: syntax error at or near \"SYSTEM_TIME\"",
-        "Iceberg metadata tables such as $snapshots and $history are not exposed either"
+        "Timestamp only: snapshot IDs are not supported (AS OF VERSION is a syntax error; documented limitation)",
+        "Iceberg metadata tables such as $snapshots are not exposed",
+        "Not for snapshots whose schema has struct/array/map columns, Lake Formation-governed tables, or datashares",
+        "The docs list tables in s3tablescatalog as unsupported; measured working through a Glue resource link on a table bucket with no Lake Formation registration (IAM permissions only); not measured with Lake Formation access control or three-part notation"
       ],
       "links": [
         {
-          "label": "Querying Iceberg tables in Redshift",
-          "url": "https://docs.aws.amazon.com/redshift/latest/dg/querying-iceberg.html"
+          "label": "Time travel queries on Iceberg tables in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-time-travel.html"
         }
       ]
     },
     "aws-redshift-s3:time-travel:v3": {
-      "level": "none",
-      "notes": "Measured on Redshift Serverless 1.0.416217 (S3 Tables mode): Format-version 3 is not reachable through Redshift on S3 Tables: a CREATE TABLE requesting 'format-version'='3' is accepted without error and the stored table is format-version 2 (confirmed with SHOW TABLE), the same way PARTITIONED BY is accepted at CREATE and silently discarded. Redshift itself supports v3 -- see the S3 buckets mode.",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Measured on Redshift Serverless 1.0.539507 (S3 Tables mode, through a Glue resource link): AS OF TIMESTAMP reads past snapshots (patch 207+).",
+      "caveats": [
+        "Timestamp only: snapshot IDs are not supported (AS OF VERSION is a syntax error; documented limitation)",
+        "Iceberg metadata tables such as $snapshots are not exposed",
+        "Not for Lake Formation-governed tables or datashares",
+        "The docs list tables in s3tablescatalog as unsupported; measured working through a Glue resource link on a table bucket with no Lake Formation registration (IAM permissions only); not measured with Lake Formation access control or three-part notation",
+        "Measured on a table upgraded with ALTER TABLE ... SET TABLE PROPERTIES ('format-version'='3'); CREATE with format-version 3 still stores format-version 2"
+      ],
       "links": [
+        {
+          "label": "Time travel queries on Iceberg tables in Amazon Redshift",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-time-travel.html"
+        },
         {
           "label": "Iceberg v3 features in Amazon Redshift",
           "url": "https://docs.aws.amazon.com/redshift/latest/dg/iceberg-v3-features.html"
