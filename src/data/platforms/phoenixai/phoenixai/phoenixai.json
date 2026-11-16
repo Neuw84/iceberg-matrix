@@ -1,0 +1,855 @@
+{
+  "platforms": [
+    {
+      "id": "phoenixai",
+      "name": "PhoenixAI (26.2)",
+      "vendor": "PhoenixAI",
+      "category": "cloud",
+      "group": "3rd Party",
+      "docUrl": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/"
+    }
+  ],
+  "support": {
+    "phoenixai:position-deletes:v2": {
+      "level": "full",
+      "notes": "PhoenixAI 26.2 writes Parquet position delete files for DELETE, UPDATE and MERGE INTO on V2 tables and commits them in an Iceberg RowDelta. It also reads position deletes written by other engines.",
+      "caveats": [
+        "A DELETE whose predicate matches whole data files or partitions is committed as a metadata-only file removal instead."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DML: DELETE",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#delete"
+        },
+        {
+          "label": "PhoenixAI Iceberg DML: UPDATE",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#update"
+        },
+        {
+          "label": "PhoenixAI 26.2 release notes: Lakehouse",
+          "url": "https://docs.phoenixdata.ai/Cloud/releasenotes/kernel_release/version_26_2/#lakehouse"
+        }
+      ]
+    },
+    "phoenixai:position-deletes:v3": {
+      "level": "none",
+      "notes": "Not applicable to V3 writes: on V3 tables PhoenixAI 26.2 writes deletion vectors instead of position delete files, and it still reads position deletes inherited from V2.",
+      "caveats": [
+        "This write-rated feature is displayed only for V2."
+      ],
+      "links": [
+        {
+          "label": "Iceberg format specification",
+          "url": "https://iceberg.apache.org/spec/"
+        }
+      ]
+    },
+    "phoenixai:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Not supported as a write operation: PhoenixAI 26.2 DML writes position deletes. It reads equality delete files written by other engines.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: usage notes",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#usage-notes"
+        }
+      ]
+    },
+    "phoenixai:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Not supported as a write operation: PhoenixAI 26.2 DML writes deletion vectors on V3 tables, not equality delete files.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: usage notes",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#usage-notes"
+        }
+      ]
+    },
+    "phoenixai:merge-on-read:v2": {
+      "level": "full",
+      "notes": "DELETE, UPDATE and MERGE INTO all use merge-on-read on V2 tables: UPDATE and MERGE commit position delete files plus new data files in a single RowDelta. Reads apply position and equality deletes written by other engines.",
+      "caveats": [
+        "write.delete.mode, write.update.mode and write.merge.mode are not read; row-level DML always uses merge-on-read."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DML: UPDATE",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#update"
+        },
+        {
+          "label": "PhoenixAI Iceberg DML: MERGE INTO",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#merge-into"
+        },
+        {
+          "label": "PhoenixAI 26.2 release notes: Lakehouse",
+          "url": "https://docs.phoenixdata.ai/Cloud/releasenotes/kernel_release/version_26_2/#lakehouse"
+        }
+      ]
+    },
+    "phoenixai:merge-on-read:v3": {
+      "level": "partial",
+      "notes": "On V3 tables DELETE writes Puffin deletion vectors, but UPDATE and MERGE INTO are not supported.",
+      "caveats": [
+        "UPDATE and MERGE INTO are rejected on V3 tables (\"only supported for Iceberg V2 tables\")."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI 26.2 release notes: Lakehouse",
+          "url": "https://docs.phoenixdata.ai/Cloud/releasenotes/kernel_release/version_26_2/#lakehouse"
+        },
+        {
+          "label": "PhoenixAI Iceberg DML: UPDATE",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#update"
+        }
+      ]
+    },
+    "phoenixai:copy-on-write:v2": {
+      "level": "none",
+      "notes": "PhoenixAI 26.2 has no copy-on-write mode: DELETE, UPDATE and MERGE INTO write delete files and never rewrite existing data files, whatever write.*.mode is set to.",
+      "caveats": [
+        "A DELETE whose predicate matches whole data files or partitions is committed as a metadata-only file removal instead."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DML: UPDATE",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#update"
+        }
+      ]
+    },
+    "phoenixai:copy-on-write:v3": {
+      "level": "none",
+      "notes": "PhoenixAI 26.2 has no copy-on-write mode for V3 tables; DELETE writes deletion vectors.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI 26.2 release notes: Lakehouse",
+          "url": "https://docs.phoenixdata.ai/Cloud/releasenotes/kernel_release/version_26_2/#lakehouse"
+        }
+      ]
+    },
+    "phoenixai:schema-evolution:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE ADD COLUMN (with FIRST/AFTER), DROP COLUMN, RENAME COLUMN and MODIFY COLUMN are committed through Iceberg UpdateSchema without rewriting data files. Parquet columns are resolved by Iceberg field ID, so reads stay correct after renames and drops.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DDL: column definition and default values",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#column_definition"
+        }
+      ]
+    },
+    "phoenixai:schema-evolution:v3": {
+      "level": "full",
+      "notes": "The same ALTER TABLE operations work on V3 tables, and ADD COLUMN can also set a V3 default value.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DDL: column definition and default values",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#column_definition"
+        }
+      ]
+    },
+    "phoenixai:type-promotion:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE MODIFY COLUMN widens int to bigint, float to double and decimal precision as a metadata-only change; the Parquet reader converts values in files written before the promotion.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DDL: column definition and default values",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#column_definition"
+        }
+      ]
+    },
+    "phoenixai:type-promotion:v3": {
+      "level": "full",
+      "notes": "The same promotions as on V2 tables (int to bigint, float to double, decimal precision widening) work on V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DDL: column definition and default values",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#column_definition"
+        }
+      ]
+    },
+    "phoenixai:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "phoenixai:column-default-values:v3": {
+      "level": "full",
+      "notes": "CREATE TABLE and ALTER TABLE ADD COLUMN ... DEFAULT set initial-default and write-default, and MODIFY COLUMN ... DEFAULT changes write-default. Reads fill initial-default for files written before the column existed, and INSERT applies write-default when the column is omitted or set to DEFAULT.",
+      "caveats": [
+        "Only constant defaults on primitive types are accepted; expression defaults such as CURRENT_TIMESTAMP are rejected."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DDL: column definition and default values",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#column_definition"
+        },
+        {
+          "label": "PhoenixAI Iceberg DML: INSERT DEFAULT",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#default"
+        }
+      ]
+    },
+    "phoenixai:table-creation:v2": {
+      "level": "full",
+      "notes": "CREATE TABLE and CREATE TABLE AS SELECT create Iceberg tables in Hive Metastore, Glue, REST and JDBC catalogs, with PARTITION BY transforms, ORDER BY sort order, location and table properties. New tables default to format version 2.",
+      "caveats": [
+        "Writes Parquet data files only."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DDL: CREATE TABLE",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#create-table"
+        }
+      ]
+    },
+    "phoenixai:table-creation:v3": {
+      "level": "full",
+      "notes": "Setting the table property \"format-version\"=\"3\" creates a V3 table.",
+      "caveats": [
+        "Writes Parquet data files only."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DDL: CREATE TABLE",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#create-table"
+        },
+        {
+          "label": "PhoenixAI Iceberg DDL: column definition and default values",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#column_definition"
+        }
+      ]
+    },
+    "phoenixai:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "PARTITION BY accepts identity, year, month, day, hour, bucket and truncate transforms. INSERT computes the transforms on write, and scans prune manifests and files by projecting predicates through each partition spec.",
+      "caveats": [
+        "Identity partitions cannot use FLOAT, DOUBLE or complex-type columns."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DDL: partition_desc",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#partition_desc"
+        }
+      ]
+    },
+    "phoenixai:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "Same transforms and pruning on V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DDL: partition_desc",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#partition_desc"
+        }
+      ]
+    },
+    "phoenixai:partition-evolution:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE ADD PARTITION COLUMN, DROP PARTITION COLUMN and REPLACE PARTITION COLUMN ... WITH change the partition spec through Iceberg UpdatePartitionSpec without rewriting data. Scans handle files written under every historical spec.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DDL: evolve partition spec",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#alter-table-to-evolve-partition-spec"
+        }
+      ]
+    },
+    "phoenixai:partition-evolution:v3": {
+      "level": "full",
+      "notes": "Same partition evolution on V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DDL: evolve partition spec",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#alter-table-to-evolve-partition-spec"
+        }
+      ]
+    },
+    "phoenixai:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "phoenixai:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Not supported: partition DDL accepts single-column transforms only, and the bundled Iceberg Java 1.11 parses each partition field from a single source-id.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DDL: partition_desc",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DDL/#partition_desc"
+        }
+      ]
+    },
+    "phoenixai:time-travel:v2": {
+      "level": "full",
+      "notes": "SELECT ... FOR VERSION AS OF (snapshot ID, branch or tag) and FOR TIMESTAMP AS OF read historical snapshots with that snapshot's schema; rollback_to_snapshot restores one.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg time travel",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/iceberg_timetravel/#query-with-time-travel"
+        },
+        {
+          "label": "PhoenixAI Iceberg procedures: rollback_to_snapshot",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/procedures/#rollback-to-snapshot"
+        }
+      ]
+    },
+    "phoenixai:time-travel:v3": {
+      "level": "full",
+      "notes": "Same time travel on V3 tables, including snapshots that contain deletion vectors.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg time travel",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/iceberg_timetravel/#query-with-time-travel"
+        }
+      ]
+    },
+    "phoenixai:table-maintenance:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE ... EXECUTE runs expire_snapshots, remove_orphan_files, rewrite_manifests and rewrite_data_files (compaction), plus rollback, cherry-pick and fast-forward. Optional automatic maintenance, configured with catalog properties, runs snapshot expiry, orphan-file removal and manifest rewrites and records each run in information_schema.iceberg_maintenance_tasks.",
+      "caveats": [
+        "rewrite_data_files is bin-pack compaction only (no sort or z-order).",
+        "Automatic maintenance is off by default and does not compact data files."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg procedures: data maintenance",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/procedures/#data-maintenance"
+        },
+        {
+          "label": "PhoenixAI Iceberg procedures: metadata management",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/procedures/#metadata-management"
+        },
+        {
+          "label": "PhoenixAI information_schema.iceberg_maintenance_tasks",
+          "url": "https://docs.phoenixdata.ai/Cloud/sql-reference/information_schema/iceberg_maintenance_tasks/"
+        },
+        {
+          "label": "PhoenixAI 26.2 release notes: Lakehouse",
+          "url": "https://docs.phoenixdata.ai/Cloud/releasenotes/kernel_release/version_26_2/#lakehouse"
+        }
+      ]
+    },
+    "phoenixai:table-maintenance:v3": {
+      "level": "full",
+      "notes": "The same procedures and automatic maintenance work on V3 tables; rewrite_data_files preserves _row_id and _last_updated_sequence_number.",
+      "caveats": [
+        "rewrite_data_files is bin-pack compaction only (no sort or z-order)."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg procedures: data maintenance",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/procedures/#data-maintenance"
+        },
+        {
+          "label": "PhoenixAI Iceberg procedures: metadata management",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/procedures/#metadata-management"
+        },
+        {
+          "label": "PhoenixAI information_schema.iceberg_maintenance_tasks",
+          "url": "https://docs.phoenixdata.ai/Cloud/sql-reference/information_schema/iceberg_maintenance_tasks/"
+        }
+      ]
+    },
+    "phoenixai:branching-tagging:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE CREATE [OR REPLACE] BRANCH/TAG (with AS OF VERSION and retention) and DROP BRANCH/TAG manage refs; branches and tags are queried with FOR VERSION AS OF, INSERT can write to a branch, and fast_forward and cherrypick_snapshot are available.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg branches, tags and snapshots",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/iceberg_timetravel/#manage-branches-tags-and-snapshots"
+        },
+        {
+          "label": "PhoenixAI Iceberg procedures: branch management",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/procedures/#branch-management"
+        }
+      ]
+    },
+    "phoenixai:branching-tagging:v3": {
+      "level": "full",
+      "notes": "Same branch and tag management on V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg branches, tags and snapshots",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/iceberg_timetravel/#manage-branches-tags-and-snapshots"
+        }
+      ]
+    },
+    "phoenixai:read-support:v2": {
+      "level": "full",
+      "notes": "Reads Parquet and ORC data files with position and equality deletes, partition and manifest min/max pruning, column projection, and Parquet row-group, page-index and bloom-filter skipping. Scan planning runs on the coordinator by default (plan_mode = local) and can be distributed; metadata tables are supported.",
+      "caveats": [
+        "Avro data and delete files are not supported.",
+        "Encrypted tables are rejected.",
+        "Iceberg fixed(L) columns cannot be queried.",
+        "REST server-side scan planning is not used."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: usage notes",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#usage-notes"
+        },
+        {
+          "label": "PhoenixAI Iceberg metadata tables",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/iceberg_meta_table/"
+        },
+        {
+          "label": "PhoenixAI system variable plan_mode",
+          "url": "https://docs.phoenixdata.ai/Cloud/sql-reference/System_variable/#plan_mode"
+        }
+      ]
+    },
+    "phoenixai:read-support:v3": {
+      "level": "full",
+      "notes": "Reads V3 tables, including deletion vectors, the row-lineage columns and VARIANT.",
+      "caveats": [
+        "Columns of types PhoenixAI does not map (timestamp_ns, geometry, geography) cannot be queried; other columns stay readable.",
+        "Encrypted tables are rejected."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI 26.2 release notes: Lakehouse",
+          "url": "https://docs.phoenixdata.ai/Cloud/releasenotes/kernel_release/version_26_2/#lakehouse"
+        },
+        {
+          "label": "PhoenixAI Iceberg metadata tables",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/iceberg_meta_table/"
+        }
+      ]
+    },
+    "phoenixai:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO, INSERT OVERWRITE and CREATE TABLE AS SELECT write to Iceberg tables, including transform-partitioned tables, honoring identity sort orders.",
+      "caveats": [
+        "Writes Parquet data files only."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DML: INSERT",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#insert"
+        }
+      ]
+    },
+    "phoenixai:write-insert:v3": {
+      "level": "full",
+      "notes": "INSERT INTO, INSERT OVERWRITE and CTAS work on V3 tables; rows inherit row IDs at commit and write-defaults apply to omitted columns.",
+      "caveats": [
+        "Writes Parquet data files only."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DML: INSERT",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#insert"
+        }
+      ]
+    },
+    "phoenixai:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "PhoenixAI 26.2 supports DELETE, UPDATE and MERGE INTO (WHEN MATCHED UPDATE/DELETE, WHEN NOT MATCHED INSERT) on V2 tables, committed as Iceberg row deltas with conflict validation.",
+      "caveats": [
+        "UPDATE and MERGE INTO cannot assign partition columns.",
+        "DELETE and UPDATE require a WHERE clause.",
+        "UPDATE and MERGE INTO are documented for Parquet tables only; DELETE also works on ORC data files."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg DML: DELETE",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#delete"
+        },
+        {
+          "label": "PhoenixAI Iceberg DML: UPDATE",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#update"
+        },
+        {
+          "label": "PhoenixAI Iceberg DML: MERGE INTO",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#merge-into"
+        },
+        {
+          "label": "PhoenixAI 26.2 release notes: Lakehouse",
+          "url": "https://docs.phoenixdata.ai/Cloud/releasenotes/kernel_release/version_26_2/#lakehouse"
+        }
+      ]
+    },
+    "phoenixai:write-merge-update-delete:v3": {
+      "level": "partial",
+      "notes": "On V3 tables only DELETE is supported, and it writes deletion vectors.",
+      "caveats": [
+        "UPDATE and MERGE INTO are rejected on V3 tables (\"only supported for Iceberg V2 tables\")."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI 26.2 release notes: Lakehouse",
+          "url": "https://docs.phoenixdata.ai/Cloud/releasenotes/kernel_release/version_26_2/#lakehouse"
+        },
+        {
+          "label": "PhoenixAI Iceberg DML: UPDATE",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#update"
+        },
+        {
+          "label": "PhoenixAI Iceberg DML: MERGE INTO",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/DML/#merge-into"
+        }
+      ]
+    },
+    "phoenixai:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Iceberg catalogs of type hive (Hive Metastore), glue, rest and jdbc are supported, read and write; a jdbc catalog can share a catalog name created by other engines, and the code also accepts an undocumented hadoop type.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: MetastoreParams",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "phoenixai:catalog-integration:v3": {
+      "level": "full",
+      "notes": "The same catalog types work for V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: MetastoreParams",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "phoenixai:statistics:v2": {
+      "level": "full",
+      "notes": "The writer records column sizes, value counts, null counts and lower/upper bounds in manifests. Scans prune files with manifest metrics, MIN/MAX/COUNT over data files without delete files can be answered from metadata, Puffin NDV sketches are read, and Iceberg column min/max feed the optimizer.",
+      "caveats": [
+        "NaN counts are not written.",
+        "Manifest column statistics feed cost estimation only with enable_iceberg_column_statistics = true (default false).",
+        "Puffin statistics are read, not written."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI system variable enable_iceberg_column_statistics",
+          "url": "https://docs.phoenixdata.ai/Cloud/sql-reference/System_variable/#enable_iceberg_column_statistics"
+        },
+        {
+          "label": "PhoenixAI 26.2 release notes: Improvements",
+          "url": "https://docs.phoenixdata.ai/Cloud/releasenotes/kernel_release/version_26_2/#improvements"
+        }
+      ]
+    },
+    "phoenixai:statistics:v3": {
+      "level": "full",
+      "notes": "Same statistics on V3 tables.",
+      "caveats": [
+        "NaN counts are not written.",
+        "Manifest column statistics feed cost estimation only with enable_iceberg_column_statistics = true (default false).",
+        "Puffin statistics are read, not written."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI system variable enable_iceberg_column_statistics",
+          "url": "https://docs.phoenixdata.ai/Cloud/sql-reference/System_variable/#enable_iceberg_column_statistics"
+        }
+      ]
+    },
+    "phoenixai:bloom-filters:v2": {
+      "level": "partial",
+      "notes": "Reads Parquet bloom filters written by other engines to skip row groups (on by default). The Iceberg writer does not produce Parquet bloom filters, and Puffin bloom filters are neither read nor written.",
+      "caveats": [
+        "write.parquet.bloom-filter-enabled.column.* is ignored."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI system variable enable_parquet_reader_bloom_filter",
+          "url": "https://docs.phoenixdata.ai/Cloud/sql-reference/System_variable/#enable_parquet_reader_bloom_filter"
+        }
+      ]
+    },
+    "phoenixai:bloom-filters:v3": {
+      "level": "partial",
+      "notes": "Same as V2: Parquet bloom filters are read, not written.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI system variable enable_parquet_reader_bloom_filter",
+          "url": "https://docs.phoenixdata.ai/Cloud/sql-reference/System_variable/#enable_parquet_reader_bloom_filter"
+        }
+      ]
+    },
+    "phoenixai:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "iceberg.catalog.type = glue uses Iceberg's GlueCatalog with instance profile, assumed role or IAM keys (cross-account via catalog ID), for reads, CREATE/DROP database and table, and INSERT. The Glue Iceberg REST endpoint for S3 Tables works through the REST catalog with SigV4.",
+      "caveats": [
+        "Iceberg views are not supported on Glue."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: MetastoreParams",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#metastoreparams"
+        },
+        {
+          "label": "PhoenixAI Iceberg REST catalog for AWS S3 Tables",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/iceberg_rest_s3/"
+        }
+      ]
+    },
+    "phoenixai:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "The Glue catalog works for V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: MetastoreParams",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "phoenixai:rest-catalog:v2": {
+      "level": "full",
+      "notes": "The REST catalog supports OAuth2 (token or client credentials), per-user JWT pass-through and SigV4, vended credentials for S3, ADLS and GCS (on by default), nested namespaces, Iceberg views and register table, for both reads and writes.",
+      "caveats": [
+        "REST server-side scan planning is not used.",
+        "Nested namespaces are off by default."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: MetastoreParams",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#metastoreparams"
+        },
+        {
+          "label": "PhoenixAI Iceberg REST catalog security",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/iceberg_rest_security/"
+        },
+        {
+          "label": "PhoenixAI Iceberg REST catalog for AWS S3 Tables",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/iceberg_rest_s3/"
+        }
+      ]
+    },
+    "phoenixai:rest-catalog:v3": {
+      "level": "full",
+      "notes": "The REST catalog works for V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: MetastoreParams",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "phoenixai:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "PhoenixAI documents an Iceberg catalog for Databricks Unity Catalog through its generic Iceberg REST catalog client (personal access token or service-principal OAuth2 client credentials, vended credentials for S3, ADLS and GCS), and lists Unity Catalog managed Iceberg tables as supported for querying. Writing through Unity Catalog is not documented or tested end to end.",
+      "caveats": [
+        "Only querying is documented."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Databricks Unity Catalog: create an Iceberg catalog",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/databricks_unity_catalog/#create-an-iceberg-catalog-for-databricks-unity-catalog"
+        },
+        {
+          "label": "PhoenixAI Databricks Unity Catalog: limitations",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/databricks_unity_catalog/#limitations"
+        }
+      ]
+    },
+    "phoenixai:unity-catalog:v3": {
+      "level": "partial",
+      "notes": "PhoenixAI documents an Iceberg catalog for Databricks Unity Catalog through its generic Iceberg REST catalog client (personal access token or service-principal OAuth2 client credentials, vended credentials for S3, ADLS and GCS), and lists Unity Catalog managed Iceberg tables as supported for querying. Writing through Unity Catalog is not documented or tested end to end.",
+      "caveats": [
+        "Only querying is documented."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Databricks Unity Catalog: create an Iceberg catalog",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/databricks_unity_catalog/#create-an-iceberg-catalog-for-databricks-unity-catalog"
+        },
+        {
+          "label": "PhoenixAI Databricks Unity Catalog: limitations",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/databricks_unity_catalog/#limitations"
+        }
+      ]
+    },
+    "phoenixai:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "PhoenixAI connects through its generic Iceberg REST catalog client (OAuth2 bearer token or client credentials, vended credentials for S3, ADLS and GCS); this provider pairing is not documented or tested end to end.",
+      "caveats": [
+        "The docs give an Apache Polaris example; there is no Snowflake-specific authentication or documentation."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: MetastoreParams",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "phoenixai:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "PhoenixAI connects through its generic Iceberg REST catalog client (OAuth2 bearer token or client credentials, vended credentials for S3, ADLS and GCS); this provider pairing is not documented or tested end to end.",
+      "caveats": [
+        "No Snowflake-specific authentication or documentation."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: MetastoreParams",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "phoenixai:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "PhoenixAI connects through its generic Iceberg REST catalog client (OAuth2 bearer token or client credentials, vended credentials for S3, ADLS and GCS); this provider pairing is not documented or tested end to end.",
+      "caveats": [
+        "Iceberg's Google auth manager (iceberg-gcp) is not bundled, so only a static OAuth2 bearer token can be used, without ADC refresh."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: MetastoreParams",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "phoenixai:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "PhoenixAI connects through its generic Iceberg REST catalog client (OAuth2 bearer token or client credentials, vended credentials for S3, ADLS and GCS); this provider pairing is not documented or tested end to end.",
+      "caveats": [
+        "Iceberg's Google auth manager (iceberg-gcp) is not bundled, so only a static OAuth2 bearer token can be used, without ADC refresh."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg catalog: MetastoreParams",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/#metastoreparams"
+        }
+      ]
+    },
+    "phoenixai:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "phoenixai:variant-type:v3": {
+      "level": "full",
+      "notes": "PhoenixAI 26.2 maps Iceberg VARIANT to its VARIANT type, reads unshredded Parquet variant values (shredded reads are rated in their own row), and writes unshredded variant values through CREATE TABLE and INSERT on format-version 3 tables.",
+      "caveats": [
+        "Parquet only; writes are always unshredded.",
+        "CREATE TABLE needs 'format-version'='3' (the default is 2); creating a VARIANT column through a Hive Metastore catalog is not supported."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI 26.2 release notes: Lakehouse",
+          "url": "https://docs.phoenixdata.ai/Cloud/releasenotes/kernel_release/version_26_2/#lakehouse"
+        },
+        {
+          "label": "PhoenixAI VARIANT type",
+          "url": "https://docs.phoenixdata.ai/Cloud/sql-reference/data-types/semi_structured/VARIANT/"
+        }
+      ]
+    },
+    "phoenixai:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "phoenixai:shredded-variant:v3": {
+      "level": "partial",
+      "notes": "PhoenixAI 26.2 reads shredded variant Parquet files, rebuilding values from the typed_value columns over the residual value, with path-aware pruning and predicate pushdown on the shredded columns. It does not write shredded variant.",
+      "caveats": [
+        "Read-only: writes are always unshredded."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI 26.2 release notes: Lakehouse",
+          "url": "https://docs.phoenixdata.ai/Cloud/releasenotes/kernel_release/version_26_2/#lakehouse"
+        }
+      ]
+    },
+    "phoenixai:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry types are a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "phoenixai:geometry-type:v3": {
+      "level": "none",
+      "notes": "Iceberg geometry and geography columns are not supported, and PhoenixAI SQL has no column type to create or write them. Columns of this type map to PhoenixAI's unsupported type: the table loads and other columns stay queryable, but any query that references the column, including SELECT *, fails with \"Datatype of external table column [...] is not supported!\".",
+      "caveats": [],
+      "links": []
+    },
+    "phoenixai:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "phoenixai:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Iceberg timestamp_ns and timestamptz_ns columns are not supported; PhoenixAI DATETIME has microsecond precision. Columns of this type map to PhoenixAI's unsupported type: the table loads and other columns stay queryable, but any query that references the column, including SELECT *, fails with \"Datatype of external table column [...] is not supported!\".",
+      "caveats": [],
+      "links": []
+    },
+    "phoenixai:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "phoenixai:unknown-type:v3": {
+      "level": "partial",
+      "notes": "Read-only: PhoenixAI 26.2 reads Iceberg unknown columns, top-level or nested, as NULL, but it cannot declare, write or promote them.",
+      "caveats": [
+        "Unknown-typed columns cannot be declared from PhoenixAI SQL.",
+        "INSERT, UPDATE and MERGE INTO into a table with an unknown column are not supported: the column is not omitted from data files, and the Parquet writer has no NULL type.",
+        "An unknown column cannot be promoted to a concrete type with ALTER TABLE MODIFY COLUMN: the bundled Iceberg Java 1.11 does not allow promotions from unknown."
+      ],
+      "links": []
+    },
+    "phoenixai:lineage:v2": {
+      "level": "none",
+      "notes": "Row Lineage is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "phoenixai:lineage:v3": {
+      "level": "full",
+      "notes": "INSERT into a V3 table leaves _row_id null so rows inherit IDs from the manifest's first-row-id at commit, rewrite_data_files copies _row_id and _last_updated_sequence_number into the rewritten files, and DELETE writes deletion vectors without rewriting rows. Both are exposed as metadata columns.",
+      "caveats": [
+        "UPDATE and MERGE INTO are not supported on V3 tables, so the lineage of updated rows does not arise."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI Iceberg V3 row lineage columns",
+          "url": "https://docs.phoenixdata.ai/Cloud/data_source/catalog/iceberg/iceberg_meta_table/#iceberg-v3-row-lineage-metadata-columns"
+        }
+      ]
+    },
+    "phoenixai:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to Iceberg V2",
+      "caveats": [],
+      "links": []
+    },
+    "phoenixai:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "PhoenixAI 26.2 DELETE writes Puffin deletion vectors on V3 tables, one per data file, merging the file's existing position deletes or deletion vector into the new one. It also reads deletion vectors written by other engines.",
+      "caveats": [
+        "DELETE is the only statement that writes them; UPDATE and MERGE INTO are rejected on V3 tables (\"only supported for Iceberg V2 tables\")."
+      ],
+      "links": [
+        {
+          "label": "PhoenixAI 26.2 release notes: Lakehouse",
+          "url": "https://docs.phoenixdata.ai/Cloud/releasenotes/kernel_release/version_26_2/#lakehouse"
+        }
+      ]
+    }
+  }
+}
