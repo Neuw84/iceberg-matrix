@@ -6,6 +6,7 @@ import type {
   FilterState,
   Platform,
   SnowflakeStorageMode,
+  BigQueryTableMode,
 } from "../types";
 import { applyFilters } from "../utils/filters";
 import { getSupportEntry } from "../utils/support";
@@ -27,6 +28,8 @@ interface MobileMatrixProps {
   onAwsS3ModeChange?: (mode: AwsS3Mode) => void;
   snowflakeMode?: SnowflakeStorageMode;
   onSnowflakeModeChange?: (mode: SnowflakeStorageMode) => void;
+  bigqueryMode?: BigQueryTableMode;
+  onBigqueryModeChange?: (mode: BigQueryTableMode) => void;
 }
 
 interface PopoverState {
@@ -51,6 +54,8 @@ export function MobileMatrix({
   onAwsS3ModeChange,
   snowflakeMode,
   onSnowflakeModeChange,
+  bigqueryMode,
+  onBigqueryModeChange,
 }: MobileMatrixProps) {
   const { platforms, features } = useMemo(() => applyFilters(data, filters), [data, filters]);
   // Default to the first two platforms when the filters (or a shared link)
@@ -129,6 +134,14 @@ export function MobileMatrix({
             options={[["snowflake", "Managed"], ["external", "External"]]}
             value={snowflakeMode}
             onChange={onSnowflakeModeChange}
+          />
+        )}
+        {shown.some((p) => p.id === "google-bigquery") && bigqueryMode && onBigqueryModeChange && (
+          <StorageSwitch
+            label="BigQuery tables"
+            options={[["managed", "Managed"], ["lakehouse", "Lakehouse"]]}
+            value={bigqueryMode}
+            onChange={onBigqueryModeChange}
           />
         )}
       </div>

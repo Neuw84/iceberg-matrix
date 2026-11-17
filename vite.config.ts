@@ -62,6 +62,12 @@ export default defineConfig({
           ) {
             return 'data-snowflake-external';
           }
+          if (
+            id.includes('/src/data/engine-variants/bigquery-lakehouse') ||
+            id.includes('/platforms/gcp/lakehouse/')
+          ) {
+            return 'data-bigquery-lakehouse';
+          }
           if (id.includes('/src/data/')) return 'matrix-data';
           if (id.includes('node_modules/react')) return 'react-vendor';
         },

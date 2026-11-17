@@ -1,0 +1,16 @@
+{
+  "rule": [
+    {
+      "action": { "type": "Delete" },
+      "condition": { "age": 7, "matchesPrefix": ["managed/", "spark/", "logs/"] }
+    },
+    {
+      "action": { "type": "Delete" },
+      "condition": { "age": 30, "matchesPrefix": ["reports/"] }
+    },
+    {
+      "action": { "type": "AbortIncompleteMultipartUpload" },
+      "condition": { "age": 1 }
+    }
+  ]
+}

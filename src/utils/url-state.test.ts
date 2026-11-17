@@ -18,7 +18,7 @@ describe("parseUrlState", () => {
 
   it("reads view, filters and storage modes", () => {
     expect(
-      parseUrlState("?p=duckdb,trino&v=v3&cat=partitioning&s=full,none&q=bloom&aws=s3-tables&sf=external"),
+      parseUrlState("?p=duckdb,trino&v=v3&cat=partitioning&s=full,none&q=bloom&aws=s3-tables&sf=external&bq=lakehouse"),
     ).toEqual({
       view: "engines",
       filters: {
@@ -30,6 +30,7 @@ describe("parseUrlState", () => {
       },
       awsS3Mode: "s3-tables",
       snowflakeMode: "external",
+      bigqueryMode: "lakehouse",
     });
   });
 
@@ -48,6 +49,7 @@ describe("parseUrlState", () => {
       filters: {},
     });
     expect(parseUrlState("?view=ingestion&sf=external").snowflakeMode).toBeUndefined();
+    expect(parseUrlState("?view=ingestion&bq=lakehouse").bigqueryMode).toBeUndefined();
   });
 });
 
@@ -69,5 +71,14 @@ describe("toUrlSearch", () => {
     const parsed = parseUrlState(search);
     expect({ ...engineDefaults, ...parsed.filters }).toEqual(filters);
     expect(parsed.awsS3Mode).toBe("s3-tables");
+  });
+
+  it("writes the BigQuery table type only when it is not the default", () => {
+    expect(
+      toUrlSearch("engines", engineDefaults, engineDefaults, "s3-buckets", "snowflake", "managed"),
+    ).toBe("");
+    const search = toUrlSearch("engines", engineDefaults, engineDefaults, "s3-buckets", "snowflake", "lakehouse");
+    expect(search).toBe("?bq=lakehouse");
+    expect(parseUrlState(search).bigqueryMode).toBe("lakehouse");
   });
 });

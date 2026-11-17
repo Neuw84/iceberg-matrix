@@ -1,5 +1,6 @@
 import type {
   AwsS3Mode,
+  BigQueryTableMode,
   FeatureCategory,
   FilterState,
   SnowflakeStorageMode,
@@ -19,6 +20,7 @@ export interface UrlState {
   filters: Partial<FilterState>;
   awsS3Mode?: AwsS3Mode;
   snowflakeMode?: SnowflakeStorageMode;
+  bigqueryMode?: BigQueryTableMode;
 }
 
 const VIEWS: ViewMode[] = ["engines", "ingestion", "catalogs"];
@@ -66,6 +68,7 @@ export function parseUrlState(search: string): UrlState {
   if (view === "engines") {
     if (params.get("aws") === "s3-tables") state.awsS3Mode = "s3-tables";
     if (params.get("sf") === "external") state.snowflakeMode = "external";
+    if (params.get("bq") === "lakehouse") state.bigqueryMode = "lakehouse";
   }
   return state;
 }
@@ -77,6 +80,7 @@ export function toUrlSearch(
   defaults: FilterState,
   awsS3Mode: AwsS3Mode,
   snowflakeMode: SnowflakeStorageMode,
+  bigqueryMode: BigQueryTableMode = "managed",
 ): string {
   const params = new URLSearchParams();
   if (view !== "engines") params.set("view", view);
@@ -93,6 +97,7 @@ export function toUrlSearch(
   if (view === "engines") {
     if (awsS3Mode === "s3-tables") params.set("aws", "s3-tables");
     if (snowflakeMode === "external") params.set("sf", "external");
+    if (bigqueryMode === "lakehouse") params.set("bq", "lakehouse");
   }
   // Ids are plain [a-z0-9-], so keep the commas readable instead of %2C.
   const search = params.toString().replace(/%2C/g, ",");

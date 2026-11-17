@@ -1,0 +1,836 @@
+{
+  "platforms": [
+    {
+      "id": "google-bigquery",
+      "name": "BigQuery",
+      "vendor": "Google",
+      "category": "cloud",
+      "group": "GCP",
+      "docUrl": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+    }
+  ],
+  "support": {
+    "google-bigquery:position-deletes:v2": {
+      "level": "none",
+      "notes": "BigQuery DML never writes position deletes: DELETE and UPDATE rewrite the affected data files (copy-on-write).",
+      "caveats": [
+        "Measured: after DELETE and UPDATE the manifests held data files only",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:position-deletes:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:equality-deletes:v2": {
+      "level": "none",
+      "notes": "BigQuery DML never writes equality deletes; all row-level changes are copy-on-write.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:merge-on-read:v2": {
+      "level": "none",
+      "notes": "BigQuery DML is copy-on-write only and no option selects merge-on-read.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:copy-on-write:v2": {
+      "level": "full",
+      "notes": "DELETE and UPDATE rewrite data files and commit no delete files.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:schema-evolution:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE ADD COLUMN, RENAME COLUMN and DROP COLUMN all apply, and the exported Iceberg schema keeps field ids across the rename.",
+      "caveats": [
+        "BIGNUMERIC, INTERVAL, JSON and RANGE columns are not supported",
+        "Adding nested fields to an existing RECORD via DDL is not supported",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:type-promotion:v2": {
+      "level": "partial",
+      "notes": "Decimal widening (NUMERIC(10,2) to NUMERIC(12,2)) applies through ALTER COLUMN SET DATA TYPE. BigQuery has only 64-bit INT64 and FLOAT64, so int-to-long and float-to-double never arise on a table BigQuery created.",
+      "caveats": [
+        "NUMERIC to FLOAT and INT to FLOAT coercions are not supported",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:type-promotion:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:column-default-values:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:table-creation:v2": {
+      "level": "full",
+      "notes": "CREATE TABLE ... WITH CONNECTION ... OPTIONS (file_format='PARQUET', table_format='ICEBERG', storage_uri=...) creates a format-version 2 Iceberg table in a BigQuery dataset, with data in a Cloud Storage bucket you own.",
+      "caveats": [
+        "Needs a Cloud resource connection whose service account can write the bucket",
+        "Rename, copy, clone and snapshot are not supported",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:table-creation:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "PARTITION BY DATE(ts) or TIMESTAMP_TRUNC(ts, HOUR/MONTH/YEAR) creates the Iceberg hour, day, month and year transforms, and queries prune on them. There is no identity, bucket or truncate partitioning.",
+      "caveats": [
+        "Integer-range partitioning is refused: 'BigLake tables only support time-unit column partitioning'",
+        "Only DATE, DATETIME and TIMESTAMP partition columns",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:partition-evolution:v2": {
+      "level": "none",
+      "notes": "No DDL changes a partition spec, and CREATE OR REPLACE with a different spec is refused.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:time-travel:v2": {
+      "level": "full",
+      "notes": "FOR SYSTEM_TIME AS OF returns earlier table states in BigQuery.",
+      "caveats": [
+        "BigQuery's own time travel: the exported Iceberg metadata keeps only the current snapshot, so other engines cannot time travel",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:time-travel:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:table-maintenance:v2": {
+      "level": "full",
+      "notes": "BigQuery compacts, re-clusters and garbage-collects managed tables automatically in the background.",
+      "caveats": [
+        "Not configurable and not observable in a short test; documented behaviour"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:branching-tagging:v2": {
+      "level": "none",
+      "notes": "BigQuery SQL has no branch or tag DDL (ALTER TABLE ... CREATE BRANCH is a syntax error) and no syntax to read a ref.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:read-support:v2": {
+      "level": "full",
+      "notes": "BigQuery reads its managed Iceberg tables natively. Other engines read them through the Iceberg metadata BigQuery exports to the bucket (EXPORT TABLE METADATA, refreshed automatically).",
+      "caveats": [
+        "Other engines get read-only access through the exported metadata",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:read-support:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT ... VALUES and INSERT ... SELECT write Iceberg data files. LOAD DATA and the Storage Write API (streaming) also write managed tables.",
+      "caveats": [
+        "Only BigQuery may write these tables; files changed by other engines can cause data loss",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:write-insert:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "UPDATE, DELETE and MERGE all apply through GoogleSQL DML (GA).",
+      "caveats": [
+        "Only one mutating DML statement runs per table at a time; others queue",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Tables live in a BigQuery dataset, which is BigQuery's catalog; their Iceberg metadata is exported to storage so other engines can register and read them.",
+      "caveats": [
+        "No Iceberg REST endpoint serves managed tables: other engines read the exported metadata files",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:statistics:v2": {
+      "level": "full",
+      "notes": "Every data file BigQuery writes carries Iceberg column bounds and value counts in its manifest entry.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:statistics:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:bloom-filters:v2": {
+      "level": "none",
+      "notes": "BigQuery-written Parquet files carry no bloom filters, and no table option requests them.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:aws-glue-catalog:v2": {
+      "level": "partial",
+      "notes": "Reachable through borderless Lakehouse cross-cloud federation (Preview since June 5, 2026): AWS Glue is federated into the Lakehouse runtime catalog over the Iceberg REST catalog protocol, and BigQuery or Spark query the synchronized tables directly without copying data, optionally over a private Cross-Cloud Interconnect to S3. This is a federation/query path, not native Glue catalog support.",
+      "caveats": [
+        "Preview (borderless Lakehouse / cross-cloud Lakehouse); not yet GA",
+        "Read/query path: federated catalogs are synchronized into the Lakehouse runtime catalog and queried from BigQuery; writing back to the remote catalog is not part of this",
+        "Documented capability; not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "About borderless Lakehouse (cross-cloud data access)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/about-borderless-lakehouse"
+        },
+        {
+          "label": "Introducing the borderless Lakehouse",
+          "url": "https://cloud.google.com/blog/products/data-analytics/introducing-the-borderless-lakehouse"
+        },
+        {
+          "label": "Set up cross-cloud Lakehouse for AWS Glue",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/set-up-cross-cloud-connection-aws-glue"
+        }
+      ]
+    },
+    "google-bigquery:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support AWS Glue Catalog",
+      "caveats": [
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:rest-catalog:v2": {
+      "level": "partial",
+      "notes": "The Lakehouse runtime catalog (formerly BigLake metastore; renamed April 20, 2026) exposes a Google-managed Iceberg REST catalog as the recommended path for new workloads. Apache Iceberg V2 tables in the runtime catalog are GA (V1 unsupported, V3 Preview): open-source engines (Spark, Flink, Trino) read and write them at GA level, including streaming writes, and since June 25, 2026 BigQuery runs SQL DDL and DML (INSERT, UPDATE, DELETE, MERGE) against them in Preview, with opt-in automatic table management (compaction, garbage collection) and credential vending for storage access.",
+      "caveats": [
+        "BigQuery DML/DDL against runtime-catalog Iceberg tables is Preview, not GA",
+        "gcloud command group still named biglake despite the Lakehouse rename",
+        "Documented capability; write path not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "Use the BigLake metastore Iceberg REST catalog",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        },
+        {
+          "label": "Lakehouse release notes (BigQuery writes for Iceberg REST catalog tables, June 25, 2026)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/release-notes"
+        },
+        {
+          "label": "Compare table types (Lakehouse)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
+        }
+      ]
+    },
+    "google-bigquery:rest-catalog:v3": {
+      "level": "partial",
+      "notes": "The Lakehouse runtime catalog supports Apache Iceberg V3 tables with binary deletion vectors (Preview since June 11, 2026), served over its Iceberg REST catalog interface to BigQuery and open-source engines. V3 support is Preview, not GA.",
+      "caveats": [
+        "Iceberg V3 in the runtime catalog is Preview",
+        "Documented capability; not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "Use binary deletion vectors in Iceberg V3 tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        },
+        {
+          "label": "Lakehouse release notes (Iceberg V3 with BDV, June 11, 2026)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/release-notes"
+        }
+      ]
+    },
+    "google-bigquery:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Reachable through borderless Lakehouse cross-cloud federation (Preview since April 2026): Databricks Unity Catalog (on AWS or Google Cloud) is federated into the Lakehouse runtime catalog over the Iceberg REST catalog protocol, and BigQuery or Spark query the synchronized tables directly without copying data. Authentication via Secret Manager OAuth or OIDC token federation; optional private Cross-Cloud Interconnect transport and intelligent caching (Preview) reduce egress. This is a federation/query path, not native Unity Catalog support.",
+      "caveats": [
+        "Preview (borderless Lakehouse / cross-cloud Lakehouse); not yet GA",
+        "Read/query path: federated catalogs are synchronized into the Lakehouse runtime catalog and queried from BigQuery; writing back to the remote catalog is not part of this",
+        "Documented capability; not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "About borderless Lakehouse (cross-cloud data access)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/about-borderless-lakehouse"
+        },
+        {
+          "label": "Introducing the borderless Lakehouse",
+          "url": "https://cloud.google.com/blog/products/data-analytics/introducing-the-borderless-lakehouse"
+        },
+        {
+          "label": "Set up cross-cloud Lakehouse for Databricks Unity Catalog",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/set-up-cross-cloud-connection-databricks"
+        }
+      ]
+    },
+    "google-bigquery:unity-catalog:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support Unity Catalog",
+      "caveats": [
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Reachable through borderless Lakehouse cross-cloud federation (Preview since July 13, 2026): Snowflake Horizon Catalog (on AWS or Google Cloud) is federated into the Lakehouse runtime catalog over the Iceberg REST catalog protocol, and BigQuery or Spark query the synchronized tables directly without copying data. This is a federation/query path, not native Horizon support.",
+      "caveats": [
+        "Preview (borderless Lakehouse / cross-cloud Lakehouse); not yet GA",
+        "Read/query path: federated catalogs are synchronized into the Lakehouse runtime catalog and queried from BigQuery; writing back to the remote catalog is not part of this",
+        "Documented capability; not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "About borderless Lakehouse (cross-cloud data access)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/about-borderless-lakehouse"
+        },
+        {
+          "label": "Introducing the borderless Lakehouse",
+          "url": "https://cloud.google.com/blog/products/data-analytics/introducing-the-borderless-lakehouse"
+        },
+        {
+          "label": "Set up cross-cloud Lakehouse for Snowflake Horizon Catalog",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/set-up-cross-cloud-connection-snowflake"
+        }
+      ]
+    },
+    "google-bigquery:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support external REST catalogs.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:google-lakehouse:v2": {
+      "level": "full",
+      "notes": "Google's own engine on the Lakehouse runtime catalog: Iceberg v2 tables are GA over the Iceberg REST endpoint and BigQuery reads and writes them.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse Iceberg tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
+        }
+      ]
+    },
+    "google-bigquery:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "BigQuery reads and writes v3 tables in the Lakehouse runtime catalog but cannot create them.",
+      "caveats": [
+        "V3 is Preview",
+        "BigQuery DDL cannot create a v3 table; Spark, Flink or Trino must create it",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:variant-type:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:geometry-type:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:unknown-type:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:lineage:v2": {
+      "level": "none",
+      "notes": "Row lineage is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:lineage:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Apache Iceberg managed tables are always format-version 2: BigQuery DDL has no way to ask for v3 (properties.format-version is an unknown option), and only BigQuery writes these tables. Switch to Lakehouse for BigQuery on v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (managed mode)"
+      ],
+      "links": [
+        {
+          "label": "Apache Iceberg managed tables",
+          "url": "https://docs.cloud.google.com/bigquery/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    }
+  }
+}

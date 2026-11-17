@@ -2,6 +2,7 @@ import { Fragment, useState, useMemo, useCallback, lazy, Suspense } from "react"
 import type { KeyboardEvent } from "react";
 import type {
   AwsS3Mode,
+  BigQueryTableMode,
   SnowflakeStorageMode,
   CompatibilityData,
   Feature,
@@ -103,6 +104,12 @@ interface CompatibilityMatrixProps {
    */
   snowflakeMode?: SnowflakeStorageMode;
   onSnowflakeModeChange?: (mode: SnowflakeStorageMode) => void;
+  /**
+   * The BigQuery table-type switch (Iceberg managed tables vs Lakehouse runtime
+   * catalog tables), shown in the GCP group header while BigQuery is shown.
+   */
+  bigqueryMode?: BigQueryTableMode;
+  onBigqueryModeChange?: (mode: BigQueryTableMode) => void;
 }
 
 export function CompatibilityMatrix({
@@ -112,6 +119,8 @@ export function CompatibilityMatrix({
   onAwsS3ModeChange,
   snowflakeMode,
   onSnowflakeModeChange,
+  bigqueryMode,
+  onBigqueryModeChange,
 }: CompatibilityMatrixProps) {
   const [popover, setPopover] = useState<PopoverState | null>(null);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<FeatureCategory>>(new Set());
@@ -200,6 +209,9 @@ export function CompatibilityMatrix({
   // Check if any AWS platform is visible
   const hasAwsPlatforms = platformGroups.some((pg) => pg.group === "AWS");
   const hasSnowflakePlatforms = platformGroups.some((pg) => pg.group === "Snowflake");
+  // The GCP group also holds Managed Spark, so key the BigQuery pill on the
+  // BigQuery column itself, not on the group.
+  const hasBigQuery = platforms.some((p) => p.id === "google-bigquery");
 
   // Stable callbacks so memoized FeatureRow instances don't re-render when only
   // the popover (matrix-level state) changes.
@@ -333,6 +345,22 @@ export function CompatibilityMatrix({
                         <span className={snowflakeMode === "snowflake" ? "font-bold" : "font-normal opacity-60"}>Snowflake</span>
                         <span className="text-cyan-300">/</span>
                         <span className={snowflakeMode === "external" ? "font-bold" : "font-normal opacity-60"}>External</span>
+                      </button>
+                    )}
+                    {pg.group === "GCP" && hasBigQuery && bigqueryMode && onBigqueryModeChange && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onBigqueryModeChange(bigqueryMode === "managed" ? "lakehouse" : "managed");
+                        }}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold cursor-pointer transition-colors border border-blue-300 bg-white text-blue-700 hover:bg-blue-200 normal-case tracking-normal"
+                        aria-label={`Switch BigQuery to ${bigqueryMode === "managed" ? "Lakehouse" : "Managed"} tables`}
+                        title={`BigQuery column: currently showing ${bigqueryMode === "managed" ? "Apache Iceberg managed tables (BigQuery dataset)" : "Lakehouse runtime catalog tables (Iceberg REST)"}. Click to switch.`}
+                      >
+                        <span className={bigqueryMode === "managed" ? "font-bold" : "font-normal opacity-60"}>Managed</span>
+                        <span className="text-blue-300">/</span>
+                        <span className={bigqueryMode === "lakehouse" ? "font-bold" : "font-normal opacity-60"}>Lakehouse</span>
                       </button>
                     )}
                   </div>

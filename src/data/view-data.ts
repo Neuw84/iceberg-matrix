@@ -1,15 +1,23 @@
-import type { AwsS3Mode, CompatibilityData, SnowflakeStorageMode, ViewMode } from "../types";
+import type {
+  AwsS3Mode,
+  BigQueryTableMode,
+  CompatibilityData,
+  SnowflakeStorageMode,
+  ViewMode,
+} from "../types";
 import { loadEngineData, peekEngineData } from "./load-data";
 
 // One entry point for "the dataset behind a view". The default engines dataset
 // is bundled with the app and is always ready. Everything else (Catalogs,
-// Ingestion, the S3 Tables and Snowflake external engine variants) is a separate
+// Ingestion, the S3 Tables, Snowflake external and BigQuery Lakehouse engine
+// variants) is a separate
 // chunk fetched on first use, so a visitor who never opens it never downloads it.
 
 interface ViewSelection {
   view: ViewMode;
   awsS3Mode: AwsS3Mode;
   snowflakeMode: SnowflakeStorageMode;
+  bigqueryMode: BigQueryTableMode;
 }
 
 let catalogs: CompatibilityData | undefined;
@@ -43,7 +51,7 @@ function loadIngestion(): Promise<CompatibilityData> {
 }
 
 /** The dataset for a selection if it is already loaded, else undefined. */
-export function peekViewData({ view, awsS3Mode, snowflakeMode }: ViewSelection):
+export function peekViewData({ view, awsS3Mode, snowflakeMode, bigqueryMode }: ViewSelection):
   | CompatibilityData
   | undefined {
   const found =
@@ -51,7 +59,7 @@ export function peekViewData({ view, awsS3Mode, snowflakeMode }: ViewSelection):
       ? catalogs
       : view === "ingestion"
         ? ingestion
-        : peekEngineData(awsS3Mode, snowflakeMode);
+        : peekEngineData(awsS3Mode, snowflakeMode, bigqueryMode);
   if (found) latest.set(view, found);
   return found;
 }
@@ -62,13 +70,18 @@ export function lastViewData(view: ViewMode): CompatibilityData | undefined {
 }
 
 /** Load (once) and return the dataset for a selection. */
-export function loadViewData({ view, awsS3Mode, snowflakeMode }: ViewSelection): Promise<CompatibilityData> {
+export function loadViewData({
+  view,
+  awsS3Mode,
+  snowflakeMode,
+  bigqueryMode,
+}: ViewSelection): Promise<CompatibilityData> {
   const pending =
     view === "catalogs"
       ? loadCatalogs()
       : view === "ingestion"
         ? loadIngestion()
-        : loadEngineData(awsS3Mode, snowflakeMode);
+        : loadEngineData(awsS3Mode, snowflakeMode, bigqueryMode);
   return pending.then((d) => {
     latest.set(view, d);
     return d;
@@ -82,5 +95,10 @@ export function loadViewData({ view, awsS3Mode, snowflakeMode }: ViewSelection):
  */
 export function preloadView(view: ViewMode): void {
   if (view === "engines") return;
-  void loadViewData({ view, awsS3Mode: "s3-buckets", snowflakeMode: "snowflake" }).catch(() => {});
+  void loadViewData({
+    view,
+    awsS3Mode: "s3-buckets",
+    snowflakeMode: "snowflake",
+    bigqueryMode: "managed",
+  }).catch(() => {});
 }

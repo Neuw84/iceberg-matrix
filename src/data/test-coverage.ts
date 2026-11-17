@@ -43,8 +43,9 @@ const V2: Version[] = ["v2"];
 
 /**
  * Suites whose results mark cells as tested. The AWS suites run in both
- * storage modes (S3 buckets and S3 Tables) and Snowflake's in both storage
- * modes, each against that mode's data file, so one entry covers both.
+ * storage modes (S3 buckets and S3 Tables), Snowflake's in both storage modes
+ * and BigQuery's in both table types (managed, lakehouse), each against that
+ * mode's data file, so one entry covers both.
  */
 export const SUITES: SuiteConfig[] = [
   // OSS engines, run on every pull request.
@@ -64,6 +65,10 @@ export const SUITES: SuiteConfig[] = [
   { file: "tests/aurora_feature_tests.py", platform: "aws-aurora", versions: V2, runs: "manual" },
   { file: "tests/databricks_feature_tests.py", platform: "databricks", versions: V2, runs: "manual" },
   { file: "tests/snowflake_feature_tests.py", platform: "snowflake", versions: V2, runs: "manual" },
+  { file: "tests/bigquery_feature_tests.py", platform: "google-bigquery", versions: BOTH, runs: "manual" },
+  // Managed Spark runs the Spark suite on a serverless batch through
+  // tests/gcp/managed_spark_entrypoint.py, against the Lakehouse catalog.
+  { file: "tests/iceberg_feature_tests.py", platform: "google-dataproc", versions: BOTH, runs: "manual" },
 ];
 
 /**

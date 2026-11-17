@@ -149,3 +149,11 @@ export type AwsS3Mode = "s3-buckets" | "s3-tables";
  */
 export type SnowflakeStorageMode = "snowflake" | "external";
 
+/**
+ * BigQuery Iceberg table type: "managed" is Apache Iceberg managed tables in a
+ * BigQuery dataset (BigQuery is the only writer and exports v2 metadata);
+ * "lakehouse" is tables in the Lakehouse runtime catalog, shared over Iceberg
+ * REST with Spark, Trino or Flink.
+ */
+export type BigQueryTableMode = "managed" | "lakehouse";
+

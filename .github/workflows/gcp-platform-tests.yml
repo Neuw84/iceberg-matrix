@@ -1,0 +1,152 @@
+name: GCP Platform Tests
+# Runs the Iceberg feature suites against Google Cloud engines and compares the
+# results with the matrix cells, the same way the AWS platform workflow does:
+#   bigquery       tests/bigquery_feature_tests.py, per BigQuery table type
+#                  (managed tables, Lakehouse runtime catalog tables)
+#   managed-spark  tests/iceberg_feature_tests.py on a Managed Service for
+#                  Apache Spark serverless batch (tests/gcp/run_managed_spark.py)
+#
+# Deliberately NOT triggered by pull_request: this spends real money. Dispatch
+# only, gated by the gcp-live environment (required reviewer). There is no
+# service-account key: the job's OIDC token is exchanged through Workload
+# Identity Federation, and the provider only accepts tokens from this repo in
+# the gcp-live environment (infra/gcp/ci-setup.sh).
+#
+# One-time prerequisites:
+#   infra/gcp/setup.sh     bucket, dataset, connection, Lakehouse catalog,
+#                          Managed Spark service account
+#   infra/gcp/ci-setup.sh  Workload Identity pool/provider and the CI account
+#
+# Environment secrets on gcp-live:
+#   GCP_WORKLOAD_IDENTITY_PROVIDER  projects/<n>/locations/global/workloadIdentityPools/.../providers/...
+#   GCP_SERVICE_ACCOUNT             icebergmatrix-ci@<project>.iam.gserviceaccount.com
+#   GCP_PROJECT                     project id
+on:
+  workflow_dispatch:
+    inputs:
+      engine:
+        description: Engine to test
+        type: choice
+        default: bigquery
+        options: [bigquery, managed-spark]
+      bigquery-modes:
+        description: BigQuery table type(s) (engine bigquery only)
+        type: choice
+        default: both
+        options: [both, managed, lakehouse]
+      runtime-version:
+        description: >
+          Managed Spark serverless runtime (engine managed-spark only). 4.0 ships
+          Spark 4.2.0 with Iceberg 1.12.0 and runs Lightning Engine by default.
+        type: string
+        default: '4.0'
+      only:
+        description: Comma-separated BigQuery test names to run a subset (empty runs all)
+        type: string
+        default: ''
+      dry-run:
+        description: Authenticate and stop (proves Workload Identity without spending)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  # Shared bucket, dataset and catalog: never let two runs overlap.
+  group: gcp-live
+  cancel-in-progress: false
+
+jobs:
+  platform-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: gcp-live
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      RUN_TAG: im${{ github.run_id }}
+      GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Authenticate to Google Cloud (Workload Identity Federation)
+        uses: google-github-actions/auth@v3.0.0
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+
+      - name: Verify identity
+        run: |
+          uv run --with google-auth --with requests python - <<'EOF'
+          import google.auth
+          from google.auth.transport.requests import Request
+          creds, project = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
+          creds.refresh(Request())
+          print("authenticated as", getattr(creds, "service_account_email", type(creds).__name__))
+          EOF
+
+      - name: Stop here on dry run
+        if: inputs.dry-run
+        run: 'echo "Dry run complete: Workload Identity trust and environment gate verified, nothing run."'
+
+      # Spark fixtures for the lakehouse mode run a local PySpark session.
+      - name: Set up Java 17
+        if: '!inputs.dry-run && inputs.engine == ''bigquery'''
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # No continue-on-error: each suite exits non-zero on discrepancies or
+      # errors, which should fail the job. The other mode still runs (always()),
+      # and teardown is guarded the same way.
+      - name: BigQuery (managed tables)
+        if: '!inputs.dry-run && inputs.engine == ''bigquery'' && inputs.bigquery-modes != ''lakehouse'''
+        env:
+          MATRIX_STORAGE_MODE: managed
+          BIGQUERY_ONLY: ${{ inputs.only }}
+        run: |
+          source tests/gcp/env.sh
+          # shellcheck disable=SC2086  # GCP_UV_WITH is a list of --with flags
+          uv run --python 3.11 $GCP_UV_WITH python tests/bigquery_feature_tests.py
+
+      - name: BigQuery (Lakehouse runtime catalog)
+        if: always() && !inputs.dry-run && inputs.engine == 'bigquery' && inputs.bigquery-modes != 'managed'
+        env:
+          MATRIX_STORAGE_MODE: lakehouse
+          BIGQUERY_ONLY: ${{ inputs.only }}
+        run: |
+          source tests/gcp/env.sh
+          # shellcheck disable=SC2086  # GCP_UV_WITH is a list of --with flags
+          uv run --python 3.11 $GCP_UV_WITH python tests/bigquery_feature_tests.py
+
+      - name: Managed Service for Apache Spark
+        if: '!inputs.dry-run && inputs.engine == ''managed-spark'''
+        env:
+          MANAGED_SPARK_RUNTIME: ${{ inputs.runtime-version }}
+        run: |
+          source tests/gcp/env.sh
+          uv run --python 3.11 --with google-cloud-dataproc --with google-cloud-storage \
+            python -u tests/gcp/run_managed_spark.py
+
+      - name: Tear down leftovers
+        if: always() && !inputs.dry-run
+        run: |
+          source tests/gcp/env.sh
+          # shellcheck disable=SC2086  # GCP_UV_WITH is a list of --with flags
+          uv run --python 3.11 $GCP_UV_WITH python tests/gcp/teardown.py
+
+      - name: Upload reports
+        if: always() && !inputs.dry-run
+        uses: actions/upload-artifact@v7
+        with:
+          name: gcp-${{ inputs.engine }}-platform-test-report
+          path: test-reports/
+          if-no-files-found: warn

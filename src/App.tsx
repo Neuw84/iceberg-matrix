@@ -1,5 +1,11 @@
 import { useState, useMemo, useEffect, lazy, Suspense } from "react";
-import type { AwsS3Mode, FilterState, SnowflakeStorageMode, ViewMode } from "./types";
+import type {
+  AwsS3Mode,
+  BigQueryTableMode,
+  FilterState,
+  SnowflakeStorageMode,
+  ViewMode,
+} from "./types";
 import { preloadView } from "./data/view-data";
 import { useViewData } from "./hooks/useViewData";
 import { FilterPanel } from "./components/FilterPanel";
@@ -79,6 +85,11 @@ export default function App() {
   const [snowflakeMode, setSnowflakeMode] = useState<SnowflakeStorageMode>(
     fromUrl.snowflakeMode ?? "snowflake",
   );
+  // BigQuery defaults to Apache Iceberg managed tables (GA); "lakehouse" swaps
+  // in the Lakehouse runtime catalog (Iceberg REST) data.
+  const [bigqueryMode, setBigqueryMode] = useState<BigQueryTableMode>(
+    fromUrl.bigqueryMode ?? "managed",
+  );
 
   // Below Tailwind's `sm` breakpoint the grid does not fit; show the list.
   const isPhone = useMediaQuery("(max-width: 639px)");
@@ -92,6 +103,7 @@ export default function App() {
     viewMode,
     awsS3Mode,
     snowflakeMode,
+    bigqueryMode,
   );
   const storedFilters = isCatalogsView
     ? catalogFilters
@@ -131,7 +143,14 @@ export default function App() {
   // Keep the address bar shareable. replaceState, not pushState: a filter
   // click is not a page the Back button should return to.
   useEffect(() => {
-    const search = toUrlSearch(viewMode, filters, initialFilters[viewMode], awsS3Mode, snowflakeMode);
+    const search = toUrlSearch(
+      viewMode,
+      filters,
+      initialFilters[viewMode],
+      awsS3Mode,
+      snowflakeMode,
+      bigqueryMode,
+    );
     if (search !== window.location.search) {
       window.history.replaceState(
         window.history.state,
@@ -139,7 +158,7 @@ export default function App() {
         `${window.location.pathname}${search}${window.location.hash}`,
       );
     }
-  }, [viewMode, filters, awsS3Mode, snowflakeMode]);
+  }, [viewMode, filters, awsS3Mode, snowflakeMode, bigqueryMode]);
 
   const isCompareMode =
     !isCatalogsView && filters.compareMode && filters.selectedVersions.length > 1;
@@ -302,18 +321,23 @@ export default function App() {
                 onAwsS3ModeChange={isEnginesView ? setAwsS3Mode : undefined}
                 snowflakeMode={isEnginesView ? snowflakeMode : undefined}
                 onSnowflakeModeChange={isEnginesView ? setSnowflakeMode : undefined}
+                bigqueryMode={isEnginesView ? bigqueryMode : undefined}
+                onBigqueryModeChange={isEnginesView ? setBigqueryMode : undefined}
               />
             ) : (
             <CompatibilityMatrix
               data={activeData}
               filters={filters}
               // The per-vendor storage switches (AWS S3 Buckets/Tables, Snowflake
-              // managed/external) are engines-view concerns; without these props
+              // managed/external, BigQuery managed/Lakehouse tables) are
+              // engines-view concerns; without these props
               // the matrix renders no toggles.
               awsS3Mode={isEnginesView ? awsS3Mode : undefined}
               onAwsS3ModeChange={isEnginesView ? setAwsS3Mode : undefined}
               snowflakeMode={isEnginesView ? snowflakeMode : undefined}
               onSnowflakeModeChange={isEnginesView ? setSnowflakeMode : undefined}
+              bigqueryMode={isEnginesView ? bigqueryMode : undefined}
+              onBigqueryModeChange={isEnginesView ? setBigqueryMode : undefined}
             />
             )}
           </div>

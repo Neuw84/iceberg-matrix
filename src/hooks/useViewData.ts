@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useReducer, useState } from "react";
-import type { AwsS3Mode, CompatibilityData, SnowflakeStorageMode, ViewMode } from "../types";
+import type {
+  AwsS3Mode,
+  BigQueryTableMode,
+  CompatibilityData,
+  SnowflakeStorageMode,
+  ViewMode,
+} from "../types";
 import { lastViewData, loadViewData, peekViewData } from "../data/view-data";
 
 export interface ViewDataState {
@@ -21,20 +27,22 @@ export function useViewData(
   view: ViewMode,
   awsS3Mode: AwsS3Mode,
   snowflakeMode: SnowflakeStorageMode,
+  bigqueryMode: BigQueryTableMode,
 ): ViewDataState {
   const [, rerender] = useReducer((n: number) => n + 1, 0);
   const [attempt, setAttempt] = useState(0);
   const [failure, setFailure] = useState<{ key: string; error: Error } | undefined>();
 
   // Only engines depend on the two toggles; the other views have one dataset.
-  const key = view === "engines" ? `engines|${awsS3Mode}|${snowflakeMode}` : view;
-  const selection = { view, awsS3Mode, snowflakeMode };
+  const key =
+    view === "engines" ? `engines|${awsS3Mode}|${snowflakeMode}|${bigqueryMode}` : view;
+  const selection = { view, awsS3Mode, snowflakeMode, bigqueryMode };
   const ready = peekViewData(selection);
 
   useEffect(() => {
     if (ready) return;
     let live = true;
-    loadViewData({ view, awsS3Mode, snowflakeMode }).then(
+    loadViewData({ view, awsS3Mode, snowflakeMode, bigqueryMode }).then(
       () => {
         if (live) rerender();
       },
@@ -45,7 +53,7 @@ export function useViewData(
     return () => {
       live = false;
     };
-  }, [ready, key, attempt, view, awsS3Mode, snowflakeMode]);
+  }, [ready, key, attempt, view, awsS3Mode, snowflakeMode, bigqueryMode]);
 
   const retry = useCallback(() => {
     setFailure(undefined);

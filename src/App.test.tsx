@@ -459,6 +459,29 @@ describe('Snowflake storage mode toggle', () => {
   })
 })
 
+describe('BigQuery table type toggle', () => {
+  it('defaults to managed tables and switches to Lakehouse data', async () => {
+    render(<App />)
+    // The pill sits in the GCP group header and changes only the BigQuery column.
+    fireEvent.click(screen.getByRole('button', { name: 'Switch BigQuery to Lakehouse tables' }))
+    // The Lakehouse file is a lazy chunk; the button flips once it has loaded.
+    expect(
+      await screen.findByRole('button', { name: 'Switch BigQuery to Managed tables' }),
+    ).toBeInTheDocument()
+    expect(window.location.search).toBe('?bq=lakehouse')
+    fireEvent.click(screen.getByRole('button', { name: 'Switch BigQuery to Managed tables' }))
+    expect(
+      screen.getByRole('button', { name: 'Switch BigQuery to Lakehouse tables' }),
+    ).toBeInTheDocument()
+  })
+
+  it('hides the pill when BigQuery is filtered out', () => {
+    window.history.replaceState(null, '', '/?p=google-dataproc')
+    render(<App />)
+    expect(screen.queryByRole('button', { name: /^Switch BigQuery/ })).not.toBeInTheDocument()
+  })
+})
+
 describe('Shareable URL', () => {
   it('opens the view and filters a link names', async () => {
     window.history.replaceState(null, '', '/?view=catalogs&q=polaris')
