@@ -122,6 +122,7 @@ describe("engine files on disk", () => {
 const dataS3Tables = await loadEngineData("s3-tables", "snowflake");
 const dataSnowflakeExternal = await loadEngineData("s3-buckets", "external");
 const dataS3TablesSnowflakeExternal = await loadEngineData("s3-tables", "external");
+const dataBigQueryLakehouse = await loadEngineData("s3-buckets", "snowflake", "lakehouse");
 
 describe("lazy engine datasets (loadEngineData)", () => {
   it("has the default dataset ready without loading anything", () => {
@@ -138,7 +139,12 @@ describe("lazy engine datasets (loadEngineData)", () => {
   it("builds each variant from its own files", async () => {
     // Same platforms in the same order in every mode: only the cell data differs.
     const order = data.platforms.map((p) => p.id);
-    for (const variant of [dataS3Tables, dataSnowflakeExternal, dataS3TablesSnowflakeExternal]) {
+    for (const variant of [
+      dataS3Tables,
+      dataSnowflakeExternal,
+      dataS3TablesSnowflakeExternal,
+      dataBigQueryLakehouse,
+    ]) {
       expect(variant.platforms.map((p) => p.id)).toEqual(order);
     }
     // S3 Tables carries its own AWS cells (the Athena note differs by mode).
@@ -156,6 +162,17 @@ describe("lazy engine datasets (loadEngineData)", () => {
     expect(dataS3TablesSnowflakeExternal.support["aws-athena:position-deletes:v2"]).toEqual(
       dataS3Tables.support["aws-athena:position-deletes:v2"],
     );
+    // BigQuery Lakehouse is built from its own file, and only the BigQuery
+    // column changes: v3 writes exist there, never on managed tables.
+    const { bigqueryLakehouse } = await import("./engine-variants/bigquery-lakehouse");
+    expect(dataBigQueryLakehouse.support["google-bigquery:write-insert:v3"]).toMatchObject(
+      (bigqueryLakehouse.support as Record<string, object>)["google-bigquery:write-insert:v3"],
+    );
+    expect(data.support["google-bigquery:write-insert:v3"].level).toBe("none");
+    expect(dataBigQueryLakehouse.support["google-dataproc:read-support:v2"]).toEqual(
+      data.support["google-dataproc:read-support:v2"],
+    );
+    expect(peekEngineData("s3-buckets", "snowflake", "lakehouse")).toBe(dataBigQueryLakehouse);
   });
 });
 
@@ -164,6 +181,7 @@ describe.each([
   ["dataS3Tables (S3 Tables, Snowflake managed)", dataS3Tables],
   ["dataSnowflakeExternal (S3 buckets, Snowflake external)", dataSnowflakeExternal],
   ["dataS3TablesSnowflakeExternal (S3 Tables, Snowflake external)", dataS3TablesSnowflakeExternal],
+  ["dataBigQueryLakehouse (BigQuery Lakehouse tables)", dataBigQueryLakehouse],
 ] as const)("merged engines dataset: %s", (_name, dataset: CompatibilityData) => {
   it("gives every platform an entry for every feature x version", () => {
     const missing: string[] = [];

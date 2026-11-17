@@ -1,0 +1,896 @@
+{
+  "platforms": [
+    {
+      "id": "google-bigquery",
+      "name": "BigQuery",
+      "vendor": "Google",
+      "category": "cloud",
+      "group": "GCP",
+      "docUrl": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
+    }
+  ],
+  "support": {
+    "google-bigquery:position-deletes:v2": {
+      "level": "none",
+      "notes": "BigQuery DML never writes position deletes: DELETE and UPDATE rewrite data files. It does read position deletes Spark wrote.",
+      "caveats": [
+        "Read side measured: rows deleted by a Spark position delete stay deleted in BigQuery",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:position-deletes:v3": {
+      "level": "none",
+      "notes": "On a v3 table BigQuery DML still rewrites data files and writes no deletion vector. It does read Spark's deletion vectors correctly.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:equality-deletes:v2": {
+      "level": "none",
+      "notes": "BigQuery DML never writes equality deletes. It reads equality deletes another engine wrote (measured with a delete committed through the Iceberg Java API).",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:equality-deletes:v3": {
+      "level": "none",
+      "notes": "BigQuery DML never writes equality deletes on v3 tables either; it reads them correctly.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:merge-on-read:v2": {
+      "level": "none",
+      "notes": "BigQuery DML is copy-on-write only. The catalog refuses to opt a merge-on-read table in to BigQuery DML ('Only copy-on-write is supported'), and BigQuery-enabled tables have the write modes pinned to copy-on-write.",
+      "caveats": [
+        "BigQuery reads merge-on-read tables Spark writes",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:merge-on-read:v3": {
+      "level": "none",
+      "notes": "BigQuery DML on v3 tables is copy-on-write only; it reads Spark's merge-on-read v3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        },
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:copy-on-write:v2": {
+      "level": "full",
+      "notes": "DELETE and UPDATE rewrite data files and commit no delete files.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:copy-on-write:v3": {
+      "level": "partial",
+      "notes": "DELETE and UPDATE rewrite data files on a v3 table: BigQuery writes a v3 table that another engine created and opted in to BigQuery DML ('gcp.biglake.bigquery-dml.enabled'='true', which only the owning engine can set); the table stays format-version 3.",
+      "caveats": [
+        "Undocumented: Google's V3 page says BigQuery cannot write V3 tables, but the writes commit",
+        "BigQuery DDL cannot create a v3 table; Spark, Flink or Trino must create it",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        },
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:schema-evolution:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE ADD COLUMN, RENAME COLUMN and DROP COLUMN all apply, and Iceberg field ids survive the rename.",
+      "caveats": [
+        "Dropping a column and immediately re-adding one with the same name is a known issue",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Alter a Lakehouse table",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/alter-table"
+        }
+      ]
+    },
+    "google-bigquery:schema-evolution:v3": {
+      "level": "partial",
+      "notes": "ADD, RENAME and DROP COLUMN apply on a v3 table: BigQuery writes a v3 table that another engine created and opted in to BigQuery DML ('gcp.biglake.bigquery-dml.enabled'='true', which only the owning engine can set); the table stays format-version 3.",
+      "caveats": [
+        "Undocumented: Google's V3 page says BigQuery cannot write V3 tables, but the writes commit",
+        "BigQuery DDL cannot create a v3 table; Spark, Flink or Trino must create it",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Alter a Lakehouse table",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/alter-table"
+        },
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:type-promotion:v2": {
+      "level": "partial",
+      "notes": "Decimal widening applies through ALTER COLUMN SET DATA TYPE. On a Spark-made INT column, ALTER ... SET DATA TYPE INT64 changes nothing, but the first 64-bit value BigQuery writes promotes the Iceberg column to long.",
+      "caveats": [
+        "float to double was not measured",
+        "NUMERIC to FLOAT and INT to FLOAT coercions are not supported",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Alter a Lakehouse table",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/alter-table"
+        }
+      ]
+    },
+    "google-bigquery:type-promotion:v3": {
+      "level": "partial",
+      "notes": "Decimal widening and int-to-long promotion behave as on v2: BigQuery writes a v3 table that another engine created and opted in to BigQuery DML ('gcp.biglake.bigquery-dml.enabled'='true', which only the owning engine can set); the table stays format-version 3.",
+      "caveats": [
+        "Undocumented: Google's V3 page says BigQuery cannot write V3 tables, but the writes commit",
+        "BigQuery DDL cannot create a v3 table; Spark, Flink or Trino must create it",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Alter a Lakehouse table",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/alter-table"
+        },
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:column-default-values:v3": {
+      "level": "none",
+      "notes": "ALTER TABLE ADD COLUMN ... DEFAULT is refused on a v3 table ('Add field with default value to an existing table schema is not supported'), and BigQuery cannot read a v3 table whose column has an initial-default.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:table-creation:v2": {
+      "level": "full",
+      "notes": "CREATE TABLE `project.catalog.namespace.table` creates a format-version 2 table in the Lakehouse runtime catalog, served over Iceberg REST to other engines, with BigQuery DML and table management on by default.",
+      "caveats": [
+        "BigQuery DDL on Lakehouse tables is Preview",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Create a Lakehouse table",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/create-table"
+        },
+        {
+          "label": "Lakehouse Iceberg tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
+        }
+      ]
+    },
+    "google-bigquery:table-creation:v3": {
+      "level": "none",
+      "notes": "BigQuery DDL cannot create a v3 table: properties.format-version is an unknown option and new tables are v2. BigQuery does write v3 tables other engines create (see Write).",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Create a Lakehouse table",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/create-table"
+        },
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:hidden-partitioning:v2": {
+      "level": "partial",
+      "notes": "PARTITION BY DATE(ts) or TIMESTAMP_TRUNC(ts, HOUR/MONTH/YEAR) creates the Iceberg hour, day, month and year transforms. BigQuery reads and filters Spark's bucket-partitioned tables but cannot create identity, bucket or truncate partitions.",
+      "caveats": [
+        "Integer-range partitioning fails with an internal error after a long wait",
+        "Partitioned tables only keep managed capabilities with hour/day/month/year transforms",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:hidden-partitioning:v3": {
+      "level": "partial",
+      "notes": "BigQuery writes rows into the right partitions of a Spark-created, day-partitioned v3 table and prunes on them, but cannot declare a partition spec on a v3 table.",
+      "caveats": [
+        "BigQuery DDL cannot create a v3 table; Spark, Flink or Trino must create it",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:partition-evolution:v2": {
+      "level": "none",
+      "notes": "No DDL changes a partition spec ('Cannot replace a table with a different partitioning spec'). BigQuery reads tables Spark evolved.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:partition-evolution:v3": {
+      "level": "none",
+      "notes": "No DDL changes a partition spec on v3 tables either.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "BigQuery partitions on one time-unit column only and cannot declare a partition spec on a v3 table.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:time-travel:v2": {
+      "level": "full",
+      "notes": "FOR SYSTEM_TIME AS OF returns earlier states, and the Iceberg metadata keeps every snapshot, so other engines can time travel the same table.",
+      "caveats": [
+        "Table management expires snapshots after 5 days by default (history.expire.max-snapshot-age-ms)",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:time-travel:v3": {
+      "level": "full",
+      "notes": "FOR SYSTEM_TIME AS OF returns earlier states of a v3 table.",
+      "caveats": [
+        "V3 in the Lakehouse runtime catalog is Preview",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:table-maintenance:v2": {
+      "level": "full",
+      "notes": "Tables BigQuery creates have automatic table management on (compaction, snapshot expiry and garbage collection), and BigQuery DDL can switch it off and on.",
+      "caveats": [
+        "Background jobs only run once a table passes about 1 GB; not observed in the test",
+        "Orphan file removal is not covered",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Google documents managed capabilities, including table management, as v2-only, and BigQuery has no maintenance statement of its own.",
+      "caveats": [
+        "The catalog accepted gcp.biglake.table-management.enabled on a v3 table in the test; whether jobs then run is unverified"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:branching-tagging:v2": {
+      "level": "none",
+      "notes": "BigQuery SQL has no branch or tag DDL and no syntax to read a ref.",
+      "caveats": [
+        "Table management skips snapshot expiry on tables that have branches or tags",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:branching-tagging:v3": {
+      "level": "none",
+      "notes": "BigQuery SQL has no branch or tag DDL.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:read-support:v2": {
+      "level": "full",
+      "notes": "BigQuery reads Lakehouse tables it wrote and tables Spark wrote, including Spark's position and equality delete files.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse Iceberg tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
+        }
+      ]
+    },
+    "google-bigquery:read-support:v3": {
+      "level": "full",
+      "notes": "BigQuery reads v3 tables Spark wrote, including binary deletion vectors and equality deletes, and returns the right rows.",
+      "caveats": [
+        "V3 in the Lakehouse runtime catalog is Preview",
+        "A v3 table with a column default is not readable ('Iceberg initial-default is not supported in BigQuery')",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT ... VALUES and INSERT ... SELECT write Lakehouse tables BigQuery created, and Spark-created tables opted in with gcp.biglake.bigquery-dml.enabled.",
+      "caveats": [
+        "BigQuery DML on Lakehouse tables is Preview",
+        "Tables another engine created need the opt-in property, set from that engine",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Modify Lakehouse tables with BigQuery DML",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/modify-data-dml"
+        },
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        }
+      ]
+    },
+    "google-bigquery:write-insert:v3": {
+      "level": "partial",
+      "notes": "INSERT works on a v3 table: BigQuery writes a v3 table that another engine created and opted in to BigQuery DML ('gcp.biglake.bigquery-dml.enabled'='true', which only the owning engine can set); the table stays format-version 3.",
+      "caveats": [
+        "Undocumented: Google's V3 page says BigQuery cannot write V3 tables, but the writes commit",
+        "BigQuery DDL cannot create a v3 table; Spark, Flink or Trino must create it",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse table options (BigQuery DML, table management)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/table-options"
+        },
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "UPDATE, DELETE and MERGE all apply, alongside Spark or Trino writing the same table.",
+      "caveats": [
+        "BigQuery DML on Lakehouse tables is Preview",
+        "Merge-on-read tables cannot be opted in to BigQuery DML",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Modify Lakehouse tables with BigQuery DML",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/modify-data-dml"
+        }
+      ]
+    },
+    "google-bigquery:write-merge-update-delete:v3": {
+      "level": "partial",
+      "notes": "UPDATE, DELETE and MERGE apply on a v3 table: BigQuery writes a v3 table that another engine created and opted in to BigQuery DML ('gcp.biglake.bigquery-dml.enabled'='true', which only the owning engine can set); the table stays format-version 3.",
+      "caveats": [
+        "Undocumented: Google's V3 page says BigQuery cannot write V3 tables, but the writes commit",
+        "BigQuery DDL cannot create a v3 table; Spark, Flink or Trino must create it",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Modify Lakehouse tables with BigQuery DML",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/modify-data-dml"
+        },
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:catalog-integration:v2": {
+      "level": "full",
+      "notes": "Create, write, read and drop through the Lakehouse runtime catalog, which serves the same tables to other engines over Iceberg REST.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse Iceberg tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
+        }
+      ]
+    },
+    "google-bigquery:catalog-integration:v3": {
+      "level": "partial",
+      "notes": "BigQuery finds, reads, writes and drops v3 tables in the Lakehouse runtime catalog, but cannot create one.",
+      "caveats": [
+        "BigQuery DDL cannot create a v3 table; Spark, Flink or Trino must create it",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse Iceberg tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
+        },
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:statistics:v2": {
+      "level": "none",
+      "notes": "Data files BigQuery writes to Lakehouse tables carry no column metrics: value_counts, lower_bounds and upper_bounds are empty in the manifest, so other engines cannot prune on them.",
+      "caveats": [
+        "Managed tables (the other mode) do write column bounds",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse Iceberg tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
+        }
+      ]
+    },
+    "google-bigquery:statistics:v3": {
+      "level": "none",
+      "notes": "Data files BigQuery writes to v3 tables carry no column metrics in the manifest.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:bloom-filters:v2": {
+      "level": "none",
+      "notes": "BigQuery-written Parquet files carry no bloom filters.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse Iceberg tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
+        }
+      ]
+    },
+    "google-bigquery:bloom-filters:v3": {
+      "level": "none",
+      "notes": "BigQuery-written Parquet files carry no bloom filters.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse Iceberg tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
+        }
+      ]
+    },
+    "google-bigquery:aws-glue-catalog:v2": {
+      "level": "partial",
+      "notes": "Reachable through borderless Lakehouse cross-cloud federation (Preview since June 5, 2026): AWS Glue is federated into the Lakehouse runtime catalog over the Iceberg REST catalog protocol, and BigQuery or Spark query the synchronized tables directly without copying data, optionally over a private Cross-Cloud Interconnect to S3. This is a federation/query path, not native Glue catalog support.",
+      "caveats": [
+        "Preview (borderless Lakehouse / cross-cloud Lakehouse); not yet GA",
+        "Read/query path: federated catalogs are synchronized into the Lakehouse runtime catalog and queried from BigQuery; writing back to the remote catalog is not part of this",
+        "Documented capability; not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "About borderless Lakehouse (cross-cloud data access)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/about-borderless-lakehouse"
+        },
+        {
+          "label": "Introducing the borderless Lakehouse",
+          "url": "https://cloud.google.com/blog/products/data-analytics/introducing-the-borderless-lakehouse"
+        },
+        {
+          "label": "Set up cross-cloud Lakehouse for AWS Glue",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/set-up-cross-cloud-connection-aws-glue"
+        }
+      ]
+    },
+    "google-bigquery:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support AWS Glue Catalog",
+      "caveats": [
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:rest-catalog:v2": {
+      "level": "partial",
+      "notes": "The Lakehouse runtime catalog (formerly BigLake metastore; renamed April 20, 2026) exposes a Google-managed Iceberg REST catalog as the recommended path for new workloads. Apache Iceberg V2 tables in the runtime catalog are GA (V1 unsupported, V3 Preview): open-source engines (Spark, Flink, Trino) read and write them at GA level, including streaming writes, and since June 25, 2026 BigQuery runs SQL DDL and DML (INSERT, UPDATE, DELETE, MERGE) against them in Preview, with opt-in automatic table management (compaction, garbage collection) and credential vending for storage access.",
+      "caveats": [
+        "BigQuery DML/DDL against runtime-catalog Iceberg tables is Preview, not GA",
+        "gcloud command group still named biglake despite the Lakehouse rename",
+        "Documented capability; write path not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "Use the BigLake metastore Iceberg REST catalog",
+          "url": "https://cloud.google.com/bigquery/docs/blms-rest-catalog"
+        },
+        {
+          "label": "Lakehouse release notes (BigQuery writes for Iceberg REST catalog tables, June 25, 2026)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/release-notes"
+        },
+        {
+          "label": "Compare table types (Lakehouse)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
+        }
+      ]
+    },
+    "google-bigquery:rest-catalog:v3": {
+      "level": "partial",
+      "notes": "The Lakehouse runtime catalog supports Apache Iceberg V3 tables with binary deletion vectors (Preview since June 11, 2026), served over its Iceberg REST catalog interface to BigQuery and open-source engines. V3 support is Preview, not GA.",
+      "caveats": [
+        "Iceberg V3 in the runtime catalog is Preview",
+        "Documented capability; not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "Use binary deletion vectors in Iceberg V3 tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        },
+        {
+          "label": "Lakehouse release notes (Iceberg V3 with BDV, June 11, 2026)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/release-notes"
+        }
+      ]
+    },
+    "google-bigquery:unity-catalog:v2": {
+      "level": "partial",
+      "notes": "Reachable through borderless Lakehouse cross-cloud federation (Preview since April 2026): Databricks Unity Catalog (on AWS or Google Cloud) is federated into the Lakehouse runtime catalog over the Iceberg REST catalog protocol, and BigQuery or Spark query the synchronized tables directly without copying data. Authentication via Secret Manager OAuth or OIDC token federation; optional private Cross-Cloud Interconnect transport and intelligent caching (Preview) reduce egress. This is a federation/query path, not native Unity Catalog support.",
+      "caveats": [
+        "Preview (borderless Lakehouse / cross-cloud Lakehouse); not yet GA",
+        "Read/query path: federated catalogs are synchronized into the Lakehouse runtime catalog and queried from BigQuery; writing back to the remote catalog is not part of this",
+        "Documented capability; not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "About borderless Lakehouse (cross-cloud data access)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/about-borderless-lakehouse"
+        },
+        {
+          "label": "Introducing the borderless Lakehouse",
+          "url": "https://cloud.google.com/blog/products/data-analytics/introducing-the-borderless-lakehouse"
+        },
+        {
+          "label": "Set up cross-cloud Lakehouse for Databricks Unity Catalog",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/set-up-cross-cloud-connection-databricks"
+        }
+      ]
+    },
+    "google-bigquery:unity-catalog:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support Unity Catalog",
+      "caveats": [
+        "Only Iceberg V2 format is supported for snapshot export"
+      ],
+      "links": [
+        {
+          "label": "BigLake Iceberg tables in BigQuery",
+          "url": "https://docs.cloud.google.com/biglake/docs/biglake-iceberg-tables-in-bigquery"
+        }
+      ]
+    },
+    "google-bigquery:snowflake-horizon-catalog:v2": {
+      "level": "partial",
+      "notes": "Reachable through borderless Lakehouse cross-cloud federation (Preview since July 13, 2026): Snowflake Horizon Catalog (on AWS or Google Cloud) is federated into the Lakehouse runtime catalog over the Iceberg REST catalog protocol, and BigQuery or Spark query the synchronized tables directly without copying data. This is a federation/query path, not native Horizon support.",
+      "caveats": [
+        "Preview (borderless Lakehouse / cross-cloud Lakehouse); not yet GA",
+        "Read/query path: federated catalogs are synchronized into the Lakehouse runtime catalog and queried from BigQuery; writing back to the remote catalog is not part of this",
+        "Documented capability; not yet grounded by a live test in this repo"
+      ],
+      "links": [
+        {
+          "label": "About borderless Lakehouse (cross-cloud data access)",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/about-borderless-lakehouse"
+        },
+        {
+          "label": "Introducing the borderless Lakehouse",
+          "url": "https://cloud.google.com/blog/products/data-analytics/introducing-the-borderless-lakehouse"
+        },
+        {
+          "label": "Set up cross-cloud Lakehouse for Snowflake Horizon Catalog",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/set-up-cross-cloud-connection-snowflake"
+        }
+      ]
+    },
+    "google-bigquery:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "BigQuery does not support external REST catalogs.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:google-lakehouse:v2": {
+      "level": "full",
+      "notes": "Google's own engine on the Lakehouse runtime catalog: Iceberg v2 tables are GA over the Iceberg REST endpoint and BigQuery reads and writes them.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Lakehouse Iceberg tables",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/lakehouse-tables"
+        }
+      ]
+    },
+    "google-bigquery:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "BigQuery reads and writes v3 tables in the Lakehouse runtime catalog but cannot create them.",
+      "caveats": [
+        "V3 is Preview",
+        "BigQuery DDL cannot create a v3 table; Spark, Flink or Trino must create it",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:variant-type:v3": {
+      "level": "none",
+      "notes": "The Lakehouse runtime catalog refuses to create a v3 table with a variant column (Malformed request), so BigQuery has no such table to read or write; Google lists the new V3 types as unsupported.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:shredded-variant:v3": {
+      "level": "none",
+      "notes": "The Lakehouse runtime catalog refuses to create a v3 table with a variant column (Malformed request), so BigQuery has no such table to read or write; Google lists the new V3 types as unsupported.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:geometry-type:v3": {
+      "level": "none",
+      "notes": "The Lakehouse runtime catalog refuses to create a v3 table with a geometry column (Malformed request), so BigQuery has no such table to read or write; Google lists the new V3 types as unsupported.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "The Lakehouse runtime catalog refuses to create a v3 table with a nanosecond timestamp column (Malformed request), so BigQuery has no such table to read or write; Google lists the new V3 types as unsupported.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:unknown-type:v3": {
+      "level": "none",
+      "notes": "The Lakehouse runtime catalog refuses to create a v3 table with a unknown-typed column (Malformed request), so BigQuery has no such table to read or write; Google lists the new V3 types as unsupported.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:lineage:v2": {
+      "level": "none",
+      "notes": "Row lineage is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:lineage:v3": {
+      "level": "none",
+      "notes": "BigQuery does not expose _row_id, and a BigQuery UPDATE of one row reassigns the row ids and sequence numbers of rows it did not change, so lineage is not preserved.",
+      "caveats": [
+        "Google lists row lineage tracking as unsupported for V3 tables",
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    },
+    "google-bigquery:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors is an Iceberg V3 feature; not applicable to format-version 2.",
+      "caveats": [],
+      "links": []
+    },
+    "google-bigquery:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "BigQuery DML writes no deletion vectors (it rewrites data files), though it reads deletion vectors Spark wrote and returns the right rows.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/bigquery_feature_tests.py (lakehouse mode)"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables with binary deletion vectors",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        }
+      ]
+    }
+  }
+}

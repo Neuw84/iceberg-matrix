@@ -1,5 +1,6 @@
 import type {
   AwsS3Mode,
+  BigQueryTableMode,
   CompatibilityData,
   Feature,
   Platform,
@@ -21,7 +22,12 @@ import bAurora from "./platforms/aws/s3buckets/aurora/aurora.json";
 
 
 // --- Non-AWS vendors (order: gcp, azure, databricks, snowflake, oss) ---
-import bigquery from "./platforms/gcp/bigquery/bigquery.json";
+// BigQuery has two Iceberg table types, split like Snowflake's storage modes:
+// "managed" (Apache Iceberg managed tables in a BigQuery dataset) and
+// "lakehouse" (Lakehouse runtime catalog tables over Iceberg REST). Both files
+// carry the platform id "google-bigquery". Only "managed" is imported here;
+// "lakehouse" loads on demand.
+import bigqueryManaged from "./platforms/gcp/managed/bigquery/bigquery.json";
 import dataproc from "./platforms/gcp/dataproc/dataproc.json";
 // synapse removed (Microsoft has Synapse Spark in maintenance/LTS and directs
 // workloads to Fabric Runtime 2.0, which the azure-fabric row covers)
@@ -61,9 +67,9 @@ export interface EngineFile {
   support: Record<string, unknown>;
 }
 
-// Non-AWS engines before the Snowflake slot (gcp → azure → databricks).
+// Non-AWS engines after the BigQuery slot and before the Snowflake slot
+// (dataproc → azure → databricks).
 const preSnowflakeEngines: EngineFile[] = [
-  bigquery,
   dataproc,
   fabric,
   databricks,
@@ -100,17 +106,20 @@ const postSnowflakeEngines: EngineFile[] = [
 const awsBucketsEngines: EngineFile[] = [bAthena, bEmr, bGlue, bManagedFlink, bRedshift, bAurora];
 
 // Pure merge: concatenate platforms in input order (AWS engines first, then
-// non-AWS with the mode-selected Snowflake file in its fixed slot between
-// databricks and the OSS block), and union support maps in input order.
+// the mode-selected BigQuery file at the head of the GCP block, then the other
+// non-AWS engines with the mode-selected Snowflake file in its fixed slot
+// between databricks and the OSS block), and union support maps in input order.
 export function mergeEngines(
   awsEngines: EngineFile[],
   snowflakeEngine: EngineFile,
+  bigqueryEngine: EngineFile = bigqueryManaged,
 ): CompatibilityData {
   const platforms: Platform[] = [];
   const support: Record<string, SupportEntry> = {};
 
   for (const engine of [
     ...awsEngines,
+    bigqueryEngine,
     ...preSnowflakeEngines,
     snowflakeEngine,
     dremio,
@@ -140,18 +149,24 @@ export function mergeEngines(
   };
 }
 
-// The default dataset (S3 buckets, Snowflake managed) is built eagerly: it is
+// The default dataset (S3 buckets, Snowflake managed, BigQuery managed tables)
+// is built eagerly: it is
 // what every visitor sees first, so it ships in the first-load bundle and the
 // page renders without a loading step.
-export const data: CompatibilityData = mergeEngines(awsBucketsEngines, snowflakeManaged);
+export const data: CompatibilityData = mergeEngines(
+  awsBucketsEngines,
+  snowflakeManaged,
+  bigqueryManaged,
+);
 
-// The other three (AWS mode x Snowflake mode) combinations need the S3 Tables
-// files and/or the Snowflake external file. Those live in their own modules and
+// The other (AWS x Snowflake x BigQuery mode) combinations need the S3 Tables
+// files, the Snowflake external file and/or the BigQuery Lakehouse file. Those live in their own modules and
 // are fetched on demand, so a visitor who never flips either toggle never
 // downloads them. Merged datasets are cached, which keeps each one a stable
 // object identity so React memoization keyed on the dataset survives toggles.
-const engineCache = new Map<string, CompatibilityData>([["s3-buckets|snowflake", data]]);
-const keyOf = (aws: AwsS3Mode, snowflake: SnowflakeStorageMode) => `${aws}|${snowflake}`;
+const engineCache = new Map<string, CompatibilityData>([["s3-buckets|snowflake|managed", data]]);
+const keyOf = (aws: AwsS3Mode, snowflake: SnowflakeStorageMode, bigquery: BigQueryTableMode) =>
+  `${aws}|${snowflake}|${bigquery}`;
 
 let awsTablesLoad: Promise<EngineFile[]> | undefined;
 function loadAwsTables(): Promise<EngineFile[]> {
@@ -175,28 +190,44 @@ function loadSnowflakeExternal(): Promise<EngineFile> {
   return snowflakeExternalLoad;
 }
 
-/** The engines dataset for a mode pair if it is already loaded, else undefined. */
+let bigqueryLakehouseLoad: Promise<EngineFile> | undefined;
+function loadBigQueryLakehouse(): Promise<EngineFile> {
+  bigqueryLakehouseLoad ??= import("./engine-variants/bigquery-lakehouse")
+    .then((m) => m.bigqueryLakehouse)
+    .catch((err) => {
+      bigqueryLakehouseLoad = undefined;
+      throw err;
+    });
+  return bigqueryLakehouseLoad;
+}
+
+
+/** The engines dataset for a mode combination if it is already loaded, else undefined. */
 export function peekEngineData(
   awsS3Mode: AwsS3Mode,
   snowflakeMode: SnowflakeStorageMode,
+  bigqueryMode: BigQueryTableMode = "managed",
 ): CompatibilityData | undefined {
-  return engineCache.get(keyOf(awsS3Mode, snowflakeMode));
+  return engineCache.get(keyOf(awsS3Mode, snowflakeMode, bigqueryMode));
 }
 
-/** Load (once) and return the engines dataset for an (AWS mode, Snowflake mode) pair. */
+
+/** Load (once) and return the engines dataset for an (AWS, Snowflake, BigQuery) mode combination. */
 export async function loadEngineData(
   awsS3Mode: AwsS3Mode,
   snowflakeMode: SnowflakeStorageMode,
+  bigqueryMode: BigQueryTableMode = "managed",
 ): Promise<CompatibilityData> {
-  const key = keyOf(awsS3Mode, snowflakeMode);
+  const key = keyOf(awsS3Mode, snowflakeMode, bigqueryMode);
   const cached = engineCache.get(key);
   if (cached) return cached;
-  const [awsEngines, snowflakeEngine] = await Promise.all([
+  const [awsEngines, snowflakeEngine, bigqueryEngine] = await Promise.all([
     awsS3Mode === "s3-tables" ? loadAwsTables() : Promise.resolve(awsBucketsEngines),
     snowflakeMode === "external" ? loadSnowflakeExternal() : Promise.resolve(snowflakeManaged),
+    bigqueryMode === "lakehouse" ? loadBigQueryLakehouse() : Promise.resolve(bigqueryManaged),
   ]);
   // Another caller may have finished the same merge while we awaited.
-  const merged = engineCache.get(key) ?? mergeEngines(awsEngines, snowflakeEngine);
+  const merged = engineCache.get(key) ?? mergeEngines(awsEngines, snowflakeEngine, bigqueryEngine);
   engineCache.set(key, merged);
   return merged;
 }
