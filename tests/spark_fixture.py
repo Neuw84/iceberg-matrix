@@ -40,6 +40,14 @@ Polaris instance serves every suite without separate configuration):
                               Maven coordinates above are resolved via
                               spark.jars.packages instead (same fallback
                               tests/iceberg_feature_tests.py uses)
+    ICEBERG_CATALOG_FLAVOR  - "polaris" (default) or "gcp-lakehouse". The
+                              latter points the same ``local`` catalog at the
+                              Google Lakehouse runtime catalog: Google
+                              application-default credentials, GCSFileIO and
+                              vended storage credentials instead of OAuth2
+                              client credentials and S3FileIO. Needs
+                              GCP_PROJECT and GCP_LAKEHOUSE_CATALOG; the URI
+                              and warehouse default to Google's endpoint.
 
 Nothing here fabricates a result: callers must treat `available()` returning
 False, or `create_fixture`/`inspect_delete_files` raising, as grounds for
@@ -57,9 +65,24 @@ try:
 except ImportError:
     PYSPARK_AVAILABLE = False
 
-REST_URI = os.environ.get("ICEBERG_REST_URI", "http://127.0.0.1:8181/api/catalog")
-REST_WAREHOUSE = os.environ.get("ICEBERG_REST_WAREHOUSE", "demo")
-REST_CREDENTIAL = os.environ.get("ICEBERG_REST_CREDENTIAL", "root:s3cr3t")
+CATALOG_FLAVOR = os.environ.get("ICEBERG_CATALOG_FLAVOR", "polaris")
+GCP_LAKEHOUSE = CATALOG_FLAVOR == "gcp-lakehouse"
+GCP_PROJECT = os.environ.get("GCP_PROJECT", "")
+GCP_LAKEHOUSE_CATALOG = os.environ.get("GCP_LAKEHOUSE_CATALOG", "")
+
+REST_URI = os.environ.get(
+    "ICEBERG_REST_URI",
+    "https://biglake.googleapis.com/iceberg/v1/restcatalog" if GCP_LAKEHOUSE
+    else "http://127.0.0.1:8181/api/catalog",
+)
+REST_WAREHOUSE = os.environ.get(
+    "ICEBERG_REST_WAREHOUSE",
+    f"bl://projects/{GCP_PROJECT}/catalogs/{GCP_LAKEHOUSE_CATALOG}" if GCP_LAKEHOUSE
+    else "demo",
+)
+# Google authenticates with application-default credentials, not a client secret.
+REST_CREDENTIAL = os.environ.get("ICEBERG_REST_CREDENTIAL",
+                                 "" if GCP_LAKEHOUSE else "root:s3cr3t")
 REST_SCOPE = os.environ.get("ICEBERG_REST_SCOPE", "PRINCIPAL_ROLE:ALL")
 S3_ENDPOINT = os.environ.get("ICEBERG_S3_ENDPOINT", "127.0.0.1:9000")
 S3_KEY_ID = os.environ.get("ICEBERG_S3_KEY_ID", "rustfs")
@@ -164,12 +187,34 @@ def get_spark():
         .config("spark.sql.catalog.local.type", "rest")
         .config("spark.sql.catalog.local.uri", REST_URI)
         .config("spark.sql.catalog.local.warehouse", REST_WAREHOUSE)
-        .config("spark.sql.catalog.local.io-impl", "org.apache.iceberg.aws.s3.S3FileIO")
-        .config("spark.sql.catalog.local.s3.endpoint", f"http://{S3_ENDPOINT}")
-        .config("spark.sql.catalog.local.s3.path-style-access", "true")
-        .config("spark.sql.catalog.local.s3.access-key-id", S3_KEY_ID)
-        .config("spark.sql.catalog.local.s3.secret-access-key", S3_SECRET)
-        .config("spark.sql.catalog.local.client.region", S3_REGION)
+    )
+    if GCP_LAKEHOUSE:
+        # Same settings as Google's Lakehouse quickstart: ADC for the REST calls,
+        # quota billed to the project, and table-scoped GCS tokens vended by the
+        # catalog so the caller needs no direct bucket access.
+        builder = (
+            builder
+            .config("spark.sql.catalog.local.io-impl", "org.apache.iceberg.gcp.gcs.GCSFileIO")
+            .config("spark.sql.catalog.local.rest.auth.type",
+                    "org.apache.iceberg.gcp.auth.GoogleAuthManager")
+            .config("spark.sql.catalog.local.header.x-goog-user-project", GCP_PROJECT)
+            .config("spark.sql.catalog.local.header.X-Iceberg-Access-Delegation",
+                    "vended-credentials")
+            .config("spark.sql.catalog.local.gcs.oauth2.refresh-credentials-endpoint",
+                    "https://oauth2.googleapis.com/token")
+        )
+    else:
+        builder = (
+            builder
+            .config("spark.sql.catalog.local.io-impl", "org.apache.iceberg.aws.s3.S3FileIO")
+            .config("spark.sql.catalog.local.s3.endpoint", f"http://{S3_ENDPOINT}")
+            .config("spark.sql.catalog.local.s3.path-style-access", "true")
+            .config("spark.sql.catalog.local.s3.access-key-id", S3_KEY_ID)
+            .config("spark.sql.catalog.local.s3.secret-access-key", S3_SECRET)
+            .config("spark.sql.catalog.local.client.region", S3_REGION)
+        )
+    builder = (
+        builder
         .config("spark.sql.defaultCatalog", "local")
         .config("spark.ui.enabled", "false")
         # Spark 4.1 gates GEOMETRY/GEOGRAPHY and DEFAULT clauses behind these
@@ -186,8 +231,9 @@ def get_spark():
     if jar_paths:
         builder = builder.config("spark.jars", ",".join(jar_paths))
     else:
+        bundle = "iceberg-gcp-bundle" if GCP_LAKEHOUSE else "iceberg-aws-bundle"
         jar_coord = (f"org.apache.iceberg:iceberg-spark-runtime-{SPARK_VERSION_SHORT}_2.13:"
-                    f"{ICEBERG_VERSION},org.apache.iceberg:iceberg-aws-bundle:{ICEBERG_VERSION}")
+                    f"{ICEBERG_VERSION},org.apache.iceberg:{bundle}:{ICEBERG_VERSION}")
         builder = builder.config("spark.jars.packages", jar_coord)
 
     _spark_session = builder.getOrCreate()
