@@ -2,7 +2,8 @@
 """Remove what interrupted BigQuery suite runs left behind.
 
 A completed run cleans up after itself; a killed one does not. This deletes:
-  - Lakehouse namespaces named bq_* (their tables first) in GCP_LAKEHOUSE_CATALOG
+  - Lakehouse namespaces named bq_* (BigQuery suite) or ms_* (Managed Spark),
+    their tables first, in GCP_LAKEHOUSE_CATALOG
   - tables in GCP_DATASET whose names match the suite's prefixes
   - objects under gs://GCP_DATA_BUCKET/managed/ and /lakehouse/bq_*
 
@@ -47,7 +48,7 @@ def lakehouse() -> None:
                       "X-Iceberg-Access-Delegation": "vended-credentials"})
     for ns in s.get(f"{PREFIX}/namespaces").json().get("namespaces", []):
         name = ns[0]
-        if not name.startswith("bq_"):
+        if not name.startswith(("bq_", "ms_")):
             continue
         for ident in s.get(f"{PREFIX}/namespaces/{name}/tables").json().get("identifiers", []):
             t = ident["name"]

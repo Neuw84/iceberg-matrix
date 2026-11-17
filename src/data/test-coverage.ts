@@ -66,6 +66,9 @@ export const SUITES: SuiteConfig[] = [
   { file: "tests/databricks_feature_tests.py", platform: "databricks", versions: V2, runs: "manual" },
   { file: "tests/snowflake_feature_tests.py", platform: "snowflake", versions: V2, runs: "manual" },
   { file: "tests/bigquery_feature_tests.py", platform: "google-bigquery", versions: BOTH, runs: "manual" },
+  // Managed Spark runs the Spark suite on a serverless batch through
+  // tests/gcp/managed_spark_entrypoint.py, against the Lakehouse catalog.
+  { file: "tests/iceberg_feature_tests.py", platform: "google-dataproc", versions: BOTH, runs: "manual" },
 ];
 
 /**

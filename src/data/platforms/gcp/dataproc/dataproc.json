@@ -2,7 +2,7 @@
   "platforms": [
     {
       "id": "google-dataproc",
-      "name": "Managed Spark (3.0.13)",
+      "name": "Managed Spark (4.0)",
       "vendor": "Google",
       "category": "cloud",
       "group": "GCP",
@@ -66,9 +66,17 @@
       "caveats": []
     },
     "google-dataproc:column-default-values:v3": {
-      "level": "full",
-      "notes": "Supported via Spark on Dataproc with Iceberg V3",
-      "caveats": []
+      "level": "none",
+      "notes": "CREATE TABLE ... DEFAULT is refused: Spark reports that the Iceberg table does not support column default values ([UNSUPPORTED_FEATURE.TABLE_OPERATION]), as in OSS Spark.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/iceberg_feature_tests.py on Managed Spark serverless runtime 4.0 (Spark 4.2.0, Iceberg 1.12.0, Lightning Engine) against the Lakehouse runtime catalog"
+      ],
+      "links": [
+        {
+          "label": "Managed Spark serverless runtime 4.0",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-4.0"
+        }
+      ]
     },
     "google-dataproc:nanosecond-timestamps:v2": {
       "level": "none",
@@ -76,9 +84,17 @@
       "caveats": []
     },
     "google-dataproc:nanosecond-timestamps:v3": {
-      "level": "full",
-      "notes": "Supported via Spark on Dataproc with Iceberg V3",
-      "caveats": []
+      "level": "none",
+      "notes": "Spark SQL has no nanosecond timestamp type: TIMESTAMP_NS and TIMESTAMP_NTZ(9) are both rejected as unsupported data types.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/iceberg_feature_tests.py on Managed Spark serverless runtime 4.0 (Spark 4.2.0, Iceberg 1.12.0, Lightning Engine) against the Lakehouse runtime catalog"
+      ],
+      "links": [
+        {
+          "label": "Managed Spark serverless runtime 4.0",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-4.0"
+        }
+      ]
     },
     "google-dataproc:hidden-partitioning:v2": {
       "level": "full",
@@ -145,31 +161,27 @@
     },
     "google-dataproc:read-support:v2": {
       "level": "full",
-      "notes": "Full read support via Spark. Google renamed the service to Managed Service for Apache Spark (formerly Dataproc / Serverless for Apache Spark); runtime 3.0.13 (March 2026) bundles Apache Spark 4.0.1 (Java 21, Scala 2.13, Python 3.12) with built-in Iceberg, and Iceberg 1.10 is the current default in the latest images (August 2026 release notes).",
-      "caveats": [],
+      "notes": "Full read support via Spark. Managed Service for Apache Spark (formerly Dataproc and Serverless for Apache Spark) serverless runtime 4.0 (GA 2026-11-09) bundles Apache Spark 4.2.0 with Iceberg 1.12.0 and uses the Lakehouse runtime catalog as its default catalog.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/iceberg_feature_tests.py on Managed Spark serverless runtime 4.0 (Spark 4.2.0, Iceberg 1.12.0, Lightning Engine) against the Lakehouse runtime catalog"
+      ],
       "links": [
         {
-          "label": "Managed Service for Apache Spark runtime 3.0 components",
-          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-3.0"
-        },
-        {
-          "label": "Managed Service for Apache Spark release notes (Iceberg 1.10)",
-          "url": "https://docs.cloud.google.com/managed-spark/docs/release-notes"
+          "label": "Managed Spark serverless runtime 4.0",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-4.0"
         }
       ]
     },
     "google-dataproc:read-support:v3": {
       "level": "full",
-      "notes": "Full read support. Managed Spark runtime 3.0.13 bundles Apache Spark 4.0.1 with built-in Iceberg, and Iceberg 1.10 is the current default in the latest images -- an Iceberg release line with substantially complete format-version 3 read support.",
-      "caveats": [],
+      "notes": "Full V3 read support: runtime 4.0 bundles Spark 4.2.0 with Iceberg 1.12.0, and predicate pushdown and projection work on V3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/iceberg_feature_tests.py on Managed Spark serverless runtime 4.0 (Spark 4.2.0, Iceberg 1.12.0, Lightning Engine) against the Lakehouse runtime catalog"
+      ],
       "links": [
         {
-          "label": "Managed Service for Apache Spark runtime 3.0 components",
-          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-3.0"
-        },
-        {
-          "label": "Managed Service for Apache Spark release notes (Iceberg 1.10)",
-          "url": "https://docs.cloud.google.com/managed-spark/docs/release-notes"
+          "label": "Managed Spark serverless runtime 4.0",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-4.0"
         }
       ]
     },
@@ -257,9 +269,22 @@
       "caveats": []
     },
     "google-dataproc:variant-type:v3": {
-      "level": "full",
-      "notes": "Variant type supported via Spark on Dataproc with Iceberg V3",
-      "caveats": []
+      "level": "none",
+      "notes": "Not available on Google's catalog: Spark 4.2 with Iceberg 1.12 accepts VARIANT columns, but the Lakehouse runtime catalog, the runtime's default catalog, refuses to create a V3 table with one (HTTP 400, Malformed request). Google lists the new V3 types as unsupported in the Lakehouse catalog.",
+      "caveats": [
+        "Other Iceberg REST catalogs reached from Managed Spark were not measured",
+        "Measured 2026-11-17 by tests/iceberg_feature_tests.py on Managed Spark serverless runtime 4.0 (Spark 4.2.0, Iceberg 1.12.0, Lightning Engine) against the Lakehouse runtime catalog"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables in the Lakehouse runtime catalog",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        },
+        {
+          "label": "Managed Spark serverless runtime 4.0",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-4.0"
+        }
+      ]
     },
     "google-dataproc:shredded-variant:v2": {
       "level": "none",
@@ -267,9 +292,22 @@
       "caveats": []
     },
     "google-dataproc:shredded-variant:v3": {
-      "level": "unknown",
-      "notes": "Google Dataproc V3 shredded variant support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Unreachable on the Lakehouse runtime catalog: it refuses V3 tables with VARIANT columns, so there is no variant to shred.",
+      "caveats": [
+        "Other Iceberg REST catalogs reached from Managed Spark were not measured",
+        "Measured 2026-11-17 by tests/iceberg_feature_tests.py on Managed Spark serverless runtime 4.0 (Spark 4.2.0, Iceberg 1.12.0, Lightning Engine) against the Lakehouse runtime catalog"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables in the Lakehouse runtime catalog",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        },
+        {
+          "label": "Managed Spark serverless runtime 4.0",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-4.0"
+        }
+      ]
     },
     "google-dataproc:geometry-type:v2": {
       "level": "none",
@@ -277,9 +315,22 @@
       "caveats": []
     },
     "google-dataproc:geometry-type:v3": {
-      "level": "unknown",
-      "notes": "Google Dataproc V3 geometry type support is not yet documented",
-      "caveats": []
+      "level": "none",
+      "notes": "Not available on Google's catalog: Spark 4.2 with Iceberg 1.12 passes GEOMETRY/GEOGRAPHY columns through to the catalog, but the Lakehouse runtime catalog refuses to create such a V3 table (HTTP 400, Malformed request).",
+      "caveats": [
+        "Other Iceberg REST catalogs reached from Managed Spark were not measured",
+        "Measured 2026-11-17 by tests/iceberg_feature_tests.py on Managed Spark serverless runtime 4.0 (Spark 4.2.0, Iceberg 1.12.0, Lightning Engine) against the Lakehouse runtime catalog"
+      ],
+      "links": [
+        {
+          "label": "Iceberg V3 tables in the Lakehouse runtime catalog",
+          "url": "https://docs.cloud.google.com/lakehouse/docs/use-iceberg-v3-binary-deletion-vectors"
+        },
+        {
+          "label": "Managed Spark serverless runtime 4.0",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-4.0"
+        }
+      ]
     },
     "google-dataproc:lineage:v2": {
       "level": "none",
@@ -287,9 +338,17 @@
       "caveats": []
     },
     "google-dataproc:lineage:v3": {
-      "level": "unknown",
-      "notes": "Google Dataproc V3 lineage support is not yet documented",
-      "caveats": []
+      "level": "full",
+      "notes": "Row-lineage metadata columns _row_id and _last_updated_sequence_number are readable on V3 tables.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/iceberg_feature_tests.py on Managed Spark serverless runtime 4.0 (Spark 4.2.0, Iceberg 1.12.0, Lightning Engine) against the Lakehouse runtime catalog"
+      ],
+      "links": [
+        {
+          "label": "Managed Spark serverless runtime 4.0",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-4.0"
+        }
+      ]
     },
     "google-dataproc:statistics:v2": {
       "level": "full",
@@ -331,7 +390,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL \u2013 ALTER TABLE",
+          "label": "Spark DDL – ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
@@ -342,7 +401,7 @@
       "caveats": [],
       "links": [
         {
-          "label": "Spark DDL \u2013 ALTER TABLE",
+          "label": "Spark DDL – ALTER TABLE",
           "url": "https://iceberg.apache.org/docs/latest/spark-ddl/#alter-table"
         }
       ]
@@ -389,9 +448,17 @@
       "caveats": []
     },
     "google-dataproc:unknown-type:v3": {
-      "level": "unknown",
-      "notes": "Not yet measured; recorded as unknown rather than inferred. Dataproc reaches Iceberg through Spark, so the answer follows the bundled Spark and Iceberg versions.",
-      "caveats": []
+      "level": "none",
+      "notes": "Spark 4.2 on runtime 4.0 rejects UNKNOWN as an unsupported data type, and a VOID column fails to create, so no unknown-typed Iceberg column can be declared.",
+      "caveats": [
+        "Measured 2026-11-17 by tests/iceberg_feature_tests.py on Managed Spark serverless runtime 4.0 (Spark 4.2.0, Iceberg 1.12.0, Lightning Engine) against the Lakehouse runtime catalog"
+      ],
+      "links": [
+        {
+          "label": "Managed Spark serverless runtime 4.0",
+          "url": "https://docs.cloud.google.com/managed-spark/docs/concepts/versions/spark-runtime-4.0"
+        }
+      ]
     },
     "google-dataproc:google-lakehouse:v2": {
       "level": "full",

@@ -26,7 +26,8 @@ echo "project=$PROJECT region=$REGION bucket=$BUCKET dataset=$DATASET connection
 
 gcloud services enable --project="$PROJECT" \
   bigquery.googleapis.com bigqueryconnection.googleapis.com \
-  biglake.googleapis.com dataproc.googleapis.com storage.googleapis.com
+  biglake.googleapis.com dataproc.googleapis.com storage.googleapis.com \
+  cloudresourcemanager.googleapis.com
 
 # --- Bucket: private, uniform access, short-lived test data ---------------
 if ! gcloud storage buckets describe "gs://$BUCKET" --project="$PROJECT" >/dev/null 2>&1; then
@@ -66,6 +67,27 @@ CATALOG_SA="$(gcloud biglake iceberg catalogs describe "$CATALOG" --project="$PR
 gcloud storage buckets add-iam-policy-binding "gs://$BUCKET" \
   --member="serviceAccount:$CATALOG_SA" --role=roles/storage.objectUser >/dev/null
 
+# --- Workload identity for Managed Spark batches ------------------------------
+# Serverless runtime 3.0+ otherwise runs a batch with the submitter's own
+# credentials, which needs an interactive consent and does not work from CI.
+# Roles are the ones Google lists for runtime 3.0+ with service account
+# credentials, plus object access on the test bucket only.
+SPARK_SA_NAME="${PREFIX}-spark"
+SPARK_SA="${SPARK_SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
+if ! gcloud iam service-accounts describe "$SPARK_SA" --project="$PROJECT" >/dev/null 2>&1; then
+  gcloud iam service-accounts create "$SPARK_SA_NAME" --project="$PROJECT" \
+    --display-name="Iceberg matrix Managed Spark batches"
+  # A new account takes a few seconds to become visible to IAM policy calls.
+  sleep 15
+fi
+for ROLE in roles/dataproc.serverlessNode roles/dataprocrm.nodeServiceAgent \
+            roles/biglake.editor roles/serviceusage.serviceUsageConsumer; do
+  gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$SPARK_SA" \
+    --role="$ROLE" --condition=None >/dev/null
+done
+gcloud storage buckets add-iam-policy-binding "gs://$BUCKET" \
+  --member="serviceAccount:$SPARK_SA" --role=roles/storage.objectUser >/dev/null
+
 cat <<EOF
 
 Done. Export these for the test suites:
@@ -75,4 +97,5 @@ Done. Export these for the test suites:
   export GCP_DATASET=$DATASET
   export GCP_CONNECTION=$PROJECT.$REGION.$CONNECTION
   export GCP_LAKEHOUSE_CATALOG=$CATALOG
+  export MANAGED_SPARK_SA=$SPARK_SA
 EOF

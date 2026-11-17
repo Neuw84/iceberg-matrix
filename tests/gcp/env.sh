@@ -9,4 +9,7 @@ export GCP_LAKEHOUSE_CATALOG="${GCP_LAKEHOUSE_CATALOG:-icebergmatrix_lakehouse}"
 
 # Python deps the BigQuery suite needs on top of tests/requirements.txt.
 # Usage: uv run --python 3.11 $GCP_UV_WITH python tests/bigquery_feature_tests.py
-export GCP_UV_WITH="--with pyspark==4.1.2 --with google-cloud-bigquery --with google-cloud-storage --with fastavro"
+export GCP_UV_WITH="--with pyspark==4.1.2 --with google-cloud-bigquery --with google-cloud-storage --with google-cloud-dataproc --with fastavro"
+
+# Service account Managed Spark batches run as (created by infra/gcp/setup.sh).
+export MANAGED_SPARK_SA="${MANAGED_SPARK_SA:-icebergmatrix-spark@${GCP_PROJECT}.iam.gserviceaccount.com}"

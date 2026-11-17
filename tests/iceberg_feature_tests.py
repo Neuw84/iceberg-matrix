@@ -683,8 +683,16 @@ def test_equality_deletes(version: str) -> list:
                 d.details = (f"Spark mis-read the equality delete: ids={ids} (expected [1, 3]), "
                             f"content=2 files={eq_files}")
         except Exception as e:  # noqa: BLE001 - the read half must not mask the write half
-            d.result = "error"
-            d.details = f"{type(e).__name__}: {str(e).splitlines()[0][:220]}"
+            if "'JavaPackage' object is not callable" in str(e):
+                # py4j resolves an absent class to a package: the runtime does
+                # not ship Iceberg's iceberg-data module (GenericAppenderFactory),
+                # so no equality delete can be written here. Nothing was measured.
+                d.result = "skip"
+                d.details = ("Not measured: this runtime's classpath lacks Iceberg's data "
+                             "module, so the Java-API equality-delete writer is unavailable")
+            else:
+                d.result = "error"
+                d.details = f"{type(e).__name__}: {str(e).splitlines()[0][:220]}"
 
         _drop_table(spark, tbl)
         spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
@@ -1451,6 +1459,22 @@ def test_google_lakehouse(version: str) -> TestResult:
     return r
 
 
+def _catalog_refused(e: Exception) -> str:
+    """The catalog's reason when it, not Spark, rejected a table, else "".
+
+    An Iceberg REST catalog answers a CreateTable it will not accept with HTTP
+    400, which Iceberg raises as BadRequestException. Google's Lakehouse
+    runtime catalog does this for V3 VARIANT and GEOMETRY columns. That is a
+    measured "cannot create here", so it is a fail with the catalog named, not
+    an error.
+    """
+    msg = str(e)
+    if "BadRequestException" not in msg:
+        return ""
+    line = next((ln for ln in msg.splitlines() if "BadRequestException" in ln), msg)
+    return line.split("BadRequestException:", 1)[-1].strip()[:160]
+
+
 # --- V3-only data-type / capability features ---
 
 def test_variant_type(version: str) -> TestResult:
@@ -1475,7 +1499,11 @@ def test_variant_type(version: str) -> TestResult:
         r.details = "VARIANT type column created and written on V3 table"
     except Exception as e:
         emsg = str(e).lower()
-        if any(t in emsg for t in ("variant", "unsupported", "format")):
+        refused = _catalog_refused(e)
+        if refused:
+            r.result = "fail"
+            r.details = f"The catalog refuses to create a V3 table with a VARIANT column: {refused}"
+        elif any(t in emsg for t in ("variant", "unsupported", "format")):
             r.result = "fail"
             r.details = f"Variant type not supported: {str(e)[:200]}"
         else:
@@ -1525,7 +1553,11 @@ def test_shredded_variant(version: str) -> TestResult:
             spark.sql(f"DROP NAMESPACE IF EXISTS local.{ns}")
         except Exception:
             pass
-        if any(t in emsg for t in ("variant", "unsupported", "format")):
+        refused = _catalog_refused(e)
+        if refused:
+            r.result = "fail"
+            r.details = f"The catalog refuses to create a V3 table with a VARIANT column: {refused}"
+        elif any(t in emsg for t in ("variant", "unsupported", "format")):
             r.result = "fail"
             r.details = f"Shredded variant not supported: {str(e)[:200]}"
         else:
@@ -1615,7 +1647,11 @@ def test_geometry_type(version: str) -> TestResult:
     except Exception as e:
         emsg = str(e)
         lowered = emsg.lower()
-        if "geospatial_disabled" in lowered:
+        refused = _catalog_refused(e)
+        if refused:
+            r.result = "fail"
+            r.details = f"The catalog refuses to create a V3 table with GEOMETRY/GEOGRAPHY columns: {refused}"
+        elif "geospatial_disabled" in lowered:
             # Harness problem, not an engine limitation: the session is missing
             # spark.sql.geospatial.enabled, so nothing about Iceberg was tested.
             r.result = "error"
