@@ -170,7 +170,7 @@ export default function App() {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <img
-                src="/iceberg-logo.svg"
+                src="/iceberg-logo.png"
                 alt="Apache Iceberg logo"
                 width={36}
                 height={36}

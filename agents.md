@@ -11,7 +11,7 @@ A React single-page application that displays an interactive compatibility matri
 ├── .kiro/specs/              # Kiro spec documents (requirements, design, tasks)
 ├── public/
 │   ├── logos/                # SVG logos for each platform/engine
-│   └── iceberg-logo.svg
+│   └── iceberg-logo.png
 ├── src/
 │   ├── components/           # React UI components
 │   │   ├── CompatibilityMatrix.tsx   # Main matrix grid
