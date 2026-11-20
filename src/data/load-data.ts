@@ -55,6 +55,7 @@ import starrocks from "./platforms/oss/starrocks/starrocks.json";
 import phoenixai from "./platforms/phoenixai/phoenixai/phoenixai.json";
 import databend from "./platforms/oss/databend/databend.json";
 import trino from "./platforms/oss/trino/trino.json";
+import impala from "./platforms/oss/impala/impala.json";
 import oracle26ai from "./platforms/oracle/oracle-26ai/oracle-26ai.json";
 // --- Alibaba Cloud engines (own group, between Snowflake and OSS/3rd Party) ---
 import aliEmrSpark from "./platforms/alibaba/emr-spark/emr-spark.json";
@@ -95,6 +96,7 @@ const postSnowflakeEngines: EngineFile[] = [
   flink,
   starburst,
   trino,
+  impala,
   pyiceberg,
   doris,
   phoenixai,
