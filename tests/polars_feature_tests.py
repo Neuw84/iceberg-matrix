@@ -10,9 +10,12 @@ and compares the results with the Polars entries in
 
 Every verdict comes from calling Polars, never PyIceberg directly. PyIceberg is
 used only to build the catalog connection Polars needs (``catalog=``), to create
-fixtures Polars cannot create (partition specs, int32 columns) and to inspect the
-files Polars wrote. Polars has no DDL, MERGE or maintenance API of its own and
-delegates part of its work to PyIceberg: ``write_iceberg`` and ``delete_iceberg``
+fixtures for the DataFrame API (partition specs, int32 columns) and to inspect the
+files Polars wrote. Since Polars 2.2, a catalog attached to a ``SQLContext`` with
+``register_catalog`` also takes CREATE TABLE, INSERT, UPDATE, DELETE, MERGE INTO,
+ALTER TABLE (columns, SET PARTITIONED BY, branches, tags), FOR VERSION/TIMESTAMP
+AS OF and CALL rewrite_data_files; those cells are measured through SQL as well
+(``_sql``). The DataFrame functions delegate part of their work to PyIceberg: ``write_iceberg`` and ``delete_iceberg``
 go through PyIceberg's append/overwrite/delete (copy-on-write), the scan falls
 back to PyIceberg whenever the native reader (``polars-iceberg``) cannot handle a
 table, and ``sink_iceberg`` writes Parquet natively and commits through PyIceberg.
@@ -69,6 +72,11 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 
+# See _storage_options: an empty session token in the environment is the guard
+# Polars 2.2 still honours against ambient AWS credentials. RustFS takes static
+# keys only. Set before Polars builds any object-store client.
+os.environ["AWS_SESSION_TOKEN"] = ""
+
 try:
     import polars as pl
 except ImportError:
@@ -118,6 +126,11 @@ NO_CATALOG_DETAIL = ("Requires the Iceberg REST catalog (set ICEBERG_REST_URI; s
 # Polars' V3 write gap: PyIceberg refuses to write manifests for a V3 table, and
 # Polars' write path (write_iceberg, sink_iceberg, delete_iceberg) commits through it.
 V3_WRITE_FRAGMENT = "cannot write manifest for table version: 3"
+# Polars 2.2 checks the format version itself before handing a write to
+# PyIceberg, and raises "NotImplementedError: delete from an Iceberg v3 table is
+# not supported yet" (likewise for overwrite). Same refusal, different words.
+V3_WRITE_FRAGMENTS = (V3_WRITE_FRAGMENT, "iceberg v3 table is not supported",
+                      "iceberg v3 table is not yet supported", "unsupported table format version: 3")
 
 
 def _fmt() -> int:
@@ -179,7 +192,13 @@ def _storage_options() -> dict:
     """Object-store settings for ``sink_iceberg``. Its native Parquet writer does
     not read S3 settings from the catalog or the table, so without these it
     writes to AWS. The empty session token stops an ambient AWS profile or
-    credentials file from adding a token that RustFS rejects."""
+    credentials file from adding a token that RustFS rejects.
+
+    Polars 2.2 drops empty storage options ("Empty values are unset"), which
+    silently removed that guard: its credential provider then attached an
+    ambient session token and RustFS answered every PUT with "invalid token2".
+    The empty ``AWS_SESSION_TOKEN`` set in ``main`` restores it; the option is
+    kept for Polars versions that still honour it."""
     return {
         "s3.endpoint": f"http://{spark_fixture.S3_ENDPOINT}",
         "s3.access-key-id": spark_fixture.S3_KEY_ID,
@@ -355,8 +374,43 @@ def _attempts(**fns) -> dict:
     return out
 
 
+# ---------------------------------------------------------------------------
+# Polars SQL on an attached catalog (Polars 2.2+)
+# ---------------------------------------------------------------------------
+# Polars 2.2 added Iceberg writes and DDL to SQL: a catalog attached with
+# SQLContext.register_catalog accepts CREATE TABLE, INSERT, UPDATE, DELETE,
+# MERGE INTO, ALTER TABLE (columns, SET PARTITIONED BY, branches and tags),
+# FOR VERSION/TIMESTAMP AS OF and CALL procedures. That is Polars' own API, so
+# each cell it touches is measured through it as well as through the DataFrame
+# functions; the verdict follows whichever Polars path works.
+SQL_CATALOG = "lake"
+
+
+def _has_sql_catalog() -> bool:
+    return hasattr(pl.SQLContext, "register_catalog")
+
+
+def _sql(stmt: str) -> "pl.DataFrame":
+    """Run one statement in a fresh SQLContext with the REST catalog attached as
+    ``lake``. Fresh per statement so a cached table load never hides a commit."""
+    ctx = pl.SQLContext()
+    ctx.register_catalog(SQL_CATALOG, _get_catalog(), storage_options=_storage_options())
+    return ctx.execute(stmt, eager=True)
+
+
+def _sql_try(**stmts) -> dict:
+    """Run statements in order; name -> None on success, else the error text."""
+    if not _has_sql_catalog():
+        return {k: "SQLContext.register_catalog is not available in this Polars" for k in stmts}
+    return _attempts(**{k: (lambda st=st: _sql(st)) for k, st in stmts.items()})
+
+
+def _lake(ident: str) -> str:
+    return f"{SQL_CATALOG}.{ident}"
+
+
 def _is_refusal(msg) -> bool:
-    return bool(msg) and V3_WRITE_FRAGMENT in msg.lower()
+    return bool(msg) and any(f in msg.lower() for f in V3_WRITE_FRAGMENTS)
 
 
 def _write_verdict(r, outcome: dict, ok_details: str, what: str):
@@ -368,7 +422,7 @@ def _write_verdict(r, outcome: dict, ok_details: str, what: str):
         r.details = ok_details
     elif len(errs) == len(outcome) and all(_is_refusal(v) for v in errs.values()):
         r.result = "fail"
-        r.details = (f"Cannot {what}: every Polars write path is refused by PyIceberg on a format-version "
+        r.details = (f"Cannot {what}: every Polars write path is refused (by Polars or PyIceberg) on a format-version "
                      f"{_fmt()} table ({outcome})")
     else:
         r.result = "error"
@@ -540,9 +594,9 @@ def _read_with_equality_delete(ns: str, name: str) -> dict:
 
 def test_table_creation() -> TestResult:
     r = TestResult("table-creation", "Table Creation")
-
     def body(ns, r):
         want = _fmt()
+        cat = _get_catalog()
         # Types with no lossless Iceberg mapping are refused at creation, whatever the pass.
         rejected = {}
         for label, series in (("UInt64", pl.Series([1], dtype=pl.UInt64)),
@@ -554,34 +608,46 @@ def test_table_creation() -> TestResult:
             rejected[label] = out
         ident = _table("create")
         _sink(_sample(), ident, mode="append", create_if_not_exists=True, create_namespace_if_not_exists=True)
-        tbl = _get_catalog().load_table(ident)
-        got = tbl.format_version
+        got = cat.load_table(ident).format_version
         params = set(inspect.signature(pl.LazyFrame.sink_iceberg).parameters)
         missing = sorted({"partition_spec", "properties", "format_version", "sort_order"} - params)
-        # A second route to a V3 table: a catalog-level default for new tables.
-        via_default = None
-        if want == 3:
-            cat = load_catalog("polars_table_default", **_catalog_props(**{"table-default.format-version": "3"}))
-            ident2 = _table("createdefault")
-            _sample().lazy().sink_iceberg(ident2, catalog=cat, storage_options=_storage_options(),
-                                          mode="append", create_if_not_exists=True)
-            via_default = _get_catalog().load_table(ident2).format_version
-        if got == want:
-            assert _ids(ident) == [1, 2, 3]
+        sink_note = (f"sink_iceberg(create_if_not_exists=True) creates a format-version {got} table from the frame "
+                     f"schema, unpartitioned, with no parameter for {missing}. Frames with UInt64, Duration or "
+                     f"nanosecond Datetime columns are rejected at creation ({sorted(rejected)})")
+        # Polars SQL (2.2+): CREATE TABLE ... WITH (properties), then a partition spec.
+        sident = _table("sqlcreate")
+        sql = _sql_try(
+            create=(f"CREATE TABLE {_lake(sident)} (id BIGINT, ts TIMESTAMP, name VARCHAR) "
+                    f"WITH ('format-version' = '{want}', 'owner' = 'polars-suite')"),
+            partition=f"ALTER TABLE {_lake(sident)} SET PARTITIONED BY (month(ts), bucket(4, id))",
+            insert=f"INSERT INTO {_lake(sident)} VALUES (1, TIMESTAMP '2026-01-15 10:00:00', 'a')",
+        )
+        stbl = cat.load_table(sident) if sql["create"] is None else None
+        created = stbl is not None and stbl.format_version == want and stbl.properties.get("owner") == "polars-suite"
+        spec = [str(f.transform) for f in stbl.spec().fields] if stbl else []
+        if created and sql["partition"] is None and sql["insert"] is None:
+            assert sorted(spec) == ["bucket[4]", "month"] and _ids(sident) == [1], (spec, _ids(sident))
             r.result = "pass"
-            r.partial_reason = f"no sink_iceberg parameter for {missing}: partitioning, properties, sort order and format version cannot be set"
-            r.details = (f"sink_iceberg(create_if_not_exists=True) created a format-version {got} table from the frame "
-                         f"schema in the REST catalog and wrote 3 rows; the table is unpartitioned ({tbl.spec()}). "
-                         f"No parameter for {missing}. Frames with UInt64, Duration or nanosecond Datetime columns are "
-                         f"rejected at creation ({sorted(rejected)}): {rejected['UInt64']}")
+            r.details = (f"Polars SQL CREATE TABLE ... WITH ('format-version'='{want}', properties) created a "
+                         f"format-version {want} table with the requested property, ALTER TABLE ... SET PARTITIONED BY "
+                         f"gave it month(ts) + bucket(4, id), and INSERT wrote a row. Partitioning is a second statement: "
+                         f"CREATE TABLE ... PARTITIONED BY does not parse. Also: {sink_note}")
+        elif created:
+            refused = {k: v for k, v in sql.items() if v}
+            assert all(_is_refusal(v) for v in refused.values()), f"unexpected SQL outcome: {sql}"
+            r.result = "pass"
+            r.partial_reason = f"creates an empty format-version {want} table but cannot partition it or write rows ({refused})"
+            r.details = (f"Polars SQL CREATE TABLE ... WITH ('format-version'='{want}') created a format-version {want} "
+                         f"table with the requested property, but on it SET PARTITIONED BY and INSERT are refused "
+                         f"({refused}). Also: {sink_note}")
+        elif got == want:
+            r.result = "pass"
+            r.partial_reason = f"no SQL route ({sql['create']}) and no sink_iceberg parameter for {missing}"
+            r.details = sink_note
         else:
             r.result = "fail"
-            r.details = (f"Asked for a format-version {want} table, Polars created format-version {got}: sink_iceberg has "
-                         f"no format-version or properties parameter (missing: {missing}), and a catalog-level "
-                         f"table-default.format-version=3 is ignored (table created as format-version {via_default}). "
-                         "PyIceberg itself can create V3 tables; Polars cannot ask for one. "
-                         f"UInt64, Duration and nanosecond Datetime frames are rejected at creation ({sorted(rejected)})")
-
+            r.details = (f"Asked for a format-version {want} table: Polars SQL CREATE TABLE failed ({sql['create']}) and "
+                         f"sink_iceberg created format-version {got}. {sink_note}")
     return _catalog_test(r, body)
 
 
@@ -652,31 +718,42 @@ def test_write_insert() -> TestResult:
 
 def test_write_merge_update_delete() -> TestResult:
     r = TestResult("write-merge-update-delete", "Write MERGE/UPDATE/DELETE")
-
     def body(ns, r):
         ident = _fixture(ns, "t", "copy-on-write")
         other = _fixture(ns, "u", "copy-on-write")
+        sident = _fixture(ns, "e", "copy-on-write")
         out = _attempts(
             delete_iceberg=lambda: pl.delete_iceberg(_get_catalog().load_table(ident), pl.col("id") == 2),
             overwrite_filter=lambda: _sink(pl.DataFrame({"id": [100], "val": ["x"]}), other,
                                            mode="overwrite", overwrite_filter=pl.col("id") == 2),
         )
-        names = [m for m in ("merge_iceberg", "update_iceberg", "upsert_iceberg", "merge_into", "upsert")
-                 if hasattr(pl, m) or hasattr(pl.DataFrame, m) or hasattr(pl.LazyFrame, m)]
-        upsert_params = [p for fn in (pl.LazyFrame.sink_iceberg, pl.DataFrame.write_iceberg)
-                         for p in inspect.signature(fn).parameters if any(k in p for k in ("upsert", "merge_on", "join_cols"))]
-        assert not names and not upsert_params, (names, upsert_params)
-        if not any(out.values()):
+        L = _lake(sident)
+        sql = _sql_try(
+            update=f"UPDATE {L} SET val = 'upd' WHERE id = 1",
+            delete=f"DELETE FROM {L} WHERE id = 3",
+            merge=(f"MERGE INTO {L} AS t USING (SELECT 2 AS id, 'mrg' AS val UNION ALL SELECT 4, 'new') AS s "
+                   "ON t.id = s.id WHEN MATCHED THEN UPDATE SET val = s.val "
+                   "WHEN NOT MATCHED THEN INSERT (id, val) VALUES (s.id, s.val)"),
+        )
+        everything = {**out, **{f"sql_{k}": v for k, v in sql.items()}}
+        if not any(everything.values()):
+            got = {row["id"]: row["val"] for row in _scan(sident).collect().to_dicts()}
+            assert got == {1: "upd", 2: "mrg", 4: "new"}, got
             assert _ids(ident) == [1, 3] and _ids(other) == [1, 3, 100], (_ids(ident), _ids(other))
-            r.partial_reason = "no MERGE INTO, UPDATE or upsert: only delete_iceberg and overwrite_filter"
+            r.result = "pass"
+            r.details = (f"Polars SQL UPDATE, DELETE and MERGE INTO (matched update + not-matched insert) on a "
+                         f"format-version {_fmt()} table left {got}. The DataFrame API also deletes "
+                         "(pl.delete_iceberg removed id 2) and overwrites by filter (sink_iceberg overwrite_filter), "
+                         "but has no MERGE or UPDATE of its own")
+        elif all(everything.values()) and all(_is_refusal(v) for v in everything.values()):
+            assert _ids(ident) == [1, 2, 3] and _ids(other) == [1, 2, 3] and _ids(sident) == [1, 2, 3], \
+                "a refused write must not change the table"
+            r.result = "fail"
+            r.details = (f"Every Polars row-level write is refused on a format-version {_fmt()} table: "
+                         f"SQL {sql}; DataFrame API {out}")
         else:
-            assert _ids(ident) == [1, 2, 3] and _ids(other) == [1, 2, 3], "a refused write must not change the table"
-        _write_verdict(r, out, (
-            "pl.delete_iceberg(table, predicate) deleted id 2 (ids now [1, 3]); sink_iceberg(mode='overwrite', "
-            "overwrite_filter=...) replaced one matching row (ids [1, 3, 100]). No MERGE, UPDATE or upsert for Iceberg: "
-            "none of the names/parameters exist on pl, DataFrame, LazyFrame, write_iceberg or sink_iceberg"),
-            "delete from or overwrite rows of a table")
-
+            r.result = "error"
+            r.details = f"Unexpected write outcome: SQL {sql}; DataFrame API {out}"
     return _spark_test(r, body)
 
 
@@ -745,20 +822,30 @@ def test_merge_on_read() -> TestResult:
     def body(ns, r):
         w = _delete_probe(ns, "merge-on-read")
         deletes = w["wrote"]
+        # Polars SQL DELETE (2.2+) on a second merge-on-read table.
+        sident = _fixture(ns, "u", "merge-on-read")
+        sql_err = _sql_try(delete=f"DELETE FROM {_lake(sident)} WHERE id = 2")["delete"]
+        sql_deletes = _delete_file_counts(ns, "u")
+        sql_note = (f"Polars SQL DELETE on a merge-on-read table: "
+                    f"{('refused (' + sql_err + ')') if sql_err else f'delete files {sql_deletes}, ids left {_ids(sident)}'}")
+        if not sql_err and (sql_deletes["position"] > 0 or sql_deletes["equality"] > 0):
+            r.result = "pass"
+            r.details = f"{sql_note}: merge-on-read honoured"
+            return
         if w["err"] and not _is_refusal(w["err"]):
             r.result = "error"
             r.details = f"Unexpected failure: {w['err']}"
         elif w["err"]:
             r.result = "fail"
             r.details = (f"pl.delete_iceberg on a merge-on-read table is refused on format-version {_fmt()} "
-                         f"({w['err']}); delete files {deletes}")
+                         f"({w['err']}); delete files {deletes}. {sql_note}")
         elif deletes["position"] > 0 or deletes["equality"] > 0:
             r.result = "pass"
             r.details = f"pl.delete_iceberg honoured write.delete.mode=merge-on-read: delete files {deletes}"
         else:
             r.result = "fail"
             r.details = (f"pl.delete_iceberg on a table with write.delete.mode=merge-on-read wrote no delete file "
-                         f"({deletes}, ids left {w['ids']}); PyIceberg warned: {w['warns']}")
+                         f"({deletes}, ids left {w['ids']}); PyIceberg warned: {w['warns']}. {sql_note}")
 
     return _spark_test(r, body)
 
@@ -849,9 +936,21 @@ def test_deletion_vectors() -> TestResult:
 
 def test_schema_evolution() -> TestResult:
     r = TestResult("schema-evolution", "Schema Evolution")
-
     def body(ns, r):
         cat = _get_catalog()
+        # Polars SQL (2.2+): ALTER TABLE on the table itself, no data write needed.
+        sident = _seed(ns, "sqlevo", pl.DataFrame({"id": [1, 2], "v": [1.0, 2.0]}))
+        L = _lake(sident)
+        sql = _sql_try(add=f"ALTER TABLE {L} ADD COLUMN extra VARCHAR")
+        extra_id = next((f.field_id for f in cat.load_table(sident).schema().fields if f.name == "extra"), None)
+        sql.update(_sql_try(rename=f"ALTER TABLE {L} RENAME COLUMN extra TO extra2",
+                            drop=f"ALTER TABLE {L} DROP COLUMN v"))
+        fields = {f.name: f.field_id for f in cat.load_table(sident).schema().fields}
+        sql_ok = (not any(sql.values()) and set(fields) == {"id", "extra2"}
+                  and fields["extra2"] == extra_id and _ids(sident) == [1, 2])
+        sql_note = (f"Polars SQL ALTER TABLE ADD, RENAME and DROP COLUMN all applied on a format-version {_fmt()} "
+                    f"table (columns now {sorted(fields)}, the renamed column keeps field id {extra_id}, rows still read)"
+                    if sql_ok else f"Polars SQL ALTER TABLE: {sql} (columns {sorted(fields)})")
         ident = _seed(ns, "evo", pl.DataFrame({"id": [1, 2], "v": [1.0, 2.0]}))
         before = [f.name for f in cat.load_table(ident).schema().fields]
         try:
@@ -859,98 +958,73 @@ def test_schema_evolution() -> TestResult:
         except Exception as e:  # noqa: BLE001 - the refusal is the datum
             after = [f.name for f in cat.load_table(ident).schema().fields]
             assert after == before, f"a refused evolution must not change the schema: {before} -> {after}"
-            if _is_refusal(str(e)):
-                r.result = "fail"
-                r.details = (f"sink_iceberg(schema_mode='merge') on a format-version {_fmt()} table failed before the schema "
-                             f"changed ({_err(e, 100)}); columns before {before}, after {after}")
-            else:
+            if not _is_refusal(str(e)):
                 r.result = "error"
                 r.details = f"Unexpected failure: {_err(e)}"
+            elif sql_ok:
+                r.result = "pass"
+                r.details = (f"{sql_note}. Evolving the schema as part of a data write is refused on this table "
+                             f"(sink_iceberg schema_mode='merge': {_err(e, 100)})")
+            else:
+                r.result = "fail"
+                r.details = (f"sink_iceberg(schema_mode='merge') on a format-version {_fmt()} table failed before the schema "
+                             f"changed ({_err(e, 100)}); {sql_note}")
             return
         added = "src" in [f.name for f in cat.load_table(ident).schema().fields]
         rows = _scan(ident).collect().sort("id").to_dicts()
-        try:
-            _sink(pl.DataFrame({"id": [4], "v": [4.0], "other": ["x"]}), ident, mode="append")
-            strict = "accepted an unmatched schema"
-        except Exception as e:  # noqa: BLE001
-            strict = f"rejects a mismatched append without schema_mode ({type(e).__name__})"
-        # Reorder and rename are not operations Polars has: measure what a reordered or renamed frame does.
-        order_before = [f.name for f in cat.load_table(ident).schema().fields]
-        reorder = _attempts(
-            sink=lambda: _sink(pl.DataFrame({"src": ["r"], "v": [5.0], "id": [5]}), ident, mode="append"),
-            write_iceberg=lambda: pl.DataFrame({"src": ["r"], "v": [5.0], "id": [6]}).write_iceberg(
-                cat.load_table(ident), mode="append"),
-        )
-        _sink(pl.DataFrame({"id": [7], "v2": [7.0], "src": ["x"]}), ident, mode="append", schema_mode="merge")
-        names_now = [f.name for f in cat.load_table(ident).schema().fields]
-        order_kept = names_now[:len(order_before)] == order_before
-        rename_added = "v2" in names_now and "v" in names_now
-        assert order_kept and rename_added, (order_before, names_now)
         _sink(pl.DataFrame({"id": [9], "w": [1.0]}), ident, mode="overwrite", schema_mode="overwrite")
         names = [f.name for f in cat.load_table(ident).schema().fields]
         dropped = "v" not in names and "src" not in names
-        api = [m for m in ("rename_column", "rename_iceberg", "alter_iceberg", "update_schema") if hasattr(pl.LazyFrame, m) or hasattr(pl, m)]
         assert added and rows[0]["src"] is None and rows[-1]["src"] == "s", rows
-        r.result = "pass" if dropped else "fail"
-        r.partial_reason = f"no rename or reorder API (found: {api or 'none'}); evolution only as part of a data write"
-        r.details = (f"sink_iceberg(schema_mode='merge') added column 'src' (older rows read null); {strict}; "
-                     f"schema_mode='overwrite' replaced the schema, dropping v/src (now {names}). No rename or reorder "
-                     f"API (found: {api or 'none'}). A frame with columns in another order never reorders the table "
-                     f"(columns stay {order_before}; sink_iceberg without schema_mode: "
-                     f"{(reorder['sink'] or 'accepted').split(':')[0]} on the column order, write_iceberg: {reorder['write_iceberg'] or 'accepted, matched by name'}), "
-                     f"and a frame carrying a renamed column adds it as a new column (v2) next to the old one (v) "
-                     f"instead of renaming")
-
+        r.result = "pass" if (dropped or sql_ok) else "fail"
+        if not sql_ok:
+            r.partial_reason = "no rename or reorder: evolution only as part of a data write"
+        r.details = (f"{sql_note}. Through writes: sink_iceberg(schema_mode='merge') added column 'src' (older rows "
+                     f"read null) and schema_mode='overwrite' replaced the schema (now {names})")
     return _vtest(r, body)
 
 
 def test_type_promotion() -> TestResult:
     r = TestResult("type-promotion", "Type Promotion / Widening")
-
     def body(ns, r):
+        # Polars SQL (2.2+): ALTER COLUMN ... TYPE on an int/float/decimal(9,2) table.
+        sident = _fixture(ns, "u", "merge-on-read", columns_ddl="id INT, f FLOAT, d DECIMAL(9,2)",
+                          seed_sql="(1, CAST(1.5 AS FLOAT), CAST(1.25 AS DECIMAL(9,2)))")
+        L = _lake(sident)
+        sql = _sql_try(int_long=f"ALTER TABLE {L} ALTER COLUMN id TYPE BIGINT",
+                       float_double=f"ALTER TABLE {L} ALTER COLUMN f TYPE DOUBLE",
+                       decimal_widen=f"ALTER TABLE {L} ALTER COLUMN d TYPE DECIMAL(18,2)")
+        stypes = {f.name: str(f.field_type) for f in _get_catalog().load_table(sident).schema().fields}
+        sql_ok = (not any(sql.values()) and stypes == {"id": "long", "f": "double", "d": "decimal(18, 2)"}
+                  and _ids(sident) == [1])
+        sql_note = (f"Polars SQL ALTER COLUMN TYPE promoted int->long, float->double and decimal(9,2)->decimal(18,2) "
+                    f"on a format-version {_fmt()} table (types {stypes}; the old row still reads)"
+                    if sql_ok else f"Polars SQL ALTER COLUMN TYPE: {sql} (types {stypes})")
         ident = _fixture(ns, "t", "merge-on-read", columns_ddl="id INT, f FLOAT, d DECIMAL(9,2)",
                          seed_sql="(1, CAST(1.5 AS FLOAT), CAST(1.25 AS DECIMAL(9,2)))")
         frame = pl.DataFrame({"id": pl.Series([9999999999], dtype=pl.Int64), "f": pl.Series([2.5], dtype=pl.Float64),
                               "d": pl.Series([Decimal("12345678901234.50")], dtype=pl.Decimal(18, 2))})
         try:
-            _sink(frame, ident, mode="append")
-            strict = "accepted wide data without schema_mode"
-        except Exception as e:  # noqa: BLE001
-            strict = f"refuses the wider frame without schema_mode ({_err(e, 90)})"
-        try:
             _sink(frame, ident, mode="append", schema_mode="merge")
         except Exception as e:  # noqa: BLE001
-            types = {f.name: str(f.field_type) for f in _get_catalog().load_table(ident).schema().fields}
-            if _is_refusal(str(e)):
-                r.result = "fail"
-                r.details = (f"Promotion on a format-version {_fmt()} table failed with the write refusal ({_err(e, 100)}); "
-                             f"column types afterwards: {types}; without schema_mode: {strict}")
-            else:
+            if not _is_refusal(str(e)):
                 r.result = "error"
                 r.details = f"Unexpected failure: {_err(e)}"
+            elif sql_ok:
+                r.result = "pass"
+                r.details = (f"{sql_note}. Writing wider data to this table is refused "
+                             f"(sink_iceberg schema_mode='merge': {_err(e, 100)})")
+            else:
+                r.result = "fail"
+                r.details = f"Promotion failed: writes refused ({_err(e, 100)}); {sql_note}"
             return
         types = {f.name: str(f.field_type) for f in _get_catalog().load_table(ident).schema().fields}
         rows = _scan(ident).collect().sort("id")
         ok = {"id": types["id"] == "long", "f": types["f"] == "double", "d": types["d"] == "decimal(18, 2)"}
         assert rows["id"].to_list() == [1, 9999999999], rows["id"].to_list()
-        # The other direction: narrower data (Int32/Float32/Decimal(9,2)) into the now-wide columns. Polars
-        # must not narrow the table, and it only accepts the frame when it is asked to merge schemas.
-        narrow = pl.DataFrame({"id": pl.Series([2], dtype=pl.Int32), "f": pl.Series([2.5], dtype=pl.Float32),
-                               "d": pl.Series([Decimal("2.50")], dtype=pl.Decimal(9, 2))})
-        wide = {"id": "long", "f": "double", "d": "decimal(18, 2)"}
-        plain = _attempts(append=lambda: _sink(narrow, ident, mode="append"))["append"]
-        merged = _attempts(append=lambda: _sink(narrow, ident, mode="append", schema_mode="merge"))["append"]
-        after = {f.name: str(f.field_type) for f in _get_catalog().load_table(ident).schema().fields}
-        not_narrowed = after == wide
-        assert merged is None, f"narrower data was refused even with schema_mode='merge': {merged}"
-        r.result = "pass" if (all(ok.values()) and not_narrowed) else "fail"
-        r.details = (f"Appending Int64/Float64/Decimal(18,2) data to an int/float/decimal(9,2) table with "
-                     f"sink_iceberg(schema_mode='merge') promoted columns to {types}; {strict}; "
-                     f"promoted: {ok}; old row still reads (id {rows['id'].to_list()}). Narrower direction: appending "
-                     f"Int32/Float32/Decimal(9,2) data to the wide table without schema_mode is "
-                     f"{'accepted' if plain is None else 'refused (' + plain + ')'}; with schema_mode='merge' it is "
-                     f"accepted and the column types stay {after} (never narrowed)")
-
+        r.result = "pass" if (all(ok.values()) or sql_ok) else "fail"
+        r.details = (f"{sql_note}. Through writes: appending Int64/Float64/Decimal(18,2) data with "
+                     f"sink_iceberg(schema_mode='merge') promoted the columns to {types} ({ok}); the old row still reads")
     return _spark_test(r, body)
 
 
@@ -1055,10 +1129,24 @@ def _transform_pruning() -> dict:
     return out
 
 
+def _declare_partitions(ident: str) -> dict:
+    """Polars SQL declares day(ts) + bucket(4, name) on an empty table it created."""
+    out = _sql_try(
+        create=f"CREATE TABLE {_lake(ident)} (id BIGINT, ts TIMESTAMP, name VARCHAR) WITH ('format-version' = '{_fmt()}')",
+        spec=f"ALTER TABLE {_lake(ident)} SET PARTITIONED BY (day(ts), bucket(4, name))",
+        insert=(f"INSERT INTO {_lake(ident)} VALUES (1, TIMESTAMP '2024-01-15 10:00:00', 'n1'), "
+                "(2, TIMESTAMP '2024-06-15 10:00:00', 'n2')"),
+    )
+    if not any(out.values()):
+        parts = _table_files(ident)["partition"]
+        out["files"] = None if len(parts) == 2 and all(p.get("ts_day") for p in parts) else f"partitions {parts}"
+    return out
+
+
 def test_hidden_partitioning() -> TestResult:
     r = TestResult("hidden-partitioning", "Hidden Partitioning")
-
     def body(ns, r):
+        declared = _declare_partitions(_table("sqlpart"))
         ident = _partitioned_fixture("hidpart")
         out = _fill_partitioned(ident, [_part_frame([1, 2], [1, 6]), _part_frame([3, 4], [1, 6])])
         parts = _table_files(ident)["partition"]
@@ -1068,28 +1156,39 @@ def test_hidden_partitioning() -> TestResult:
         got = sorted(lf.collect()["id"].to_list())
         assert got == [2, 4] and planned < total, (got, planned, total)
         others = _transform_pruning()
-        r.result = "pass"
         refused = {k: v for k, v in out.items() if v}
-        r.partial_reason = ("cannot declare a partition spec (the table came from PyIceberg)"
-                            + (f"; read side only: every write was refused ({refused})" if refused else ""))
+        declared_ok = not any(declared.values())
+        reasons = []
+        if not declared_ok:
+            reasons.append(f"cannot declare a partition spec ({ {k: v for k, v in declared.items() if v} })")
+        if refused:
+            reasons.append(f"read side only: every write was refused ({refused})")
+        r.result = "pass"
+        r.partial_reason = "; ".join(reasons) or None
         who = "Spark wrote the files after Polars was refused" if refused else "Polars (write_iceberg and native sink_iceberg) wrote them"
-        r.details = (f"Format-version {_fmt()} table partitioned by day(ts) + bucket(4, name): {who}; {total} files carry "
-                     f"partition values; a ts predicate plans {planned} of {total} files and returns {got}. "
-                     f"Polars write outcomes: {out}. Other transforms, each in its own table, prune "
-                     f"the same way: {others}")
-
+        r.details = (("Polars SQL declared day(ts) + bucket(4, name) on a table it created (ALTER TABLE ... SET "
+                      "PARTITIONED BY) and its INSERT wrote one file per partition. " if declared_ok else
+                      f"Polars SQL could not declare a spec: {declared}. ")
+                     + f"Format-version {_fmt()} table partitioned by day(ts) + bucket(4, name): {who}; {total} files "
+                     f"carry partition values; a ts predicate plans {planned} of {total} files and returns {got}. "
+                     f"Polars write outcomes: {out}. Other transforms prune the same way: {others}")
     return _vtest(r, body)
 
 
 def test_partition_evolution() -> TestResult:
     r = TestResult("partition-evolution", "Partition Evolution")
-
     def body(ns, r):
         cat = _get_catalog()
         ident = _partitioned_fixture("partevo")
         out = _fill_partitioned(ident, [_part_frame([1, 2], [1, 6])])
-        with cat.load_table(ident).update_spec() as u:  # evolve outside Polars: it has no API for it
-            u.add_field("ts", MonthTransform(), "ts_month")
+        evolve = _sql_try(evolve=f"ALTER TABLE {_lake(ident)} SET PARTITIONED BY (day(ts), bucket(4, name), month(ts))")
+        if evolve["evolve"] is None:
+            by = "Polars SQL ALTER TABLE ... SET PARTITIONED BY"
+        else:
+            assert _is_refusal(evolve["evolve"]), evolve
+            by = f"PyIceberg, because Polars SQL refused ({evolve['evolve']})"
+            with cat.load_table(ident).update_spec() as u:
+                u.add_field("ts", MonthTransform(), "ts_month")
         out2 = _attempts(sink=lambda: _sink(_part_frame([3, 4], [2, 7]), ident, mode="append"))
         if out2["sink"]:
             assert _is_refusal(out2["sink"]), out2
@@ -1099,13 +1198,16 @@ def test_partition_evolution() -> TestResult:
         specs = {p.spec_id for p in cat.load_table(ident).specs().values()}
         assert ids == [1, 2, 3, 4] and len(specs) == 2, (ids, specs)
         refused = {**{k: v for k, v in out.items() if v}, **{k: v for k, v in out2.items() if v}}
+        reasons = []
+        if evolve["evolve"]:
+            reasons.append("cannot evolve a partition spec on this table")
+        if refused:
+            reasons.append(f"read side only: writes under the new spec were refused ({refused})")
         r.result = "pass"
-        r.partial_reason = ("cannot evolve a partition spec (Polars has no API)"
-                            + (f"; read side only: writes under the new spec were refused ({refused})" if refused else ""))
-        r.details = (f"After the spec was evolved outside Polars ({len(specs)} specs, format-version {_fmt()}), "
+        r.partial_reason = "; ".join(reasons) or None
+        r.details = (f"The spec of a format-version {_fmt()} table was evolved by {by} ({len(specs)} specs); "
                      f"{'sink_iceberg wrote under the new spec' if not refused else 'Polars was refused, Spark wrote under the new spec'} "
                      f"and scan_iceberg read across both (ids {ids}). Polars write outcomes: {out} / {out2}")
-
     return _vtest(r, body)
 
 
@@ -1139,23 +1241,34 @@ def test_multi_arg_transforms() -> TestResult:
 
 def test_time_travel() -> TestResult:
     r = TestResult("time-travel", "Time Travel / Snapshots")
-
     def body(ns, r):
+        import time
         cat = _get_catalog()
         ident = _seed(ns, "tt", _sample([1]))
-        snap1 = cat.load_table(ident).current_snapshot().snapshot_id
+        snap1 = cat.load_table(ident).current_snapshot()
+        time.sleep(2)
         _add_rows(ident, _sample([2]))
-        snap2 = cat.load_table(ident).current_snapshot().snapshot_id
-        old, now = _ids(ident, snapshot_id=snap1), _ids(ident)
-        inc = sorted(_scan(ident, from_snapshot_id_exclusive=snap1, to_snapshot_id_inclusive=snap2).collect()["id"].to_list())
-        params = [p for p in inspect.signature(pl.scan_iceberg).parameters if "time" in p or "as_of" in p]
+        snap2 = cat.load_table(ident).current_snapshot()
+        old, now = _ids(ident, snapshot_id=snap1.snapshot_id), _ids(ident)
+        inc = sorted(_scan(ident, from_snapshot_id_exclusive=snap1.snapshot_id,
+                           to_snapshot_id_inclusive=snap2.snapshot_id).collect()["id"].to_list())
         assert (old, now, inc) == ([1], [1, 2], [2]), (old, now, inc)
+        # Polars SQL (2.2+): AS OF a snapshot id and AS OF a timestamp between the two commits.
+        mid_ms = (snap1.timestamp_ms + snap2.timestamp_ms) // 2
+        mid = datetime.fromtimestamp(mid_ms / 1000, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        sql_ids = {}
+        for label, clause in (("version", f"FOR VERSION AS OF {snap1.snapshot_id}"),
+                              ("timestamp", f"FOR TIMESTAMP AS OF TIMESTAMP '{mid}'")):
+            try:
+                sql_ids[label] = sorted(_sql(f"SELECT id FROM {_lake(ident)} {clause}")["id"].to_list())
+            except Exception as e:  # noqa: BLE001
+                sql_ids[label] = _err(e, 100)
         r.result = "pass"
-        r.partial_reason = f"snapshot ids only: no timestamp (as-of) parameter (found: {params or 'none'}) and no branch or tag name"
-        r.details = (f"On a format-version {_fmt()} table scan_iceberg(snapshot_id={snap1}) returned the historical row {old}, "
-                     f"current read {now}, incremental append scan returned {inc}. No timestamp (as-of) parameter "
-                     f"(found: {params or 'none'})")
-
+        if sql_ids.get("timestamp") != [1]:
+            r.partial_reason = f"snapshot ids only: no working timestamp (as-of) read (SQL: {sql_ids})"
+        r.details = (f"On a format-version {_fmt()} table scan_iceberg(snapshot_id=...) returned {old}, the current read "
+                     f"{now}, an incremental append scan {inc}. Polars SQL: FOR VERSION AS OF -> {sql_ids['version']}, "
+                     f"FOR TIMESTAMP AS OF a time between the commits ({mid} UTC) -> {sql_ids['timestamp']}")
     return _vtest(r, body)
 
 
@@ -1167,19 +1280,38 @@ def _maintenance_api() -> list:
 
 def test_table_maintenance() -> TestResult:
     r = TestResult("table-maintenance", "Table Maintenance")
-
     def body(ns, r):
         ident = _seed(ns, "maint", _sample([1]))
         for i in (2, 3):
             _add_rows(ident, _sample([i]))
-        snaps = len(list(_get_catalog().load_table(ident).snapshots()))
-        found = _maintenance_api()
-        iceberg_api = sorted(n for n in dir(pl) if "iceberg" in n.lower())
-        r.result = "pass" if found else "fail"
-        r.details = (f"Polars exposes no maintenance operation (searched compaction, snapshot expiry, orphan removal, "
-                     f"manifest rewrite; found: {found or 'none'}). Its Iceberg API is {iceberg_api}; the {snaps} "
-                     f"snapshots of a format-version {_fmt()} table from three small appends stay unmerged")
-
+        before = len(_table_files(ident)["file_path"])
+        ns_part, name = ident.split(".")
+        proc = f"{SQL_CATALOG}.system"
+        sql = _sql_try(
+            rewrite_data_files=(f"CALL {proc}.rewrite_data_files(table => '{ns_part}.{name}', "
+                                "options => map('rewrite-all', 'true'))"),
+            rewrite_manifests=f"CALL {proc}.rewrite_manifests(table => '{ns_part}.{name}')",
+            expire_snapshots=f"CALL {proc}.expire_snapshots(table => '{ns_part}.{name}')",
+            remove_orphan_files=f"CALL {proc}.remove_orphan_files(table => '{ns_part}.{name}')",
+        )
+        after = len(_table_files(ident)["file_path"])
+        compacted = sql["rewrite_data_files"] is None and after < before and _ids(ident) == [1, 2, 3]
+        available = sorted(k for k, v in sql.items() if v is None)
+        missing = sorted(k for k, v in sql.items() if v)
+        if compacted:
+            r.result = "pass"
+            if missing:
+                r.partial_reason = f"no {missing}: Polars SQL CALL supports {available}"
+            r.details = (f"Polars SQL CALL rewrite_data_files compacted a format-version {_fmt()} table from {before} "
+                         f"data files to {after} (rows intact); procedures that ran: {available}; not available: "
+                         f"{ {k: sql[k] for k in missing} }")
+        elif sql["rewrite_data_files"] and _is_refusal(sql["rewrite_data_files"]):
+            r.result = "fail"
+            r.details = (f"Compaction is refused on a format-version {_fmt()} table ({sql['rewrite_data_files']}); "
+                         f"other procedures: {sql}")
+        else:
+            r.result = "fail" if not available else "error"
+            r.details = f"No maintenance through Polars: {sql} ({before} -> {after} data files)"
     return _vtest(r, body)
 
 
@@ -1191,22 +1323,36 @@ def _branch_surface() -> dict:
 
 def test_branching_tagging() -> TestResult:
     r = TestResult("branching-tagging", "Branching & Tagging")
-
     def body(ns, r):
         ident = _fixture(ns, "t", "merge-on-read")
         spark = spark_fixture.get_spark()
         spark.sql(f"ALTER TABLE local.{ident} CREATE BRANCH dev")
         spark.sql(f"INSERT INTO local.{ident}.branch_dev VALUES (99,'branch-only')")
-        tbl = _get_catalog().load_table(ident)
-        refs = list(tbl.metadata.refs.keys())
-        via_snapshot = _ids(ident, snapshot_id=tbl.metadata.refs["dev"].snapshot_id)
-        surface = _branch_surface()
-        has = any(v for v in surface.values())
-        r.result = "pass" if has else "fail"
-        r.details = (f"No branch/tag/ref parameter on any Polars Iceberg function ({surface}); refs {refs} exist on the "
-                     f"format-version {_fmt()} table but a Polars read reaches the branch only by its snapshot id "
-                     f"({via_snapshot}), and writes always target main")
-
+        L = _lake(ident)
+        sql = _sql_try(create_tag=f"ALTER TABLE {L} CREATE TAG polars_tag",
+                       create_branch=f"ALTER TABLE {L} CREATE BRANCH polars_branch")
+        reads = {}
+        for ref in ("dev", "polars_tag"):
+            try:
+                reads[ref] = sorted(_sql(f"SELECT id FROM {L} FOR VERSION AS OF '{ref}'")["id"].to_list())
+            except Exception as e:  # noqa: BLE001
+                reads[ref] = _err(e, 100)
+        write = _sql_try(write_branch=f"INSERT INTO {L}.branch_dev VALUES (100, 'x')")["write_branch"]
+        drop = _sql_try(drop_tag=f"ALTER TABLE {L} DROP TAG polars_tag")["drop_tag"]
+        refs = sorted(_get_catalog().load_table(ident).metadata.refs)
+        made = not sql["create_tag"] and not sql["create_branch"] and "polars_branch" in refs
+        read_ok = reads.get("dev") == [1, 2, 3, 99] and reads.get("polars_tag") == [1, 2, 3]
+        if made and read_ok:
+            r.result = "pass"
+            if write:
+                r.partial_reason = "refs can be created, dropped and read, but no Polars write targets a branch"
+            r.details = (f"Polars SQL created a tag and a branch on a format-version {_fmt()} table (refs {refs}), read "
+                         f"the Spark-written branch and the tag with FOR VERSION AS OF ({reads}), and dropped the tag "
+                         f"({drop or 'ok'}). Writing to a branch: {write or 'accepted'}")
+        else:
+            surface = _branch_surface()
+            r.result = "pass" if any(v for v in surface.values()) else "fail"
+            r.details = (f"Polars SQL refs: {sql}, reads {reads}; DataFrame API ref parameters: {surface}; refs {refs}")
     return _spark_test(r, body)
 
 
