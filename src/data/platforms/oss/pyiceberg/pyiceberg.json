@@ -32,8 +32,10 @@
     },
     "pyiceberg:equality-deletes:v2": {
       "level": "none",
-      "notes": "Not supported as a write operation. PyIceberg reads equality delete files but never writes them -- producing one requires another engine (e.g. a Flink upsert sink), so this is not exercised by PyIceberg's own probe, which reports skip regardless of this level.",
-      "caveats": [],
+      "notes": "Not supported for reads or writes. PyIceberg never writes equality delete files and raises ValueError / NotImplementedError when scanning tables that contain them.",
+      "caveats": [
+        "Cannot read or write equality delete files"
+      ],
       "links": [
         {
           "label": "GitHub PR #2255",
@@ -50,9 +52,9 @@
     },
     "pyiceberg:merge-on-read:v2": {
       "level": "none",
-      "notes": "Not supported as a write operation. All of PyIceberg's deletes use copy-on-write; it cannot write merge-on-read deletes. It can read tables with position and equality delete files, but that is a read capability, not this operation.",
+      "notes": "Not supported as a write operation. All of PyIceberg's deletes use copy-on-write; it cannot write merge-on-read deletes. It can read tables with position delete files (not equality deletes), but that is a read capability, not this operation.",
       "caveats": [
-        "Read capability: reads position and equality delete files"
+        "Read capability: reads position delete files (equality deletes are not supported)"
       ]
     },
     "pyiceberg:merge-on-read:v3": {
@@ -74,9 +76,17 @@
       "caveats": []
     },
     "pyiceberg:copy-on-write:v3": {
-      "level": "full",
-      "notes": "Copy-on-write supported for V3 tables",
-      "caveats": []
+      "level": "none",
+      "notes": "Writing V3 data/manifests is not yet supported in PyIceberg 0.12.0 (write_manifest raises ValueError for format version 3).",
+      "caveats": [
+        "V3 data writes are not yet supported (apache/iceberg-python#1551)"
+      ],
+      "links": [
+        {
+          "label": "Write support for V3 (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
     },
     "pyiceberg:schema-evolution:v2": {
       "level": "full",
@@ -84,9 +94,17 @@
       "caveats": []
     },
     "pyiceberg:schema-evolution:v3": {
-      "level": "full",
-      "notes": "Full schema evolution support in V3 via update_schema() context manager",
-      "caveats": []
+      "level": "partial",
+      "notes": "Metadata-only schema evolution via update_schema() works against REST catalogs (where the server serializes V3 metadata), but fails on non-REST catalogs where TableMetadataV3.model_dump_json() raises NotImplementedError.",
+      "caveats": [
+        "REST catalog only; client-side catalogs raise NotImplementedError when writing V3 metadata"
+      ],
+      "links": [
+        {
+          "label": "Write support for V3 (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
     },
     "pyiceberg:column-default-values:v2": {
       "level": "none",
@@ -116,9 +134,17 @@
       "caveats": []
     },
     "pyiceberg:table-creation:v3": {
-      "level": "full",
-      "notes": "V3 table creation supported by setting format-version property to 3",
-      "caveats": []
+      "level": "partial",
+      "notes": "Creating an empty V3 table works only via a REST catalog (server-side metadata serialization). Non-REST catalogs raise NotImplementedError in TableMetadataV3.model_dump_json().",
+      "caveats": [
+        "REST catalog only; non-REST catalogs raise NotImplementedError on V3 table creation (apache/iceberg-python#1551)"
+      ],
+      "links": [
+        {
+          "label": "Write support for V3 (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
     },
     "pyiceberg:hidden-partitioning:v2": {
       "level": "full",
@@ -132,13 +158,15 @@
       ]
     },
     "pyiceberg:hidden-partitioning:v3": {
-      "level": "full",
-      "notes": "Hidden partitioning fully supported in V3 with all transforms including bucket and truncate (via iceberg-rust)",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Reads hidden-partitioned V3 tables written by other engines; cannot write V3 data files or manifests.",
+      "caveats": [
+        "Read-only on V3 tables; V3 data writes are not yet supported (apache/iceberg-python#1551)"
+      ],
       "links": [
         {
-          "label": "PyIceberg v0.9.0 Release Notes",
-          "url": "https://github.com/apache/iceberg-python/releases/tag/pyiceberg-0.9.0"
+          "label": "Write support for V3 (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
         }
       ]
     },
@@ -148,9 +176,17 @@
       "caveats": []
     },
     "pyiceberg:partition-evolution:v3": {
-      "level": "full",
-      "notes": "Partition evolution supported in V3 via update_spec()",
-      "caveats": []
+      "level": "partial",
+      "notes": "Metadata-only partition evolution via update_spec() works against REST catalogs, but fails on non-REST catalogs where TableMetadataV3.model_dump_json() raises NotImplementedError.",
+      "caveats": [
+        "REST catalog only; client-side catalogs raise NotImplementedError when writing V3 metadata"
+      ],
+      "links": [
+        {
+          "label": "Write support for V3 (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
     },
     "pyiceberg:multi-arg-transforms:v2": {
       "level": "none",
@@ -176,18 +212,18 @@
     },
     "pyiceberg:table-maintenance:v2": {
       "level": "partial",
-      "notes": "PyIceberg supports expire_snapshots and manage_snapshots APIs; does not support data compaction, manifest rewriting, or orphan file cleanup",
+      "notes": "PyIceberg supports expire_snapshots, manage_snapshots, and old metadata file cleanup (write.metadata.delete-after-commit.enabled); does not support data compaction, manifest rewriting, or orphan file cleanup",
       "caveats": [
         "No data file compaction",
         "No manifest rewriting",
-        "No orphan file cleanup",
-        "No old metadata file cleanup"
+        "No orphan file cleanup"
       ]
     },
     "pyiceberg:table-maintenance:v3": {
       "level": "partial",
-      "notes": "Same table maintenance limitations as V2 apply to V3",
+      "notes": "Same table maintenance limitations as V2, and metadata commits on V3 tables work only via REST catalogs (non-REST catalogs raise NotImplementedError in TableMetadataV3.model_dump_json()).",
       "caveats": [
+        "REST catalog only for V3 metadata updates",
         "No data file compaction",
         "No manifest rewriting",
         "No orphan file cleanup"
@@ -199,13 +235,21 @@
       "caveats": []
     },
     "pyiceberg:branching-tagging:v3": {
-      "level": "full",
-      "notes": "Branching and tagging fully supported in V3",
-      "caveats": []
+      "level": "partial",
+      "notes": "Branching and tagging via manage_snapshots() works against REST catalogs, but fails on non-REST catalogs where TableMetadataV3.model_dump_json() raises NotImplementedError.",
+      "caveats": [
+        "REST catalog only; client-side catalogs raise NotImplementedError when writing V3 metadata"
+      ],
+      "links": [
+        {
+          "label": "Write support for V3 (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
     },
     "pyiceberg:read-support:v2": {
       "level": "full",
-      "notes": "Full read support via scan().to_arrow(), to_pandas(), to_duckdb(), to_ray(); supports row filters, column projection, and streaming via to_arrow_batch_reader()",
+      "notes": "Full read support via scan().to_arrow(), to_pandas(), to_duckdb(), to_ray(), to_polars(), to_daft(), and to_bodo(); supports row filters, column projection, and streaming via to_arrow_batch_reader()",
       "caveats": [
         "Cannot read tables containing equality delete files"
       ]
@@ -229,9 +273,17 @@
       "caveats": []
     },
     "pyiceberg:write-insert:v3": {
-      "level": "full",
-      "notes": "Insert/append/overwrite supported for V3 tables",
-      "caveats": []
+      "level": "none",
+      "notes": "Writing V3 data/manifests is not yet supported in PyIceberg 0.12.0 (write_manifest raises ValueError for format version 3).",
+      "caveats": [
+        "V3 data writes are not yet supported (apache/iceberg-python#1551)"
+      ],
+      "links": [
+        {
+          "label": "Write support for V3 (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
+      ]
     },
     "pyiceberg:write-merge-update-delete:v2": {
       "level": "partial",
@@ -243,16 +295,21 @@
       ]
     },
     "pyiceberg:write-merge-update-delete:v3": {
-      "level": "partial",
-      "notes": "Same delete/overwrite/upsert programmatic API available for V3 tables",
+      "level": "none",
+      "notes": "Writing V3 data/manifests is not yet supported in PyIceberg 0.12.0 (write_manifest raises ValueError for format version 3).",
       "caveats": [
-        "Programmatic API only, no SQL syntax",
-        "Copy-on-write deletes only"
+        "V3 data writes are not yet supported (apache/iceberg-python#1551)"
+      ],
+      "links": [
+        {
+          "label": "Write support for V3 (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
+        }
       ]
     },
     "pyiceberg:catalog-integration:v2": {
       "level": "full",
-      "notes": "Native support for REST, SQL (PostgreSQL, SQLite), Hive, Glue, and DynamoDB catalogs",
+      "notes": "Native support for REST, SQL (PostgreSQL, SQLite), Hive, Glue, DynamoDB, and BigQuery Metastore catalogs",
       "caveats": []
     },
     "pyiceberg:catalog-integration:v3": {
@@ -382,13 +439,15 @@
       ]
     },
     "pyiceberg:statistics:v3": {
-      "level": "full",
-      "notes": "Column statistics fully supported for V3 tables in PyIceberg",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Reads column statistics from V3 manifests for scan planning and file pruning; cannot write V3 manifests.",
+      "caveats": [
+        "Read-only on V3 tables; V3 data writes are not yet supported (apache/iceberg-python#1551)"
+      ],
       "links": [
         {
-          "label": "PyIceberg documentation",
-          "url": "https://py.iceberg.apache.org/"
+          "label": "Write support for V3 (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
         }
       ]
     },
@@ -429,13 +488,15 @@
       ]
     },
     "pyiceberg:type-promotion:v3": {
-      "level": "full",
-      "notes": "Full type promotion support for V3 tables via update_schema() context manager.",
-      "caveats": [],
+      "level": "partial",
+      "notes": "Metadata-only type promotion via update_schema() works against REST catalogs, but fails on non-REST catalogs where TableMetadataV3.model_dump_json() raises NotImplementedError.",
+      "caveats": [
+        "REST catalog only; client-side catalogs raise NotImplementedError when writing V3 metadata"
+      ],
       "links": [
         {
-          "label": "PyIceberg API – Schema evolution",
-          "url": "https://py.iceberg.apache.org/api/"
+          "label": "Write support for V3 (apache/iceberg-python#1551)",
+          "url": "https://github.com/apache/iceberg-python/issues/1551"
         }
       ]
     },
