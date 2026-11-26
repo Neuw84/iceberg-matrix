@@ -1,0 +1,993 @@
+{
+  "platforms": [
+    {
+      "id": "impala",
+      "name": "Impala (4.5.3)",
+      "vendor": "Apache",
+      "category": "open-source",
+      "group": "3rd Party",
+      "docUrl": "https://impala.apache.org/docs/build/html/topics/impala_iceberg.html"
+    }
+  ],
+  "support": {
+    "impala:position-deletes:v2": {
+      "level": "full",
+      "notes": "DELETE, UPDATE and MERGE write Parquet position delete files on V2 tables (merge-on-read); no data file is rewritten.",
+      "caveats": [
+        "Delete files are written in Parquet only: write.delete.format.default must be PARQUET.",
+        "V1 tables are rejected for DELETE and UPDATE."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergModifyImpl.java: DELETE/UPDATE checks (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/IcebergModifyImpl.java#L62-L83"
+        }
+      ]
+    },
+    "impala:position-deletes:v3": {
+      "level": "none",
+      "notes": "Not supported: Impala writes neither position deletes nor their V3 replacement, deletion vectors, on V3 tables. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [
+        "This write-rated feature is displayed only for V2."
+      ],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:equality-deletes:v2": {
+      "level": "none",
+      "notes": "Not supported as a write operation: DELETE, UPDATE and MERGE only write position delete files. Impala reads equality delete files written by other engines (for example Flink) with an anti-join at scan time.",
+      "caveats": [
+        "Write capability only: tables with equality deletes are readable, except tables with more than one partition spec.",
+        "MERGE is rejected on tables that contain equality delete files."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergEqualityDeleteTable.java (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/catalog/IcebergEqualityDeleteTable.java#L30-L36"
+        },
+        {
+          "label": "IcebergMergeImpl.java: MERGE checks (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/IcebergMergeImpl.java#L119-L134"
+        }
+      ]
+    },
+    "impala:equality-deletes:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:merge-on-read:v2": {
+      "level": "full",
+      "notes": "Merge-on-read is Impala's only row-level write mode: DELETE, UPDATE and MERGE write position delete files, and scans apply position and equality deletes at read time. CREATE TABLE with 'format-version'='2' sets write.delete.mode, write.update.mode and write.merge.mode to merge-on-read.",
+      "caveats": [
+        "OPTIMIZE TABLE merges the accumulated delete files back into data files."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "CreateTableStmt.java: merge-on-read defaults (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/CreateTableStmt.java#L646-L666"
+        },
+        {
+          "label": "IcebergModifyImpl.java: DELETE/UPDATE checks (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/IcebergModifyImpl.java#L62-L83"
+        }
+      ]
+    },
+    "impala:merge-on-read:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:copy-on-write:v2": {
+      "level": "none",
+      "notes": "Impala has no copy-on-write mode. DELETE, UPDATE and MERGE are rejected when write.delete.mode, write.update.mode or write.merge.mode is copy-on-write (\"Unsupported 'write.delete.mode': 'copy-on-write'\"). The iceberg_always_allow_merge_on_read_operations startup flag lets them run anyway, still as merge-on-read.",
+      "caveats": [
+        "Read capability: copy-on-write tables written by other engines are readable.",
+        "OPTIMIZE TABLE rewrites data files, but as table maintenance, not as a DML write mode."
+      ],
+      "links": [
+        {
+          "label": "IcebergModifyImpl.java: DELETE/UPDATE checks (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/IcebergModifyImpl.java#L62-L83"
+        },
+        {
+          "label": "IcebergMergeImpl.java: MERGE checks (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/IcebergMergeImpl.java#L119-L134"
+        },
+        {
+          "label": "global-flags.cc: iceberg_always_allow_merge_on_read_operations (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/be/src/common/global-flags.cc#L428-L431"
+        }
+      ]
+    },
+    "impala:copy-on-write:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:schema-evolution:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE ADD COLUMNS, DROP COLUMN and CHANGE COLUMN (rename, type promotion, comment) are committed through Iceberg UpdateSchema without rewriting data files; ALTER TABLE RENAME TO renames the table where the catalog supports it. Columns are resolved by field id, so old data files stay readable.",
+      "caveats": [
+        "No column reordering: ADD COLUMNS appends at the end and there is no FIRST/AFTER.",
+        "CHANGE COLUMN only takes primitive types, so fields nested in STRUCT, ARRAY or MAP columns cannot be changed.",
+        "Not supported for tables whose file format is AVRO."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergCatalogOpExecutor.java: schema changes (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/service/IcebergCatalogOpExecutor.java#L145-L180"
+        }
+      ]
+    },
+    "impala:schema-evolution:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:type-promotion:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE CHANGE COLUMN widens int to bigint, float to double, and decimal(P, S) to decimal(P', S) with P' > P as metadata-only changes; other type changes are rejected by Iceberg's UpdateSchema.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergCatalogOpExecutor.java: schema changes (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/service/IcebergCatalogOpExecutor.java#L145-L180"
+        }
+      ]
+    },
+    "impala:type-promotion:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "impala:column-default-values:v3": {
+      "level": "none",
+      "notes": "Not supported: Impala neither reads initial defaults nor applies write defaults. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:table-creation:v2": {
+      "level": "full",
+      "notes": "CREATE TABLE ... STORED AS ICEBERG, CREATE TABLE AS SELECT and CREATE TABLE LIKE create tables in HiveCatalog, HadoopCatalog or HadoopTables, with PARTITIONED BY SPEC transforms and TBLPROPERTIES such as format-version and write.format.default. CREATE EXTERNAL TABLE registers an existing Iceberg table.",
+      "caveats": [
+        "Set 'format-version'='2' explicitly for row-level DML: without it the version is the bundled Iceberg library's default (V1 in the default CDP-components build).",
+        "Tables are written in Parquet only, although ORC and Avro tables can be created."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "CreateTableStmt.java: merge-on-read defaults (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/CreateTableStmt.java#L646-L666"
+        }
+      ]
+    },
+    "impala:table-creation:v3": {
+      "level": "none",
+      "notes": "Not supported: Impala cannot create V3 tables. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "PARTITIONED BY SPEC accepts IDENTITY, BUCKET, TRUNCATE, YEAR, MONTH, DAY, HOUR and VOID. INSERT derives partition values from the source columns without a PARTITION clause, and scans prune partitions from filters on the source columns.",
+      "caveats": [
+        "INSERT OVERWRITE on a BUCKET-partitioned table only works when it rewrites the table from itself (INSERT OVERWRITE t SELECT * FROM t)."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "InsertStmt.java: INSERT OVERWRITE checks (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/InsertStmt.java#L604-L662"
+        }
+      ]
+    },
+    "impala:hidden-partitioning:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:partition-evolution:v2": {
+      "level": "full",
+      "notes": "ALTER TABLE ... SET PARTITION SPEC replaces the partition spec without rewriting existing data; new writes use the new spec, and older files keep the spec they were written with.",
+      "caveats": [
+        "Equality delete files are not supported on tables with more than one partition spec: such scans fail.",
+        "INSERT OVERWRITE is rejected once a table has more than one partition spec.",
+        "ALTER TABLE DROP PARTITION filters must target the latest partition spec."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergCatalogOpExecutor.java: SET PARTITION SPEC (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/service/IcebergCatalogOpExecutor.java#L187-L200"
+        },
+        {
+          "label": "IcebergScanPlanner.java: equality deletes and partition evolution (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/planner/IcebergScanPlanner.java#L443-L450"
+        },
+        {
+          "label": "InsertStmt.java: INSERT OVERWRITE checks (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/InsertStmt.java#L604-L662"
+        }
+      ]
+    },
+    "impala:partition-evolution:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "impala:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:time-travel:v2": {
+      "level": "full",
+      "notes": "SELECT ... FOR SYSTEM_TIME AS OF <timestamp> and FOR SYSTEM_VERSION AS OF <snapshot id> read earlier snapshots with the schema those snapshots had. DESCRIBE HISTORY lists the snapshots, and the history and snapshots metadata tables can be queried.",
+      "caveats": [
+        "Snapshot ids only: branch and tag names cannot be used in FOR SYSTEM_VERSION AS OF."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "TimeTravelSpec.java: FOR SYSTEM_VERSION AS OF (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/TimeTravelSpec.java#L141-L156"
+        }
+      ]
+    },
+    "impala:time-travel:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:table-maintenance:v2": {
+      "level": "partial",
+      "notes": "OPTIMIZE TABLE compacts data files and merges delete files into them (FILE_SIZE_THRESHOLD_MB limits it to small files; without it the whole table is rewritten to the latest schema and partition spec). ALTER TABLE ... EXECUTE expire_snapshots(<timestamp>) expires snapshots and deletes data files they alone referenced, and EXECUTE ROLLBACK restores an earlier snapshot.",
+      "caveats": [
+        "No orphan-file removal and no manifest rewrite.",
+        "OPTIMIZE requires write.format.default = PARQUET and cannot rewrite tables with complex-type columns.",
+        "Old metadata files stay unless write.metadata.delete-after-commit.enabled is set."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "AlterTableExecuteStmt.java: EXECUTE operations (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/AlterTableExecuteStmt.java#L50-L76"
+        },
+        {
+          "label": "IcebergUtil.validateIcebergTableForInsert (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/util/IcebergUtil.java#L1242-L1270"
+        }
+      ]
+    },
+    "impala:table-maintenance:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:branching-tagging:v2": {
+      "level": "none",
+      "notes": "Not supported: Impala 4.5.3 has no DDL to create or drop branches or tags, cannot read a branch or tag (FOR SYSTEM_VERSION AS OF takes a snapshot id only), and commits all writes to the main branch.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "TimeTravelSpec.java: FOR SYSTEM_VERSION AS OF (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/TimeTravelSpec.java#L141-L156"
+        }
+      ]
+    },
+    "impala:branching-tagging:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:read-support:v2": {
+      "level": "full",
+      "notes": "Reads V1 and V2 tables with Parquet, ORC and Avro data files, applying position and equality delete files. Predicates are pushed into Iceberg scan planning so manifest metrics prune data files, and scans add partition pruning, column projection and Parquet row-group filtering. Iceberg metadata tables (snapshots, history, files, manifests, ...) can be queried with SELECT.",
+      "caveats": [
+        "Iceberg time, uuid and fixed(L) columns are not supported: schema conversion fails with \"Iceberg type ... is not supported in Impala\".",
+        "timestamptz is read as TIMESTAMP.",
+        "Equality delete files are not supported on tables with more than one partition spec."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergSchemaConverter.java: type mapping (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/util/IcebergSchemaConverter.java#L70-L117"
+        },
+        {
+          "label": "IcebergScanPlanner.java: equality deletes and partition evolution (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/planner/IcebergScanPlanner.java#L443-L450"
+        }
+      ]
+    },
+    "impala:read-support:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:write-insert:v2": {
+      "level": "full",
+      "notes": "INSERT INTO, INSERT OVERWRITE (dynamic overwrite of the partitions the query produces), CREATE TABLE AS SELECT and LOAD DATA write Parquet data files; TRUNCATE removes all rows.",
+      "caveats": [
+        "Data files are written in Parquet only: write.format.default must be PARQUET.",
+        "Tables with complex-type (STRUCT, ARRAY, MAP) or timestamptz columns cannot be written.",
+        "INSERT OVERWRITE is rejected on tables with more than one partition spec, and on BUCKET-partitioned tables unless it rewrites the table from itself."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergUtil.validateIcebergTableForInsert (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/util/IcebergUtil.java#L1242-L1270"
+        },
+        {
+          "label": "InsertStmt.java: INSERT OVERWRITE checks (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/InsertStmt.java#L604-L662"
+        }
+      ]
+    },
+    "impala:write-insert:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "DELETE, UPDATE (including UPDATE ... FROM a join) and MERGE INTO (WHEN MATCHED UPDATE/DELETE, WHEN NOT MATCHED INSERT) run on V2 tables as merge-on-read, writing position delete files and new Parquet data files. ALTER TABLE DROP PARTITION removes whole partitions as a metadata-only commit.",
+      "caveats": [
+        "V2 tables only: V1 tables are rejected.",
+        "UPDATE and MERGE cannot write tables with complex-type or timestamptz columns.",
+        "MERGE is rejected on tables that contain equality delete files.",
+        "UPDATE ... FROM cannot set a partition column to a non-constant expression."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergModifyImpl.java: DELETE/UPDATE checks (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/IcebergModifyImpl.java#L62-L83"
+        },
+        {
+          "label": "IcebergMergeImpl.java: MERGE checks (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/analysis/IcebergMergeImpl.java#L119-L134"
+        },
+        {
+          "label": "IcebergUtil.validateIcebergTableForInsert (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/util/IcebergUtil.java#L1242-L1270"
+        }
+      ]
+    },
+    "impala:write-merge-update-delete:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:catalog-integration:v2": {
+      "level": "partial",
+      "notes": "Iceberg tables are managed through the Hive Metastore. Impala creates, reads and writes tables in HiveCatalog (the default), HadoopCatalog and HadoopTables, and named hive or hadoop catalogs can be registered in hive-site.xml (iceberg.catalog.<name>.type).",
+      "caveats": [
+        "No Iceberg REST, AWS Glue, Nessie or JDBC catalog support.",
+        "Every table, including HadoopCatalog and HadoopTables tables, must also be registered in the Hive Metastore (CREATE EXTERNAL TABLE).",
+        "Custom catalog implementations (iceberg.catalog.<name>.catalog-impl) are documented only for registering existing tables, not for creating them."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergCatalogs.java: catalogs from hive-site.xml (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/catalog/iceberg/IcebergCatalogs.java#L69-L99"
+        }
+      ]
+    },
+    "impala:catalog-integration:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:statistics:v2": {
+      "level": "full",
+      "notes": "Impala's writer records column sizes, value counts, null counts and lower/upper bounds for every data file in the manifests, and scans push predicates into Iceberg planFiles so these metrics prune data files. COMPUTE STATS keeps table and column statistics in the Hive Metastore, and NDV statistics from Puffin files written by other engines (for example Trino) can be read.",
+      "caveats": [
+        "NaN counts are not written.",
+        "Puffin statistics are read, not written, and reading them is off by default (--enable_reading_puffin_stats)."
+      ],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergCatalogOpExecutor.java: data file metrics (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/service/IcebergCatalogOpExecutor.java#L486-L511"
+        },
+        {
+          "label": "IcebergUtil.planFiles: predicate pushdown (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/util/IcebergUtil.java#L623-L633"
+        }
+      ]
+    },
+    "impala:statistics:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:bloom-filters:v2": {
+      "level": "partial",
+      "notes": "The Parquet scanner uses Parquet bloom filters stored in the data files to skip row groups (PARQUET_BLOOM_FILTERING query option, on by default). Puffin bloom filters are neither read nor written.",
+      "caveats": [
+        "Iceberg's write.parquet.bloom-filter-enabled.column.* properties are ignored. Impala's own Parquet bloom filter writer is configured with the parquet.bloom.filter.columns table property, which is not documented or tested for Iceberg tables."
+      ],
+      "links": [
+        {
+          "label": "Query.thrift: parquet_bloom_filtering (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/common/thrift/Query.thrift#L579-L580"
+        },
+        {
+          "label": "HdfsTableSink.java: parquet.bloom.filter.columns (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/planner/HdfsTableSink.java#L353-L360"
+        }
+      ]
+    },
+    "impala:bloom-filters:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:aws-glue-catalog:v2": {
+      "level": "none",
+      "notes": "No AWS Glue Data Catalog integration: Impala 4.5.3 reaches Iceberg tables through the Hive Metastore (HiveCatalog), HadoopCatalog or HadoopTables only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergCatalogs.java: catalogs from hive-site.xml (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/catalog/iceberg/IcebergCatalogs.java#L69-L99"
+        }
+      ]
+    },
+    "impala:aws-glue-catalog:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:rest-catalog:v2": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 has no Iceberg REST catalog client: tables are reached through the Hive Metastore (HiveCatalog), HadoopCatalog or HadoopTables only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergCatalogs.java: catalogs from hive-site.xml (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/catalog/iceberg/IcebergCatalogs.java#L69-L99"
+        }
+      ]
+    },
+    "impala:rest-catalog:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:unity-catalog:v2": {
+      "level": "none",
+      "notes": "Not supported: Unity Catalog is reached through the Iceberg REST Catalog API. Impala 4.5.3 has no Iceberg REST catalog client: tables are reached through the Hive Metastore (HiveCatalog), HadoopCatalog or HadoopTables only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergCatalogs.java: catalogs from hive-site.xml (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/catalog/iceberg/IcebergCatalogs.java#L69-L99"
+        }
+      ]
+    },
+    "impala:unity-catalog:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:snowflake-horizon-catalog:v2": {
+      "level": "none",
+      "notes": "Not supported: Snowflake Horizon Catalog is reached through the Iceberg REST Catalog API. Impala 4.5.3 has no Iceberg REST catalog client: tables are reached through the Hive Metastore (HiveCatalog), HadoopCatalog or HadoopTables only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergCatalogs.java: catalogs from hive-site.xml (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/catalog/iceberg/IcebergCatalogs.java#L69-L99"
+        }
+      ]
+    },
+    "impala:snowflake-horizon-catalog:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:google-lakehouse:v2": {
+      "level": "none",
+      "notes": "Not supported: The Google Lakehouse runtime catalog is reached through the Iceberg REST Catalog API. Impala 4.5.3 has no Iceberg REST catalog client: tables are reached through the Hive Metastore (HiveCatalog), HadoopCatalog or HadoopTables only.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Impala 4.5.3 docs: Using Impala with Iceberg Tables",
+          "url": "https://github.com/apache/impala/blob/4.5.3/docs/topics/impala_iceberg.xml"
+        },
+        {
+          "label": "IcebergCatalogs.java: catalogs from hive-site.xml (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/fe/src/main/java/org/apache/impala/catalog/iceberg/IcebergCatalogs.java#L69-L99"
+        }
+      ]
+    },
+    "impala:google-lakehouse:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:variant-type:v2": {
+      "level": "none",
+      "notes": "Variant type is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "impala:variant-type:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded variant is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "impala:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:geometry-type:v2": {
+      "level": "none",
+      "notes": "Geometry type is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "impala:geometry-type:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "impala:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:unknown-type:v2": {
+      "level": "none",
+      "notes": "Unknown type is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "impala:unknown-type:v3": {
+      "level": "none",
+      "notes": "Not supported. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:lineage:v2": {
+      "level": "none",
+      "notes": "Row Lineage is a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "impala:lineage:v3": {
+      "level": "none",
+      "notes": "Not supported: Impala does not assign or preserve _row_id and _last_updated_sequence_number. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    },
+    "impala:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature; not applicable to V2",
+      "caveats": [],
+      "links": []
+    },
+    "impala:deletion-vectors:v3": {
+      "level": "none",
+      "notes": "Not supported: Impala does not write deletion vectors. Impala 4.5.3 cannot load Iceberg V3 tables: its bundled Iceberg Java library (1.3.1 in the default CDP-components build, 1.4.3 with USE_APACHE_COMPONENTS=true) supports table format versions 1 and 2 only, and loading V3 metadata fails with \"Cannot read unsupported version 3\".",
+      "caveats": [
+        "Puffin deletion vectors cannot be read either."
+      ],
+      "links": [
+        {
+          "label": "impala-config.sh: bundled Iceberg version (4.5.3)",
+          "url": "https://github.com/apache/impala/blob/4.5.3/bin/impala-config.sh#L238-L251"
+        },
+        {
+          "label": "Iceberg 1.4.3 TableMetadata: SUPPORTED_TABLE_FORMAT_VERSION = 2",
+          "url": "https://github.com/apache/iceberg/blob/apache-iceberg-1.4.3/core/src/main/java/org/apache/iceberg/TableMetadata.java#L53-L54"
+        }
+      ]
+    }
+  }
+}

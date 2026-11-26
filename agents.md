@@ -60,7 +60,7 @@ A React single-page application that displays an interactive compatibility matri
 │   │       │   └── external/snowflake/snowflake.json  # external volume (customer S3)
 │   │       └── oss/                  # duckdb/, clickhouse/, daft/, spark/,
 │   │                                 # spark-gluten/, spark-comet/, flink/,
-│   │                                 # trino/, pyiceberg/, polars/, doris/, databend/
+│   │                                 # trino/, impala/, pyiceberg/, polars/, doris/, databend/
 │   ├── utils/                # Pure utility functions
 │   │   ├── comparison.ts             # Comparison logic between platforms
 │   │   ├── filters.ts                # Filter + search logic (search matches engines first, else feature rows)
