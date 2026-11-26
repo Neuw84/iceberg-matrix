@@ -40,6 +40,8 @@ const PLATFORM_LOGOS: Record<string, string> = {
   "spark": "/logos/spark.svg",
   "spark-gluten": "/logos/spark.svg",
   "spark-comet": "/logos/spark.svg",
+  "iomete-spark3": "/logos/iomete.svg",
+  "iomete-spark4": "/logos/iomete.svg",
   "flink": "/logos/flink.svg",
   pyiceberg: "/logos/pyiceberg.svg",
   daft: "/logos/daft.svg",

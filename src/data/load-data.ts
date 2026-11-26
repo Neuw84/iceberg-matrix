@@ -48,6 +48,8 @@ import polars from "./platforms/oss/polars/polars.json";
 import spark from "./platforms/oss/spark/spark.json";
 import sparkGluten from "./platforms/oss/spark-gluten/spark-gluten.json";
 import sparkComet from "./platforms/oss/spark-comet/spark-comet.json";
+import iometeSpark3 from "./platforms/iomete/spark3/spark3.json";
+import iometeSpark4 from "./platforms/iomete/spark4/spark4.json";
 import flink from "./platforms/oss/flink/flink.json";
 import pyiceberg from "./platforms/oss/pyiceberg/pyiceberg.json";
 import doris from "./platforms/oss/doris/doris.json";
@@ -99,6 +101,8 @@ const postSnowflakeEngines: EngineFile[] = [
   doris,
   phoenixai,
   starrocks,
+  iometeSpark3,
+  iometeSpark4,
   databend,
   oracle26ai,
 ];

@@ -1,0 +1,731 @@
+{
+  "platforms": [
+    {
+      "id": "iomete-spark3",
+      "name": "IOMETE (Spark 3.5)",
+      "vendor": "IOMETE",
+      "category": "cloud",
+      "group": "3rd Party",
+      "docUrl": "https://iomete.com/resources/deployment/on-prem/release-notes/spark"
+    }
+  ],
+  "support": {
+    "iomete-spark3:position-deletes:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 writes Parquet position delete files for merge-on-read DELETE, UPDATE and MERGE INTO on V2 tables, and applies position deletes written by other engines.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg MERGE INTO, INSERT OVERWRITE and DELETE",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/writes"
+        },
+        {
+          "label": "Iceberg Spark writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "iomete-spark3:position-deletes:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 applies position delete files on V3 tables, but writes new merge-on-read deletes on V3 tables as deletion vectors.",
+      "caveats": [
+        "New V3 row-level deletes are written as deletion vectors, not position delete files"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Spark writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "iomete-spark3:equality-deletes:v2": {
+      "level": "none",
+      "notes": "IOMETE Spark 3.5.9 never writes equality deletes: Spark SQL DML uses copy-on-write or position deletes (deletion vectors on V3).",
+      "caveats": [
+        "Applying equality deletes written by other engines on read does not count as support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Spark writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "iomete-spark3:equality-deletes:v3": {
+      "level": "none",
+      "notes": "IOMETE Spark 3.5.9 never writes equality deletes: Spark SQL DML uses copy-on-write or position deletes (deletion vectors on V3).",
+      "caveats": [
+        "Applying equality deletes written by other engines on read does not count as support"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Spark writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "iomete-spark3:merge-on-read:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 supports merge-on-read DELETE, UPDATE and MERGE INTO, selected with write.delete.mode, write.update.mode and write.merge.mode, writing position delete files.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg MERGE INTO, INSERT OVERWRITE and DELETE",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/writes"
+        },
+        {
+          "label": "Iceberg Spark writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "iomete-spark3:merge-on-read:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 supports merge-on-read DELETE and UPDATE, selected with write.delete.mode, write.update.mode and write.merge.mode, writing deletion vectors (Puffin files).",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg MERGE INTO, INSERT OVERWRITE and DELETE",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/writes"
+        },
+        {
+          "label": "Iceberg Spark writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "iomete-spark3:copy-on-write:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 uses copy-on-write by default for DELETE, UPDATE and MERGE INTO, rewriting the affected data files.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg MERGE INTO, INSERT OVERWRITE and DELETE",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/writes"
+        },
+        {
+          "label": "Iceberg Spark writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "iomete-spark3:copy-on-write:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 uses copy-on-write by default for DELETE and UPDATE, rewriting the affected data files.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg MERGE INTO, INSERT OVERWRITE and DELETE",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/writes"
+        },
+        {
+          "label": "Iceberg Spark writes",
+          "url": "https://iceberg.apache.org/docs/latest/spark-writes/"
+        }
+      ]
+    },
+    "iomete-spark3:schema-evolution:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 adds, drops, renames and reorders columns and widens types with ALTER TABLE.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Spark DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/"
+        }
+      ]
+    },
+    "iomete-spark3:schema-evolution:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 adds, drops, renames and reorders columns and widens types with ALTER TABLE.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Spark DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/"
+        }
+      ]
+    },
+    "iomete-spark3:type-promotion:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 applies Iceberg's safe type promotions (int to long, float to double, wider decimal precision) with ALTER TABLE ... ALTER COLUMN ... TYPE.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Spark DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/"
+        }
+      ]
+    },
+    "iomete-spark3:type-promotion:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 applies Iceberg's safe type promotions (int to long, float to double, wider decimal precision) with ALTER TABLE ... ALTER COLUMN ... TYPE.",
+      "caveats": [
+        "The V3 date to timestamp promotion is rejected"
+      ],
+      "links": [
+        {
+          "label": "Iceberg Spark DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/"
+        }
+      ]
+    },
+    "iomete-spark3:column-default-values:v2": {
+      "level": "none",
+      "notes": "Column default values are a V3 feature.",
+      "caveats": []
+    },
+    "iomete-spark3:column-default-values:v3": {
+      "level": "none",
+      "notes": "IOMETE Spark 3.5.9 rejects DEFAULT column values on Iceberg tables: CREATE TABLE with a DEFAULT clause fails with UNSUPPORTED_FEATURE.TABLE_OPERATION, and the connector also refuses ALTER TABLE ... ADD COLUMN ... DEFAULT.",
+      "caveats": []
+    },
+    "iomete-spark3:table-creation:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 creates Iceberg tables with CREATE TABLE, CREATE TABLE AS SELECT and REPLACE TABLE AS SELECT, with the format version set in TBLPROPERTIES.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Spark DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/"
+        },
+        {
+          "label": "IOMETE Spark image release notes",
+          "url": "https://iomete.com/resources/deployment/on-prem/release-notes/spark"
+        }
+      ]
+    },
+    "iomete-spark3:table-creation:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 creates Iceberg tables with CREATE TABLE, CREATE TABLE AS SELECT and REPLACE TABLE AS SELECT, with the format version set in TBLPROPERTIES.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Spark DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/"
+        },
+        {
+          "label": "IOMETE Spark image release notes",
+          "url": "https://iomete.com/resources/deployment/on-prem/release-notes/spark"
+        }
+      ]
+    },
+    "iomete-spark3:hidden-partitioning:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 supports Iceberg hidden partitioning with the identity, year, month, day, hour, bucket and truncate transforms.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg partitioning",
+          "url": "https://iceberg.apache.org/docs/latest/partitioning/"
+        }
+      ]
+    },
+    "iomete-spark3:hidden-partitioning:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 supports Iceberg hidden partitioning with the identity, year, month, day, hour, bucket and truncate transforms.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg partitioning",
+          "url": "https://iceberg.apache.org/docs/latest/partitioning/"
+        }
+      ]
+    },
+    "iomete-spark3:partition-evolution:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 evolves partition specs with ALTER TABLE ... ADD, DROP and REPLACE PARTITION FIELD. IOMETE enables the Iceberg SQL extensions by default.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Spark DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/"
+        }
+      ]
+    },
+    "iomete-spark3:partition-evolution:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 evolves partition specs with ALTER TABLE ... ADD, DROP and REPLACE PARTITION FIELD. IOMETE enables the Iceberg SQL extensions by default.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg Spark DDL",
+          "url": "https://iceberg.apache.org/docs/latest/spark-ddl/"
+        }
+      ]
+    },
+    "iomete-spark3:multi-arg-transforms:v2": {
+      "level": "none",
+      "notes": "Multi-argument transforms are a V3 feature.",
+      "caveats": []
+    },
+    "iomete-spark3:multi-arg-transforms:v3": {
+      "level": "none",
+      "notes": "Spark SQL cannot define multi-argument partition transforms, so IOMETE Spark 3.5.9 cannot create them.",
+      "caveats": []
+    },
+    "iomete-spark3:time-travel:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 supports time travel with VERSION AS OF and TIMESTAMP AS OF in SQL, and reads branches and tags by name.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg time travel",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/time-travel"
+        },
+        {
+          "label": "IOMETE: Iceberg branching, tagging and time travel",
+          "url": "https://iomete.com/resources/reference/sql-quick-start/iceberg-advanced-features"
+        }
+      ]
+    },
+    "iomete-spark3:time-travel:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 supports time travel with VERSION AS OF and TIMESTAMP AS OF in SQL, and reads branches and tags by name.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg time travel",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/time-travel"
+        },
+        {
+          "label": "IOMETE: Iceberg branching, tagging and time travel",
+          "url": "https://iomete.com/resources/reference/sql-quick-start/iceberg-advanced-features"
+        }
+      ]
+    },
+    "iomete-spark3:table-maintenance:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 runs the Iceberg maintenance procedures: rewrite_data_files, rewrite_manifests, expire_snapshots and remove_orphan_files. IOMETE's Table Maintenance service (Beta) also runs them automatically.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg procedures",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/iceberg-procedures"
+        },
+        {
+          "label": "IOMETE: Iceberg table maintenance",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/maintenance"
+        },
+        {
+          "label": "IOMETE: automated Table Maintenance (Beta)",
+          "url": "https://iomete.com/resources/user-guide/table-maintenance/overview"
+        }
+      ]
+    },
+    "iomete-spark3:table-maintenance:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 runs the Iceberg maintenance procedures: rewrite_data_files, rewrite_manifests, expire_snapshots and remove_orphan_files. IOMETE's Table Maintenance service (Beta) also runs them automatically.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg procedures",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/iceberg-procedures"
+        },
+        {
+          "label": "IOMETE: Iceberg table maintenance",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/maintenance"
+        },
+        {
+          "label": "IOMETE: automated Table Maintenance (Beta)",
+          "url": "https://iomete.com/resources/user-guide/table-maintenance/overview"
+        }
+      ]
+    },
+    "iomete-spark3:branching-tagging:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 creates, replaces and drops branches and tags with the Iceberg SQL extensions, and reads and writes branches.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg branching, tagging and time travel",
+          "url": "https://iomete.com/resources/reference/sql-quick-start/iceberg-advanced-features"
+        },
+        {
+          "label": "IOMETE: Iceberg procedures",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/iceberg-procedures"
+        }
+      ]
+    },
+    "iomete-spark3:branching-tagging:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 creates, replaces and drops branches and tags with the Iceberg SQL extensions, and reads and writes branches.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg branching, tagging and time travel",
+          "url": "https://iomete.com/resources/reference/sql-quick-start/iceberg-advanced-features"
+        },
+        {
+          "label": "IOMETE: Iceberg procedures",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/iceberg-procedures"
+        }
+      ]
+    },
+    "iomete-spark3:read-support:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 reads Iceberg V2 tables, applying position deletes.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE Spark image release notes",
+          "url": "https://iomete.com/resources/deployment/on-prem/release-notes/spark"
+        }
+      ]
+    },
+    "iomete-spark3:read-support:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 reads Iceberg V3 tables, applying position deletes and deletion vectors.",
+      "caveats": [
+        "V3 tables with a VARIANT, GEOMETRY/GEOGRAPHY or nanosecond timestamp column cannot be read: Spark 3.5 has no such types"
+      ],
+      "links": [
+        {
+          "label": "IOMETE Spark image release notes",
+          "url": "https://iomete.com/resources/deployment/on-prem/release-notes/spark"
+        }
+      ]
+    },
+    "iomete-spark3:write-insert:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 supports INSERT INTO, INSERT OVERWRITE, DataFrameWriterV2 append and overwrite, CTAS and RTAS.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg MERGE INTO, INSERT OVERWRITE and DELETE",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/writes"
+        }
+      ]
+    },
+    "iomete-spark3:write-insert:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 supports INSERT INTO, INSERT OVERWRITE, DataFrameWriterV2 append and overwrite, CTAS and RTAS.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg MERGE INTO, INSERT OVERWRITE and DELETE",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/writes"
+        }
+      ]
+    },
+    "iomete-spark3:write-merge-update-delete:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 runs MERGE INTO, UPDATE and DELETE through the Iceberg SQL extensions, in copy-on-write or merge-on-read mode.",
+      "caveats": [
+        "The DataFrame mergeInto API needs Spark 4.0 or later; SQL MERGE INTO works"
+      ],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg MERGE INTO, INSERT OVERWRITE and DELETE",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/writes"
+        }
+      ]
+    },
+    "iomete-spark3:write-merge-update-delete:v3": {
+      "level": "partial",
+      "notes": "IOMETE Spark 3.5.9 runs UPDATE and DELETE on V3 tables through the Iceberg SQL extensions; MERGE INTO fails (see caveats).",
+      "caveats": [
+        "MERGE INTO on V3 tables fails in IOMETE Spark 3.5.9-v1 with a ClassCastException in IOMETE's row-level security rule; UPDATE and DELETE work, and V2 tables are not affected",
+        "The DataFrame mergeInto API needs Spark 4.0 or later; SQL MERGE INTO works",
+        "Measured 2026-11-26 on IOMETE Spark 3.5.9-v1 (Iceberg 1.12.0) against IOMETE's Iceberg REST catalog"
+      ],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg MERGE INTO, INSERT OVERWRITE and DELETE",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/writes"
+        }
+      ]
+    },
+    "iomete-spark3:catalog-integration:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 uses IOMETE's built-in Iceberg REST catalog and connects to external Iceberg REST, AWS Glue and Nessie catalogs.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Spark catalogs overview",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/overview"
+        },
+        {
+          "label": "IOMETE: Nessie catalog",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/external-nessie"
+        }
+      ]
+    },
+    "iomete-spark3:catalog-integration:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 uses IOMETE's built-in Iceberg REST catalog and connects to external Iceberg REST, AWS Glue and Nessie catalogs.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Spark catalogs overview",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/overview"
+        },
+        {
+          "label": "IOMETE: Nessie catalog",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/external-nessie"
+        }
+      ]
+    },
+    "iomete-spark3:statistics:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 writes column metrics (value, null and NaN counts, lower and upper bounds) to manifests by default, and computes Puffin NDV statistics with the compute_table_stats procedure.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg procedures",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/iceberg-procedures"
+        }
+      ]
+    },
+    "iomete-spark3:statistics:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 writes column metrics (value, null and NaN counts, lower and upper bounds) to manifests by default, and computes Puffin NDV statistics with the compute_table_stats procedure.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: Iceberg procedures",
+          "url": "https://iomete.com/resources/reference/iceberg-tables/iceberg-procedures"
+        }
+      ]
+    },
+    "iomete-spark3:bloom-filters:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 writes Parquet bloom filters for columns enabled with write.parquet.bloom-filter-enabled.column.<name> and uses them to skip row groups.",
+      "caveats": [
+        "Opt-in per column"
+      ]
+    },
+    "iomete-spark3:bloom-filters:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 writes Parquet bloom filters for columns enabled with write.parquet.bloom-filter-enabled.column.<name> and uses them to skip row groups.",
+      "caveats": [
+        "Opt-in per column"
+      ]
+    },
+    "iomete-spark3:aws-glue-catalog:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 connects to the AWS Glue Data Catalog as an external Iceberg catalog.",
+      "caveats": [
+        "Not measured on IOMETE: the suite's Glue test skips outside AWS"
+      ],
+      "links": [
+        {
+          "label": "IOMETE: AWS Glue catalog",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/external-glue"
+        }
+      ]
+    },
+    "iomete-spark3:aws-glue-catalog:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 connects to the AWS Glue Data Catalog as an external Iceberg catalog.",
+      "caveats": [
+        "Not measured on IOMETE: the suite's Glue test skips outside AWS"
+      ],
+      "links": [
+        {
+          "label": "IOMETE: AWS Glue catalog",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/external-glue"
+        }
+      ]
+    },
+    "iomete-spark3:rest-catalog:v2": {
+      "level": "full",
+      "notes": "IOMETE's managed catalog is an Iceberg REST catalog, and IOMETE Spark 3.5.9 also connects to external Iceberg REST catalogs.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: built-in Iceberg REST catalog",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/internal"
+        },
+        {
+          "label": "IOMETE: external Iceberg REST catalogs",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/external-rest"
+        }
+      ]
+    },
+    "iomete-spark3:rest-catalog:v3": {
+      "level": "full",
+      "notes": "IOMETE's managed catalog is an Iceberg REST catalog, and IOMETE Spark 3.5.9 also connects to external Iceberg REST catalogs.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "IOMETE: built-in Iceberg REST catalog",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/internal"
+        },
+        {
+          "label": "IOMETE: external Iceberg REST catalogs",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/external-rest"
+        }
+      ]
+    },
+    "iomete-spark3:unity-catalog:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 connects to Unity Catalog through its Iceberg REST endpoint, configured as an external REST catalog.",
+      "caveats": [
+        "Not measured against Unity Catalog"
+      ],
+      "links": [
+        {
+          "label": "IOMETE: external Iceberg REST catalogs",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/external-rest"
+        }
+      ],
+      "lastReviewed": "2026-11"
+    },
+    "iomete-spark3:unity-catalog:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 connects to Unity Catalog through its Iceberg REST endpoint, configured as an external REST catalog.",
+      "caveats": [
+        "Not measured against Unity Catalog"
+      ],
+      "links": [
+        {
+          "label": "IOMETE: external Iceberg REST catalogs",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/external-rest"
+        }
+      ],
+      "lastReviewed": "2026-11"
+    },
+    "iomete-spark3:snowflake-horizon-catalog:v2": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 connects to Snowflake Horizon Catalog through its Iceberg REST endpoint, configured as an external REST catalog.",
+      "caveats": [
+        "Not measured against Snowflake Horizon Catalog"
+      ],
+      "links": [
+        {
+          "label": "IOMETE: external Iceberg REST catalogs",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/external-rest"
+        }
+      ],
+      "lastReviewed": "2026-11"
+    },
+    "iomete-spark3:snowflake-horizon-catalog:v3": {
+      "level": "partial",
+      "notes": "IOMETE Spark 3.5.9 connects to Snowflake Horizon Catalog through its Iceberg REST endpoint, configured as an external REST catalog.",
+      "caveats": [
+        "Not measured against Snowflake Horizon Catalog",
+        "V3 table support depends on what Snowflake Horizon Catalog accepts"
+      ],
+      "links": [
+        {
+          "label": "IOMETE: external Iceberg REST catalogs",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/external-rest"
+        }
+      ],
+      "lastReviewed": "2026-11"
+    },
+    "iomete-spark3:google-lakehouse:v2": {
+      "level": "partial",
+      "notes": "IOMETE Spark 3.5.9 can reach Google's Lakehouse runtime catalog through its Iceberg REST endpoint, configured as an external REST catalog.",
+      "caveats": [
+        "Inferred from generic REST catalog support; not measured against Google Lakehouse"
+      ],
+      "links": [
+        {
+          "label": "IOMETE: external Iceberg REST catalogs",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/external-rest"
+        }
+      ],
+      "lastReviewed": "2026-11"
+    },
+    "iomete-spark3:google-lakehouse:v3": {
+      "level": "partial",
+      "notes": "IOMETE Spark 3.5.9 can reach Google's Lakehouse runtime catalog through its Iceberg REST endpoint, configured as an external REST catalog.",
+      "caveats": [
+        "Inferred from generic REST catalog support; not measured against Google Lakehouse"
+      ],
+      "links": [
+        {
+          "label": "IOMETE: external Iceberg REST catalogs",
+          "url": "https://iomete.com/resources/user-guide/spark-catalogs/external-rest"
+        }
+      ],
+      "lastReviewed": "2026-11"
+    },
+    "iomete-spark3:variant-type:v2": {
+      "level": "none",
+      "notes": "VARIANT is a V3 type.",
+      "caveats": []
+    },
+    "iomete-spark3:variant-type:v3": {
+      "level": "none",
+      "notes": "Spark 3.5 has no VARIANT type, so IOMETE Spark 3.5.9 cannot create or read VARIANT columns.",
+      "caveats": []
+    },
+    "iomete-spark3:shredded-variant:v2": {
+      "level": "none",
+      "notes": "Shredded VARIANT is a V3 feature.",
+      "caveats": []
+    },
+    "iomete-spark3:shredded-variant:v3": {
+      "level": "none",
+      "notes": "Spark 3.5 has no VARIANT type, so IOMETE Spark 3.5.9 cannot write or read shredded variants.",
+      "caveats": []
+    },
+    "iomete-spark3:geometry-type:v2": {
+      "level": "none",
+      "notes": "GEOMETRY and GEOGRAPHY are V3 types.",
+      "caveats": []
+    },
+    "iomete-spark3:geometry-type:v3": {
+      "level": "none",
+      "notes": "Spark 3.5 has no geospatial types, so IOMETE Spark 3.5.9 cannot create or read GEOMETRY or GEOGRAPHY columns.",
+      "caveats": []
+    },
+    "iomete-spark3:nanosecond-timestamps:v2": {
+      "level": "none",
+      "notes": "Nanosecond timestamps are a V3 type.",
+      "caveats": []
+    },
+    "iomete-spark3:nanosecond-timestamps:v3": {
+      "level": "none",
+      "notes": "Spark has no nanosecond timestamp type, so IOMETE Spark 3.5.9 cannot create or read TIMESTAMP_NS columns.",
+      "caveats": []
+    },
+    "iomete-spark3:unknown-type:v2": {
+      "level": "none",
+      "notes": "The unknown type is a V3 type.",
+      "caveats": []
+    },
+    "iomete-spark3:unknown-type:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 maps Spark's VOID (NullType) columns to the Iceberg V3 unknown type.",
+      "caveats": []
+    },
+    "iomete-spark3:lineage:v2": {
+      "level": "none",
+      "notes": "Row lineage is a V3 feature.",
+      "caveats": []
+    },
+    "iomete-spark3:lineage:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 assigns V3 row lineage and exposes the _row_id and _last_updated_sequence_number metadata columns on V3 tables.",
+      "caveats": [],
+      "links": [
+        {
+          "label": "Iceberg spec: row lineage",
+          "url": "https://iceberg.apache.org/spec/#row-lineage"
+        }
+      ]
+    },
+    "iomete-spark3:deletion-vectors:v2": {
+      "level": "none",
+      "notes": "Deletion vectors are a V3 feature.",
+      "caveats": []
+    },
+    "iomete-spark3:deletion-vectors:v3": {
+      "level": "full",
+      "notes": "IOMETE Spark 3.5.9 writes V3 binary deletion vectors (Puffin files) for merge-on-read DELETE and UPDATE, and applies them on read. It also applies deletion vectors written by IOMETE Spark 4.2.1.",
+      "caveats": [
+        "Measured 2026-11-26 on IOMETE Spark 3.5.9-v1 (Iceberg 1.12.0) against IOMETE's Iceberg REST catalog; cross-version reads checked for DELETE"
+      ],
+      "links": [
+        {
+          "label": "Iceberg spec: deletion vectors",
+          "url": "https://iceberg.apache.org/spec/#deletion-vectors"
+        }
+      ]
+    }
+  }
+}
