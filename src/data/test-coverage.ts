@@ -69,6 +69,10 @@ export const SUITES: SuiteConfig[] = [
   // Managed Spark runs the Spark suite on a serverless batch through
   // tests/gcp/managed_spark_entrypoint.py, against the Lakehouse catalog.
   { file: "tests/iceberg_feature_tests.py", platform: "google-dataproc", versions: BOTH, runs: "manual" },
+  // IOMETE runs the Spark suite as an IOMETE Spark job through
+  // tests/iomete/run_on_iomete.py, against the platform's own Iceberg REST catalog.
+  { file: "tests/iceberg_feature_tests.py", platform: "iomete-spark3", versions: BOTH, runs: "manual" },
+  { file: "tests/iceberg_feature_tests.py", platform: "iomete-spark4", versions: BOTH, runs: "manual" },
 ];
 
 /**
